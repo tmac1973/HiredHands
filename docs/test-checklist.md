@@ -175,3 +175,8 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | ff3efec | VFH-MINE-2 | SP | To do | Checked during normal play |
 | 2026-10-03 | ff3efec | VFH-MINE-3 | SP | To do | Checked during normal play |
 | 2026-10-03 | 32af2b2 | VFH-AZU-3 | SP | Pass | Azu stored the bars; 4 smelter.stuck recoveries in the log, all self-resolved |
+| 2026-10-03 | 32af2b2 | VFH-SMELT-4 | SP | Pass | |
+| 2026-10-03 | 32af2b2 | VFH-WORK-5 | SP | To do | Checked during normal play (WORK-5 needs AzuAutoStore off) |
+| 2026-10-03 | 32af2b2 | VFH-SMELT-1 | SP | To do | Checked during normal play (WORK-5 needs AzuAutoStore off) |
+| 2026-10-03 | 32af2b2 | VFH-SMELT-2 | SP | To do | Checked during normal play (WORK-5 needs AzuAutoStore off) |
+| 2026-10-03 | 32af2b2 | VFH-SMELT-3 | SP | To do | Checked during normal play (WORK-5 needs AzuAutoStore off) |
