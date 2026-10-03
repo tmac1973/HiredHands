@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using BepInEx;
 using Jotunn.Entities;
 using Jotunn.Managers;
@@ -123,9 +124,10 @@ namespace VikingsForHire.Config
         private static void Apply(string yaml, string source, string reason)
         {
             VfhData data;
+            List<string> filled;
             try
             {
-                data = DataYaml.Deserialize(yaml);
+                data = DataYaml.Deserialize(yaml, out filled);
             }
             catch (Exception ex)
             {
@@ -135,6 +137,10 @@ namespace VikingsForHire.Config
                 UseDefaults(reason);
                 return;
             }
+
+            if (filled.Count > 0)
+                VfhLog.I(LogCat.Data, "data.defaults_filled", ("source", source), ("n", filled.Count),
+                    ("keys", string.Join(",", filled.Take(20))), ("note", "settings missing from the file (older version?) use the shipped defaults"));
 
             List<string> errors = DataValidator.Validate(data);
             if (errors.Count > 0)

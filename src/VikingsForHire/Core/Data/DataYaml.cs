@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using YamlDotNet.Serialization;
@@ -25,7 +26,16 @@ namespace VikingsForHire.Core.Data
         public static string Serialize(VfhData data) => Header + Serializer.Serialize(data);
 
         /// <summary>Throws YamlDotNet exceptions on malformed input or unknown keys, so typos aren't silently ignored.</summary>
-        public static VfhData Deserialize(string yaml) => Deserializer.Deserialize<VfhData>(yaml) ?? new VfhData();
+        public static VfhData Deserialize(string yaml) => Deserialize(yaml, out _);
+
+        /// <summary>As above, with settings the file doesn't mention taken from the defaults (listed in <paramref name="filled"/>).</summary>
+        public static VfhData Deserialize(string yaml, out List<string> filled)
+        {
+            VfhData data = Deserializer.Deserialize<VfhData>(yaml) ?? new VfhData();
+            object? raw = Deserializer.Deserialize<object>(yaml);
+            filled = DataDefaults.FillMissing(data, DefaultData.Create(), raw);
+            return data;
+        }
 
         public static string Hash(string text)
         {
