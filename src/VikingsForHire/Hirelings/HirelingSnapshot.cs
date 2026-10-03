@@ -122,7 +122,7 @@ namespace VikingsForHire.Hirelings
 
         public int ValueCount => Floats.Count + Vec3s.Count + Quats.Count + Ints.Count + Longs.Count + Strings.Count + Bytes.Count;
 
-        /// <summary>Keys whose values differ between two snapshots, ignoring the given key hashes. Floats within 0.5 match.</summary>
+        /// <summary>Saved values (keys in this snapshot) that are missing or different in <paramref name="other"/>. Floats within 0.5 match.</summary>
         public List<string> Differences(HirelingSnapshot other, ISet<int> ignore)
         {
             var diffs = new List<string>();
@@ -212,24 +212,14 @@ namespace VikingsForHire.Hirelings
                 if (ignore.Contains(key))
                     continue;
                 bool inA = a.TryGetValue(key, out T va), inB = b.TryGetValue(key, out T vb);
-                // A fresh instance writes some runtime state at its default (0, empty); that isn't a lost value.
-                if (!inA && inB && IsDefault(vb))
+                // Values a fresh instance creates for itself (physics/animation runtime state) weren't in the snapshot,
+                // so they can't have been lost. The test is that everything saved came back unchanged.
+                if (!inA)
                     continue;
                 if (!inA || !inB || !same(va, vb))
                     diffs.Add($"{type}:{HirelingKeyNames.Name(key)}={(inA ? Show(va) : "missing")}/{(inB ? Show(vb) : "missing")}");
             }
         }
-
-        private static bool IsDefault<T>(T value) => value switch
-        {
-            float f => f == 0f,
-            int i => i == 0,
-            long l => l == 0L,
-            string str => str.Length == 0,
-            Vector3 v => v == Vector3.zero,
-            byte[] bytes => bytes.Length == 0,
-            _ => false,
-        };
 
         private static string Show<T>(T value) => value is byte[] bytes ? $"{bytes.Length}b" : value?.ToString() ?? "null";
 
