@@ -180,3 +180,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | 32af2b2 | VFH-SMELT-1 | SP | To do | Checked during normal play (WORK-5 needs AzuAutoStore off) |
 | 2026-10-03 | 32af2b2 | VFH-SMELT-2 | SP | To do | Checked during normal play (WORK-5 needs AzuAutoStore off) |
 | 2026-10-03 | 32af2b2 | VFH-SMELT-3 | SP | To do | Checked during normal play (WORK-5 needs AzuAutoStore off) |
+| 2026-10-03 | 1f47df2 | VFH-CFG-1 | D | Pass | Server cfg RequiredPieces 25 and yml Wood 30 reached the client |
