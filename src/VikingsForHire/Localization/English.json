@@ -78,10 +78,10 @@
   "vfh_upgrade_timeout": "The upgrade didn't go through: your materials were returned",
   "vfh_board_storage": "Hiring Board funds",
   "vfh_board_storage_reject": "Only food and coins can go on the hiring board",
-  "vfh_base_need_workbench": "Hiring board needs a workbench within $3m",
-  "vfh_base_need_bed": "Hiring board needs a bed within $3m",
-  "vfh_base_need_pieces": "Hiring board needs $2 built pieces within $3m ($1/$2)",
-  "vfh_base_board_too_close": "Another hiring board is $1m away (min $2m)",
+  "vfh_base_need_workbench": "Hiring board needs a workbench within $3 m",
+  "vfh_base_need_bed": "Hiring board needs a bed within $3 m",
+  "vfh_base_need_pieces": "Hiring board needs $2 built pieces within $3 m ($1/$2)",
+  "vfh_base_board_too_close": "Another hiring board is $1 m away (min $2 m)",
   "vfh_base_world_board_limit": "This world already has $1 hiring boards (max $2)",
   "vfh_base_checking": "Checking for other hiring boards…"
 }
