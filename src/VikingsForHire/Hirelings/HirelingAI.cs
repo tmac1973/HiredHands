@@ -134,7 +134,27 @@ namespace VikingsForHire.Hirelings
             return true;
         }
 
-        public bool WalkTo(float dt, Vector3 point, float stopDistance, bool run) => MoveTo(dt, point, stopDistance, run);
+        private float _noPathLogAt;
+
+        /// <summary>
+        /// Pathfinds to a point. When the pathfinder has no route (vanilla then just stops: e.g. the hireling is wedged
+        /// between pieces, off the nav mesh), it walks straight there steering round obstacles instead of standing still.
+        /// </summary>
+        public bool WalkTo(float dt, Vector3 point, float stopDistance, bool run)
+        {
+            bool arrived = MoveTo(dt, point, stopDistance, run);
+            if (!arrived || FoundPath() || Utils.DistanceXZ(point, transform.position) <= Mathf.Max(stopDistance, run ? 1f : 0.5f))
+                return arrived;
+            if (Time.time - _noPathLogAt > 10f)
+            {
+                _noPathLogAt = Time.time;
+                VfhLog.D(LogCat.AI, "ai.no_path", ("hid", Hireling.Hid), ("from", transform.position), ("to", point));
+            }
+            return MoveAndAvoid(dt, point, stopDistance, run);
+        }
+
+        /// <summary>Whether the pathfinder has a full route from here to the point.</summary>
+        public bool CanReach(Vector3 point) => HavePath(point);
 
         public void Wander(float dt, Vector3 center) => RandomMovement(dt, center, snapToGround: true);
 

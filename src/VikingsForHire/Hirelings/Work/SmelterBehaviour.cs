@@ -32,11 +32,15 @@ namespace VikingsForHire.Hirelings.Work
         private float _stepStarted;
         private float _bestDistance;
         private float _progressAt;
+        private Component? _spotFor;
+        private Vector3 _spotTarget;
+        private Vector3 _spot;
         private float _nextItemAt;
         private Container? _chest;
         private Dictionary<string, int> _fetch = new();
         private Smelter? _station;
         private readonly List<LoadTask> _loads = new();
+        private int _loadedOfTask;
         private readonly HashSet<Smelter> _claimed = new();
         private bool _emptied;
 
@@ -216,6 +220,7 @@ namespace VikingsForHire.Hirelings.Work
             if (h.CargoInventory!.CountItems(shared) <= 0)
             {
                 _loads.RemoveAt(0);
+                _loadedOfTask = 0;
                 return;
             }
             h.CargoInventory.RemoveItem(shared, 1);
@@ -223,6 +228,7 @@ namespace VikingsForHire.Hirelings.Work
                 s.m_nview.InvokeRPC("RPC_AddFuel");
             else
                 s.m_nview.InvokeRPC("RPC_AddOre", task.Prefab, false);
+            _loadedOfTask++;
             int left = task.Amount - 1;
             if (left > 0)
             {
@@ -231,7 +237,8 @@ namespace VikingsForHire.Hirelings.Work
             }
             _loads.RemoveAt(0);
             VfhLog.I(LogCat.Smelter, "smelter.loaded", ("hid", h.Hid), ("station", Utils.GetPrefabName(s.gameObject)), ("pos", s.transform.position),
-                ("item", task.Prefab), ("fuel", task.IsFuel), ("n", task.Amount - left));
+                ("item", task.Prefab), ("fuel", task.IsFuel), ("n", _loadedOfTask));
+            _loadedOfTask = 0;
             // Give the station's owner time to apply the RPCs before the next survey reads its fill, so a remote
             // station isn't topped up twice from a stale count (vanilla doesn't refuse ore past max).
             if (_loads.Count == 0)
@@ -318,11 +325,33 @@ namespace VikingsForHire.Hirelings.Work
                 _progressAt = Time.time; // working at it counts as progress
                 return true;
             }
+            if (_spotFor != obj || _spotTarget != target)
+            {
+                _spotFor = obj;
+                _spotTarget = target;
+                _spot = PickSpot(ai, obj, target, half);
+            }
+            ai.WalkTo(dt, _spot, 0.5f, run: false);
+            return false;
+        }
+
+        // A spot just outside the object: the side facing us if the pathfinder can get there, else another side it can
+        // reach (nearest first), else the facing side anyway (WalkTo then walks straight at it).
+        private static Vector3 PickSpot(HirelingAI ai, Component obj, Vector3 target, float half)
+        {
             Vector3 away = ai.transform.position - target;
             away.y = 0f;
-            Vector3 spot = target + (away.sqrMagnitude > 0.01f ? away.normalized : obj.transform.forward) * (half + 1f);
-            ai.WalkTo(dt, spot, 0.5f, run: false);
-            return false;
+            Vector3 facing = away.sqrMagnitude > 0.01f ? away.normalized : obj.transform.forward;
+            var spots = Enumerable.Range(0, 8).Select(i => Quaternion.Euler(0f, i * 45f, 0f) * facing)
+                .Select(d => target + d * (half + 1f)).ToList();
+            foreach (Vector3 spot in spots.OrderBy(p => Vector3.Distance(p, ai.transform.position)))
+            {
+                Vector3 grounded = spot;
+                grounded.y = ZoneSystem.instance.GetSolidHeight(spot);
+                if (ai.CanReach(grounded))
+                    return grounded;
+            }
+            return spots[0];
         }
 
         // Half the widest horizontal extent of the object's solid colliders.
@@ -351,6 +380,7 @@ namespace VikingsForHire.Hirelings.Work
             _step = step;
             _stepStarted = Time.time;
             _bestDistance = float.MaxValue;
+            _spotFor = null;
             _progressAt = Time.time;
             _nextItemAt = 0f;
             h.SetActivity(status);
@@ -364,6 +394,7 @@ namespace VikingsForHire.Hirelings.Work
             _chest = null;
             _station = null;
             _loads.Clear();
+            _loadedOfTask = 0;
             _nextSurvey = Time.time + pause;
         }
 
