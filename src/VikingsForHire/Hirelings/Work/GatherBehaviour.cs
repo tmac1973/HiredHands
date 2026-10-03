@@ -84,7 +84,13 @@ namespace VikingsForHire.Hirelings.Work
             }
 
             h.SetActivity(_profile.Status);
-            Vector3 at = _target.transform.position;
+            if (_profile.Aim(_target, ai.transform.position, out Vector3 at) == null)
+            {
+                VfhLog.T(LogCat.Work, "work.target_done", ("hid", h.Hid), ("reason", "nothing left to hit"));
+                Reservations.Release(_target, h.Hid);
+                _target = null;
+                return;
+            }
             float stand = _profile.StandOff(_target);
             // A tree with a planned fall direction is worked from the opposite side, so the hit pushes it that way.
             Vector3 spot = _fellDir is Vector3 fell ? at - fell * stand : at;
@@ -132,10 +138,12 @@ namespace VikingsForHire.Hirelings.Work
                 m_toolTier = (short)h.ToolTier,
                 m_dir = _fellDir ?? Flat(target.transform.position - h.transform.position).normalized,
             };
-            Collider? col = target.GetComponentInChildren<Collider>();
-            hit.m_point = col != null ? col.ClosestPoint(h.transform.position + Vector3.up) : target.transform.position + Vector3.up;
+            // Bounds, not Collider.ClosestPoint: that only works on convex colliders and warns on rock meshes.
+            Collider? col = _profile.Aim(target, h.transform.position, out Vector3 aim);
+            hit.m_hitCollider = col;
+            hit.m_point = col != null ? col.bounds.ClosestPoint(h.transform.position + Vector3.up) : aim + Vector3.up;
             hit.SetAttacker(h.Humanoid);
-            _anchor = target.transform.position;
+            _anchor = col != null ? hit.m_point : target.transform.position; // where the drops land (a rock's chunk, not its centre)
             HarvestPatches.Direct = true;
             try
             {

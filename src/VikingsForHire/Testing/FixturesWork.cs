@@ -14,7 +14,7 @@ namespace VikingsForHire.Testing
     /// <summary>Phase 08: trees, tagged chests and the checks the woodcutter tests read.</summary>
     internal static class FixturesWork
     {
-        private const string TagKey = "vfh_tag";
+        internal const string TagKey = "vfh_tag";
 
         public static void Register()
         {
@@ -45,7 +45,7 @@ namespace VikingsForHire.Testing
             TestHarness.RegisterCheck("reservations_unique", "- no harvest target is claimed by two hirelings", _ => Reservations.AllUnique() ? "true" : "false");
         }
 
-        private static HiringBoard Board() =>
+        internal static HiringBoard Board() =>
             HiringBoard.Nearest(Player.m_localPlayer.transform.position, 60f) ?? throw new InvalidOperationException("no hiring board within 60m");
 
         private static IEnumerator BoardLevel(string[] args)
@@ -138,7 +138,7 @@ namespace VikingsForHire.Testing
             yield return null;
         }
 
-        private static GameObject Spawn(string prefab, Vector3 pos, string tag)
+        internal static GameObject Spawn(string prefab, Vector3 pos, string tag)
         {
             pos.y = ZoneSystem.instance.GetGroundHeight(pos);
             GameObject go = Object.Instantiate(ZNetScene.instance.GetPrefab(prefab) ?? throw new ArgumentException($"no prefab {prefab}"), pos, Quaternion.identity);
@@ -149,7 +149,7 @@ namespace VikingsForHire.Testing
             return go;
         }
 
-        private static GameObject? FindTagged(string tag) =>
+        internal static GameObject? FindTagged(string tag) =>
             ZNetScene.instance.m_instances.Values.FirstOrDefault(v => v != null && v.GetZDO() != null && v.GetZDO().GetString(TagKey) == tag)?.gameObject;
 
         private static Container Tagged(string tag) =>

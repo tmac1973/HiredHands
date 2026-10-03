@@ -147,3 +147,12 @@ tagged, and `clear_area` removes it.
 | fixture `chest <tag> [item count]…` / `fill_chest <tag> <item>` | A tagged chest with contents / fill it up |
 | fixture `deliver_now` | Sends the hireling from your last contract to deliver what it carries |
 | selector `hireling posted <field>` | The hireling from your last contract |
+
+## Phase 09
+
+| Check / fixture | |
+|---|---|
+| fixture `deposits <prefab> <n> <distance> [tag]` | Rocks or deposits behind the board (e.g. `rock4_copper`, `MineRock_Tin`, `silvervein`) |
+| fixture `terrain_baseline` / check `terrain_unchanged` | Count terrain edits around the board, then check none were added |
+| check `deposit_intact <tag>` | A tagged deposit hasn't taken any damage |
+| check `deposits_left <prefab>` | How many of these (whole or chunked) are within 60 m of the board |

@@ -43,3 +43,10 @@ Add the Miner on top of the phase 08 gathering framework. Miners break rocks, or
 
 ## Rollback
 Revert the commit. Miner hirelings fall back to idle + combat.
+
+## As built
+- Chunk targeting lives in `MinerProfile.Aim` (no separate `MineRock5Targeting.cs`): the nearest chunk with health left that isn't buried (top more than 0.3 m under the ground) or out of reach (bottom more than 3.5 m above it). The hit carries that chunk's collider, which MineRock/MineRock5 need to know which chunk was struck.
+- Unbroken deposits (`rock4_copper`, `Rock_3`, `silvervein`…) are Destructibles that become their `_frac` MineRock5 on the first hit; their yield is read from that prefab.
+- Rocks with a player piece within `MinerSafetyDistanceFromPieces` (3 m) of their edge are skipped, since they may be holding a build up.
+- Ore deposits are mined before plain stone.
+- Miners need a level 2 board (`jobs.Miner.minBoardLevel`) and work twice the board's radius.

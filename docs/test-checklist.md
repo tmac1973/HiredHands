@@ -93,10 +93,16 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-DLV-2 Overflow | SP | `vfh_t_deliver2` | Open ground | `pass=true`; wood piles up in front of the board |
 | VFH-WORK-1 Tree safety | SP | `vfh_t_work1` | Open ground | `pass=true` |
 | VFH-WORK-5 Logs and felling direction | SP | — | A woodcutter with a few trees, some a short way from a wall | Each felled tree falls away from buildings; it splits and clears the fallen log and the stump (picking up the wood) before felling the next tree |
-| VFH-WORK-3 Tiers | SP | — | A level 1 woodcutter near oaks and beeches; then promote to level 3 (bronze axe) | Level 1 skips oaks; level 3 cuts them, and chops faster |
+| VFH-WORK-3W Woodcutter tiers | SP | — | A level 1 woodcutter near oaks and beeches; then promote to level 3 (bronze axe) | Level 1 skips oaks; level 3 cuts them, and chops faster |
 | VFH-WORK-4 Two woodcutters | SP | — | Two woodcutters on one board with a few trees | They work different trees |
 | VFH-AZU-2 Pile vs AzuAutoStore | SP | — | AzuAutoStore on; overflow on the pile | Azu may store the pile into chests; the woodcutter never picks the pile back up or loops |
 | VFH-WORK-2 Chest in use | D | — | Client B holds the wood chest open while the woodcutter delivers | It skips that chest (other chests or the pile), no items lost or doubled |
+| VFH-WORK-3 Copper, no digging | SP | `vfh_t_work3` | Open ground (a few minutes) | `pass=true`; it breaks the copper deposit into chunks, mines them, puts ore in chest A and stone in chest B, and the ground has no holes |
+| VFH-TIER-1 Pickaxe tier | SP | `vfh_t_tier1` | Open ground | `pass=true`; the silver vein is never hit ("too hard" never shows), the tin is mined |
+| VFH-MINE-1 Base safety | SP | — | A rock touching a wall or floor inside a miner's radius | The miner leaves that rock alone; `work.no_targets` names the piece if it's the only rock |
+| VFH-MINE-2 Buried copper | SP | — | A natural copper deposit, partly underground | The miner takes the exposed chunks and leaves the buried ones (it never digs); dig them free and it carries on |
+| VFH-MINE-3 Terrain toggle | SP | — | `MinerProtectsTerrain=false`, miner next to a deposit | Its swings now dent the ground; set it back to true afterwards |
+| VFH-WORK-4 Copper in MP | D | — | Two clients watch a miner work copper | Chunk breaks show on both; ore counts in the chest match |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.
@@ -153,3 +159,6 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | 1806a7f | VFH-DLV-2 | SP | Pass | First try failed: a wood chest of the player's own was inside the 40 m radius and took the wood; passed far from it |
 | 2026-10-03 | 1806a7f | VFH-WORK-5 | SP | Pass (partly) | Felling and log/stump order seen working; rolled-log follow (later build) not reproduced, accepted on trust since logs rarely roll far |
 | 2026-10-03 | 0dab4b2 | VFH-WORK-1 | SP | Pass | |
+| 2026-10-03 | 0dab4b2 | VFH-WORK-3W | SP | To do | Checked during normal play |
+| 2026-10-03 | 0dab4b2 | VFH-WORK-4 | SP | To do | Checked during normal play |
+| 2026-10-03 | 0dab4b2 | VFH-AZU-2 | SP | To do | Checked during normal play |

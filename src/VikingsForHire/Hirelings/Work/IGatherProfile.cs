@@ -29,6 +29,12 @@ namespace VikingsForHire.Hirelings.Work
         /// </summary>
         float ExtraReach(Component target);
 
+        /// <summary>
+        /// The collider a swing from <paramref name="from"/> hits (a rock's nearest intact chunk, a tree's trunk) and
+        /// the point to walk to and face. Null when nothing hittable is left.
+        /// </summary>
+        Collider? Aim(Component target, Vector3 from, out Vector3 point);
+
         /// <summary>How close to stand while working on it.</summary>
         float StandOff(Component target);
 
