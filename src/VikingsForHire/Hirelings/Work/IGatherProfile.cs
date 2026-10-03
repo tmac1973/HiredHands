@@ -11,8 +11,14 @@ namespace VikingsForHire.Hirelings.Work
         /// <summary>Harvestable things within <paramref name="radius"/> of <paramref name="center"/> (the board).</summary>
         IEnumerable<Component> Candidates(Vector3 center, float radius);
 
-        /// <summary>Still worth harvesting: alive, within the tool's tier, and allowed (e.g. not next to buildings).</summary>
+        /// <summary>Still worth harvesting: alive and within the tool's tier. Cheap; checked every tick.</summary>
         bool IsValid(Component target, Hireling hireling, out string reason);
+
+        /// <summary>
+        /// Checked once when picking a target: is it safe to harvest (e.g. a tree can't fall on buildings)? For a tree,
+        /// <paramref name="fellDir"/> is the direction it must be felled; the hireling stands on the opposite side.
+        /// </summary>
+        bool Plan(Component target, out Vector3? fellDir, out string reason);
 
         /// <summary>How close to stand while working on it.</summary>
         float StandOff(Component target);

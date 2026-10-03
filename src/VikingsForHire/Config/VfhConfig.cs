@@ -41,6 +41,7 @@ namespace VikingsForHire.Config
         // 4 - Work
         public static ConfigEntry<float> AiScanIntervalSeconds = null!;
         public static ConfigEntry<float> TreeSafetyDistanceFromPieces = null!;
+        public static ConfigEntry<float> TreeFallCorridorHalfWidth = null!;
         public static ConfigEntry<bool> MinerProtectsTerrain = null!;
         public static ConfigEntry<float> SmelterRefillThreshold = null!;
         public static ConfigEntry<int> KeepMinimumInChest = null!;
@@ -104,7 +105,8 @@ namespace VikingsForHire.Config
             DropPileOffset = Synced(h, "DropPileOffset", 2.5f, "Distance (m) in front of the board where overflow items are dropped.");
 
             AiScanIntervalSeconds = Synced(w, "AiScanIntervalSeconds", 2f, "Seconds between hireling target/threat scans.");
-            TreeSafetyDistanceFromPieces = Synced(w, "TreeSafetyDistanceFromPieces", 6f, "Woodcutters skip trees with a player-built piece this close (m).");
+            TreeSafetyDistanceFromPieces = Synced(w, "TreeSafetyDistanceFromPieces", 6f, "Woodcutters skip trees with a player-built piece this close to the trunk (m).");
+            TreeFallCorridorHalfWidth = Synced(w, "TreeFallCorridorHalfWidth", 4f, "Woodcutters fell a tree only in a direction where no player-built piece lies within the tree's height and this far either side of the fall line (m). If no direction is clear, the tree is left standing.");
             MinerProtectsTerrain = Synced(w, "MinerProtectsTerrain", true, "Hireling pickaxe swings never dig the ground.");
             SmelterRefillThreshold = Synced(w, "SmelterRefillThreshold", 0.5f, "Smelters refill a station when its ore or fuel is below this fraction of max.");
             KeepMinimumInChest = Synced(w, "KeepMinimumInChest", 0, "Smelters leave at least this many of an item in each chest.");

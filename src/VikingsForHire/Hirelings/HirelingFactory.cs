@@ -23,7 +23,7 @@ namespace VikingsForHire.Hirelings
                 Job = job,
                 Level = Mathf.Clamp(level, 1, DataStore.Current.HirelingLevels.Count),
                 Stance = StanceRules.Default(job),
-                Radius = board != null ? new LevelRules(DataStore.Current).MaxWorkRadius(board.Level) : 20f,
+                Radius = board != null ? new LevelRules(DataStore.Current).MaxWorkRadius(board.Level, job) : 20f,
                 HomeX = home.x, HomeY = home.y, HomeZ = home.z,
                 Mode = HirelingMode.Idle,
             };

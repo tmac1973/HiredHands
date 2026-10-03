@@ -49,6 +49,7 @@ namespace VikingsForHire.UI
             int count = board.Zdo != null ? BoardRosterOps.Read(board.Zdo).Count : 0;
             int cap = rules.HirelingCap(board.Level);
             bool affordable = fee.CoveredBy(funds);
+            bool unlocked = rules.JobUnlocked(board.Level, job);
 
             PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_fee") + "  " + Price(fee), 0f, -335f, 600f, 18, color: affordable ? PanelUi.Good : PanelUi.Bad);
             PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_upkeep") + "  " + Price(upkeep), 0f, -365f, 600f, 18);
@@ -58,7 +59,9 @@ namespace VikingsForHire.UI
 
             Button post = PanelUi.Button(root, "$vfh_contract_post", 0f, -475f, 240f, 44f,
                 () => BoardContracts.Post(board, job, _level, _radius, stance));
-            post.interactable = affordable && count < cap;
+            post.interactable = affordable && count < cap && unlocked;
+            if (!unlocked)
+                PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_job_locked", rules.MinBoardLevel(job).ToString()), 0f, -515f, 600f, 18, color: PanelUi.Bad);
         }
 
         public static string Price(Cost c) =>
@@ -68,7 +71,7 @@ namespace VikingsForHire.UI
         {
             var rules = new LevelRules(DataStore.Current);
             _level = Mathf.Clamp(_level, 1, rules.MaxHirelingLevel(board.Level));
-            _radius = Mathf.Clamp(_radius, LevelRules.MinWorkRadius, rules.MaxWorkRadius(board.Level));
+            _radius = Mathf.Clamp(_radius, LevelRules.MinWorkRadius, rules.MaxWorkRadius(board.Level, Jobs[_job]));
             int stances = StanceRules.Allowed(Jobs[_job]).Count;
             if (_stance < 0 || _stance >= stances)
                 _stance = IndexOf(StanceRules.Allowed(Jobs[_job]), StanceRules.Default(Jobs[_job]));

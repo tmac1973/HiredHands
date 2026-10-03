@@ -52,6 +52,8 @@ namespace VikingsForHire.Board
                 {
                     if (op.Level < 1 || op.Level > rules.MaxHirelingLevel(boardLevel))
                         return Done(zdo, null, boardId, op, new OpResult(OpOutcome.BadLevel, "$vfh_op_badlevel"));
+                    if (!rules.JobUnlocked(boardLevel, op.Job))
+                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.BadLevel, "$vfh_op_job_locked"));
                     if (!roster.HasRoom(rules.HirelingCap(boardLevel)))
                         return Done(zdo, null, boardId, op, new OpResult(OpOutcome.CapReached, "$vfh_op_cap"));
                     var wallet = new BoardLedger.Wallet(zdo);
@@ -66,7 +68,7 @@ namespace VikingsForHire.Board
                         Name = op.Name,
                         Job = op.Job,
                         Level = op.Level,
-                        Radius = rules.ClampRadius(boardLevel, op.Radius),
+                        Radius = rules.ClampRadius(boardLevel, op.Job, op.Radius),
                         Stance = StanceRules.IsAllowed(op.Job, op.Stance) ? op.Stance : StanceRules.Default(op.Job),
                         Snapshot = op.Snapshot,
                         ArriveAt = op.Free ? now : now + UnityEngine.Random.Range(min, Mathf.Max(min, max)),
@@ -91,7 +93,8 @@ namespace VikingsForHire.Board
                 }
                 case RosterOpType.Edit:
                 {
-                    OpOutcome o = roster.Edit(op.Hid, rules.ClampRadius(boardLevel, op.Radius), op.Stance);
+                    JobType editJob = roster.ByHid(op.Hid)?.Job ?? JobType.GuardMelee;
+                    OpOutcome o = roster.Edit(op.Hid, rules.ClampRadius(boardLevel, editJob, op.Radius), op.Stance);
                     if (o != OpOutcome.Ok)
                         return Done(zdo, null, boardId, op, new OpResult(o, "$vfh_op_failed"));
                     ContractEntry e = roster.ByHid(op.Hid)!;

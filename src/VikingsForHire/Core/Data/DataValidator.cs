@@ -43,6 +43,8 @@ namespace VikingsForHire.Core.Data
                     continue;
                 }
                 if (j.CostMult < 0 || j.WorkerCombatFactor < 0) errors.Add($"jobs.{job} has a negative multiplier");
+                if (j.MinBoardLevel < 1 || j.MinBoardLevel > Levels) errors.Add($"jobs.{job}.minBoardLevel must be 1-{Levels}");
+                if (j.WorkRadiusMultiplier <= 0) errors.Add($"jobs.{job}.workRadiusMultiplier must be > 0");
                 CheckSequence(errors, $"jobs.{job}.gear", j.Gear.Select(g => g.Level).ToList(), Levels);
                 if (job == JobType.Smelter && j.Stations.Count == 0) errors.Add("jobs.Smelter.stations is empty");
             }

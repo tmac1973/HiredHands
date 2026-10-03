@@ -68,8 +68,9 @@ namespace VikingsForHire.Testing
                 Component? target = (Component?)tree.GetComponent<TreeBase>() ?? tree.GetComponent<Destructible>();
                 if (target != null)
                 {
-                    bool safe = WoodcutterProfile.IsSafe(target, out string reason);
-                    VfhLog.I(LogCat.Test, "fixture.tree", ("i", i), ("height", WoodcutterProfile.Height(target)), ("safe", safe), ("reason", reason));
+                    bool safe = WoodcutterProfile.PlanFelling(target, out Vector3? fell, out string reason);
+                    VfhLog.I(LogCat.Test, "fixture.tree", ("i", i), ("height", WoodcutterProfile.Height(target)), ("safe", safe),
+                        ("fellDir", fell?.ToString() ?? "any"), ("reason", reason));
                 }
             }
             VfhLog.I(LogCat.Test, "fixture.trees", ("prefab", prefab), ("n", n), ("dist", dist));

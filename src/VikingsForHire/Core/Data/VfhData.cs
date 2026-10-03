@@ -78,6 +78,12 @@ namespace VikingsForHire.Core.Data
         [YamlMember(Description = "Fraction of GuardDamageMult this job fights with (guards use 1).")]
         public float WorkerCombatFactor { get; set; } = 1f;
 
+        [YamlMember(Description = "Lowest board level that can post this job (e.g. 2 for miners: no pickaxe before Eikthyr).")]
+        public int MinBoardLevel { get; set; } = 1;
+
+        [YamlMember(Description = "Multiplier on the board level's maxWorkRadius for this job. Gatherers use a bigger area so they don't strip it in a few days. Ground much more than 100-120 m from the nearest player isn't loaded, so radii past that have no effect.")]
+        public float WorkRadiusMultiplier { get; set; } = 1f;
+
         [YamlMember(Description = "Items this job picks up while working.")]
         public List<string> PickupItems { get; set; } = new();
 

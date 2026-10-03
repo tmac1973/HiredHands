@@ -30,6 +30,7 @@ namespace VikingsForHire.Hirelings.Work
         private float _rescanAt;
         private float _approachStarted;
         private ItemDrop? _pickup;
+        private Vector3? _fellDir;
 
         public GatherBehaviour(IGatherProfile profile) => _profile = profile;
 
@@ -84,7 +85,10 @@ namespace VikingsForHire.Hirelings.Work
             h.SetActivity(_profile.Status);
             Vector3 at = _target.transform.position;
             float stand = _profile.StandOff(_target);
-            if (Utils.DistanceXZ(ai.transform.position, at) > stand + 0.6f)
+            // A tree with a planned fall direction is worked from the opposite side, so the hit pushes it that way.
+            Vector3 spot = _fellDir is Vector3 fell ? at - fell * stand : at;
+            float stop = _fellDir != null ? 0.5f : stand;
+            if (Utils.DistanceXZ(ai.transform.position, spot) > stop + 0.6f)
             {
                 if (Time.time - _approachStarted > ApproachGiveUp)
                 {
@@ -94,7 +98,7 @@ namespace VikingsForHire.Hirelings.Work
                     _target = null;
                     return;
                 }
-                ai.WalkTo(dt, at, stand, run: false);
+                ai.WalkTo(dt, spot, stop, run: false);
                 return;
             }
 
@@ -125,7 +129,7 @@ namespace VikingsForHire.Hirelings.Work
             {
                 m_damage = _profile.SwingDamage(h.ToolDamage, h.LevelData.GatherMult),
                 m_toolTier = (short)h.ToolTier,
-                m_dir = (target.transform.position - h.transform.position).normalized,
+                m_dir = _fellDir ?? Flat(target.transform.position - h.transform.position).normalized,
             };
             Collider? col = target.GetComponentInChildren<Collider>();
             hit.m_point = col != null ? col.ClosestPoint(h.transform.position + Vector3.up) : target.transform.position + Vector3.up;
@@ -157,7 +161,8 @@ namespace VikingsForHire.Hirelings.Work
                 candidates++;
                 string? skip = Reservations.IsSkipped(c) ? "skipped after a failed approach"
                     : Reservations.IsReservedByOther(c, h.Hid) ? "claimed by another hireling"
-                    : !_profile.IsValid(c, h, out string reason) ? reason : null;
+                    : !_profile.IsValid(c, h, out string reason) ? reason
+                    : !_profile.Plan(c, out _, out string unsafeReason) ? unsafeReason : null;
                 if (skip != null)
                 {
                     // One line per distinct reason, keeping the first object's name as an example.
@@ -183,12 +188,14 @@ namespace VikingsForHire.Hirelings.Work
             if (best == null || !Reservations.TryReserve(best, h.Hid))
                 return false;
             _target = best;
+            _profile.Plan(best, out _fellDir, out _);
             _approachStarted = Time.time;
-            VfhLog.D(LogCat.Work, "work.target", ("hid", h.Hid), ("target", best.name), ("dist", Vector3.Distance(me, best.transform.position)));
+            VfhLog.D(LogCat.Work, "work.target", ("hid", h.Hid), ("target", best.name), ("dist", Vector3.Distance(me, best.transform.position)),
+                ("fellDir", _fellDir?.ToString() ?? "any"));
             return true;
         }
 
-        private bool FindPickup(Hireling h)
+        private bool FindPickup(Hireling h, ItemDrop? exclude = null)
         {
             HashSet<string> wanted = _profile.PickupItems;
             Vector3 me = h.transform.position;
@@ -197,7 +204,7 @@ namespace VikingsForHire.Hirelings.Work
             float bestSq = float.MaxValue;
             foreach (ItemDrop d in ItemDrop.s_instances)
             {
-                if (d == null || d.m_itemData?.m_dropPrefab == null || !wanted.Contains(d.m_itemData.m_dropPrefab.name) || d.m_itemData.m_customData.ContainsKey(DropPile.Tag))
+                if (d == null || d == exclude || d.m_itemData?.m_dropPrefab == null || !wanted.Contains(d.m_itemData.m_dropPrefab.name) || d.m_itemData.m_customData.ContainsKey(DropPile.Tag))
                     continue;
                 if ((d.transform.position - anchor).sqrMagnitude > PickupRadius * PickupRadius || Vector3.Distance(d.transform.position, h.Home) > h.Radius + 5f)
                     continue;
@@ -217,7 +224,9 @@ namespace VikingsForHire.Hirelings.Work
             ItemDrop? drop = _pickup;
             if (drop == null || drop.m_nview == null || !drop.m_nview.IsValid())
             {
-                _pickup = null;
+                // Gone (someone else took it): go straight for the next one rather than idling until the next scan.
+                if (!FindPickup(h, drop))
+                    FindTarget(h, _anchor, out _);
                 return;
             }
             if (Vector3.Distance(ai.transform.position, drop.transform.position) > PickupReach)
@@ -234,8 +243,12 @@ namespace VikingsForHire.Hirelings.Work
                 h.OnPickedUp();
                 ZNetScene.instance.Destroy(drop.gameObject);
             }
-            _pickup = null;
-            FindPickup(h);
+            // The drop is only destroyed at the end of the frame, so it's still listed: skip it explicitly, or the
+            // next search picks it again, finds it gone next tick, and the hireling idles until the next scan.
+            if (!FindPickup(h, drop))
+                FindTarget(h, _anchor, out _);
         }
+
+        private static Vector3 Flat(Vector3 v) => new(v.x, 0f, v.z);
     }
 }

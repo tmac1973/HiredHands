@@ -46,6 +46,7 @@ namespace VikingsForHire.Core.Data
                 [JobType.Woodcutter] = new()
                 {
                     CostMult = 1.0f,
+                    WorkRadiusMultiplier = 2f,
                     WorkerCombatFactor = 0.4f,
                     PickupItems = List("Wood", "FineWood", "RoundLog", "ElderBark", "YggdrasilWood", "Blackwood", "Resin",
                         "BeechSeeds", "FirCone", "PineCone", "BirchSeeds", "Acorn"),
@@ -54,6 +55,8 @@ namespace VikingsForHire.Core.Data
                 [JobType.Miner] = new()
                 {
                     CostMult = 1.1f,
+                    MinBoardLevel = 2,
+                    WorkRadiusMultiplier = 2f,
                     WorkerCombatFactor = 0.4f,
                     PickupItems = List("Stone", "CopperOre", "TinOre", "IronScrap", "SilverOre", "BlackMetalScrap", "CopperScrap",
                         "Obsidian", "FlametalOreNew", "Grausten"),

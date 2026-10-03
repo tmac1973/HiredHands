@@ -59,26 +59,94 @@ namespace VikingsForHire.Hirelings.Work
                 reason = $"tier {tier}<{minTier}";
                 return false;
             }
-            return IsSafe(target, out reason);
-        }
-
-        /// <summary>Whether felling this is safe for nearby player pieces; reason names the closest piece when not.</summary>
-        public static bool IsSafe(Component target, out string reason)
-        {
-            reason = "";
-            float safety = VfhConfig.TreeSafetyDistanceFromPieces.Value;
-            float radius = target is TreeBase ? Mathf.Max(safety, Height(target)) : 2f;
-            Pieces.Clear();
-            Piece.GetAllPiecesInRadius(target.transform.position, radius, Pieces);
-            Piece? closest = Pieces.Where(p => p != null && p.GetCreator() != 0L && p.GetComponent<Hireling>() == null)
-                .OrderBy(p => Vector3.Distance(p.transform.position, target.transform.position)).FirstOrDefault();
-            if (closest != null)
-            {
-                reason = $"near buildings ({closest.name.Replace("(Clone)", "")} {Vector3.Distance(closest.transform.position, target.transform.position):0.#}m, safe distance {radius:0.#}m)";
-                return false;
-            }
             return true;
         }
+
+        public bool Plan(Component target, out Vector3? fellDir, out string reason) => PlanFelling(target, out fellDir, out reason);
+
+        /// <summary>
+        /// A felled tree falls the way it was hit, so pick a direction whose fall line (the tree's height, plus a
+        /// corridor either side for the crown) has no player-built pieces in it, preferring straight away from them.
+        /// Nothing may be within TreeSafetyDistanceFromPieces of the trunk at all. Logs and stumps only need 2 m.
+        /// </summary>
+        public static bool PlanFelling(Component target, out Vector3? fellDir, out string reason)
+        {
+            fellDir = null;
+            reason = "";
+            Vector3 at = target.transform.position;
+            if (target is not TreeBase)
+            {
+                Piece? close = ClosestPiece(at, 2f);
+                if (close != null)
+                {
+                    reason = $"near buildings ({Describe(close, at)} < 2m)";
+                    return false;
+                }
+                return true;
+            }
+
+            float height = Height(target);
+            float clear = VfhConfig.TreeSafetyDistanceFromPieces.Value;
+            Piece? closest = ClosestPiece(at, clear);
+            if (closest != null)
+            {
+                reason = $"near buildings ({Describe(closest, at)}, needs {clear:0.#}m clear around the trunk)";
+                return false;
+            }
+            float half = VfhConfig.TreeFallCorridorHalfWidth.Value;
+            Pieces.Clear();
+            Piece.GetAllPiecesInRadius(at, height + half + 1f, Pieces);
+            var offsets = Pieces.Where(IsPlayerPiece).Select(p => Flat(p.transform.position - at)).ToList();
+            if (offsets.Count == 0)
+                return true; // nothing it could land on: fall any way
+
+            Vector3 away = -offsets.Aggregate(Vector3.zero, (sum, v) => sum + v.normalized);
+            away = away.sqrMagnitude > 0.001f ? away.normalized : Vector3.forward;
+            Vector3? best = null;
+            float bestDot = float.MinValue;
+            for (int i = 0; i < 24; i++)
+            {
+                Vector3 dir = Quaternion.Euler(0f, i * 15f, 0f) * Vector3.forward;
+                if (offsets.Any(v => Blocks(v, dir, height, half)))
+                    continue;
+                float dot = Vector3.Dot(dir, away);
+                if (dot > bestDot)
+                {
+                    bestDot = dot;
+                    best = dir;
+                }
+            }
+            if (best == null)
+            {
+                reason = $"near buildings (no clear direction to fell a {height:0}m tree)";
+                return false;
+            }
+            fellDir = best;
+            return true;
+        }
+
+        // Is a piece at offset v (flat, from the trunk) under a tree of this height falling along dir?
+        private static bool Blocks(Vector3 v, Vector3 dir, float height, float half)
+        {
+            float along = Vector3.Dot(v, dir);
+            if (along < -1f || along > height + 1f)
+                return false;
+            return (v - dir * along).magnitude < half;
+        }
+
+        private static Vector3 Flat(Vector3 v) => new(v.x, 0f, v.z);
+
+        private static bool IsPlayerPiece(Piece p) => p != null && p.GetCreator() != 0L && p.GetComponent<Hireling>() == null;
+
+        private static Piece? ClosestPiece(Vector3 at, float radius)
+        {
+            Pieces.Clear();
+            Piece.GetAllPiecesInRadius(at, radius, Pieces);
+            return Pieces.Where(IsPlayerPiece).OrderBy(p => Vector3.Distance(p.transform.position, at)).FirstOrDefault();
+        }
+
+        private static string Describe(Piece p, Vector3 at) =>
+            $"{p.name.Replace("(Clone)", "")} {Vector3.Distance(p.transform.position, at):0.#}m";
 
         public float StandOff(Component target) => target is TreeBase ? 1.6f : 1.4f;
 

@@ -33,6 +33,23 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void GatherersGetALargerRadius()
+        {
+            Assert.Equal(40f, _rules.MaxWorkRadius(1, JobType.Woodcutter));
+            Assert.Equal(20f, _rules.MaxWorkRadius(1, JobType.GuardMelee));
+            Assert.Equal(60f, _rules.ClampRadius(3, JobType.Miner, 200f));
+            Assert.Equal(30f, _rules.ClampRadius(3, JobType.GuardRanged, 200f));
+        }
+
+        [Fact]
+        public void MinersNeedBoardLevel2()
+        {
+            Assert.False(_rules.JobUnlocked(1, JobType.Miner));
+            Assert.True(_rules.JobUnlocked(2, JobType.Miner));
+            Assert.True(_rules.JobUnlocked(1, JobType.Woodcutter));
+        }
+
+        [Fact]
         public void StoneTable()
         {
             Assert.Equal(1, _rules.StoneFollowerCap(1));
