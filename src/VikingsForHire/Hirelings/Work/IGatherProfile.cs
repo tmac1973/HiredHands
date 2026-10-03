@@ -23,6 +23,12 @@ namespace VikingsForHire.Hirelings.Work
         /// <summary>Work order: lower ranks are always done first, nearest first within a rank.</summary>
         int Rank(Component target);
 
+        /// <summary>
+        /// How far past the work radius this may still be worked (e.g. a log that rolled out of the area after its tree
+        /// was felled inside it). 0 for things that must be inside the radius.
+        /// </summary>
+        float ExtraReach(Component target);
+
         /// <summary>How close to stand while working on it.</summary>
         float StandOff(Component target);
 

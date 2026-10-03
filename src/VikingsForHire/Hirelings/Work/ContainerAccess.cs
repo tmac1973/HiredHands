@@ -44,8 +44,8 @@ namespace VikingsForHire.Hirelings.Work
             int moved = move - left;
             if (moved > 0)
                 cargo.RemoveItem(template.m_shared.m_name, moved);
-            VfhLog.D(LogCat.Deliver, "deliver.deposit", ("hid", hid), ("chest", Utils.GetPrefabName(chest.m_rootObjectOverride != null ? chest.m_rootObjectOverride.gameObject : chest.gameObject)),
-                ("pos", chest.transform.position), ("item", prefab), ("asked", amount), ("moved", moved));
+            VfhLog.I(LogCat.Deliver, "deliver.deposit", ("hid", hid), ("chest", Utils.GetPrefabName(chest.m_rootObjectOverride != null ? chest.m_rootObjectOverride.gameObject : chest.gameObject)),
+                ("pos", chest.transform.position), ("tag", chest.m_nview != null && chest.m_nview.GetZDO() != null ? chest.m_nview.GetZDO().GetString("vfh_tag") : ""), ("item", prefab), ("asked", amount), ("moved", moved));
             return moved;
         }
     }

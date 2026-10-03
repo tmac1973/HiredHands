@@ -156,6 +156,9 @@ namespace VikingsForHire.Hirelings.Work
             _ => 1,
         };
 
+        // A felled tree's log can land up to a tree's height away and then roll: follow it out of the area.
+        public float ExtraReach(Component target) => target is TreeLog ? MaxTreeHeight : 0f;
+
         public float StandOff(Component target) => target is TreeBase ? 1.6f : 1.4f;
 
         public HitData.DamageTypes SwingDamage(HitData.DamageTypes tool, float gatherMult) =>

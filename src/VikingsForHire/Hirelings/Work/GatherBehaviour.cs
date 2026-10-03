@@ -21,6 +21,7 @@ namespace VikingsForHire.Hirelings.Work
         private const float RescanNoTargets = 30f;
         private const float UnreachableSkip = 300f;
         private const float ApproachGiveUp = 20f;
+        private const float MaxExtraReach = 30f; // largest IGatherProfile.ExtraReach
 
         private readonly IGatherProfile _profile;
         private Component? _target;
@@ -156,8 +157,10 @@ namespace VikingsForHire.Hirelings.Work
             bool haveAnchor = near != Vector3.zero;
             Component? best = null;
             float bestScore = float.MaxValue;
-            foreach (Component c in _profile.Candidates(h.Home, h.Radius))
+            foreach (Component c in _profile.Candidates(h.Home, h.Radius + MaxExtraReach))
             {
+                if (Utils.DistanceXZ(c.transform.position, h.Home) > h.Radius + _profile.ExtraReach(c))
+                    continue;
                 candidates++;
                 string? skip = Reservations.IsSkipped(c) ? "skipped after a failed approach"
                     : Reservations.IsReservedByOther(c, h.Hid) ? "claimed by another hireling"
@@ -207,7 +210,7 @@ namespace VikingsForHire.Hirelings.Work
             {
                 if (d == null || d == exclude || d.m_itemData?.m_dropPrefab == null || !wanted.Contains(d.m_itemData.m_dropPrefab.name) || d.m_itemData.m_customData.ContainsKey(DropPile.Tag))
                     continue;
-                if ((d.transform.position - anchor).sqrMagnitude > PickupRadius * PickupRadius || Vector3.Distance(d.transform.position, h.Home) > h.Radius + 5f)
+                if ((d.transform.position - anchor).sqrMagnitude > PickupRadius * PickupRadius || Vector3.Distance(d.transform.position, h.Home) > h.Radius + MaxExtraReach + 5f)
                     continue;
                 float sq = (d.transform.position - me).sqrMagnitude;
                 if (sq < bestSq)
