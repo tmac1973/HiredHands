@@ -36,7 +36,7 @@ together with **both** files from that run (client and, in mode D, server).
 
 | Row | Modes | Macro | Setup | Expected |
 |---|---|---|---|---|
-| SCAFFOLD-1 Plugin loads | SP, D | `vfh_t_smoke` | Launch the profile; start the dedicated server | `VikingsForHire 0.1.0 loaded` in both `LogOutput.log`s; the macro prints `VikingsForHire loaded` |
+| SCAFFOLD-1 Plugin loads | SP, D | `vfh_t_smoke` | Launch the profile; start the dedicated server | `VikingsForHire 0.1.0 loaded` in both `LogOutput.log`s; the macro shows `VikingsForHire loaded` mid-screen |
 | SCAFFOLD-2 Mod required | D | — | Join the server from a profile without VikingsForHire | Jotunn rejects the connection with a version/compat message |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.
