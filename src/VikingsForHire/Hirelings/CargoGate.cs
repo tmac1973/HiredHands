@@ -47,17 +47,62 @@ namespace VikingsForHire.Hirelings
         private static void Refused(Hireling h, ItemDrop.ItemData item, string how) =>
             VfhLog.D(LogCat.Hireling, "cargo.refused", ("hid", h.Hid), ("item", item.m_shared.m_name), ("how", how), ("slots", h.CargoSlots));
 
+        /// <summary>
+        /// Automatic adds (pickups, right-click moves, stack-all) into a hireling's cargo are placed by us: vanilla fills
+        /// most items from the bottom row up, which would land them in locked slots. We top up stacks in the usable slots,
+        /// then fill empty usable slots in order, and refuse the item if it won't all fit.
+        /// </summary>
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.AddItem), typeof(ItemDrop.ItemData))]
         private static class AddPatch
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, ref bool __result)
             {
-                if (item == null || FitsAuto(__instance, item, out Hireling? h))
+                if (item == null)
                     return true;
-                Refused(h!, item, "auto");
-                __result = false;
+                if (!FitsAuto(__instance, item, out Hireling? h))
+                {
+                    Refused(h!, item, "auto");
+                    __result = false;
+                    return false;
+                }
+                if (h == null)
+                    return true;
+                __result = PlaceInUsable(__instance, item, h.CargoSlots);
                 return false;
             }
+        }
+
+        private static bool PlaceInUsable(Inventory inv, ItemDrop.ItemData item, int limit)
+        {
+            int width = inv.GetWidth();
+            int max = Math.Max(1, item.m_shared.m_maxStackSize);
+            int left = item.m_stack;
+
+            for (int i = 0; i < limit && left > 0; i++)
+            {
+                ItemDrop.ItemData? at = inv.GetItemAt(i % width, i / width);
+                if (at == null || at == item || at.m_shared.m_name != item.m_shared.m_name || at.m_quality != item.m_quality || at.m_stack >= max)
+                    continue;
+                int n = Math.Min(left, max - at.m_stack);
+                at.m_stack += n;
+                left -= n;
+            }
+
+            bool originalPlaced = false;
+            for (int i = 0; i < limit && left > 0; i++)
+            {
+                int x = i % width, y = i / width;
+                if (inv.GetItemAt(x, y) != null)
+                    continue;
+                ItemDrop.ItemData piece = originalPlaced ? item.Clone() : item;
+                originalPlaced = true;
+                piece.m_stack = Math.Min(left, max);
+                piece.m_gridPos = new Vector2i(x, y);
+                inv.m_inventory.Add(piece);
+                left -= piece.m_stack;
+            }
+            inv.Changed(true, false);
+            return left == 0;
         }
 
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.AddItem), typeof(ItemDrop.ItemData), typeof(Vector2i))]
