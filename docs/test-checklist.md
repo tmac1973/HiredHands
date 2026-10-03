@@ -92,6 +92,7 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-DLV-1 Per-type delivery | SP | `vfh_t_deliver1` | Open ground (takes a few minutes) | `pass=true`; you can watch it fell the beeches, clear logs and stumps, pick up wood, then carry it to chest A |
 | VFH-DLV-2 Overflow | SP | `vfh_t_deliver2` | Open ground | `pass=true`; wood piles up in front of the board |
 | VFH-WORK-1 Tree safety | SP | `vfh_t_work1` | Open ground | `pass=true` |
+| VFH-WORK-5 Logs and felling direction | SP | — | A woodcutter with a few trees, some a short way from a wall | Each felled tree falls away from buildings; it splits and clears the fallen log and the stump (picking up the wood) before felling the next tree |
 | VFH-WORK-3 Tiers | SP | — | A level 1 woodcutter near oaks and beeches; then promote to level 3 (bronze axe) | Level 1 skips oaks; level 3 cuts them, and chops faster |
 | VFH-WORK-4 Two woodcutters | SP | — | Two woodcutters on one board with a few trees | They work different trees |
 | VFH-AZU-2 Pile vs AzuAutoStore | SP | — | AzuAutoStore on; overflow on the pile | Azu may store the pile into chests; the woodcutter never picks the pile back up or loops |

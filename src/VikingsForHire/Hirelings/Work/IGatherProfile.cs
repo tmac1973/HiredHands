@@ -20,6 +20,9 @@ namespace VikingsForHire.Hirelings.Work
         /// </summary>
         bool Plan(Component target, out Vector3? fellDir, out string reason);
 
+        /// <summary>Work order: lower ranks are always done first, nearest first within a rank.</summary>
+        int Rank(Component target);
+
         /// <summary>How close to stand while working on it.</summary>
         float StandOff(Component target);
 

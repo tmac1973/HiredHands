@@ -10,7 +10,7 @@ namespace VikingsForHire.Hirelings.Work
     /// <summary>
     /// Find something to harvest in the work radius, walk to it, swing on a steady rhythm, and pick up what drops.
     /// The swing is the animation; the damage is applied directly at the moment of impact, so it never depends on an
-    /// NPC's aim. Follows on to the logs and stumps a felled tree leaves (preferring what's within 8 m).
+    /// NPC's aim. Works in the profile's order (a woodcutter clears fallen logs, then stumps, before felling more trees).
     /// </summary>
     internal sealed class GatherBehaviour : IHirelingBehaviour
     {
@@ -174,8 +174,9 @@ namespace VikingsForHire.Hirelings.Work
                         example ??= skip;
                     continue;
                 }
-                float d = Vector3.Distance(me, c.transform.position);
-                // Logs and stumps a tree just left come first.
+                // By the profile's work order (a woodcutter clears logs and stumps before felling more), then
+                // what a felled tree just left behind, then nearest.
+                float d = _profile.Rank(c) * 10000f + Vector3.Distance(me, c.transform.position);
                 if (haveAnchor && Vector3.Distance(near, c.transform.position) < 8f)
                     d -= 1000f;
                 if (d < bestScore)

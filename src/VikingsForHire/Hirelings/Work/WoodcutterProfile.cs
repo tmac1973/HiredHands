@@ -148,6 +148,14 @@ namespace VikingsForHire.Hirelings.Work
         private static string Describe(Piece p, Vector3 at) =>
             $"{p.name.Replace("(Clone)", "")} {Vector3.Distance(p.transform.position, at):0.#}m";
 
+        // Fallen logs first (they're the wood, and they block paths), then stumps, then standing trees.
+        public int Rank(Component target) => target switch
+        {
+            TreeLog => 0,
+            TreeBase => 2,
+            _ => 1,
+        };
+
         public float StandOff(Component target) => target is TreeBase ? 1.6f : 1.4f;
 
         public HitData.DamageTypes SwingDamage(HitData.DamageTypes tool, float gatherMult) =>
