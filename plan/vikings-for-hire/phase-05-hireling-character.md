@@ -22,6 +22,11 @@ Create the `VFH_Hireling` networked character. It looks like a randomly generate
 - `src/VikingsForHire/Testing/FixturesHireling.cs`: this phase's fixtures and checks (see the test plan).
 - `test/alias_vfh.yaml`: adds this phase's row macros.
 
+## Server mod-set notes (Tim's live server, profile `1dotohsupermodded`)
+- **Never mark hirelings as tamed** (no `Tameable`, never `SetTamed`/`s_tamed`). Several mods on the live server act on every tamed character: TeleportCreatures (it would carry followers through portals alongside our own snapshot handling, and duplicate them), PetPantry (feeding), WolfPack. Hirelings are friendly through `Faction.Players` only.
+- **Smoothbrain CreatureLevelAndLootControl** runs on every non-player `Character` (its `Character.Awake` postfix, `SetupMaxHealth` transpiler and `SetLevel` hooks). It could give hirelings stars, affixes, infusions or a health factor. In this phase, inspect its `API` class and either exclude `VFH_Hireling` through it, or skip its `Character.Awake` postfix and `SetupMaxHealth` effect for hirelings with a Harmony patch of our own. Then add a test check that a spawned hireling has `level == 1` and max health equal to the level table's value, with CLLC enabled.
+- Balrond HumanoidRandomizer only touches its own "Variant" prefabs. Its `ObjectDB` item edits may change vanilla gear stats, which doesn't matter because hireling gear is cosmetic.
+
 ## Steps
 1. **Prefab** (`PrefabManager.OnVanillaPrefabsAvailable`): `PrefabManager.Instance.CreateClonedPrefab("VFH_Hireling", "Player")`, then:
    - Remove `Player`, `PlayerController`, `Talker`, `Skills`, `PlayerCustomizaton`-related components, the audio listener and any camera child. Keep the `VisEquipment`, `Animator`, `ZSyncAnimation`, `ZSyncTransform`, `Rigidbody`, `CapsuleCollider`, `FootStep` and `CharacterAnimEvent`.

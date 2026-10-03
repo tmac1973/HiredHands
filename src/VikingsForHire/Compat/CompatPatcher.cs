@@ -10,7 +10,7 @@ using VikingsForHire.Diagnostics;
 namespace VikingsForHire.Compat
 {
     /// <summary>
-    /// Keeps AzuAutoStore and AzuCraftyBoxes (and PullMats, which finds chests through CraftyBoxes) away from our
+    /// Keeps AzuAutoStore, AzuCraftyBoxes (and PullMats, which finds chests through CraftyBoxes) and PetPantry away from our
     /// containers. Both mods keep a list of every Container, filled through Boxes.AddContainer; refusing ours there keeps
     /// them out of every store, pull and craft. CanItemBeStored/CanItemBePulled are patched as a second line of defence.
     /// Everything is found by reflection: a changed or missing mod logs a warning and never stops VikingsForHire loading.
@@ -23,6 +23,7 @@ namespace VikingsForHire.Compat
         {
             Patch(harmony, "Azumatt.AzuAutoStore", "AzuAutoStore.Util.Boxes", "CanItemBeStored", "Azumatt.AzuAutoStore.yml");
             Patch(harmony, "Azumatt.AzuCraftyBoxes", "AzuCraftyBoxes.Util.Functions.Boxes", "CanItemBePulled", "Azumatt.AzuCraftyBoxes.yml");
+            PatchPetPantry(harmony);
             if (Chainloader.PluginInfos.ContainsKey("Spronglehump.PullMats"))
                 Report("PullMats", true, 0, 0, "covered by the AzuCraftyBoxes exclusion");
         }
@@ -65,6 +66,34 @@ namespace VikingsForHire.Compat
             if (patched < wanted)
                 VfhLog.W(LogCat.Compat, "compat.manual_exclusion_needed", ("mod", mod), ("file", yamlFile),
                     ("add", string.Join(" ", ExcludedContainers.Prefabs.Select(p => $"'{p}: {{exclude: [All]}}'"))));
+        }
+
+        /// <summary>PetPantry feeds tamed animals from every player-built container; refusing ours keeps them off the board's food.</summary>
+        private static void PatchPetPantry(Harmony harmony)
+        {
+            if (!Chainloader.PluginInfos.TryGetValue("Azumatt.PetPantry", out var info) || info.Instance == null)
+            {
+                Report("PetPantry", false, 0, 0, "not installed");
+                return;
+            }
+            int patched = 0;
+            try
+            {
+                Type? type = info.Instance.GetType().Assembly.GetType("PetPantry.UtilityMethods");
+                MethodInfo? register = type == null ? null : AccessTools.Method(type, "RegisterContainer", new[] { typeof(Container) });
+                if (register != null)
+                {
+                    harmony.Patch(register, prefix: new HarmonyMethod(typeof(CompatPatcher), nameof(AddContainerPrefix)));
+                    patched++;
+                }
+            }
+            catch (Exception ex)
+            {
+                VfhLog.Exception(LogCat.Compat, "compat.patch_failed", ex, ("mod", "PetPantry"));
+            }
+            Report("PetPantry", true, patched, 1, patched == 1 ? "ok" : "incomplete: tamed animals may eat hiring board food");
+            if (patched == 0)
+                VfhLog.W(LogCat.Compat, "compat.petpantry_unpatched", ("effect", "tamed animals may eat food stored on hiring boards"));
         }
 
         private static void Report(string mod, bool loaded, int patched, int wanted, string note)

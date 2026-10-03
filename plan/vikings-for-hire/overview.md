@@ -92,7 +92,7 @@ Vikings for Hire adds a hiring economy. Players pay gold to bring in wandering v
 - **Portal ore** → Respect vanilla teleport restrictions by default (configurable).
 - **Ore via return-home** → Allowed, but the timer matches roughly walking pace with a minimum, so it's no faster than walking.
 - **Command stone** → Upgradeable item, 4 levels: needs board L3 / L4 / L6 / L8 nearby, follower cap 1 / 2 / 3 / 4.
-- **Install & compat** → Required on the server and all clients. Server config is synced. AzuAutoStore, AzuCraftyBoxes and PullMats are explicitly supported soft dependencies (Tim plays with all three). ValheimPlus isn't supported and stays disabled in the dev profile.
+- **Install & compat** → Required on the server and all clients. Server config is synced. AzuAutoStore, AzuCraftyBoxes, PullMats and PetPantry are explicitly supported soft dependencies. Multiplayer testing happens on Tim's live server (Gale profile `1dotohsupermodded`, about 55 mods); the phase 05 file lists the mods there that affect hirelings. ValheimPlus isn't supported and stays disabled in the dev profile.
 - **Board stacking** → One board per base area (minimum distance between boards, default 100m). Optional world-wide cap, default unlimited.
 - **Plugin identity** → `Spronglehump.VikingsForHire` (same author prefix as PullMats). Thunderstore package `Spronglehump-VikingsForHire`.
 - **Board destroyed** → All of its contracts are void. Its hirelings (including followers) drop their cargo and leave. Its stored food and coins drop like a chest's. Deconstructing a board that still has hirelings asks for confirmation first.
