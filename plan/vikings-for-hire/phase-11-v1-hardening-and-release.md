@@ -26,11 +26,11 @@ Ship milestone 1, base workers, as `0.1.0`. This phase adds a performance pass s
 2. **Robustness and log audit:** confirm every Harmony patch body and behaviour tick goes through `VfhLog.Guard` (phase 02). Grep for `[HarmonyPatch]` and `Tick(` and fix any that don't. Review a 2-hour `vfh_debug All on` session log for lines that are noisy without being useful (demote them to Trace) and for state changes that have no log line (add them).
 3. **Balance playthrough:** a fresh world with defaults, played from Meadows to after Bonemass (L4) using only intended progression. Pass criteria: the first L1 hireling is affordable on day 2–3 with cooked meat only; upkeep for 4 L3–L4 hirelings uses about 25–40% of a typical Swamp-era coin income from loot (track coins earned vs spent over 5 in-game days); and no single hireling outperforms the player at its job (a woodcutter chops slower than a player with the same tier axe). If a criterion fails, adjust the costs or multipliers in `DefaultData.cs` and record the change in the CHANGELOG.
 4. **Checklist run:** run every row in `docs/test-checklist.md` in its listed modes by typing its `vfh_t_*` alias, then `vfh_test_summary`. Every result must be `pass=true`. Add `vfh_t_m1_sp` to `test/alias_vfh.yaml`: it chains the single-player rows that need no human action, each followed by `clear_area`, in a fresh test world. Fix any failures, then rerun the row plus VFH-HIRE-1 (persistence) and VFH-WORK-2 (no item loss).
-5. **Package:** `dotnet build -c Release -t:Package` produces `dist/Spronglehump-VikingsForHire-0.1.0.zip`. Install that zip into a clean Gale profile and smoke test it (place a board, hire, work).
+5. **Package:** `dotnet build src/VikingsForHire -c Release -t:Package` produces `dist/Spronglehump-VikingsForHire-0.1.0.zip`. Install that zip into a clean Gale profile and smoke test it (place a board, hire, work).
 6. **Tag and publish:** `git tag v0.1.0` and push the tag. Make a GitHub release with the zip attached. Uploading to Thunderstore is a manual step the user does through the web UI with the zip.
 
 ## Build gate
-- `dotnet build -c Release` with 0 warnings from our code, `dotnet test` all green, and `dotnet build -c Release -t:Package` succeeds with the version check passing.
+- `dotnet build -c Release` with 0 warnings from our code, `dotnet test` all green, and `dotnet build src/VikingsForHire -c Release -t:Package` succeeds with the version check passing.
 
 ## Test plan
 - `vfh_perf` meets the budget under the step 1 scenario, measured on the dev machine both as host and as a client of the dedicated server.
