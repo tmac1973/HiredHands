@@ -118,7 +118,8 @@ namespace VikingsForHire.UI
                 case ContractState.Pending:
                     double wait = e.ArriveAt - ZNet.instance.GetTimeSeconds();
                     string key = e.RespawnPending ? "$vfh_status_returning" : "$vfh_status_arriving";
-                    return wait > 0 ? Localization.instance.Localize(key + " ($1s)", Mathf.CeilToInt((float)wait).ToString())
+                    // "$1s" would read as an unknown token; localize the label alone and append the seconds.
+                    return wait > 0 ? Localization.instance.Localize(key) + $" ({Mathf.CeilToInt((float)wait)}s)"
                         : Localization.instance.Localize(e.RespawnPending ? "$vfh_status_awaiting_payment" : key);
                 case ContractState.Leaving:
                     return "$vfh_status_leaving";
