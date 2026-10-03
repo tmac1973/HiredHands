@@ -41,6 +41,7 @@ namespace VikingsForHire.Diagnostics
             private static void Postfix() => VfhLog.Guard(LogCat.Net, "session.leave_failed", () =>
             {
                 VfhLog.I(LogCat.Core, "session.leave");
+                Testing.TestHarness.Abort("left the world");
                 DataStore.OnDisconnected();
                 if (VfhConfig.FastTimers)
                     VfhConfig.SetFastTimers(false);

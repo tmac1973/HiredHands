@@ -60,6 +60,7 @@ namespace VikingsForHire.Testing
         private static readonly Dictionary<int, string> ServerReplies = new();
         private static Run? _run;
         private static bool _running;
+        private static Coroutine? _queue;
         private static int _nextRequest = 1;
         private static CustomRPC _checkRpc = null!;
 
@@ -88,6 +89,7 @@ namespace VikingsForHire.Testing
                 if (Parse(args.Skip(1).ToArray(), out string check, out string[] checkArgs, out string op, out string expected))
                     Enqueue(() => Assert(check, checkArgs, op, expected, timeout));
             });
+            Add("vfh_test_abort", "- stop the running test and drop every queued step", _ => Abort("vfh_test_abort"));
             Add("vfh_test_summary", "- print every test result since login", _ => Summary());
             Add("vfh_test_reset", "- clear stored test results", _ =>
             {
@@ -107,8 +109,43 @@ namespace VikingsForHire.Testing
         /// A setup step couldn't do its job (e.g. no room for a test board): record it as a failed check so the run
         /// can't pass on the wrong setup, and say why on screen.
         /// </summary>
-        public static void FailSetup(string what, string reason) =>
+        public static void FailSetup(string what, string reason)
+        {
             Record("setup " + what, Array.Empty<string>(), "==", "ok", reason, false, 0f);
+            // Carrying on would run the rest of the test against the wrong world (e.g. your own board), so stop here.
+            // The step that called this is still running, so the queue is stopped after it returns.
+            Plugin.Instance.StartCoroutine(AbortNextFrame("setup " + what + " failed"));
+        }
+
+        private static IEnumerator AbortNextFrame(string reason)
+        {
+            yield return null;
+            Abort(reason);
+        }
+
+        /// <summary>Stops the queue, drops every pending step and records the current run as failed.</summary>
+        public static void Abort(string reason)
+        {
+            int dropped = QueueItems.Count;
+            QueueItems.Clear();
+            if (_queue != null)
+                Plugin.Instance.StopCoroutine(_queue);
+            _queue = null;
+            _running = false;
+            if (_run != null)
+            {
+                Run run = _run;
+                _run = null;
+                VfhLog.W(LogCat.Test, "test.result", ("row", run.Row), ("pass", false), ("checks", run.Checks), ("failed", run.Fails.Count),
+                    ("aborted", reason), ("droppedSteps", dropped), ("fails", string.Join("; ", run.Fails)));
+                Results.Add(new Result(run.Row, false, run.Checks, run.Fails.Count));
+                Message($"<color=#f66>ABORTED</color> {run.Row}: {reason}. Clean up with vfh_fixture kill_hirelings / clear_area if needed");
+            }
+            else if (dropped > 0)
+            {
+                VfhLog.W(LogCat.Test, "test.aborted", ("reason", reason), ("droppedSteps", dropped));
+            }
+        }
 
         public static void RegisterCheck(string name, string usage, Func<string[], string> eval, bool serverSide = false) =>
             Checks[name] = new Check { Usage = usage, Eval = eval, ServerSide = serverSide };
@@ -118,7 +155,10 @@ namespace VikingsForHire.Testing
         {
             QueueItems.Enqueue(step);
             if (!_running)
-                Plugin.Instance.StartCoroutine(RunQueue());
+            {
+                _running = true;
+                _queue = Plugin.Instance.StartCoroutine(RunQueue());
+            }
         }
 
         private static void Add(string name, string help, Action<string[]> run) =>
@@ -143,6 +183,7 @@ namespace VikingsForHire.Testing
                 }
             }
             _running = false;
+            _queue = null;
         }
 
         private static IEnumerator Begin(string row)
@@ -266,7 +307,7 @@ namespace VikingsForHire.Testing
                 if (!pass)
                     _run.Fails.Add($"{label} (actual {actual})");
             }
-            Message(pass ? $"<color=#6f6>✓</color> {label}" : $"<color=#f66>✗</color> {label} — got {actual}");
+            Message(pass ? $"<color=#6f6>ok</color> {label}" : $"<color=#f66>FAIL</color> {label} — got {actual}");
         }
 
         private static bool Parse(string[] args, out string check, out string[] checkArgs, out string op, out string expected)

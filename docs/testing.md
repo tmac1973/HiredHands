@@ -26,6 +26,7 @@ Rows that need you to do something midway come in `_a` / `_b` parts; `docs/test-
 | `vfh_fixture <name> [args]` | A setup step; `vfh_fixture list` shows them |
 | `vfh_checks` | Lists the checks |
 | `vfh_test_summary` / `vfh_test_reset` | Results since login / clear them |
+| `vfh_test_abort` | Stop a stuck or unwanted test and drop its queued steps. Tests also stop by themselves when a setup step fails (e.g. a board too close) or you leave the world |
 
 All of these run strictly in order, even though ServerDevcommands fires a chained line at once: an
 `assert_eventually` holds back everything after it.
