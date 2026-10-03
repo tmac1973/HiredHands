@@ -231,7 +231,16 @@ namespace VikingsForHire.Testing
             return containers.Any(ExcludedContainers.IsExcluded) ? "true" : "false";
         }
 
-        private static PlacementVerdict Verdict(string[] args) => PlacementCheck.Evaluate(Ground(Ahead(RequirePlayer(), Radius(args, 0, SpotAhead))));
+        private static PlacementVerdict Verdict(string[] args)
+        {
+            Vector3 spot = Ground(Ahead(RequirePlayer(), Radius(args, 0, SpotAhead)));
+            PlacementVerdict v = PlacementCheck.Evaluate(spot);
+            VfhLog.I(LogCat.Test, "placement.check", ("pos", spot), ("ok", v.Ok), ("missing", v.MissingTokens()),
+                ("workbenches", v.Counts.Workbenches), ("beds", v.Counts.Beds), ("pieces", v.Counts.Pieces),
+                ("nearestBoard", v.Counts.NearestBoardDistance.HasValue ? v.Counts.NearestBoardDistance.Value : "none"),
+                ("worldBoards", v.Counts.WorldBoardCount), ("near", PlacementCheck.Describe(spot)));
+            return v;
+        }
 
         private static HiringBoard NearestBoard() =>
             HiringBoard.Nearest(PlayerPos(), NearbyRadius) ?? throw new InvalidOperationException("no hiring board within 50m");

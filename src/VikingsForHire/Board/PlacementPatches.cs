@@ -71,6 +71,16 @@ namespace VikingsForHire.Board
                 : new PlacementVerdict(true, null, counts);
         }
 
+        /// <summary>The workbenches and beds counted at a spot, with their distances, for the logs.</summary>
+        public static string Describe(Vector3 position)
+        {
+            PieceBuffer.Clear();
+            Piece.GetAllPiecesInRadius(position, VfhConfig.BaseCheckRadius.Value, PieceBuffer);
+            return string.Join(",", PieceBuffer
+                .Where(p => p != null && p.GetCreator() != 0L && (p.GetComponent<Bed>() != null || p.GetComponent<CraftingStation>() != null))
+                .Select(p => $"{Utils.GetPrefabName(p.gameObject)}@{Vector3.Distance(p.transform.position, position):0.0}m"));
+        }
+
         public static bool IsBoard(Piece? piece) => piece != null && piece.gameObject.name.StartsWith(BoardZdo.PrefabName);
     }
 
