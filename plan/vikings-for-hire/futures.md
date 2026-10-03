@@ -31,3 +31,9 @@ One hireling job (or a perk of a higher-level job) repairs damaged building piec
 
 ## Forager
 Picks berries, mushrooms, thistle and the like in the work radius.
+
+## Cargo weight limit
+Hirelings are currently limited only by usable cargo slots (8 at level 1 up to 32 at level 8), whatever the items weigh. Dense items like metal bars are therefore cheap to haul compared with what a player can carry.
+- A per-level weight cap in the hireling level table (e.g. `cargoWeight`), checked by the cargo gate alongside slots, with 0 meaning no limit so it can stay off by default.
+- What happens at the limit: a gatherer stops picking up and goes to deliver; a follower refuses items you try to hand it, with a message.
+- Decide after watching gatherers and followers haul for real (phases 08–13), so the numbers come from play.
