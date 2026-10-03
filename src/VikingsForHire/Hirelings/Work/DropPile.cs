@@ -17,10 +17,10 @@ namespace VikingsForHire.Hirelings.Work
         public static Vector3 Position(HiringBoard board) =>
             board.transform.position + board.transform.forward * Config.VfhConfig.DropPileOffset.Value + Vector3.up * 0.5f;
 
-        /// <summary>Drops every item in the inventory at <paramref name="at"/> and empties it. Returns how many stacks.</summary>
-        public static int DropAll(Inventory inventory, Vector3 at, string reason, string hid)
+        /// <summary>Drops the items (all, or those <paramref name="which"/> picks) at <paramref name="at"/>. Returns how many stacks.</summary>
+        public static int DropAll(Inventory inventory, Vector3 at, string reason, string hid, System.Func<ItemDrop.ItemData, bool>? which = null)
         {
-            var items = inventory.GetAllItems().ToList();
+            var items = inventory.GetAllItems().Where(i => which == null || which(i)).ToList();
             foreach (ItemDrop.ItemData item in items)
             {
                 Vector3 spread = new(Random.Range(-0.5f, 0.5f), 0f, Random.Range(-0.5f, 0.5f));
@@ -31,7 +31,8 @@ namespace VikingsForHire.Hirelings.Work
                     drop.Save();
                 }
             }
-            inventory.RemoveAll();
+            foreach (ItemDrop.ItemData item in items)
+                inventory.RemoveItem(item);
             if (items.Count > 0)
                 VfhLog.I(LogCat.Deliver, "drop_pile", ("hid", hid), ("stacks", items.Count), ("pos", at), ("reason", reason),
                     ("items", string.Join(",", items.Select(i => $"{GearApplier.Name(i)}x{i.m_stack}"))));

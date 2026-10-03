@@ -156,3 +156,11 @@ tagged, and `clear_area` removes it.
 | fixture `terrain_baseline` / check `terrain_unchanged` | Count terrain edits around the board, then check none were added |
 | check `deposit_intact <tag>` | A tagged deposit hasn't taken any damage |
 | check `deposits_left <prefab>` | How many of these (whole or chunked) are within 60 m of the board |
+
+## Phase 10
+
+| Check / fixture | |
+|---|---|
+| fixture `stations <prefab> [prefab]…` | Builds stations in a ring 8 m round the sides and back of the board |
+| check `station <prefab> <ore_ratio\|fuel_ratio\|queue\|fuel\|processed>` | Lowest value among those stations near the board |
+| check `azu_loaded` | Whether AzuAutoStore is installed |

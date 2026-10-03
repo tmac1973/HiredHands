@@ -51,6 +51,9 @@ namespace VikingsForHire.Hirelings
         // Work state (owner side).
         public bool NoTargets { get; set; }
         public float CarryingSince { get; private set; }
+
+        /// <summary>Smelter: when it started holding ore/fuel that no station needed (0 = not idle with leftovers).</summary>
+        public float LeftoverSince { get; set; }
         public bool DeliverPending => Zdo?.GetBool(HirelingZdo.DeliverPending) ?? false;
         public ItemDrop.ItemData? Tool => _humanoid.GetRightItem();
         public int ToolTier => Tool?.m_shared.m_toolTier ?? 0;
@@ -85,6 +88,7 @@ namespace VikingsForHire.Hirelings
         public void OnDelivered()
         {
             CarryingSince = 0f;
+            LeftoverSince = 0f;
             NoTargets = false;
             if (IsOwner && Zdo != null && Zdo.GetBool(HirelingZdo.DeliverPending))
                 Zdo.Set(HirelingZdo.DeliverPending, false);

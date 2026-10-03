@@ -103,6 +103,12 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-MINE-2 Buried copper | SP | — | A natural copper deposit, partly underground | The miner takes the exposed chunks and leaves the buried ones (it never digs); dig them free and it carries on |
 | VFH-MINE-3 Terrain toggle | SP | — | `MinerProtectsTerrain=false`, miner next to a deposit | Its swings now dent the ground; set it back to true afterwards |
 | VFH-WORK-4 Copper in MP | D | — | Two clients watch a miner work copper | Chunk breaks show on both; ore counts in the chest match |
+| VFH-WORK-5 Smelter (no Azu) | SP | `vfh_t_work5` | **Disable AzuAutoStore in Gale first.** Open ground (several minutes) | `pass=true`; it fetches ore, coal and wood, loads both smelters and the kiln, collects the bars and puts them in the bar chests |
+| VFH-AZU-3 Smelter with Azu | SP | `vfh_t_azu3` | AzuAutoStore enabled. Open ground | `pass=true`; stations stay stocked, the smelter never picks up bars, no loops |
+| VFH-SMELT-1 No input | SP | — | Smelter hireling with its stations low and the ore chests emptied | Hover says "Stations need ore or fuel, chests have none"; it idles by the board |
+| VFH-SMELT-2 Two smelters | SP | — | Two smelter hirelings, three or four stations | They split the stations; no station is loaded past its max |
+| VFH-SMELT-3 Blast furnace | SP | — | Add a blast furnace with iron/black metal scrap and coal in chests | It gets fed too |
+| VFH-WORK-6 Station owned by another client | D | — | Client B built and is near the smelter; client A's area owns the hireling | Loading still works, counts correct |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.
@@ -164,3 +170,6 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | 0dab4b2 | VFH-AZU-2 | SP | To do | Checked during normal play |
 | 2026-10-03 | ff3efec | VFH-WORK-3 | SP | Pass | |
 | 2026-10-03 | ff3efec | VFH-TIER-1 | SP | Pass | |
+| 2026-10-03 | ff3efec | VFH-MINE-1 | SP | To do | Checked during normal play |
+| 2026-10-03 | ff3efec | VFH-MINE-2 | SP | To do | Checked during normal play |
+| 2026-10-03 | ff3efec | VFH-MINE-3 | SP | To do | Checked during normal play |

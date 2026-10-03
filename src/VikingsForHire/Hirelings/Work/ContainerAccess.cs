@@ -48,5 +48,47 @@ namespace VikingsForHire.Hirelings.Work
                 ("pos", chest.transform.position), ("tag", chest.m_nview != null && chest.m_nview.GetZDO() != null ? chest.m_nview.GetZDO().GetString("vfh_tag") : ""), ("item", prefab), ("asked", amount), ("moved", moved));
             return moved;
         }
+
+        /// <summary>
+        /// Moves up to <paramref name="amount"/> of a prefab from the chest into cargo, never leaving fewer than
+        /// <paramref name="keepMin"/> in the chest and only what fits in the hireling's usable cargo slots.
+        /// </summary>
+        public static int Take(Container chest, Inventory cargo, string prefab, int amount, int keepMin, string hid)
+        {
+            if (chest == null || chest.IsInUse() || amount <= 0)
+                return 0;
+            ZNetView? view = chest.m_nview;
+            if (view == null || !view.IsValid())
+                return 0;
+            GameObject? itemPrefab = ObjectDB.instance.GetItemPrefab(prefab);
+            if (itemPrefab == null)
+                return 0;
+            if (!view.IsOwner())
+                view.ClaimOwnership();
+
+            ItemDrop.ItemData template = itemPrefab.GetComponent<ItemDrop>().m_itemData;
+            int max = Math.Max(1, template.m_shared.m_maxStackSize);
+            Inventory inv = chest.GetInventory();
+            int inChest = inv.GetAllItems().Where(i => i.m_dropPrefab != null && i.m_dropPrefab.name == prefab).Sum(i => i.m_stack);
+            int left = Math.Min(amount, Math.Max(0, inChest - keepMin));
+            int moved = 0;
+            while (left > 0)
+            {
+                int n = Math.Min(left, max);
+                int before = cargo.CountItems(template.m_shared.m_name);
+                cargo.AddItem(itemPrefab, n);
+                int added = cargo.CountItems(template.m_shared.m_name) - before;
+                if (added <= 0)
+                    break;
+                inv.RemoveItem(template.m_shared.m_name, added);
+                moved += added;
+                left -= added;
+                if (added < n)
+                    break; // cargo is full
+            }
+            VfhLog.I(LogCat.Smelter, "smelter.take", ("hid", hid), ("chest", Utils.GetPrefabName(chest.m_rootObjectOverride != null ? chest.m_rootObjectOverride.gameObject : chest.gameObject)),
+                ("pos", chest.transform.position), ("tag", view.GetZDO()?.GetString("vfh_tag") ?? ""), ("item", prefab), ("asked", amount), ("moved", moved), ("keepMin", keepMin));
+            return moved;
+        }
     }
 }

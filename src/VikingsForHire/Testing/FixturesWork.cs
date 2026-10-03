@@ -94,12 +94,22 @@ namespace VikingsForHire.Testing
             yield return new WaitForSeconds(0.5f);
         }
 
+        private static string _chestBoard = "";
+        private static int _chestCount;
+
         private static IEnumerator Chest(string[] args)
         {
             string tag = args.ElementAtOrDefault(0) ?? "A";
             HiringBoard board = Board();
-            int index = Math.Abs(tag.GetHashCode()) % 6;
-            Vector3 pos = board.transform.position + Quaternion.Euler(0f, 60f * index + 30f, 0f) * board.transform.forward * 4f;
+            // Chests go round the board in the order they're made: 6 per ring, rings 1.6 m apart.
+            if (_chestBoard != board.Id)
+            {
+                _chestBoard = board.Id;
+                _chestCount = 0;
+            }
+            int index = _chestCount++;
+            float ring = 4f + index / 6 * 1.6f;
+            Vector3 pos = board.transform.position + Quaternion.Euler(0f, 60f * (index % 6) + 30f, 0f) * board.transform.forward * ring;
             GameObject go = Spawn("piece_chest_wood", pos, tag);
             Piece piece = go.GetComponent<Piece>();
             if (piece != null && Player.m_localPlayer != null)

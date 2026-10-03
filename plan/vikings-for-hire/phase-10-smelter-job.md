@@ -46,3 +46,10 @@ Add the Smelter. It keeps processing stations in the work radius stocked with or
 
 ## Rollback
 Revert the commit. Smelter hirelings fall back to idle + combat. Station contents stay as they are.
+
+## As built
+- One file, `SmelterBehaviour.cs`, does the survey → plan → one step (fetch / load / collect) loop; `StationSurvey.cs` reads stations; `SmelterPlanner` (Core, unit-tested) plans. There is no separate `StationLoader`/`OutputCollector`.
+- Loading adds items one at a time through the vanilla `RPC_AddOre`/`RPC_AddFuel`, never more than the station's live free space, then waits 2 s before the next survey so a remote owner's count catches up (vanilla doesn't refuse ore past max).
+- Deliveries are filtered per item (`IDeliveryPolicy.Delivers`): a smelter only hands in finished output (any conversion output of a configured station), unless its ore/fuel has been unneeded for 5 minutes or it's told to deliver.
+- A chest it couldn't take from is skipped for 60 s; a step that takes over 45 s is given up and the next survey starts after 60 s.
+- The `chest` test fixture now places chests in creation order (6 per ring) instead of by tag hash, which could put two chests in one spot.

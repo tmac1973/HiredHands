@@ -12,6 +12,9 @@ namespace VikingsForHire.Hirelings.Work
     internal interface IDeliveryPolicy
     {
         bool NeedsDelivery(Hireling h);
+
+        /// <summary>Whether this item is taken off the hireling on a delivery (a smelter keeps the ore it's about to load).</summary>
+        bool Delivers(Hireling h, string prefab);
     }
 
     /// <summary>Gatherers deliver when full, when there's nothing left to harvest, or after carrying for 10 minutes.</summary>
@@ -21,12 +24,16 @@ namespace VikingsForHire.Hirelings.Work
 
         public bool NeedsDelivery(Hireling h) =>
             h.CargoFull || h.NoTargets || (h.CarryingSince > 0f && Time.time - h.CarryingSince > MaxCarrySeconds);
+
+        public bool Delivers(Hireling h, string prefab) => true;
     }
 
     /// <summary>Jobs that don't gather only deliver when asked to (released followers, returning hirelings).</summary>
     internal sealed class OnRequestDeliveryPolicy : IDeliveryPolicy
     {
         public bool NeedsDelivery(Hireling h) => false;
+
+        public bool Delivers(Hireling h, string prefab) => true;
     }
 
     /// <summary>
@@ -53,7 +60,7 @@ namespace VikingsForHire.Hirelings.Work
         public bool Wants(HirelingAI ai)
         {
             Hireling h = ai.Hireling;
-            bool want = h.Mode == HirelingMode.Working && h.CargoInventory != null && h.CargoInventory.NrOfItems() > 0 &&
+            bool want = h.Mode == HirelingMode.Working && h.CargoInventory != null && Deliverable(h).Any() &&
                         (_active || h.DeliverPending || _policy.NeedsDelivery(h));
             if (want && !_active)
             {
@@ -98,7 +105,7 @@ namespace VikingsForHire.Hirelings.Work
                 ai.WalkTo(dt, pile, Reach * 0.8f, run: false);
                 return;
             }
-            DropPile.DropAll(h.CargoInventory!, pile, "no chest has room", h.Hid);
+            DropPile.DropAll(h.CargoInventory!, pile, "no chest has room", h.Hid, i => _policy.Delivers(h, i.m_dropPrefab != null ? i.m_dropPrefab.name : ""));
             Finish(h, "dropped the rest");
         }
 
@@ -116,7 +123,7 @@ namespace VikingsForHire.Hirelings.Work
                 var stacks = inv.GetAllItems().Where(i => i.m_dropPrefab != null).Select(i => (i.m_dropPrefab.name, i.m_stack)).ToList();
                 infos.Add(new ChestInfo(id, Vector3.Distance(h.transform.position, c.transform.position), stacks, inv.GetWidth() * inv.GetHeight() - inv.NrOfItems()));
             }
-            Dictionary<string, int> cargo = h.CargoInventory!.GetAllItems().Where(i => i.m_dropPrefab != null)
+            Dictionary<string, int> cargo = Deliverable(h)
                 .GroupBy(i => i.m_dropPrefab.name).ToDictionary(g => g.Key, g => g.Sum(i => i.m_stack));
             _plan = DepositPlanner.Plan(cargo, infos, prefab => ObjectDB.instance.GetItemPrefab(prefab)?.GetComponent<ItemDrop>().m_itemData.m_shared.m_maxStackSize ?? 1);
             VfhLog.D(LogCat.Deliver, "deliver.plan", ("hid", h.Hid), ("chests", chests.Count), ("steps", string.Join(",", _plan.Steps.Select(s => $"{s.Prefab}x{s.Amount}"))),
@@ -139,6 +146,9 @@ namespace VikingsForHire.Hirelings.Work
             h.OnDelivered();
             VfhLog.D(LogCat.Deliver, "deliver.done", ("hid", h.Hid), ("why", why), ("left", Cargo(h)));
         }
+
+        private IEnumerable<ItemDrop.ItemData> Deliverable(Hireling h) =>
+            h.CargoInventory!.GetAllItems().Where(i => i.m_dropPrefab != null && _policy.Delivers(h, i.m_dropPrefab.name));
 
         private static string Cargo(Hireling h) =>
             h.CargoInventory == null ? "" : string.Join(",", h.CargoInventory.GetAllItems().Select(i => $"{GearApplier.Name(i)}x{i.m_stack}"));
