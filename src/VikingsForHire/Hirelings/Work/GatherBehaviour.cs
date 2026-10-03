@@ -46,7 +46,7 @@ namespace VikingsForHire.Hirelings.Work
             if (Time.time < _rescanAt)
                 return false;
             _rescanAt = Time.time + Config.VfhConfig.AiScanIntervalSeconds.Value;
-            if (FindPickup(h) || FindTarget(h, _anchor))
+            if (FindPickup(h) || FindTarget(h, _anchor, out string why))
             {
                 h.NoTargets = false;
                 return true;
@@ -55,7 +55,7 @@ namespace VikingsForHire.Hirelings.Work
             {
                 h.NoTargets = true;
                 h.SetActivity("$vfh_status_no_targets");
-                VfhLog.D(LogCat.Work, "work.no_targets", ("hid", h.Hid), ("job", h.Job), ("radius", h.Radius));
+                VfhLog.I(LogCat.Work, "work.no_targets", ("hid", h.Hid), ("job", h.Job), ("radius", h.Radius), ("home", h.Home), ("skipped", why));
             }
             _rescanAt = Time.time + RescanNoTargets;
             return false;
@@ -77,7 +77,7 @@ namespace VikingsForHire.Hirelings.Work
                 Reservations.Release(_target, h.Hid);
                 _target = null;
                 if (!FindPickup(h))
-                    FindTarget(h, _anchor);
+                    FindTarget(h, _anchor, out _);
                 return;
             }
 
@@ -143,16 +143,32 @@ namespace VikingsForHire.Hirelings.Work
             VfhLog.T(LogCat.Work, "work.strike", ("hid", h.Hid), ("target", target.name), ("chop", hit.m_damage.m_chop), ("pickaxe", hit.m_damage.m_pickaxe), ("tier", hit.m_toolTier));
         }
 
-        private bool FindTarget(Hireling h, Vector3 near)
+        private bool FindTarget(Hireling h, Vector3 near, out string why)
         {
+            var reasons = new Dictionary<string, int>();
+            int candidates = 0;
+            string? example = null;
             Vector3 me = h.transform.position;
             bool haveAnchor = near != Vector3.zero;
             Component? best = null;
             float bestScore = float.MaxValue;
             foreach (Component c in _profile.Candidates(h.Home, h.Radius))
             {
-                if (Reservations.IsSkipped(c) || Reservations.IsReservedByOther(c, h.Hid) || !_profile.IsValid(c, h, out _))
+                candidates++;
+                string? skip = Reservations.IsSkipped(c) ? "skipped after a failed approach"
+                    : Reservations.IsReservedByOther(c, h.Hid) ? "claimed by another hireling"
+                    : !_profile.IsValid(c, h, out string reason) ? reason : null;
+                if (skip != null)
+                {
+                    // One line per distinct reason, keeping the first object's name as an example.
+                    string key = skip.StartsWith("near buildings") ? "near buildings" : skip;
+                    if (!reasons.ContainsKey(key))
+                        VfhLog.D(LogCat.Work, "work.candidate_skipped", ("hid", h.Hid), ("target", c.name), ("reason", skip));
+                    reasons[key] = reasons.TryGetValue(key, out int k) ? k + 1 : 1;
+                    if (key != skip)
+                        example ??= skip;
                     continue;
+                }
                 float d = Vector3.Distance(me, c.transform.position);
                 // Logs and stumps a tree just left come first.
                 if (haveAnchor && Vector3.Distance(near, c.transform.position) < 8f)
@@ -163,6 +179,7 @@ namespace VikingsForHire.Hirelings.Work
                     best = c;
                 }
             }
+            why = $"candidates={candidates} " + string.Join(", ", reasons.Select(r => $"{r.Key} x{r.Value}")) + (example != null ? $" (e.g. {example})" : "");
             if (best == null || !Reservations.TryReserve(best, h.Hid))
                 return false;
             _target = best;

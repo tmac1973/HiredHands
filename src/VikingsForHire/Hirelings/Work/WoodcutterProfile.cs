@@ -59,13 +59,22 @@ namespace VikingsForHire.Hirelings.Work
                 reason = $"tier {tier}<{minTier}";
                 return false;
             }
+            return IsSafe(target, out reason);
+        }
+
+        /// <summary>Whether felling this is safe for nearby player pieces; reason names the closest piece when not.</summary>
+        public static bool IsSafe(Component target, out string reason)
+        {
+            reason = "";
             float safety = VfhConfig.TreeSafetyDistanceFromPieces.Value;
             float radius = target is TreeBase ? Mathf.Max(safety, Height(target)) : 2f;
             Pieces.Clear();
             Piece.GetAllPiecesInRadius(target.transform.position, radius, Pieces);
-            if (Pieces.Any(p => p != null && p.GetCreator() != 0L && p.GetComponent<Hireling>() == null))
+            Piece? closest = Pieces.Where(p => p != null && p.GetCreator() != 0L && p.GetComponent<Hireling>() == null)
+                .OrderBy(p => Vector3.Distance(p.transform.position, target.transform.position)).FirstOrDefault();
+            if (closest != null)
             {
-                reason = "near buildings";
+                reason = $"near buildings ({closest.name.Replace("(Clone)", "")} {Vector3.Distance(closest.transform.position, target.transform.position):0.#}m, safe distance {radius:0.#}m)";
                 return false;
             }
             return true;
@@ -76,7 +85,7 @@ namespace VikingsForHire.Hirelings.Work
         public HitData.DamageTypes SwingDamage(HitData.DamageTypes tool, float gatherMult) =>
             new() { m_chop = Mathf.Max(1f, tool.m_chop) * gatherMult };
 
-        private static float Height(Component tree)
+        public static float Height(Component tree)
         {
             var bounds = new Bounds(tree.transform.position, Vector3.zero);
             foreach (Renderer r in tree.GetComponentsInChildren<Renderer>())

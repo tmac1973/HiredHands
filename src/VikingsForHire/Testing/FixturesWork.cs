@@ -64,7 +64,13 @@ namespace VikingsForHire.Testing
             for (int i = 0; i < n; i++)
             {
                 Vector3 dir = Quaternion.Euler(0f, (i - (n - 1) / 2f) * 15f, 0f) * away;
-                Spawn(prefab, board.transform.position + dir * dist, "");
+                GameObject tree = Spawn(prefab, board.transform.position + dir * dist, "");
+                Component? target = (Component?)tree.GetComponent<TreeBase>() ?? tree.GetComponent<Destructible>();
+                if (target != null)
+                {
+                    bool safe = WoodcutterProfile.IsSafe(target, out string reason);
+                    VfhLog.I(LogCat.Test, "fixture.tree", ("i", i), ("height", WoodcutterProfile.Height(target)), ("safe", safe), ("reason", reason));
+                }
             }
             VfhLog.I(LogCat.Test, "fixture.trees", ("prefab", prefab), ("n", n), ("dist", dist));
             yield return new WaitForSeconds(0.5f);
