@@ -61,6 +61,7 @@ namespace VikingsForHire
             FixturesUpgrade.Register();
             FixturesHireling.Register();
             FixturesRoster.Register();
+            FixturesCombat.Register();
 
             SessionInfo.LogHeader("plugin load");
             Log.LogInfo($"{Name} {Version} loaded");

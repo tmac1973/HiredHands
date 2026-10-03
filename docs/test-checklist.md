@@ -80,6 +80,15 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-DIS-1 Dismiss | SP | `vfh_t_dis1` | Open ground | `pass=true` |
 | VFH-REM-1 Remove board | SP | — | A board with a hireling; deconstruct it with the Hammer | Asks first; on Yes the hireling drops its cargo and walks off, the board's storage drops |
 | VFH-HIRE-3-6 Multiplayer roster | D | — | See the phase 06 plan's dedicated-server test | Ops applied once, forwarded to the board's owner, and applied by the server when nobody is near |
+| VFH-STN-1 Flee | SP | `vfh_t_stance1` | Open ground | `pass=true`; the woodcutter runs off |
+| VFH-STN-2 Defend | SP | `vfh_t_stance2` | Open ground | `pass=true`; the miner swings its pickaxe |
+| VFH-STN-3 Passive | SP | `vfh_t_stance3` | Open ground | `pass=true` |
+| VFH-STN-4 Defensive | SP | `vfh_t_stance4` | Open ground | `pass=true`; you can see shield blocks against the greydwarf's swings |
+| VFH-STN-5 Aggressive archer | SP | `vfh_t_stance5` | Open ground | `pass=true`; arrows fly at full speed, and it swaps to its club if the neck closes in |
+| VFH-COMBAT-1 Guards vs group | SP | `vfh_t_combat1` | Open ground | `pass=true`, both guards alive |
+| VFH-COMBAT-3 Patrol & regen | SP | — | Hire a guard from a board (vfh_spawn_contract GuardMelee 1) | It walks around the board's radius, pausing; after a fight its health creeps back up |
+| VFH-COMBAT-4 Raid | SP | — | Base with 2 contracted guards and a worker; `event army_eikthyr` | Guards engage, the worker flees or defends by stance, no input needed |
+| VFH-COMBAT-2 Seen by others | D | — | Combat near two clients | Same animations and hits on both |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.

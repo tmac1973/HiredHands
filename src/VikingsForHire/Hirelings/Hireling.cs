@@ -48,6 +48,33 @@ namespace VikingsForHire.Hirelings
         public int Level => Mathf.Max(1, Zdo?.GetInt(HirelingZdo.Level, 1) ?? 1);
         public HirelingMode Mode => (HirelingMode)(Zdo?.GetInt(HirelingZdo.Mode, (int)HirelingMode.Idle) ?? (int)HirelingMode.Idle);
         public string DisplayName => Zdo?.GetString(HirelingZdo.Name) ?? "";
+        public Core.Stance Stance => (Core.Stance)(Zdo?.GetInt(HirelingZdo.Stance) ?? 0);
+
+        private bool _sidearmOut;
+
+        /// <summary>Archers switch between bow and club; equipping is local on every machine, visuals sync from the owner.</summary>
+        public void UseSidearm(bool on)
+        {
+            if (Job != JobType.GuardRanged || on == _sidearmOut)
+                return;
+            ItemDrop.ItemData? club = GearApplier.Sidearm(_humanoid, Job, Level);
+            ItemDrop.ItemData? bow = _humanoid.GetInventory().GetAllItems().FirstOrDefault(i => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Bow);
+            if (club == null || bow == null)
+                return;
+            _sidearmOut = on;
+            if (on)
+            {
+                _humanoid.UnequipItem(bow, false);
+                _humanoid.EquipItem(club, false);
+            }
+            else
+            {
+                _humanoid.UnequipItem(club, false);
+                _humanoid.EquipItem(bow, false);
+            }
+            VfhLog.D(LogCat.Combat, "weapon.swap", ("hid", Hid), ("to", on ? GearApplier.Name(club) : GearApplier.Name(bow)));
+        }
+
         public float Radius => Zdo?.GetFloat(HirelingZdo.Radius, 20f) ?? 20f;
         public Vector3 Home => Zdo?.GetVec3(HirelingZdo.Home, transform.position) ?? transform.position;
 

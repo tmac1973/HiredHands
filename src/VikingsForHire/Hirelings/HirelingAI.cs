@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using VikingsForHire.Config;
+using VikingsForHire.Core;
 using VikingsForHire.Core.Diagnostics;
+using VikingsForHire.Hirelings.Combat;
 using VikingsForHire.Diagnostics;
 using UnityEngine;
 
@@ -16,6 +19,18 @@ namespace VikingsForHire.Hirelings
         private readonly List<IHirelingBehaviour> _behaviours = new();
         private IHirelingBehaviour? _current;
         private bool _heldForCargo;
+        private CombatBehaviour _combat = null!;
+        private float _regenTimer;
+
+        public ThreatScanner Threats { get; private set; } = null!;
+        public Stance Stance => (Stance)(Hireling.Zdo?.GetInt(HirelingZdo.Stance) ?? 0);
+        public Character? CombatTarget => _combat?.Target;
+
+        /// <summary>Badly hurt and falling back (with hysteresis), unless an aggressive guard.</summary>
+        public bool Retreating { get; private set; }
+
+        /// <summary>Where a fight is measured from for the leash: home for base workers (phase 12 switches it to the owner).</summary>
+        public Vector3 LeashCenter => Hireling.Home;
 
         public Hireling Hireling { get; private set; } = null!;
 
@@ -28,8 +43,20 @@ namespace VikingsForHire.Hirelings
             if (Hireling != null)
                 return;
             Hireling = hireling;
+            Threats = new ThreatScanner(this);
             Add(new IdleBehaviour());
             Add(new LeaveBehaviour());
+            Add(new GuardPatrolBehaviour());
+            Add(new FleeBehaviour());
+            _combat = new CombatBehaviour();
+            Add(_combat);
+            hireling.Humanoid.m_onDamaged += (damage, attacker) =>
+            {
+                Threats.OnDamaged(attacker);
+                _combat.OnHit();
+                VfhLog.D(LogCat.Combat, "hireling.damaged", ("hid", Hireling.Hid), ("by", attacker != null ? attacker.m_name : "none"), ("damage", damage),
+                    ("health", Hireling.Humanoid.GetHealth()));
+            };
         }
 
         /// <summary>Later phases register job, combat and follow behaviours here.</summary>
@@ -47,6 +74,14 @@ namespace VikingsForHire.Hirelings
                 m_randomMoveUpdateTimer -= dt;
             m_timeSinceHurt += dt;
             UpdateRegeneration(dt);
+            Regenerate(dt);
+            Threats.Tick(VfhConfig.AiScanIntervalSeconds.Value);
+            bool retreat = StanceRules.ShouldRetreat(Stance, Hireling.Job.IsGuard(), Hireling.Humanoid.GetHealthPercentage(), Retreating);
+            if (retreat != Retreating)
+            {
+                Retreating = retreat;
+                VfhLog.D(LogCat.Combat, retreat ? "retreat.start" : "retreat.end", ("hid", Hireling.Hid), ("health", Hireling.Humanoid.GetHealthPercentage()));
+            }
 
             // Stand still while someone is using the cargo, so the container doesn't close as they walk off.
             if (Hireling.CargoInUse)
@@ -86,5 +121,22 @@ namespace VikingsForHire.Hirelings
         public void Wander(float dt, Vector3 center) => RandomMovement(dt, center, snapToGround: true);
 
         public void Halt() => StopMoving();
+
+        public void Face(Vector3 point) => LookAt(point);
+
+        /// <summary>Swing/shoot the current weapon at the target if its attack interval allows (vanilla MonsterAI.DoAttack).</summary>
+        public bool Attack(Character target) => DoAttack(target, false);
+
+        /// <summary>1% of max health every 2 s once nothing has hurt them for 10 s.</summary>
+        private void Regenerate(float dt)
+        {
+            _regenTimer += dt;
+            if (_regenTimer < 2f)
+                return;
+            _regenTimer = 0f;
+            Humanoid h = Hireling.Humanoid;
+            if (m_timeSinceHurt > 10f && h.GetHealth() < h.GetMaxHealth())
+                h.Heal(h.GetMaxHealth() * 0.01f, showText: false);
+        }
     }
 }

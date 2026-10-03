@@ -109,6 +109,9 @@ namespace VikingsForHire.Testing
                 case "faction": return hum.GetFaction().ToString();
                 case "armor": return hum.GetBodyArmor().ToString("0.#", CultureInfo.InvariantCulture);
                 case "behaviour": return h.Ai.CurrentBehaviour;
+                case "target": return h.Ai.CombatTarget != null ? h.Ai.CombatTarget.m_name : "none";
+                case "retreating": return h.Ai.Retreating ? "true" : "false";
+                case "alive": return h.Humanoid.IsDead() ? "false" : "true";
                 case "cargo_used": return (h.CargoInventory?.GetAllItems().Count ?? 0).ToString();
                 case "cargo_slots": return h.CargoSlots.ToString();
             }

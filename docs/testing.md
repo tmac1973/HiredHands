@@ -120,3 +120,15 @@ tagged, and `clear_area` removes it.
 | command `vfh_spawn_contract <job> <level>` | Free hire that arrives at once |
 | command `vfh_dismiss_contract <hid-prefix>` | Dismisses one of your hirelings from anywhere |
 | command `vfh_dump_index` | (server/SP) logs every board and hireling the server knows of |
+
+## Phase 07
+
+| Check / fixture | |
+|---|---|
+| check `hireling <sel> behaviour` | Current behaviour: `Combat`, `Flee`, `Patrol`, `Idle`, `Leave` |
+| check `hireling <sel> target` / `retreating` / `alive` | Current combat target name, whether it's falling back hurt, whether it's alive |
+| check `enemies_alive [r=40]` | Hostile creatures alive near you |
+| fixture `enemies <prefab> <n> <distance>` | Spawns creatures around the last spawned hireling |
+| fixture `kill_enemies [r=60]` | Kills hostile creatures near you |
+| fixture `stance <last\|all> <stance>` | Sets stance (Flee, Defend, Passive, Defensive, Aggressive) |
+| fixture `wait <seconds>` | Pauses the run |
