@@ -110,6 +110,10 @@ namespace VikingsForHire.Testing
             {
                 VfhLog.W(LogCat.Test, "fixture.board_here_blocked", ("pos", spot), ("missing", verdict.MissingTokens()));
                 VfhCommand.Print("board_here blocked: " + verdict.Message());
+                string why = verdict.MissingTokens().Contains("BoardTooClose")
+                    ? "another hiring board is too close: run tests 110m+ away from your own boards"
+                    : "blocked: " + verdict.MissingTokens();
+                TestHarness.FailSetup("board_here", why);
                 yield break;
             }
             Spawn(BoardZdo.PrefabName, spot, Quaternion.LookRotation(-player.transform.forward));

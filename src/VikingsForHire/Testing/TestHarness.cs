@@ -103,6 +103,13 @@ namespace VikingsForHire.Testing
             RegisterBuiltInChecks();
         }
 
+        /// <summary>
+        /// A setup step couldn't do its job (e.g. no room for a test board): record it as a failed check so the run
+        /// can't pass on the wrong setup, and say why on screen.
+        /// </summary>
+        public static void FailSetup(string what, string reason) =>
+            Record("setup " + what, Array.Empty<string>(), "==", "ok", reason, false, 0f);
+
         public static void RegisterCheck(string name, string usage, Func<string[], string> eval, bool serverSide = false) =>
             Checks[name] = new Check { Usage = usage, Eval = eval, ServerSide = serverSide };
 
