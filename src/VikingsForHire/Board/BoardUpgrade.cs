@@ -117,11 +117,13 @@ namespace VikingsForHire.Board
                 pending.Paid.Add((r.Item.gameObject, r.Need));
             }
             _pending = pending;
-
-            board.GetComponent<ZNetView>().InvokeRPC(RequestRpc, level, pending.Id);
+            LastResult = "sent";
             VfhLog.I(LogCat.Board, "upgrade.requested", ("board", board.Id), ("from", level), ("id", pending.Id),
                 ("paid", string.Join(" ", reqs.Select(r => $"{r.Prefab}x{r.Need}"))));
-            LastResult = "sent";
+
+            // When this machine owns the board (single-player, host) the owner's handler and its reply run inside this
+            // call, so everything above must already be in place, and nothing after it may overwrite the outcome.
+            board.GetComponent<ZNetView>().InvokeRPC(RequestRpc, level, pending.Id);
             return "sent";
         }
 
@@ -167,6 +169,7 @@ namespace VikingsForHire.Board
                 return;
             Pending pending = _pending;
             _pending = null;
+            VfhLog.I(LogCat.Board, "upgrade.result", ("board", board.Id), ("ok", ok), ("level", level), ("id", id));
             if (ok)
             {
                 Finish("ok");
