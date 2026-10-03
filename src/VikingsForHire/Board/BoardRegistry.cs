@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Jotunn.Entities;
 using Jotunn.Managers;
 using VikingsForHire.Core.Diagnostics;
@@ -35,7 +36,8 @@ namespace VikingsForHire.Board
         private static float _serverScanAt = -999f;
 
         private static readonly Dictionary<Vector2Int, (Answer Answer, float At)> ClientCache = new();
-        private static readonly Dictionary<int, Vector2Int> Pending = new();
+        private static readonly Dictionary<int, (Vector2Int Cell, float SentAt)> Pending = new();
+        private const float ResendSeconds = 3f;
         private static int _nextRequest = 1;
 
         /// <summary>Drops the client's cached answers (tests do this after removing boards).</summary>
@@ -63,10 +65,13 @@ namespace VikingsForHire.Board
                 answer = cached.Answer;
                 return true;
             }
-            if (!Pending.ContainsValue(cell))
+            // Ask again if an earlier request for this spot got no answer (sent while connecting, or lost).
+            foreach (int stale in Pending.Where(p => Time.realtimeSinceStartup - p.Value.SentAt > ResendSeconds).Select(p => p.Key).ToList())
+                Pending.Remove(stale);
+            if (!Pending.Values.Any(p => p.Cell == cell))
             {
                 int id = _nextRequest++;
-                Pending[id] = cell;
+                Pending[id] = (cell, Time.realtimeSinceStartup);
                 var pkg = new ZPackage();
                 pkg.Write(id);
                 pkg.Write(position);
@@ -135,8 +140,9 @@ namespace VikingsForHire.Board
             int id = package.ReadInt();
             float nearest = package.ReadSingle();
             int count = package.ReadInt();
-            if (Pending.TryGetValue(id, out Vector2Int cell))
+            if (Pending.TryGetValue(id, out var pending))
             {
+                Vector2Int cell = pending.Cell;
                 Pending.Remove(id);
                 ClientCache[cell] = (new Answer(nearest < 0f ? null : nearest, count), Time.realtimeSinceStartup);
             }
