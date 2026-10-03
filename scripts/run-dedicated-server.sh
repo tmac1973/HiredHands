@@ -51,6 +51,14 @@ fi
 
 echo "VikingsForHire on server: $([[ $no_vfh -eq 1 ]] && echo no || echo "yes${vfh_dll:+ ($vfh_dll)}")"
 echo "Save dir: $SAVE_DIR (adminlist.txt lives here)"
+
+# Make the local player an admin so devcommands (and the vfh_t_* test macros) work. The ID is the plain Steam
+# number the server logs as "Got connection SteamID ...", taken from the dev profile's client log.
+ADMIN_ID="${ADMIN_ID:-$(grep -oE 'Steam_[0-9]{17}' "$PROFILE/BepInEx/LogOutput.log" 2>/dev/null | head -1 | sed 's/Steam_//')}"
+if [[ -n "$ADMIN_ID" ]] && ! grep -qx "$ADMIN_ID" "$SAVE_DIR/adminlist.txt" 2>/dev/null; then
+    echo "$ADMIN_ID" >> "$SAVE_DIR/adminlist.txt"
+    echo "Added $ADMIN_ID to adminlist.txt"
+fi
 echo "Log: $SERVER_DIR/BepInEx/LogOutput.log"
 
 cd "$SERVER_DIR"
