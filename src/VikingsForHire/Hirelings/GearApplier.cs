@@ -26,10 +26,7 @@ namespace VikingsForHire.Hirelings
                 names.AddRange(new[] { armor.Helmet, armor.Chest, armor.Legs });
             WeaponSetData? weapons = data.Jobs.TryGetValue(job, out JobData? j) ? j.Gear.FirstOrDefault(g => g.Level == level) : null;
             if (weapons != null)
-            {
-                // Sidearm first so the main weapon is the one left equipped; ammo last.
-                names.AddRange(new[] { weapons.Sidearm, weapons.Main, weapons.Offhand, weapons.Ammo });
-            }
+                names.AddRange(new[] { weapons.Main, weapons.Offhand, weapons.Ammo });
             return names.Where(n => !string.IsNullOrEmpty(n))
                 .Select(n => ObjectDB.instance != null ? ObjectDB.instance.GetItemPrefab(n) : null)
                 .Where(p => p != null).Select(p => p!).ToArray();
@@ -45,6 +42,30 @@ namespace VikingsForHire.Hirelings
             humanoid.GetInventory().RemoveAll();
             humanoid.m_defaultItems = GearFor(job, level);
             humanoid.GiveDefaultItems();
+            AddSidearm(humanoid, job, level);
+        }
+
+        /// <summary>
+        /// The sidearm (an archer's club) is carried, not equipped: vanilla equips every default item, so it goes into the
+        /// inventory separately. Combat (phase 07) swaps to it when an enemy gets close.
+        /// </summary>
+        public static void AddSidearm(Humanoid humanoid, JobType job, int level)
+        {
+            WeaponSetData? weapons = DataStore.Current.Jobs.TryGetValue(job, out JobData? j) ? j.Gear.FirstOrDefault(g => g.Level == level) : null;
+            if (weapons == null || string.IsNullOrEmpty(weapons.Sidearm) || ObjectDB.instance == null)
+                return;
+            GameObject? prefab = ObjectDB.instance.GetItemPrefab(weapons.Sidearm);
+            if (prefab == null || humanoid.GetInventory().GetAllItems().Any(i => i.m_dropPrefab == prefab))
+                return;
+            humanoid.GetInventory().AddItem(prefab, 1);
+        }
+
+        public static ItemDrop.ItemData? Sidearm(Humanoid humanoid, JobType job, int level)
+        {
+            WeaponSetData? weapons = DataStore.Current.Jobs.TryGetValue(job, out JobData? j) ? j.Gear.FirstOrDefault(g => g.Level == level) : null;
+            return weapons == null || string.IsNullOrEmpty(weapons.Sidearm)
+                ? null
+                : humanoid.GetInventory().GetAllItems().FirstOrDefault(i => i.m_dropPrefab != null && i.m_dropPrefab.name == weapons.Sidearm);
         }
 
         /// <summary>Ranged guards never run out of arrows.</summary>

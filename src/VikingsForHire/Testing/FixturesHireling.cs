@@ -27,7 +27,7 @@ namespace VikingsForHire.Testing
             TestHarness.RegisterCheck("hireling_count", "[job] - loaded hirelings within 50m (optionally of one job)", args =>
                 Hireling.Loaded.Count(h => h != null && h.Zdo != null && Vector3.Distance(h.transform.position, Player.m_localPlayer.transform.position) <= 50f &&
                                            (args.Length == 0 || string.Equals(h.Job.ToString(), args[0], StringComparison.OrdinalIgnoreCase))).ToString());
-            TestHarness.RegisterCheck("hireling", "<last|nearest|short-hid> <field> - last = the most recently spawned; name, job, level, health, maxhealth, charlevel, tamed, faction, armor, behaviour, gear.right|left|helmet|chest|legs|ammo, cargo.<item>, cargo_used, cargo_slots, or any vfh_ key",
+            TestHarness.RegisterCheck("hireling", "<last|nearest|short-hid> <field> - last = the most recently spawned; name, job, level, health, maxhealth, charlevel, tamed, faction, armor, behaviour, gear.right|left|helmet|chest|legs|ammo|sidearm (none when empty), cargo.<item>, cargo_used, cargo_slots, or any vfh_ key",
                 args => Field(Select(args.ElementAtOrDefault(0) ?? "nearest"), args.ElementAtOrDefault(1) ?? ""));
             TestHarness.RegisterCheck("snapshot_roundtrip", "- result of the last snapshot test: true, or false with the differing values", _ => SnapshotTest.LastResult);
         }
@@ -88,6 +88,11 @@ namespace VikingsForHire.Testing
             ZDO z = h.Zdo!;
             Humanoid hum = h.Humanoid;
             string f = field.ToLowerInvariant();
+            if (f.StartsWith("gear."))
+            {
+                string gear = GearField(hum, h, f);
+                return gear.Length == 0 ? "none" : gear;
+            }
             if (f.StartsWith("cargo."))
                 return (h.CargoInventory?.GetAllItems().Where(i => GearApplier.Name(i).Equals(field.Substring(6), StringComparison.OrdinalIgnoreCase)).Sum(i => i.m_stack) ?? 0).ToString();
             switch (f)
@@ -104,12 +109,6 @@ namespace VikingsForHire.Testing
                 case "faction": return hum.GetFaction().ToString();
                 case "armor": return hum.GetBodyArmor().ToString("0.#", CultureInfo.InvariantCulture);
                 case "behaviour": return h.Ai.CurrentBehaviour;
-                case "gear.right": return GearApplier.Name(hum.GetRightItem());
-                case "gear.left": return GearApplier.Name(hum.GetLeftItem());
-                case "gear.helmet": return GearApplier.Name(hum.m_helmetItem);
-                case "gear.chest": return GearApplier.Name(hum.m_chestItem);
-                case "gear.legs": return GearApplier.Name(hum.m_legItem);
-                case "gear.ammo": return GearApplier.Name(hum.GetAmmoItem());
                 case "cargo_used": return (h.CargoInventory?.GetAllItems().Count ?? 0).ToString();
                 case "cargo_slots": return h.CargoSlots.ToString();
             }
@@ -122,6 +121,18 @@ namespace VikingsForHire.Testing
             if (ZDOExtraData.s_vec3.TryGetValue(z.m_uid, out var v3) && v3.TryGetValue(hash, out Vector3 vv)) return vv.ToString();
             return $"error: unknown field {field}";
         }
+
+        private static string GearField(Humanoid hum, Hireling h, string f) => f switch
+        {
+            "gear.right" => GearApplier.Name(hum.GetRightItem()),
+            "gear.left" => GearApplier.Name(hum.GetLeftItem()),
+            "gear.helmet" => GearApplier.Name(hum.m_helmetItem),
+            "gear.chest" => GearApplier.Name(hum.m_chestItem),
+            "gear.legs" => GearApplier.Name(hum.m_legItem),
+            "gear.ammo" => GearApplier.Name(hum.GetAmmoItem()),
+            "gear.sidearm" => GearApplier.Name(GearApplier.Sidearm(hum, h.Job, h.Level)),
+            _ => throw new ArgumentException($"unknown gear slot {f}"),
+        };
 
         private static IEnumerator Wait(float seconds)
         {
