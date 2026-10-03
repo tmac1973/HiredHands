@@ -60,6 +60,10 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> ReturnMaxSeconds = null!;
         public static ConfigEntry<float> StoneBoardSearchRadius = null!;
 
+        // 8 - Combat
+        public static ConfigEntry<float> MeleeAttackCooldown = null!;
+        public static ConfigEntry<float> RangedAttackCooldown = null!;
+
         // 6 - Controls (local). The board panel is Shift+E: Valheim's alt-interact, so it follows the game's own bindings.
         public static ConfigEntry<KeyboardShortcut> CycleFollowModeKey = null!;
         public static ConfigEntry<KeyboardShortcut> CycleStanceKey = null!;
@@ -118,6 +122,9 @@ namespace VikingsForHire.Config
             ReturnMinSeconds = Synced(f, "ReturnMinSeconds", 60f, "Shortest return-home trip.");
             ReturnMaxSeconds = Synced(f, "ReturnMaxSeconds", 1200f, "Longest return-home trip.");
             StoneBoardSearchRadius = Synced(f, "StoneBoardSearchRadius", 30f, "Radius (m) around the workbench searched for a hiring board when crafting a Command Stone.");
+
+            MeleeAttackCooldown = Synced("8 - Combat", "MeleeAttackCooldown", 1.2f, "Seconds between a hireling's melee swings.");
+            RangedAttackCooldown = Synced("8 - Combat", "RangedAttackCooldown", 2.5f, "Seconds between an archer's shots (at least the bow's draw time plus a beat).");
 
             CycleFollowModeKey = config.Bind("6 - Controls", "CycleFollowModeKey", new KeyboardShortcut(UnityEngine.KeyCode.G), "With the Command Stone equipped: cycle Follow / Stay / Gather Nearby.");
             CycleStanceKey = config.Bind("6 - Controls", "CycleStanceKey", new KeyboardShortcut(UnityEngine.KeyCode.H), "With the Command Stone equipped: cycle followers' combat stance.");

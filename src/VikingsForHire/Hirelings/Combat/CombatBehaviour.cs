@@ -22,6 +22,7 @@ namespace VikingsForHire.Hirelings.Combat
         private Character? _target;
         private float _lastAction;
         private float _blockUntil;
+        private float _nextAttack;
         private Character? _ignored;
         private float _ignoredUntil;
 
@@ -63,6 +64,15 @@ namespace VikingsForHire.Hirelings.Combat
 
         public void OnHit() => _lastAction = Time.time;
 
+        /// <summary>
+        /// Vanilla paces monster attacks inside MonsterAI.UpdateAI, which hirelings don't run, so the pace is set here.
+        /// </summary>
+        private void Attacked(float cooldown)
+        {
+            _lastAction = Time.time;
+            _nextAttack = Time.time + cooldown;
+        }
+
         private void Melee(HirelingAI ai, Humanoid me, Character target, float dist, float dt)
         {
             if (dist > MeleeReach)
@@ -79,8 +89,8 @@ namespace VikingsForHire.Hirelings.Combat
                 _blockUntil = Time.time + BlockSeconds;
                 return;
             }
-            if (!me.m_blocking && ai.IsLookingAt(target.GetCenterPoint(), 20f) && ai.Attack(target))
-                _lastAction = Time.time;
+            if (!me.m_blocking && Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 20f) && ai.Attack(target))
+                Attacked(Config.VfhConfig.MeleeAttackCooldown.Value);
         }
 
         private void Ranged(HirelingAI ai, Humanoid me, Character target, float dist, float dt)
@@ -105,12 +115,15 @@ namespace VikingsForHire.Hirelings.Combat
             }
             ai.Halt();
             ai.Face(target.GetCenterPoint());
-            if (ai.IsLookingAt(target.GetCenterPoint(), 10f))
+            if (Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 10f))
             {
                 // Player bows only reach full power when drawn; NPCs never hold the button, so draw them fully.
                 me.m_attackDrawTime = 10f;
                 if (ai.Attack(target))
-                    _lastAction = Time.time;
+                {
+                    float draw = me.GetCurrentWeapon()?.m_shared.m_attack.m_drawDurationMin ?? 0f;
+                    Attacked(Mathf.Max(Config.VfhConfig.RangedAttackCooldown.Value, draw + 0.8f));
+                }
             }
         }
 
