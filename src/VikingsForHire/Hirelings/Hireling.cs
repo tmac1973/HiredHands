@@ -95,6 +95,7 @@ namespace VikingsForHire.Hirelings
                 ByCargo[CargoInventory] = this;
             // Humanoid.Start has equipped the default gear by now; the sidearm is carried, not worn.
             GearApplier.AddSidearm(_humanoid, Job, Level);
+            ApplyCargoRows();
 
             // The name shown on the health bar (EnemyHud) and anywhere else that reads Character.m_name.
             if (DisplayName.Length > 0)
@@ -134,6 +135,7 @@ namespace VikingsForHire.Hirelings
                     _gearJob = Job;
                     _gearLevel = Level;
                     GearApplier.Regear(_humanoid, _gearJob, _gearLevel);
+                    ApplyCargoRows();
                     if (IsOwner)
                         ApplyLevelStats();
                 }
@@ -168,6 +170,19 @@ namespace VikingsForHire.Hirelings
                 if (BoardId.Length > 0 && Mode != HirelingMode.Leaving)
                     Net.MutationService.SubmitBoard(BoardId, new RosterOp { Type = RosterOpType.MarkDied, Hid = Hid, Name = DisplayName });
             }, ("hid", Hid));
+        }
+
+        /// <summary>
+        /// Show only the cargo rows this level can use (8 slots per row); the unusable part of a partly-used last row is
+        /// greyed by CargoGate. Vanilla still grows the grid to fit any items already in it, so nothing is ever hidden.
+        /// </summary>
+        private void ApplyCargoRows()
+        {
+            if (_cargo == null || CargoInventory == null)
+                return;
+            int rows = Mathf.Clamp(Mathf.CeilToInt(CargoSlots / (float)HirelingPrefab.CargoWidth), 1, HirelingPrefab.CargoHeight);
+            _cargo.m_height = rows;
+            _cargo.UpdateRows();
         }
 
         /// <summary>Owner: max health from the level table (current health is kept, capped to the new max).</summary>
