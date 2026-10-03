@@ -61,5 +61,6 @@ export LD_LIBRARY_PATH="./doorstop_libs:./linux64:${LD_LIBRARY_PATH:-}"
 export LD_PRELOAD="libdoorstop_x64.so:${LD_PRELOAD:-}"
 export SteamAppId=892970
 
-exec ./valheim_server.x86_64 -name VikingsForHireTest -port 2456 -world VikingsForHireTest -password vikings \
+# No -password: LAN-only test server (-public 0), so it runs open.
+exec ./valheim_server.x86_64 -name VikingsForHireTest -port 2456 -world VikingsForHireTest \
     -public 0 -savedir "$SAVE_DIR"

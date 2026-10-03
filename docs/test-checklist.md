@@ -16,7 +16,7 @@ Run before every release. **Modes:** `SP` = single-player from `vikingsforhire-d
 - **Test macros:** each row names a `vfh_t_*` alias from `test/alias_vfh.yaml`. Type it in the console;
   the row passes when the log has `evt=test.result row=<ROW> pass=true` (phase 02 onwards).
 - **Dedicated server:** `scripts/run-dedicated-server.sh` (add `--no-vfh` or `--vfh-dll <path>` per row).
-  Join via *Join game → Add server* `127.0.0.1:2456`, password `vikings`.
+  Join via *Join game → Add server* `127.0.0.1:2456` (no password; LAN-only).
 - **Admin list:** `.../Valheim dedicated server/vfh-save/adminlist.txt`. Put your Steam ID
   (`76561197980064368`) on its own line when a row needs admin; restart the server after changing it.
 - **Server-side config:** `.../Valheim dedicated server/BepInEx/config/Spronglehump.VikingsForHire.cfg`
@@ -45,3 +45,6 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 
 | Date | Build (commit) | Row | Mode | Result | Notes |
 |---|---|---|---|---|---|
+| 2026-10-03 | c16fbd1 | SCAFFOLD-1 | SP | Pass | Plugin loaded; `vfh_t_smoke` broadcast shown |
+| 2026-10-03 | c16fbd1 | SCAFFOLD-1 | D | Pass | Server loaded plugin (10 loaded, 0 failed); client joined and spawned |
+| 2026-10-03 | c16fbd1 | SCAFFOLD-2 | D | Deferred | To run after a few phases are in |
