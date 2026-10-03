@@ -22,7 +22,7 @@ namespace VikingsForHire.Hirelings.Work
         private const float Reach = 2.2f;
         private const float ItemSeconds = 0.25f;
         private const float IdleRescan = 30f;
-        private const float StepGiveUp = 45f;
+        private const float StuckSeconds = 20f; // no progress towards the step's spot for this long: give up
         private const float OutputPickupRadius = 4f;
         private const float ChestSkipSeconds = 60f;
         private const float SettleSeconds = 2f;
@@ -30,6 +30,8 @@ namespace VikingsForHire.Hirelings.Work
         private Step _step;
         private float _nextSurvey;
         private float _stepStarted;
+        private float _bestDistance;
+        private float _progressAt;
         private float _nextItemAt;
         private Container? _chest;
         private Dictionary<string, int> _fetch = new();
@@ -60,10 +62,13 @@ namespace VikingsForHire.Hirelings.Work
         public void Tick(HirelingAI ai, float dt)
         {
             Hireling h = ai.Hireling;
-            if (Time.time - _stepStarted > StepGiveUp)
+            if (Time.time - _progressAt > StuckSeconds)
             {
-                VfhLog.D(LogCat.Smelter, "smelter.step_timeout", ("hid", h.Hid), ("step", _step), ("station", _station != null ? _station.name : ""));
-                End(h, ChestSkipSeconds);
+                VfhLog.I(LogCat.Smelter, "smelter.stuck", ("hid", h.Hid), ("step", _step), ("station", _station != null ? Utils.GetPrefabName(_station.gameObject) : ""),
+                    ("chest", _chest != null ? _chest.transform.position.ToString() : ""), ("pos", h.transform.position), ("dist", _bestDistance));
+                if (_chest != null)
+                    Reservations.Skip(_chest, ChestSkipSeconds);
+                End(h, 5f);
                 return;
             }
             switch (_step)
@@ -174,16 +179,14 @@ namespace VikingsForHire.Hirelings.Work
                 End(h, 0f);
                 return;
             }
-            if (Vector3.Distance(ai.transform.position, chest.transform.position) > Reach)
-            {
-                ai.WalkTo(dt, chest.transform.position, Reach * 0.8f, run: false);
+            if (!Approach(ai, dt, chest, chest.transform.position))
                 return;
-            }
             ai.Halt();
             ai.Face(chest.transform.position);
             int keepMin = VfhConfig.ChestReserve;
             int moved = 0;
-            foreach (var f in _fetch.ToList())
+            var inChest = new HashSet<string>(chest.GetInventory().GetAllItems().Where(i => i.m_dropPrefab != null).Select(i => i.m_dropPrefab.name));
+            foreach (var f in _fetch.Where(f => inChest.Contains(f.Key)).ToList())
                 moved += ContainerAccess.Take(chest, h.CargoInventory!, f.Key, f.Value, keepMin, h.Hid);
             if (moved == 0)
                 Reservations.Skip(chest, ChestSkipSeconds); // in use, or nothing we can take after all
@@ -201,11 +204,8 @@ namespace VikingsForHire.Hirelings.Work
             LoadTask task = _loads[0];
             Switch? sw = task.IsFuel ? s.m_addWoodSwitch : s.m_addOreSwitch;
             Vector3 at = sw != null ? sw.transform.position : s.transform.position;
-            if (Utils.DistanceXZ(ai.transform.position, at) > Reach)
-            {
-                ai.WalkTo(dt, at, Reach * 0.8f, run: false);
+            if (!Approach(ai, dt, s, at))
                 return;
-            }
             ai.Halt();
             ai.Face(at);
             if (Time.time < _nextItemAt)
@@ -249,11 +249,8 @@ namespace VikingsForHire.Hirelings.Work
             Vector3 at = !_emptied && s.m_emptyOreSwitch != null && StationSurvey.ProcessedWaiting(s) > 0
                 ? s.m_emptyOreSwitch.transform.position
                 : s.m_outputPoint != null ? s.m_outputPoint.position : s.transform.position;
-            if (Utils.DistanceXZ(ai.transform.position, at) > Reach)
-            {
-                ai.WalkTo(dt, at, Reach * 0.8f, run: false);
+            if (!Approach(ai, dt, s, at))
                 return;
-            }
             ai.Halt();
             ai.Face(at);
             if (!_emptied && StationSurvey.ProcessedWaiting(s) > 0)
@@ -302,10 +299,59 @@ namespace VikingsForHire.Hirelings.Work
                 .OrderBy(c => Vector3.Distance(h.transform.position, c.transform.position)).FirstOrDefault();
         }
 
+        /// <summary>
+        /// Walks to a spot just outside <paramref name="obj"/>'s footprint on our side of <paramref name="target"/>
+        /// (a switch or a chest). The target itself is inside the object, where the pathfinder can't go. True when
+        /// close enough to use it.
+        /// </summary>
+        private bool Approach(HirelingAI ai, float dt, Component obj, Vector3 target)
+        {
+            float half = Footprint(obj);
+            float dist = Utils.DistanceXZ(ai.transform.position, target);
+            if (dist < _bestDistance - 0.3f)
+            {
+                _bestDistance = dist;
+                _progressAt = Time.time;
+            }
+            if (dist <= half + Reach)
+            {
+                _progressAt = Time.time; // working at it counts as progress
+                return true;
+            }
+            Vector3 away = ai.transform.position - target;
+            away.y = 0f;
+            Vector3 spot = target + (away.sqrMagnitude > 0.01f ? away.normalized : obj.transform.forward) * (half + 1f);
+            ai.WalkTo(dt, spot, 0.5f, run: false);
+            return false;
+        }
+
+        // Half the widest horizontal extent of the object's solid colliders.
+        private static float Footprint(Component obj)
+        {
+            Bounds? all = null;
+            foreach (Collider c in obj.GetComponentsInChildren<Collider>())
+            {
+                if (!c.enabled || c.isTrigger)
+                    continue;
+                if (all is Bounds b)
+                {
+                    b.Encapsulate(c.bounds);
+                    all = b;
+                }
+                else
+                {
+                    all = c.bounds;
+                }
+            }
+            return all is Bounds x ? Mathf.Clamp(Mathf.Max(x.extents.x, x.extents.z), 0.3f, 3f) : 0.5f;
+        }
+
         private void Begin(Step step, Hireling h, string status)
         {
             _step = step;
             _stepStarted = Time.time;
+            _bestDistance = float.MaxValue;
+            _progressAt = Time.time;
             _nextItemAt = 0f;
             h.SetActivity(status);
             VfhLog.D(LogCat.Smelter, "smelter.step", ("hid", h.Hid), ("step", step));
