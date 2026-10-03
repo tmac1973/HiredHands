@@ -81,6 +81,12 @@ namespace VikingsForHire.UI
             panel._content = PanelUi.Fill(root.transform, "content");
             PanelUi.Button(root.transform, "$vfh_close", 300f, -30f, 80f, 34f, () => Close("button"));
             root.SetActive(false);
+            PanelUi.Clicked += () =>
+            {
+                // Redraw on the next frame (the op has usually applied by then) instead of up to half a second later.
+                if (_instance != null)
+                    _instance._nextRefresh = 0f;
+            };
             return panel;
         }
 

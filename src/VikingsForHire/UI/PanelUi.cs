@@ -25,12 +25,38 @@ namespace VikingsForHire.UI
             return t;
         }
 
+        private const float ClickDebounceSeconds = 0.25f;
+        private static float _lastClick = -1f;
+
+        /// <summary>Fires after any panel button's action, so the panel can redraw straight away.</summary>
+        public static event System.Action? Clicked;
+
+        /// <summary>
+        /// A panel button. Clicks within 0.25 s of the previous one are ignored (no double submits), and the hover/select
+        /// sounds are off: the panel redraws after a click, and a fresh button appearing under the pointer would
+        /// otherwise play its hover sound on top of the click.
+        /// </summary>
         public static Button Button(Transform parent, string text, float x, float y, float width, float height, System.Action onClick)
         {
             GameObject go = GUIManager.Instance.CreateButton(Localization.instance.Localize(text), parent, TopCenter, TopCenter,
                 new Vector2(x, y), width, height);
+            ButtonSfx? sfx = go.GetComponent<ButtonSfx>();
+            if (sfx != null)
+            {
+                sfx.m_enterSfxPrefab = null;
+                sfx.m_enterSfxPrefabVibrationOnly = null;
+                sfx.m_selectSfxPrefab = null;
+                sfx.m_selectSfxPrefabVibrationOnly = null;
+            }
             Button b = go.GetComponent<Button>();
-            b.onClick.AddListener(() => onClick());
+            b.onClick.AddListener(() =>
+            {
+                if (Time.unscaledTime - _lastClick < ClickDebounceSeconds)
+                    return;
+                _lastClick = Time.unscaledTime;
+                onClick();
+                Clicked?.Invoke();
+            });
             return b;
         }
 
@@ -60,10 +86,11 @@ namespace VikingsForHire.UI
             return rt;
         }
 
+        /// <summary>Removes children now, not at the end of the frame, so old and new widgets never overlap.</summary>
         public static void Clear(Transform t)
         {
             for (int i = t.childCount - 1; i >= 0; i--)
-                Object.Destroy(t.GetChild(i).gameObject);
+                Object.DestroyImmediate(t.GetChild(i).gameObject);
         }
     }
 }
