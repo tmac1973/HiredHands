@@ -14,6 +14,9 @@ namespace VikingsForHire.Commands
     {
         private const float BoardRange = 100f;
 
+        /// <summary>Hids from the most recent vfh_spawn, so tests can check exactly what they spawned.</summary>
+        public static readonly System.Collections.Generic.List<string> LastSpawned = new();
+
         public static void Register()
         {
             var jobs = Enum.GetNames(typeof(JobType)).ToList();
@@ -42,11 +45,13 @@ namespace VikingsForHire.Commands
             Player player = Player.m_localPlayer;
             Vector3 point = at ?? LookPoint(player);
             HiringBoard? board = HiringBoard.Nearest(point, BoardRange);
+            LastSpawned.Clear();
             for (int i = 0; i < count; i++)
             {
                 Vector3 offset = count == 1 ? Vector3.zero : Quaternion.Euler(0f, i * 360f / count, 0f) * Vector3.forward * 2f;
                 HirelingRecord record = HirelingFactory.NewRecord(job, level, board, point);
                 HirelingFactory.Spawn(record, point + offset, Quaternion.LookRotation(-player.transform.forward), "vfh_spawn");
+                LastSpawned.Add(record.Hid);
             }
             VfhCommand.Print($"VikingsForHire: spawned {count} {job} L{level}{(board != null ? $" for board {board.Id}" : " (no board nearby)")}");
             return count;

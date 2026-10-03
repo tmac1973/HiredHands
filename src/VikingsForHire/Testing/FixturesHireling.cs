@@ -27,7 +27,7 @@ namespace VikingsForHire.Testing
             TestHarness.RegisterCheck("hireling_count", "[job] - loaded hirelings within 50m (optionally of one job)", args =>
                 Hireling.Loaded.Count(h => h != null && h.Zdo != null && Vector3.Distance(h.transform.position, Player.m_localPlayer.transform.position) <= 50f &&
                                            (args.Length == 0 || string.Equals(h.Job.ToString(), args[0], StringComparison.OrdinalIgnoreCase))).ToString());
-            TestHarness.RegisterCheck("hireling", "<nearest|short-hid> <field> - name, job, level, health, maxhealth, charlevel, tamed, faction, armor, behaviour, gear.right|left|helmet|chest|legs|ammo, cargo.<item>, cargo_used, cargo_slots, or any vfh_ key",
+            TestHarness.RegisterCheck("hireling", "<last|nearest|short-hid> <field> - last = the most recently spawned; name, job, level, health, maxhealth, charlevel, tamed, faction, armor, behaviour, gear.right|left|helmet|chest|legs|ammo, cargo.<item>, cargo_used, cargo_slots, or any vfh_ key",
                 args => Field(Select(args.ElementAtOrDefault(0) ?? "nearest"), args.ElementAtOrDefault(1) ?? ""));
             TestHarness.RegisterCheck("snapshot_roundtrip", "- result of the last snapshot test: true, or false with the differing values", _ => SnapshotTest.LastResult);
         }
@@ -73,6 +73,12 @@ namespace VikingsForHire.Testing
         {
             if (selector == "nearest")
                 return HirelingCommands.NearestOrThrow();
+            if (selector == "last")
+            {
+                string hid = HirelingCommands.LastSpawned.LastOrDefault() ?? throw new InvalidOperationException("nothing spawned yet");
+                return Hireling.Loaded.FirstOrDefault(h => h != null && h.Hid == hid)
+                       ?? throw new InvalidOperationException($"last spawned hireling {hid} isn't loaded");
+            }
             return Hireling.Loaded.FirstOrDefault(h => h != null && h.Hid.StartsWith(selector, StringComparison.OrdinalIgnoreCase))
                    ?? throw new InvalidOperationException($"no loaded hireling with id {selector}…");
         }
