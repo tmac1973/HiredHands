@@ -110,7 +110,7 @@ tagged, and `clear_area` removes it.
 | check `contract_gone <last\|hid>` | `true` once the contract is off the board |
 | check `last_op` | Outcome of your last contract action: `Ok`, `CapReached`, `InsufficientFunds`, `NotFound`, `BadLevel`… |
 | check `posted_hireling <present\|mode\|status\|level>` | The hireling from your last posted contract |
-| check `last_upkeep_day` / `today` | Upkeep bookkeeping |
+| check `last_upkeep_day` / `today` / `upkeep_charged_today` | Upkeep bookkeeping |
 | check `index <last\|hid> exists` | (server) whether the server's index has that hireling |
 | fixture `stock_board <food> <coins>` / `board_clear` | Fill / empty the nearest board's storage |
 | fixture `post <job> <level> [radius]` | Posts a contract (pays like the panel) and waits for the answer |

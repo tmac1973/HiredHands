@@ -59,6 +59,8 @@ namespace VikingsForHire.Testing
             TestHarness.RegisterCheck("last_op", "- outcome of the last contract op: Ok, CapReached, InsufficientFunds…", _ => BoardContracts.LastOutcome);
             TestHarness.RegisterCheck("last_upkeep_day", "- the day the nearest board last charged upkeep", _ => Board().Zdo!.GetInt(BoardZdo.LastUpkeepDay).ToString());
             TestHarness.RegisterCheck("today", "- the current in-game day", _ => EnvMan.instance.GetDay().ToString());
+            TestHarness.RegisterCheck("upkeep_charged_today", "- true when the nearest board has charged today's upkeep",
+                _ => Board().Zdo!.GetInt(BoardZdo.LastUpkeepDay) == EnvMan.instance.GetDay() ? "true" : "false");
             TestHarness.RegisterCheck("index", "<last|hid> exists - (server) whether the server's index has that hireling", args =>
             {
                 string sel = args.ElementAtOrDefault(0) ?? "last";
