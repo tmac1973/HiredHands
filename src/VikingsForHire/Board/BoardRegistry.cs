@@ -38,6 +38,9 @@ namespace VikingsForHire.Board
         private static readonly Dictionary<int, Vector2Int> Pending = new();
         private static int _nextRequest = 1;
 
+        /// <summary>Drops the client's cached answers (tests do this after removing boards).</summary>
+        public static void ForgetCache() => ClientCache.Clear();
+
         public static void Register() => _rpc = NetworkManager.Instance.AddRPC("VFH_BoardCheck", OnServerRequest, OnClientAnswer);
 
         /// <summary>

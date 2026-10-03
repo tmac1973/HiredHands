@@ -100,10 +100,16 @@ namespace VikingsForHire.Testing
         {
             Player player = RequirePlayer();
             Vector3 spot = Ground(Ahead(player, SpotAhead));
+            // On a client the "other boards nearby" answer comes from the server, whose board list lags a few seconds
+            // behind removals: a board the previous test just cleared can still count. Ask again for a while before
+            // concluding a real board is too close.
+            BoardRegistry.ForgetCache();
             PlacementVerdict verdict = PlacementCheck.Evaluate(spot);
-            for (float waited = 0f; verdict.Pending && waited < 5f; waited += 0.25f)
+            for (float waited = 0f; waited < 10f && (verdict.Pending || (!ZNet.instance.IsServer() && verdict.MissingTokens().Contains("BoardTooClose")));
+                 waited += 0.5f)
             {
-                yield return new WaitForSeconds(0.25f);
+                yield return new WaitForSeconds(0.5f);
+                BoardRegistry.ForgetCache();
                 verdict = PlacementCheck.Evaluate(spot);
             }
             if (!verdict.Ok)

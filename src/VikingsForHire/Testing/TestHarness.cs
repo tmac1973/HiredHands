@@ -59,7 +59,15 @@ namespace VikingsForHire.Testing
 
         private static readonly Dictionary<string, Check> Checks = new(StringComparer.OrdinalIgnoreCase);
         private static readonly Queue<Func<IEnumerator>> QueueItems = new();
-        private static readonly HashSet<Func<IEnumerator>> EndSteps = new();
+        private static readonly HashSet<Func<IEnumerator>> EndSteps = new(ReferenceComparer.Instance);
+        private static int _endCount;
+
+        private sealed class ReferenceComparer : IEqualityComparer<Func<IEnumerator>>
+        {
+            public static readonly ReferenceComparer Instance = new();
+            public bool Equals(Func<IEnumerator> a, Func<IEnumerator> b) => ReferenceEquals(a, b);
+            public int GetHashCode(Func<IEnumerator> f) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(f);
+        }
         private static string? _skipToEndReason;
         private static readonly List<Result> Results = new();
         private static readonly Dictionary<int, string> ServerReplies = new();
@@ -80,7 +88,9 @@ namespace VikingsForHire.Testing
             });
             Add("vfh_test_end", "- finish the run and log its result line", _ =>
             {
-                Func<IEnumerator> end = End;
+                // A fresh closure each time: delegates for the same method compare equal, and the set must tell them apart.
+                int n = ++_endCount;
+                Func<IEnumerator> end = () => EndNumbered(n);
                 EndSteps.Add(end);
                 Enqueue(end);
             });
@@ -238,6 +248,8 @@ namespace VikingsForHire.Testing
             Message($"Test {row} started");
             yield break;
         }
+
+        private static IEnumerator EndNumbered(int n) => End();
 
         private static IEnumerator End()
         {
