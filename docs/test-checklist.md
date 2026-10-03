@@ -70,3 +70,19 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | c16fbd1 | SCAFFOLD-1 | SP | Pass | Plugin loaded; `vfh_t_smoke` broadcast shown |
 | 2026-10-03 | c16fbd1 | SCAFFOLD-1 | D | Pass | Server loaded plugin (10 loaded, 0 failed); client joined and spawned |
 | 2026-10-03 | c16fbd1 | SCAFFOLD-2 | D | Deferred | To run after a few phases are in |
+| 2026-10-03 | 0dec920 | VFH-HARNESS-1 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-CFG-2 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-PLACE-1 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-PLACE-2 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-PLACE-3 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-PLACE-4 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-STORE-1 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-STORE-2 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-AZU-1 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-CRAFTY-1 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-PULL-1 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-UPG-1 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-UPG-2 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-UPG-3 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-UPG-4 | SP | Pass | |
+| 2026-10-03 | 0dec920 | VFH-UPG-5 | SP | Pass | |
