@@ -1,2 +1,3 @@
-# Placeholder until phase 01 step 7a confirms ServerDevcommands' alias file format.
+# ServerDevcommands aliases (name: command). Commands chain with ';' and can pause with 'wait <ms>'.
+# Deployed to the profile's and the dedicated server's BepInEx/config/ on every build / server start.
 vfh_t_smoke: echo VikingsForHire loaded
