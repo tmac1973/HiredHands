@@ -46,6 +46,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> MinerSafetyDistanceFromPieces = null!;
         public static ConfigEntry<float> SmelterRefillThreshold = null!;
         public static ConfigEntry<int> KeepMinimumInChest = null!;
+        public static ConfigEntry<bool> KeepLastItemInChest = null!;
 
         // 5 - Followers
         public static ConfigEntry<float> PortalFollowRadius = null!;
@@ -111,7 +112,8 @@ namespace VikingsForHire.Config
             MinerProtectsTerrain = Synced(w, "MinerProtectsTerrain", true, "Hireling pickaxe swings never dig the ground. Turning this off lets miners leave holes, including in your base.");
             MinerSafetyDistanceFromPieces = Synced(w, "MinerSafetyDistanceFromPieces", 3f, "Miners skip rocks with a player-built piece within this distance (m) of the rock's edge, since the rock may be holding the build up.");
             SmelterRefillThreshold = Synced(w, "SmelterRefillThreshold", 0.5f, "Smelters refill a station when its ore or fuel is below this fraction of max.");
-            KeepMinimumInChest = Synced(w, "KeepMinimumInChest", 0, "Smelters leave at least this many of an item in each chest.");
+            KeepMinimumInChest = Synced(w, "KeepMinimumInChest", 0, "Smelters leave at least this many of an item in each chest (on top of KeepLastItemInChest).");
+            KeepLastItemInChest = Synced(w, "KeepLastItemInChest", true, "Smelters never take the last one of an item from a chest. Hirelings deliver only to chests that already hold an item, and AzuAutoStore by default only pulls items into such chests, so an emptied chest would stop receiving that item.");
 
             PortalFollowRadius = Synced(f, "PortalFollowRadius", 20f, "Followers within this distance (m) go through a portal with you.");
             AllowNonTeleportableThroughPortals = Synced(f, "AllowNonTeleportableThroughPortals", false, "Followers may carry ore and metals through portals.");
@@ -187,6 +189,9 @@ namespace VikingsForHire.Config
 
         public static IEnumerable<(string Key, string Value)> AllEffective() =>
             _file.Keys.OrderBy(k => k.Section).ThenBy(k => k.Key).Select(k => ($"{k.Section}/{k.Key}", EffectiveValue(_file[k])));
+
+        /// <summary>How many of an item a smelter leaves in each chest.</summary>
+        public static int ChestReserve => System.Math.Max(KeepMinimumInChest.Value, KeepLastItemInChest.Value ? 1 : 0);
 
         private static ConfigEntry<T> Synced<T>(string section, string key, T value, string description) =>
             _file.Bind(section, key, value, new ConfigDescription(description, null,

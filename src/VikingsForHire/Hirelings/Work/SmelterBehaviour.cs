@@ -92,7 +92,7 @@ namespace VikingsForHire.Hirelings.Work
             List<StationState> states = stations.Select(s => StationSurvey.State(s, h.transform.position)).ToList();
 
             var wanted = new HashSet<string>(states.SelectMany(s => s.Inputs).Concat(states.Select(s => s.FuelItem)).Where(p => p.Length > 0));
-            int keepMin = VfhConfig.KeepMinimumInChest.Value;
+            int keepMin = VfhConfig.ChestReserve;
             List<Container> chests = ChestFinder.Find(h.Home, h.Radius).Where(c => !Reservations.IsSkipped(c)).ToList();
             var stock = new Dictionary<string, int>();
             foreach (Container c in chests)
@@ -181,7 +181,7 @@ namespace VikingsForHire.Hirelings.Work
             }
             ai.Halt();
             ai.Face(chest.transform.position);
-            int keepMin = VfhConfig.KeepMinimumInChest.Value;
+            int keepMin = VfhConfig.ChestReserve;
             int moved = 0;
             foreach (var f in _fetch.ToList())
                 moved += ContainerAccess.Take(chest, h.CargoInventory!, f.Key, f.Value, keepMin, h.Hid);

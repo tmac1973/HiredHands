@@ -108,6 +108,7 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-SMELT-1 No input | SP | — | Smelter hireling with its stations low and the ore chests emptied | Hover says "Stations need ore or fuel, chests have none"; it idles by the board |
 | VFH-SMELT-2 Two smelters | SP | — | Two smelter hirelings, three or four stations | They split the stations; no station is loaded past its max |
 | VFH-SMELT-3 Blast furnace | SP | — | Add a blast furnace with iron/black metal scrap and coal in chests | It gets fed too |
+| VFH-SMELT-4 Keeps the last item | SP | `vfh_t_keep1` | Open ground | `pass=true`; the tin and coal chests each keep 1 |
 | VFH-WORK-6 Station owned by another client | D | — | Client B built and is near the smelter; client A's area owns the hireling | Loading still works, counts correct |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
