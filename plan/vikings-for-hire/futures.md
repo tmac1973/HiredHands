@@ -37,3 +37,17 @@ Hirelings are currently limited only by usable cargo slots (8 at level 1 up to 3
 - A per-level weight cap in the hireling level table (e.g. `cargoWeight`), checked by the cargo gate alongside slots, with 0 meaning no limit so it can stay off by default.
 - What happens at the limit: a gatherer stops picking up and goes to deliver; a follower refuses items you try to hand it, with a message.
 - Decide after watching gatherers and followers haul for real (phases 08–13), so the numbers come from play.
+
+## Jester / dancer (comfort)
+A morale role that raises the base's comfort level while it's on duty near players.
+- How: a hireling within range of a player counts like a comfort piece (vanilla `SE_Rested` comfort comes from pieces in range; this would add a bonus on top, via a patch on the comfort calculation).
+- Level gating: higher levels give more comfort, or work in a larger radius.
+- Flavour: performs emotes (dance, cheer, flex, toast) on a loop, and maybe plays music near the fire in the evening.
+- Balance: cap the bonus (e.g. +1 to +3 comfort) so it can't stack past what a well-built base offers; one jester per board.
+
+## Wizards and healers (higher levels)
+Support roles unlocked at higher board levels, since magic belongs to the later biomes.
+- **Healer:** heals hurt players, hirelings and tames near it, out of combat or during it from range; higher levels heal more and faster. Could use vanilla staff effects (e.g. the Staff of Protection / healing visuals) for the look.
+- **Wizard:** a ranged magic guard using the Mistlands staves (fire/ice/lightning) as its gear, with eitr standing in for ammo in the same way archers have endless arrows. Strong against groups but fragile up close.
+- Both need gear and animations that suit NPCs; staves are player items like bows, so the same "fully drawn" trick may be needed.
+- Gate them by board level (e.g. healer from L5, wizard from L7) and price them high.
