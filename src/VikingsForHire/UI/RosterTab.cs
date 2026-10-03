@@ -14,6 +14,7 @@ namespace VikingsForHire.UI
     {
         private const float RadiusStep = 5f;
         private string _selected = "";
+        private string _confirmDismiss = "";
 
         public string Title => "$vfh_tab_roster";
 
@@ -25,7 +26,7 @@ namespace VikingsForHire.UI
             int hash = bytes == null ? 0 : bytes.Aggregate(17, (h, b) => h * 31 + b);
             Cost funds = board.Inventory != null ? BoardStorage.Totals(board.Inventory) : Cost.Zero;
             long tick = (long)(ZNet.instance.GetTimeSeconds() / 5); // refresh countdowns every 5s
-            return $"{hash}|{_selected}|{funds}|{tick}|{board.Level}";
+            return $"{hash}|{_selected}|{_confirmDismiss}|{funds}|{tick}|{board.Level}";
         }
 
         public void Build(RectTransform root, HiringBoard board)
@@ -44,7 +45,11 @@ namespace VikingsForHire.UI
             {
                 ContractEntry entry = e;
                 string label = $"{e.Name} — $vfh_job_{e.Job.ToString().ToLowerInvariant()} {e.Level}";
-                Button b = PanelUi.Button(root, label, -175f, y, 320f, 28f, () => _selected = entry.ContractId);
+                Button b = PanelUi.Button(root, label, -175f, y, 320f, 28f, () =>
+                {
+                    _selected = entry.ContractId;
+                    _confirmDismiss = "";
+                });
                 b.GetComponentInChildren<Text>().color = e.ContractId == _selected ? Color.yellow : StateColor(e);
                 y -= 31f;
             }
@@ -95,20 +100,19 @@ namespace VikingsForHire.UI
                 PanelUi.Text(root, ContractsTab.Price(cost), x, -420f, 300f, 15, color: cost.CoveredBy(funds) ? PanelUi.Good : PanelUi.Bad);
             }
 
-            PanelUi.Button(root, "$vfh_roster_dismiss", x, -465f, 200f, 34f, () => ConfirmDismiss(board, e));
-        }
-
-        private static void ConfirmDismiss(HiringBoard board, ContractEntry e)
-        {
-            string boardId = board.Id;
-            UnifiedPopup.Push(new YesNoPopup(Localization.instance.Localize("$vfh_board"),
-                Localization.instance.Localize("$vfh_confirm_dismiss", e.Name),
-                () =>
+            // Confirm inside the panel: vanilla's popup draws on the HUD layer, underneath this panel.
+            if (_confirmDismiss == e.ContractId)
+            {
+                PanelUi.Text(root, Localization.instance.Localize("$vfh_confirm_dismiss_short", e.Name), x, -448f, 330f, 15, color: PanelUi.Bad);
+                PanelUi.Button(root, "$vfh_yes", x - 60f, -480f, 100f, 32f, () =>
                 {
-                    UnifiedPopup.Pop();
-                    BoardContracts.Dismiss(boardId, e.Hid);
-                },
-                () => UnifiedPopup.Pop(), localizeText: false));
+                    _confirmDismiss = "";
+                    BoardContracts.Dismiss(board.Id, e.Hid);
+                });
+                PanelUi.Button(root, "$vfh_no", x + 60f, -480f, 100f, 32f, () => _confirmDismiss = "");
+                return;
+            }
+            PanelUi.Button(root, "$vfh_roster_dismiss", x, -465f, 200f, 34f, () => _confirmDismiss = e.ContractId);
         }
 
         private static string Status(ContractEntry e, Hireling? live)
