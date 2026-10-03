@@ -60,3 +60,10 @@ A hireling sent out to find things and report back, instead of the player wander
 - **Risk and level:** it can be hurt or killed on the way (a chance based on biome danger vs. its level), so higher levels scout further and more dangerous biomes and survive more often. Its fee and upkeep would reflect that.
 - **Multiplayer:** whose map gets the pins (the player who sent it, or everyone sharing the board).
 - **Balance:** long cooldowns and costs so it doesn't replace exploring, and no finding things a player couldn't (e.g. respect the vanilla "location must be discovered" rules for things like the trader, or only reveal coarse areas).
+
+## Guard posts (stand watch instead of patrolling)
+Let guards and archers hold a chosen spot instead of walking the work radius.
+- **Setting the spot:** a small "guard post" build piece (or a marker placed from the board) that a guard is assigned to in the Roster tab; or, with the Command Stone, aim at a spot and order "stand watch here".
+- **Behaviour:** stand at the post facing outward (or the way the post faces), engage by stance as usual, then walk back to the post after a fight. Archers would suit walls and towers: a post on a rampart gives them height and cover.
+- **Options per guard:** Patrol (current behaviour) or Watch post, chosen in the Roster tab.
+- **Several posts per board** so a wall can be manned at the gate and the corners.
