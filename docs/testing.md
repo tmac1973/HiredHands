@@ -46,3 +46,33 @@ All of these run strictly in order, even though ServerDevcommands fires a chaine
 | Fixture | |
 |---|---|
 | `fast_timers on\|off` | Arrival 5–10 s, respawn 10 s, orphan and return timers ÷10. On a server it's applied on the server and every client (you must be in `adminlist.txt`). Memory only; cleared on leaving the world |
+
+## Checks (phase 03)
+
+| Check | Value |
+|---|---|
+| `placement_ok [m=5]` | Can a hiring board go `m` metres ahead: `true`, `false` or `pending` (client waiting for the server) |
+| `placement_missing [m=5]` | Unmet requirements, comma separated: `Workbench`, `Bed`, `Pieces`, `BoardTooClose`, `WorldBoardLimit` |
+| `board_count` | Hiring boards in the whole world (asked of the server) |
+| `boards_near [r=50]` | Loaded hiring boards within `r` metres |
+| `board_level` | Level of the nearest board |
+| `board_storage food\|coins` | Food points or coins in the nearest board |
+| `board_items <item>` | Count of an item in the nearest board |
+| `food_points <item>` | Food points one item is worth |
+| `board_access` | Whether you pass the ward check at the nearest board |
+| `azu_sees_board` / `crafty_sees_board` | Whether any hiring board is in AzuAutoStore's / AzuCraftyBoxes' container list (`absent` when the mod isn't installed) |
+
+## Fixtures (phase 03)
+
+Fixtures build 5–6m straight ahead of you: stand on open ground facing open ground. Everything they spawn is
+tagged, and `clear_area` removes it.
+
+| Fixture | |
+|---|---|
+| `base [radius=12] [floors=40]` | A workbench, a bed and wood floors, all counted as built by you |
+| `base_partial workbench\|bed\|pieces` | The same base missing one requirement (`pieces` = only 10 floors) |
+| `board_here` | Places a hiring board 5m ahead through the real base check |
+| `board_put <item> <n>` | Gives you the items and moves them into the nearest board the way the UI does (the filter applies) |
+| `board_force_add <item> <n>` | Puts items in the nearest board, skipping the filter |
+| `crafty_probe` | Adds a session-only workbench recipe: Wood from 1 Coins + 1 CookedMeat |
+| `clear_area [radius=40]` | Removes everything the fixtures spawned |

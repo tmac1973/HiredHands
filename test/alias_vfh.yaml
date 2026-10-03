@@ -12,3 +12,23 @@ vfh_t_cfg1: vfh_test_begin VFH-CFG-1;vfh_assert data_source == server;vfh_assert
 # VFH-CFG-2 (SP): run _a, change boardLevels level 1 Wood from 40 to 45 in the yml and save, then run _b.
 vfh_t_cfg2_a: vfh_test_begin VFH-CFG-2;vfh_assert data_source == local;vfh_assert data BoardLevels.1.Cost.Wood == 40
 vfh_t_cfg2_b: vfh_assert_eventually 10 data BoardLevels.1.Cost.Wood == 45;vfh_assert data_source == local;vfh_assert log_errors == 0;vfh_test_end
+
+# Phase 03 - hiring board. Stand on open, flat-ish ground facing open ground; fixtures build 5-6m ahead of you.
+# VFH-PLACE-1 (SP): nothing built nearby.
+vfh_t_place1: vfh_test_begin VFH-PLACE-1;vfh_assert placement_ok == false;vfh_assert placement_missing == Workbench,Bed,Pieces;vfh_assert log_errors == 0;vfh_test_end
+# VFH-PLACE-2 (SP): too few pieces, then each other requirement missing in turn.
+vfh_t_place2: vfh_test_begin VFH-PLACE-2;vfh_fixture base_partial pieces;vfh_assert placement_missing == Pieces;vfh_fixture clear_area;vfh_fixture base_partial bed;vfh_assert placement_missing == Bed;vfh_fixture clear_area;vfh_fixture base_partial workbench;vfh_assert placement_missing == Workbench;vfh_fixture clear_area;vfh_assert log_errors == 0;vfh_test_end
+# VFH-PLACE-3 (SP): a full base allows a board, which then exists with level 1 and an id.
+vfh_t_place3: vfh_test_begin VFH-PLACE-3;vfh_fixture base;vfh_assert placement_ok == true;vfh_fixture board_here;vfh_assert_eventually 5 boards_near 30 == 1;vfh_assert board_level == 1;vfh_assert_eventually 5 board_count >= 1;vfh_fixture clear_area;vfh_assert log_errors == 0;vfh_test_end
+# VFH-PLACE-4 (SP): a second board next to the first is blocked by the distance rule.
+vfh_t_place4: vfh_test_begin VFH-PLACE-4;vfh_fixture base;vfh_fixture board_here;vfh_assert_eventually 5 placement_missing == BoardTooClose;vfh_fixture clear_area;vfh_assert log_errors == 0;vfh_test_end
+# VFH-STORE-1 (SP): only food and coins go in; raw food only when AllowRawFood is on (default off).
+vfh_t_store1: vfh_test_begin VFH-STORE-1;vfh_fixture base;vfh_fixture board_here;vfh_fixture board_put CookedMeat 3;vfh_fixture board_put Coins 25;vfh_fixture board_put RawMeat 2;vfh_fixture board_put Wood 5;vfh_fixture board_put SwordBronze 1;vfh_assert board_items CookedMeat == 3;vfh_assert board_storage coins == 25;vfh_assert board_items RawMeat == 0;vfh_assert board_items Wood == 0;vfh_assert board_items SwordBronze == 0;vfh_assert board_storage food > 0;vfh_assert log_errors == 0;vfh_test_end
+# VFH-AZU-1 (SP, AzuAutoStore enabled): the board never enters AzuAutoStore's container list. Leaves the board for _b.
+vfh_t_azu1_a: vfh_test_begin VFH-AZU-1;vfh_fixture base;vfh_fixture board_here;vfh_assert_eventually 5 boards_near 30 == 1;vfh_assert azu_sees_board == false
+vfh_t_azu1_b: vfh_assert board_items CookedMeat == 0;vfh_assert board_items Wood == 0;vfh_assert azu_sees_board == false;vfh_fixture clear_area;vfh_assert log_errors == 0;vfh_test_end
+# VFH-CRAFTY-1 / VFH-PULL-1 (SP, AzuCraftyBoxes + PullMats enabled): see docs/test-checklist.md for the steps between _a and _b.
+vfh_t_crafty1_a: vfh_test_begin VFH-CRAFTY-1;vfh_fixture base;vfh_fixture board_here;vfh_fixture crafty_probe;vfh_fixture board_put Coins 5;vfh_fixture board_put CookedMeat 5;vfh_assert crafty_sees_board == false
+vfh_t_crafty1_b: vfh_assert board_storage coins == 5;vfh_assert board_items CookedMeat == 5;vfh_fixture clear_area;vfh_assert log_errors == 0;vfh_test_end
+vfh_t_pull1_a: vfh_test_begin VFH-PULL-1;vfh_fixture base;vfh_fixture board_here;vfh_fixture board_force_add Wood 20;vfh_assert crafty_sees_board == false
+vfh_t_pull1_b: vfh_assert board_items Wood == 20;vfh_fixture clear_area;vfh_assert log_errors == 0;vfh_test_end

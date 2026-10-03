@@ -22,6 +22,12 @@ Add a placeable Level 1 Hiring Board to the Hammer. It can only be placed at a q
 - `src/VikingsForHire/Testing/FixturesBoard.cs`: this phase's fixtures and checks (see the test plan).
 - `test/alias_vfh.yaml`: adds this phase's row macros.
 
+## As built (deviations from the steps below)
+- **Compat:** one `Compat/CompatPatcher.cs` replaces the two compat files. Neither Azu mod has a container-level `IsPrefabExcluded`/`GetNearbyContainers` to filter: both keep a list of every Container filled by `Boxes.AddContainer(Container)`. A prefix there refuses our containers, so they're never stored into, pulled from or crafted from (PullMats included). `CanItemBeStored` / `CanItemBePulled` are also patched to return false for our prefab names.
+- **Board registry:** `Board/BoardRegistry.cs`. The server scans its ZDO table for board ZDOs on demand (cached 2 s) instead of hooking ZDO creation and destruction, because client-created ZDOs reach the server through sync rather than `CreateNewZDO`.
+- **Storage:** the Container sits on a child object (`m_rootObjectOverride` = the board's ZNetView), so hovering the board finds `HiringBoard`, not the Container. The filter patches `Inventory.AddItem` (both ItemData overloads), `MoveItemToThis` (slot overload) and `InventoryGrid.DropItem`. Saved inventories load through a private overload, so a config change never deletes stored items.
+- **Shift+E** uses Valheim's alt-interact (`$KEY_AltPlace + $KEY_Use`) rather than the `BoardPanelKey` setting.
+
 ## Steps
 1. **Prefab:** in `PrefabManager.OnVanillaPrefabsAvailable`, clone the vanilla `sign` piece to `VFH_HiringBoard` with Jotunn `CustomPiece`/`PieceConfig`: Hammer, category `Crafting`, required station `piece_workbench`, cost from `DataStore.Current.BoardLevels[0].Cost`. Scale it ×2.0 on the board's local X/Y so it reads as a notice board rather than a sign. Remove the cloned `Sign` component. Add a `Container` (`m_name = "$vfh_board_storage"`, 4×2 = 8 slots, `m_privacy = Public` so ward rules come from PrivateArea, `m_checkGuardStone = true`) and a `HiringBoard` component. The icon is the vanilla `sign` piece icon tinted gold with Jotunn `RenderManager` (rendering the prefab to a sprite).
    - When the data reloads (`DataStore.Changed`), update the piece requirements in place.

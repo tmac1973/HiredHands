@@ -2,10 +2,13 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using Jotunn.Utils;
+using VikingsForHire.Board;
 using VikingsForHire.Commands;
+using VikingsForHire.Compat;
 using VikingsForHire.Config;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
+using VikingsForHire.L10n;
 using VikingsForHire.Testing;
 
 namespace VikingsForHire
@@ -36,12 +39,20 @@ namespace VikingsForHire
             VfhConfig.Bind(Config);
             DataStore.Init();
 
+            Strings.Register();
+
             Harmony = new Harmony(Guid);
             Harmony.PatchAll(typeof(Plugin).Assembly);
+            CompatPatcher.Apply(Harmony);
+
+            BoardPiece.Register();
+            BoardRegistry.Register();
 
             DebugCommands.Register();
+            BoardCommands.Register();
             TestHarness.Register();
             Fixtures.Register();
+            FixturesBoard.Register();
 
             SessionInfo.LogHeader("plugin load");
             Log.LogInfo($"{Name} {Version} loaded");

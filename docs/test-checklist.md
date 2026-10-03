@@ -43,6 +43,17 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-CFG-2 Hot reload | SP | `vfh_t_cfg2_a`, edit, `vfh_t_cfg2_b` | Run `_a`; change board level 1 `Wood: 40` to `45` in your yml and save; run `_b`; set it back to 40 | `pass=true`; log has a second `evt=data.reload reason="file changed"` |
 | VFH-LOG-1 Logging | SP | — | `vfh_debug Data on`, `vfh_log_mark log-test`, save the yml unchanged, `vfh_debug Data off`, then `vfh_debug_throw` ×10 | `VikingsForHire.log` has the session header, the mark and `evt=data.reload`; the throws give 5 stack traces (`occurrence=1`…`5`), later ones are summarised (`repeat=`) at most once a minute |
 | VFH-LOG-2 Bad yml | SP | — | Break the yml's indentation and save | `lvl=E ... evt=data.parse_error` then `evt=data.reload source=defaults`; fix the file and it reloads as `source=local` |
+| VFH-PLACE-1 No base | SP | `vfh_t_place1` | Open ground with nothing built within 20m | `pass=true`; holding the Hammer with the Hiring Board selected shows a red ghost and "needs a workbench" |
+| VFH-PLACE-2 Missing parts | SP | `vfh_t_place2` | Open ground | `pass=true` |
+| VFH-PLACE-3 Allowed | SP | `vfh_t_place3` | Open ground | `pass=true`; also build one by hand with the Hammer in a fixture base: it places and costs the YAML build cost |
+| VFH-PLACE-4 Too close | SP | `vfh_t_place4` | Open ground | `pass=true`; by hand, a second board within 100m shows "Another hiring board is …m away" |
+| VFH-PLACE-5 World limit | SP | — | cfg `MaxBoardsPerWorld = 1`; build a board, walk 500m+ away (its zone unloads) and try another with a fixture base | Blocked with "This world already has 1 hiring boards"; set the cfg back to 0 |
+| VFH-STORE-1 Food & coins only | SP | `vfh_t_store1` | Open ground | `pass=true`; by hand, dragging Wood onto the board's slots does nothing and shows "Only food and coins…" |
+| VFH-STORE-2 Hover & relog | SP | — | Board with 3 CookedMeat and some Coins; note `vfh_board_info`; log out and back in | Hover shows level 1 and the same funds as `vfh_board_info`; after relog the same board id and items |
+| VFH-AZU-1 AzuAutoStore | SP | `vfh_t_azu1_a`, act, `vfh_t_azu1_b` | AzuAutoStore enabled. After `_a`: carry Wood and CookedMeat, use Azu's store hotkey next to the board, and drop a CookedMeat on the ground by it for Azu's auto-pickup | `pass=true`: nothing went into the board |
+| VFH-CRAFTY-1 CraftyBoxes | SP | `vfh_t_crafty1_a`, act, `vfh_t_crafty1_b` | AzuCraftyBoxes enabled, no Coins/CookedMeat on you or in chests. After `_a`: at the fixture workbench the Wood recipe (1 Coins + 1 CookedMeat) shows as not craftable | `pass=true`; then put 1 Coins + 1 CookedMeat in a normal chest and it crafts |
+| VFH-PULL-1 PullMats | SP | `vfh_t_pull1_a`, act, `vfh_t_pull1_b` | PullMats enabled, no Wood on you or in chests. After `_a`: Hammer, select a piece that needs Wood, press N | PullMats reports Wood missing; `_b` `pass=true` (the 20 Wood stayed in the board) |
+| VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.
 

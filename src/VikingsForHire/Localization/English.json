@@ -1,0 +1,19 @@
+{
+  "vfh_board": "Hiring Board",
+  "vfh_board_desc": "Post contracts here to hire wandering vikings. Only buildable at a base: a workbench, a bed and enough built pieces nearby.",
+  "vfh_level": "Level",
+  "vfh_board_funds": "Funds:",
+  "vfh_food_points": "food pts",
+  "vfh_coins": "coins",
+  "vfh_board_open_storage": "Funds (food & coins)",
+  "vfh_board_manage": "Manage",
+  "vfh_board_manage_soon": "Contracts and upgrades arrive in a later update",
+  "vfh_board_storage": "Hiring Board funds",
+  "vfh_board_storage_reject": "Only food and coins can go on the hiring board",
+  "vfh_base_need_workbench": "Hiring board needs a workbench within $3m",
+  "vfh_base_need_bed": "Hiring board needs a bed within $3m",
+  "vfh_base_need_pieces": "Hiring board needs $2 built pieces within $3m ($1/$2)",
+  "vfh_base_board_too_close": "Another hiring board is $1m away (min $2m)",
+  "vfh_base_world_board_limit": "This world already has $1 hiring boards (max $2)",
+  "vfh_base_checking": "Checking for other hiring boards…"
+}

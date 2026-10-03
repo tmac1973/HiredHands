@@ -16,7 +16,8 @@ namespace VikingsForHire.Diagnostics
             VfhLog.I(LogCat.Core, "session.mods", ("count", Chainloader.PluginInfos.Count),
                 ("list", string.Join(",", Chainloader.PluginInfos.Values.OrderBy(p => p.Metadata.GUID).Select(p => $"{p.Metadata.GUID}@{p.Metadata.Version}"))));
             VfhLog.I(LogCat.Core, "session.config", ("debug", VfhConfig.DebugCategories.Value), ("trace", VfhConfig.TraceCategories.Value),
-                ("fastTimers", VfhConfig.FastTimers), ("dataSource", DataStore.Source), ("dataHash", DataStore.Hash));
+                ("fastTimers", VfhConfig.FastTimers), ("dataSource", DataStore.Source), ("dataHash", DataStore.Hash),
+                ("compat", string.Join(",", Compat.CompatPatcher.Status)));
             VfhLog.Raw("[VFH] config: " + string.Join(" ", VfhConfig.AllEffective().Select(c => c.Key.Split('/')[1] + "=" + c.Value)));
         }
 
