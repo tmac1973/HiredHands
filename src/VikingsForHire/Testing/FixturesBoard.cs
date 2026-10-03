@@ -103,14 +103,24 @@ namespace VikingsForHire.Testing
             // On a client the "other boards nearby" answer comes from the server, whose board list lags a few seconds
             // behind removals: a board the previous test just cleared can still count. Ask again for a while before
             // concluding a real board is too close.
-            BoardRegistry.ForgetCache();
-            PlacementVerdict verdict = PlacementCheck.Evaluate(spot);
-            for (float waited = 0f; waited < 10f && (verdict.Pending || (!ZNet.instance.IsServer() && verdict.MissingTokens().Contains("BoardTooClose")));
-                 waited += 0.5f)
+            PlacementVerdict verdict = default;
+            float waited = 0f;
+            while (true)
             {
-                yield return new WaitForSeconds(0.5f);
+                // Drop the cached answer once, then wait for the server's fresh one.
                 BoardRegistry.ForgetCache();
                 verdict = PlacementCheck.Evaluate(spot);
+                while (verdict.Pending && waited < 10f)
+                {
+                    yield return new WaitForSeconds(0.25f);
+                    waited += 0.25f;
+                    verdict = PlacementCheck.Evaluate(spot);
+                }
+                bool lagging = !ZNet.instance.IsServer() && verdict.MissingTokens().Contains("BoardTooClose");
+                if (!lagging || waited >= 10f)
+                    break;
+                yield return new WaitForSeconds(1f);
+                waited += 1f;
             }
             if (!verdict.Ok)
             {
