@@ -114,3 +114,14 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | 3dcf941 | VFH-HIRE-6 | SP | Pass | |
 | 2026-10-03 | 3dcf941 | VFH-HIRE-7 | SP | Pass | |
 | 2026-10-03 | 3dcf941 | VFH-HIRE-8 | SP | Pass | |
+| 2026-10-03 | 984de12 | VFH-CON-1 | SP | Pass | |
+| 2026-10-03 | 984de12 | VFH-CON-2 | SP | Pass | |
+| 2026-10-03 | 984de12 | VFH-CON-3 | SP | Pass | |
+| 2026-10-03 | 984de12 | VFH-CON-4 | SP | Pass | |
+| 2026-10-03 | 984de12 | VFH-UPK-1 | SP | Pass | |
+| 2026-10-03 | 984de12 | VFH-UPK-2 | SP | Pass | |
+| 2026-10-03 | 984de12 | VFH-DTH-1 | SP | Pass | |
+| 2026-10-03 | 984de12 | VFH-DTH-2 | SP | Pass | |
+| 2026-10-03 | 984de12 | VFH-PRO-1 | SP | Pass | |
+| 2026-10-03 | 984de12 | VFH-DIS-1 | SP | Pass | |
+| 2026-10-03 | 984de12 | VFH-REM-1 | SP | Pass | |
