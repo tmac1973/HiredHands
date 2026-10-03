@@ -1,0 +1,7 @@
+<!-- Copy to VikingsForHire.user.props (git-ignored) to override local paths. -->
+<Project>
+  <PropertyGroup>
+    <ValheimDir>/games/SteamLibrary/steamapps/common/Valheim</ValheimDir>
+    <GaleProfileDir>$(HOME)/.local/share/com.kesomannen.gale/valheim/profiles/vikingsforhire-dev</GaleProfileDir>
+  </PropertyGroup>
+</Project>

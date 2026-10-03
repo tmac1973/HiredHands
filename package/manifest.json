@@ -1,0 +1,11 @@
+{
+    "name": "VikingsForHire",
+    "version_number": "0.1.0",
+    "website_url": "https://github.com/tmac1973/VikingsForHire",
+    "description": "Post contracts on a Hiring Board to hire wandering vikings who chop, mine, smelt and guard your base, or follow you into the field.",
+    "dependencies": [
+        "denikson-BepInExPack_Valheim-5.4.2350",
+        "ValheimModding-Jotunn-2.30.1",
+        "ValheimModding-YamlDotNet-16.3.1"
+    ]
+}
