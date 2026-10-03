@@ -17,7 +17,8 @@ namespace VikingsForHire.Hirelings
         public static string LastResult { get; private set; } = "not run";
 
         // Values that legitimately differ on a fresh instance (physics sync) are left out of the comparison.
-        private static readonly HashSet<int> Ignore = new[] { "vel", "body_vel", "body_avel", "relPos", "relRot", "noise", "attachJoint" }
+        // Health is compared as the character's actual health instead: Character drops the stored value when it's full.
+        private static readonly HashSet<int> Ignore = new[] { "vel", "body_vel", "body_avel", "relPos", "relRot", "noise", "attachJoint", "health" }
             .Select(n => n.GetStableHashCode()).ToHashSet();
 
         public static IEnumerator Run(Hireling original)
@@ -54,6 +55,13 @@ namespace VikingsForHire.Hirelings
 
             HirelingSnapshot after = HirelingSnapshot.FromZdo(spawned);
             List<string> diffs = before.Differences(after, Ignore);
+
+            Hireling? rebuilt = ZNetScene.instance.FindInstance(spawned)?.GetComponent<Hireling>();
+            float max = rebuilt != null ? rebuilt.Humanoid.GetMaxHealth() : 0f;
+            float healthBefore = before.Floats.TryGetValue("health".GetStableHashCode(), out float hb) ? hb : max;
+            float healthAfter = rebuilt != null ? rebuilt.Humanoid.GetHealth() : -1f;
+            if (Mathf.Abs(healthBefore - healthAfter) > 0.5f)
+                diffs.Add($"health={healthBefore}/{healthAfter}");
             LastResult = diffs.Count == 0 ? "true" : "false: " + string.Join("; ", diffs);
             if (diffs.Count == 0)
                 VfhLog.I(LogCat.Hireling, "snapshot.roundtrip", ("hid", hid), ("ok", true), ("values", after.ValueCount));
