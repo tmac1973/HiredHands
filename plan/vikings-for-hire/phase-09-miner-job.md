@@ -22,6 +22,8 @@ Add the Miner on top of the phase 08 gathering framework. Miners break rocks, or
 5. **Delivery:** reuse `CargoDelivery`. Ores and stone are delivered separately per type.
 6. **Status tokens:** `$vfh_status_mining`, plus the shared delivering/no-target tokens.
 7. **Weight balance:** the cargo slot limit (from level) caps the haul per trip. No extra weight system.
+8. **Role (agreed 2026-10-03):** a base miner only clears the stone, boulders and copper/tin near home, and runs out quickly. The miner's main use is as a **follower** you take ore-hunting with the Command Stone (phases 12–13: Gather Nearby). So keep the base behaviour simple and put the polish into field mining. When a base miner runs out of targets, its "no targets" status is the cue to take it on a trip.
+9. **Gatherer radius:** add a per-job `workRadiusMultiplier` to the job data table (Woodcutter and Miner ×2, other jobs ×1). The contract radius slider's maximum is the board level's `maxWorkRadius` × the job's multiplier. The config description notes that ground much more than 100–120 m from the nearest player isn't loaded, so a larger radius than that has no effect.
 
 ## Build gate
 - `dotnet build -c Release` and `dotnet test` pass.
