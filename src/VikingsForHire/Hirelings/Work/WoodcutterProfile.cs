@@ -85,12 +85,26 @@ namespace VikingsForHire.Hirelings.Work
         public HitData.DamageTypes SwingDamage(HitData.DamageTypes tool, float gatherMult) =>
             new() { m_chop = Mathf.Max(1f, tool.m_chop) * gatherMult };
 
+        // Tallest a tree is assumed to be when deciding how far it can fall; guards against odd renderer bounds.
+        private const float MaxTreeHeight = 30f;
+
+        /// <summary>
+        /// The tree's height above its base, from the meshes of its most detailed LOD only: whole-hierarchy renderer
+        /// bounds include particle systems and far LOD billboards and come out around 80 m.
+        /// </summary>
         public static float Height(Component tree)
         {
-            var bounds = new Bounds(tree.transform.position, Vector3.zero);
-            foreach (Renderer r in tree.GetComponentsInChildren<Renderer>())
-                bounds.Encapsulate(r.bounds);
-            return bounds.size.y;
+            IEnumerable<Renderer> renderers;
+            LODGroup lod = tree.GetComponentInChildren<LODGroup>();
+            if (lod != null && lod.GetLODs().Length > 0)
+                renderers = lod.GetLODs()[0].renderers;
+            else
+                renderers = tree.GetComponentsInChildren<MeshRenderer>();
+            float top = tree.transform.position.y;
+            foreach (Renderer r in renderers)
+                if (r is MeshRenderer && r.enabled)
+                    top = Mathf.Max(top, r.bounds.max.y);
+            return Mathf.Min(top - tree.transform.position.y, MaxTreeHeight);
         }
     }
 }
