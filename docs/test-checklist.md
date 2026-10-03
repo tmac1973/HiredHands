@@ -149,3 +149,6 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | b9e5fd2 | VFH-STN-5 | SP | Pass | |
 | 2026-10-03 | b9e5fd2 | VFH-COMBAT-1 | SP | Pass | |
 | 2026-10-03 | b9e5fd2 | VFH-COMBAT-3 | SP | Pass | |
+| 2026-10-03 | 1806a7f | VFH-DLV-1 | SP | Pass | |
+| 2026-10-03 | 1806a7f | VFH-DLV-2 | SP | Pass | First try failed: a wood chest of the player's own was inside the 40 m radius and took the wood; passed far from it |
+| 2026-10-03 | 1806a7f | VFH-WORK-5 | SP | Pass (partly) | Felling and log/stump order seen working; rolled-log follow (later build) not reproduced, accepted on trust since logs rarely roll far |
