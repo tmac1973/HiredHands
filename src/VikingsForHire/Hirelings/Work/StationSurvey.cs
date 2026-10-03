@@ -56,25 +56,35 @@ namespace VikingsForHire.Hirelings.Work
         public static HashSet<string> Outputs(Smelter s) =>
             new(s.m_conversion.Where(c => c.m_to != null).Select(c => c.m_to.gameObject.name));
 
-        /// <summary>Every output any configured station type can produce (bars, coal, eitr…), from the prefabs.</summary>
-        public static HashSet<string> AllOutputs()
+        /// <summary>
+        /// Finished products a smelter hands in: outputs of any configured station type (bars, eitr…) that no
+        /// configured station also burns or processes. Coal is a kiln's output but a smelter's fuel, so it's kept as
+        /// supply, not delivered.
+        /// </summary>
+        public static HashSet<string> Products()
         {
-            if (_outputsHash == DataStore.Hash && _outputs != null)
-                return _outputs;
-            var set = new HashSet<string>();
+            if (_productsHash == DataStore.Hash && _products != null)
+                return _products;
+            var outputs = new HashSet<string>();
+            var consumed = new HashSet<string>();
             if (DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out var job) && ZNetScene.instance != null)
                 foreach (string name in job.Stations)
                 {
                     Smelter? s = ZNetScene.instance.GetPrefab(name)?.GetComponentInChildren<Smelter>();
-                    if (s != null)
-                        set.UnionWith(Outputs(s));
+                    if (s == null)
+                        continue;
+                    outputs.UnionWith(Outputs(s));
+                    consumed.UnionWith(s.m_conversion.Where(c => c.m_from != null).Select(c => c.m_from.gameObject.name));
+                    if (s.m_fuelItem != null)
+                        consumed.Add(s.m_fuelItem.gameObject.name);
                 }
-            _outputs = set;
-            _outputsHash = DataStore.Hash;
-            return set;
+            outputs.ExceptWith(consumed);
+            _products = outputs;
+            _productsHash = DataStore.Hash;
+            return outputs;
         }
 
-        private static HashSet<string>? _outputs;
-        private static string _outputsHash = "";
+        private static HashSet<string>? _products;
+        private static string _productsHash = "";
     }
 }
