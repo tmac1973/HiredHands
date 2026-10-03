@@ -96,6 +96,7 @@ namespace VikingsForHire.Hirelings
             // Humanoid.Start has equipped the default gear by now; the sidearm is carried, not worn.
             GearApplier.AddSidearm(_humanoid, Job, Level);
             ApplyCargoRows();
+            PlayerCollision.IgnoreAllPlayers(this);
 
             // The name shown on the health bar (EnemyHud) and anywhere else that reads Character.m_name.
             if (DisplayName.Length > 0)
