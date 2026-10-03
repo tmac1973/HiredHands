@@ -53,6 +53,12 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-AZU-1 AzuAutoStore | SP | `vfh_t_azu1_a`, act, `vfh_t_azu1_b` | AzuAutoStore enabled. After `_a`: carry Wood and CookedMeat, use Azu's store hotkey next to the board, and drop a CookedMeat on the ground by it for Azu's auto-pickup | `pass=true`: nothing went into the board |
 | VFH-CRAFTY-1 CraftyBoxes | SP | `vfh_t_crafty1_a`, act, `vfh_t_crafty1_b` | AzuCraftyBoxes enabled, no Coins/CookedMeat on you or in chests. After `_a`: at the fixture workbench the Wood recipe (1 Coins + 1 CookedMeat) shows as not craftable | `pass=true`; then put 1 Coins + 1 CookedMeat in a normal chest and it crafts |
 | VFH-PULL-1 PullMats | SP | `vfh_t_pull1_a`, act, `vfh_t_pull1_b` | PullMats enabled, no Wood on you or in chests. After `_a`: Hammer, select a piece that needs Wood, press N | PullMats reports Wood missing; `_b` `pass=true` (the 20 Wood stayed in the board) |
+| VFH-UPG-1 Upgrade chain | SP | `vfh_t_upg1` | Open ground, inventory with plenty of room | `pass=true`; the board's tint warms a step at each level |
+| VFH-UPG-2 Can't afford | SP | `vfh_t_upg2` | Open ground, none of the L2 materials on you | `pass=true` |
+| VFH-UPG-3 Panel | SP | — | Board at L1; Shift+E | Upgrade tab: "Level 1 → Level 2", the cap/level/radius lines, TrophyEikthyr 1, HardAntler 3, DeerHide 20, Flint 20, Wood 50 with have/need in red/green; Upgrade greyed until you carry them all. Esc closes the panel (no game menu). Walking 6m away closes it. Contracts/Roster tabs show their placeholders |
+| VFH-UPG-4 Live data | SP | — | Panel open on the Upgrade tab of an L2 board; change level 3's cost in the yml and save | The tab shows the new cost within a second |
+| VFH-UPG-5 Deconstruct | SP | — | `vfh_board_setlevel 4`, then deconstruct with the Hammer | Only the level 1 build cost drops |
+| VFH-BOARD-2 Concurrent upgrade | D | — | Two clients at one L2 board, both with L3 mats, both click Upgrade within a second | One upgrade applies (L3); the other client sees the "someone else upgraded" message and has all its mats back |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.

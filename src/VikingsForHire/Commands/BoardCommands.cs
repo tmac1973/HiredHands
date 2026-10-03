@@ -15,6 +15,8 @@ namespace VikingsForHire.Commands
         {
             CommandManager.Instance.AddConsoleCommand(new VfhCommand("vfh_board_info",
                 "- id, level and funds of the nearest hiring board (within 50m)", false, _ => Info()));
+            CommandManager.Instance.AddConsoleCommand(new VfhCommand("vfh_board_setlevel",
+                "<1-8> - set the nearest hiring board's level, free (through the board owner, like a real upgrade)", true, SetLevel));
             DebugCommands.DumpStateSections.Add(DumpBoards);
         }
 
@@ -36,6 +38,18 @@ namespace VikingsForHire.Commands
             VfhCommand.Print($"Hiring board {board.Id}: level {board.Level}, funds {funds.FoodPoints} food pts + {funds.Coins} coins, {dist:0.0}m away, owner {board.Zdo.GetOwner()}");
             VfhLog.I(LogCat.Board, "board.info", ("board", board.Id), ("level", board.Level), ("food", funds.FoodPoints), ("coins", funds.Coins),
                 ("dist", dist), ("owner", board.Zdo.GetOwner()));
+        }
+
+        private static void SetLevel(string[] args)
+        {
+            HiringBoard? board = Player.m_localPlayer == null ? null : HiringBoard.Nearest(Player.m_localPlayer.transform.position, InfoRange);
+            if (board == null || args.Length != 1 || !int.TryParse(args[0], out int level))
+            {
+                VfhCommand.Print("Usage: vfh_board_setlevel <1-8>, within 50m of a hiring board");
+                return;
+            }
+            BoardUpgrade.RequestSetLevel(board, level);
+            VfhCommand.Print($"VikingsForHire: asked board {board.Id} to go to level {level}");
         }
 
         private static void DumpBoards()

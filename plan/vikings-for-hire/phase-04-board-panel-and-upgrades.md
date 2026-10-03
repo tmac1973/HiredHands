@@ -17,6 +17,11 @@ Open a management panel with Shift+E on the board. It has three tabs: **Contract
 - `src/VikingsForHire/Testing/FixturesUpgrade.cs`: this phase's fixtures and checks (see the test plan).
 - `test/alias_vfh.yaml`: adds this phase's row macros.
 
+## As built (deviations from the steps below)
+- **No refund patch:** deconstructing drops the piece's registered build cost (the L1 cost). Upgrades are data-only and never change it, so a patch on `Piece.DropResources` isn't needed.
+- **No `BoardPanelKey`:** Shift+E is Valheim's alt-interact, so the cfg key was removed.
+- **Files:** `Board/BoardUpgrade.cs` holds the RPCs and the client request/refund flow. `UI/PanelUi.cs` holds the Jotunn GUI helpers and `UI/IBoardTab.cs` the tab interface. Esc is handled by a `Menu.Update` prefix, so it closes the panel instead of opening the game menu.
+
 ## Steps
 1. **Panel lifecycle:** one panel instance is created lazily on first open under `GUIManager.CustomGUIFront` and destroyed on `Game.OnDestroy`. It opens only when the player passes the ward check (`PrivateArea.CheckAccess(board.transform.position)`) and is within 5 m. It closes on Esc, the close button, moving more than 6 m away, or the board being destroyed. The panel is bound to the board's `ZDOID` and re-reads the board ZDO every 0.5 s while open, so all viewers see changes live.
 2. **Upgrade request flow** (avoids races and duplication):

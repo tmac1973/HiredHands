@@ -53,12 +53,17 @@ namespace VikingsForHire
             TestHarness.Register();
             Fixtures.Register();
             FixturesBoard.Register();
+            FixturesUpgrade.Register();
 
             SessionInfo.LogHeader("plugin load");
             Log.LogInfo($"{Name} {Version} loaded");
         }
 
-        private void Update() => VfhLog.Guard(LogCat.Data, "data.tick_failed", DataStore.Tick);
+        private void Update()
+        {
+            VfhLog.Guard(LogCat.Data, "data.tick_failed", DataStore.Tick);
+            VfhLog.Guard(LogCat.Board, "upgrade.tick_failed", BoardUpgrade.Tick);
+        }
 
         private void OnDestroy() => VfhLog.Shutdown();
     }

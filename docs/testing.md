@@ -76,3 +76,13 @@ tagged, and `clear_area` removes it.
 | `board_force_add <item> <n>` | Puts items in the nearest board, skipping the filter |
 | `crafty_probe` | Adds a session-only workbench recipe: Wood from 1 Coins + 1 CookedMeat |
 | `clear_area [radius=40]` | Removes everything the fixtures spawned |
+
+## Phase 04
+
+| Check / fixture | |
+|---|---|
+| check `inv <item>` | How many of an item you carry |
+| check `upgrade_last` | Last upgrade outcome: `ok`, `missing`, `max`, `busy`, `conflict`, `timeout`, `no_access` |
+| fixture `upgrade_mats <toLevel>` | Adds exactly that level's upgrade cost to your inventory |
+| fixture `upgrade` | Upgrades the nearest board through the real request (pays from your inventory) and waits for the answer |
+| command `vfh_board_setlevel <1-8>` | Cheat: sets the nearest board's level for free |

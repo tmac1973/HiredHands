@@ -18,6 +18,9 @@ namespace VikingsForHire.Board
         private static readonly Color LevelOneTint = Color.white;
         private static readonly Color LevelMaxTint = new(1f, 0.78f, 0.32f);
 
+        /// <summary>Raised on every machine that has the board loaded when its level changes (seen by the 2s poll).</summary>
+        public static event System.Action<HiringBoard, int>? LevelChanged;
+
         /// <summary>Boards loaded on this machine.</summary>
         public static readonly List<HiringBoard> Loaded = new();
 
@@ -47,6 +50,7 @@ namespace VikingsForHire.Board
             _storage = GetComponentInChildren<Container>(true);
             _renderers = GetComponentsInChildren<Renderer>(true);
             Loaded.Add(this);
+            BoardUpgrade.RegisterRpcs(this, _nview);
             EnsureId();
             ApplyLevelVisual();
             VfhLog.D(LogCat.Board, "board.loaded", ("board", Id), ("level", Level), ("pos", transform.position),
@@ -98,9 +102,12 @@ namespace VikingsForHire.Board
                 _block.SetColor("_Color", tint);
                 r.SetPropertyBlock(_block);
             }
-            if (_shownLevel != -1 && _shownLevel != level)
+            bool changed = _shownLevel != -1 && _shownLevel != level;
+            if (changed)
                 VfhLog.I(LogCat.Board, "board.level_visual", ("board", Id), ("from", _shownLevel), ("to", level));
             _shownLevel = level;
+            if (changed)
+                VfhLog.Guard(LogCat.Board, "board.level_changed_handler", () => LevelChanged?.Invoke(this, level), ("board", Id));
         }
 
         public string GetHoverName() => "$vfh_board";
@@ -128,8 +135,7 @@ namespace VikingsForHire.Board
                 return false;
             if (alt)
             {
-                // The management panel arrives in phase 04.
-                user.Message(MessageHud.MessageType.Center, "$vfh_board_manage_soon");
+                UI.BoardPanel.Open(this);
                 return true;
             }
             VfhLog.D(LogCat.Board, "storage.open", ("board", Id), ("player", Player.m_localPlayer?.GetPlayerName()));
