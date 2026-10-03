@@ -29,6 +29,9 @@ namespace VikingsForHire.Testing
             public string Usage = "";
             public Func<string[], string> Eval = _ => "";
             public bool ServerSide;
+
+            /// <summary>Server-side checks: resolves client-only arguments (like "last") before they're sent.</summary>
+            public Func<string[], string[]>? PrepareArgs;
         }
 
         private sealed class Run
@@ -97,6 +100,7 @@ namespace VikingsForHire.Testing
                     Enqueue(() => Assert(check, checkArgs, op, expected, timeout));
             });
             Add("vfh_test_abort", "- stop the running test and drop every queued step", _ => Abort("vfh_test_abort"));
+            Add("vfh_test_chain", "<macro> [macro]… - queue test macros (vfh_t_* aliases from alias_vfh.yaml, prefix optional) strictly in order, cleaning up after each", Chain);
             Add("vfh_test_summary", "- print every test result since login (after any queued tests finish)", _ =>
             {
                 if (_running)
@@ -138,11 +142,6 @@ namespace VikingsForHire.Testing
             int dropped = 0;
             while (QueueItems.Count > 0)
             {
-                if (_skipToEndReason != null)
-                {
-                    SkipToEnd();
-                    continue;
-                }
                 Func<IEnumerator> step = QueueItems.Dequeue();
                 dropped++;
                 if (EndSteps.Remove(step))
@@ -182,8 +181,9 @@ namespace VikingsForHire.Testing
             }
         }
 
-        public static void RegisterCheck(string name, string usage, Func<string[], string> eval, bool serverSide = false) =>
-            Checks[name] = new Check { Usage = usage, Eval = eval, ServerSide = serverSide };
+        public static void RegisterCheck(string name, string usage, Func<string[], string> eval, bool serverSide = false,
+            Func<string[], string[]>? prepareArgs = null) =>
+            Checks[name] = new Check { Usage = usage, Eval = eval, ServerSide = serverSide, PrepareArgs = prepareArgs };
 
         /// <summary>Adds a step to the run queue; the queue starts itself if idle.</summary>
         public static void Enqueue(Func<IEnumerator> step)
@@ -204,6 +204,11 @@ namespace VikingsForHire.Testing
             _running = true;
             while (QueueItems.Count > 0)
             {
+                if (_skipToEndReason != null)
+                {
+                    SkipToEnd();
+                    continue;
+                }
                 IEnumerator? step = null;
                 Func<IEnumerator> next = QueueItems.Dequeue();
                 EndSteps.Remove(next);
@@ -275,11 +280,12 @@ namespace VikingsForHire.Testing
                 if (def.ServerSide && ZNet.instance != null && !ZNet.instance.IsServer())
                 {
                     int id = _nextRequest++;
+                    string[] sendArgs = def.PrepareArgs != null ? def.PrepareArgs(args) : args;
                     var pkg = new ZPackage();
                     pkg.Write(id);
                     pkg.Write(check);
-                    pkg.Write(args.Length);
-                    foreach (string a in args)
+                    pkg.Write(sendArgs.Length);
+                    foreach (string a in sendArgs)
                         pkg.Write(a);
                     _checkRpc.SendPackage(ZRoutedRpc.instance.GetServerPeerID(), pkg);
                     float sent = Time.realtimeSinceStartup;
@@ -361,6 +367,43 @@ namespace VikingsForHire.Testing
             op = args[args.Length - 2];
             expected = args[args.Length - 1];
             return true;
+        }
+
+        /// <summary>
+        /// ServerDevcommands expands an alias used inside another alias only after the outer one has run, so chaining
+        /// test macros through an alias scrambles their order (all the cleanups first). This reads the macros from
+        /// alias_vfh.yaml and runs their commands now, one after another, so every step lands in the queue in order.
+        /// After each macro: kill hirelings, clear the area, and wait for the server's board index to catch up.
+        /// </summary>
+        private static void Chain(string[] args)
+        {
+            string path = System.IO.Path.Combine(BepInEx.Paths.ConfigPath, "alias_vfh.yaml");
+            if (!System.IO.File.Exists(path))
+            {
+                VfhCommand.Print("VikingsForHire: no " + path);
+                return;
+            }
+            var macros = new Dictionary<string, string>();
+            foreach (string line in System.IO.File.ReadAllLines(path))
+            {
+                int colon = line.IndexOf(": ", StringComparison.Ordinal);
+                if (!line.StartsWith("#") && colon > 0)
+                    macros[line.Substring(0, colon).Trim()] = line.Substring(colon + 2).Trim();
+            }
+            foreach (string arg in args)
+            {
+                string name = arg.StartsWith("vfh_t_") ? arg : "vfh_t_" + arg;
+                if (!macros.TryGetValue(name, out string body))
+                {
+                    VfhCommand.Print("VikingsForHire: no macro " + name);
+                    continue;
+                }
+                foreach (string cmd in body.Split(';').Select(c => c.Trim()).Where(c => c.Length > 0))
+                    Console.instance.TryRunCommand(cmd, silentFail: false, skipAllowedCheck: true);
+                foreach (string cmd in new[] { "vfh_fixture kill_hirelings 80", "vfh_fixture clear_area 80", "vfh_fixture wait 3" })
+                    Console.instance.TryRunCommand(cmd, silentFail: false, skipAllowedCheck: true);
+            }
+            VfhLog.I(LogCat.Test, "test.chain", ("macros", args.Length));
         }
 
         private static IEnumerator SummaryStep()

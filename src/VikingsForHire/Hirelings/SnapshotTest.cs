@@ -18,7 +18,7 @@ namespace VikingsForHire.Hirelings
 
         // Values that legitimately differ on a fresh instance (physics sync) are left out of the comparison.
         // Health is compared as the character's actual health instead: Character drops the stored value when it's full.
-        private static readonly HashSet<int> Ignore = new[] { "vel", "body_vel", "body_avel", "relPos", "relRot", "noise", "attachJoint", "health" }
+        private static readonly HashSet<int> Ignore = new[] { "vel", "body_vel", "body_avel", "BodyVelocity", "BodyAngularVelocity", "relPos", "relRot", "noise", "attachJoint", "health" }
             .Select(n => n.GetStableHashCode()).ToHashSet();
 
         public static IEnumerator Run(Hireling original)

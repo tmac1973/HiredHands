@@ -15,8 +15,11 @@ namespace VikingsForHire.Testing
 {
     internal static class FixturesRoster
     {
+        private static Jotunn.Entities.CustomRPC _skipTimeRpc = null!;
+
         public static void Register()
         {
+            _skipTimeRpc = Jotunn.Managers.NetworkManager.Instance.AddRPC("VFH_TestSkipTime", OnServerSkipTime, OnClientSkipTimeIgnored);
             Fixtures.Add("stock_board", "<foodPoints> <coins> - put cooked meat and coins in the nearest board", StockBoard);
             Fixtures.Add("board_clear", "- empty the nearest board's storage", _ => BoardClear());
             Fixtures.Add("post", "<job> <level> [radius=20] - post a contract on the nearest board (pays like the panel) and wait for the answer", Post);
@@ -66,7 +69,9 @@ namespace VikingsForHire.Testing
                 string sel = args.ElementAtOrDefault(0) ?? "last";
                 string hid = sel == "last" ? BoardContracts.LastPostedHid : sel;
                 return WorldIndex.Hireling(hid) != null ? "true" : "false";
-            }, serverSide: true);
+            }, serverSide: true,
+            // "last" means the contract this client posted, which only the client knows.
+            prepareArgs: args => args.Select((a, i) => i == 0 && a == "last" ? BoardContracts.LastPostedHid : a).ToArray());
             TestHarness.RegisterCheck("posted_hireling", "<field> - the hireling from the last posted contract: present, mode, status, level", args =>
             {
                 Hireling? h = Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == BoardContracts.LastPostedHid);
@@ -144,18 +149,52 @@ namespace VikingsForHire.Testing
             int days = int.Parse(args.ElementAtOrDefault(0) ?? "1", CultureInfo.InvariantCulture);
             for (int i = 0; i < days; i++)
             {
-                ZNet.instance.SetNetTime(ZNet.instance.GetTimeSeconds() + 1800.0);
-                VfhLog.I(LogCat.Test, "fixture.skip_day", ("day", EnvMan.instance.GetDay()));
+                double before = ZNet.instance.GetTimeSeconds();
+                if (ZNet.instance.IsServer())
+                {
+                    ZNet.instance.SetNetTime(before + 1800.0);
+                }
+                else
+                {
+                    // The server's clock is the one that counts: ask it to move on, then wait for it to reach us.
+                    var pkg = new ZPackage();
+                    pkg.Write(1800.0);
+                    _skipTimeRpc.SendPackage(ZRoutedRpc.instance.GetServerPeerID(), pkg);
+                    for (float waited = 0f; ZNet.instance.GetTimeSeconds() < before + 1700.0 && waited < 10f; waited += 0.25f)
+                        yield return new WaitForSeconds(0.25f);
+                }
+                VfhLog.I(LogCat.Test, "fixture.skip_day", ("day", EnvMan.instance.GetDay()), ("server", ZNet.instance.IsServer()));
                 // The board charges on its 5s owner tick (inside its 2s poll).
                 yield return new WaitForSeconds(7.5f);
             }
         }
 
+        // Server: a test client (admin only) moves the world clock on, like devcommands' skiptime.
+        private static IEnumerator OnServerSkipTime(long sender, ZPackage pkg)
+        {
+            double seconds = pkg.ReadDouble();
+            ZNetPeer? peer = ZNet.instance.GetPeer(sender);
+            if (peer == null || !ZNet.instance.IsAdmin(peer.m_socket.GetHostName()))
+            {
+                VfhLog.W(LogCat.Test, "fixture.skip_time_refused", ("from", sender));
+                yield break;
+            }
+            ZNet.instance.SetNetTime(ZNet.instance.GetTimeSeconds() + seconds);
+            VfhLog.I(LogCat.Test, "fixture.skip_time", ("from", sender), ("seconds", seconds), ("day", EnvMan.instance.GetDay()));
+        }
+
+        private static IEnumerator OnClientSkipTimeIgnored(long sender, ZPackage pkg)
+        {
+            yield break;
+        }
+
         private static IEnumerator CfgSet(string[] args)
         {
             var entry = VfhConfig.Find(args.ElementAtOrDefault(0) ?? "") ?? throw new ArgumentException($"no config key {args.ElementAtOrDefault(0)}");
-            entry.SetSerializedValue(args.ElementAtOrDefault(1) ?? "");
-            VfhLog.I(LogCat.Test, "fixture.cfg_set", ("key", entry.Definition.Key), ("value", entry.GetSerializedValue()));
+            // Through BoxedValue, not SetSerializedValue: Jotunn blocks the latter for server-synced entries on a client.
+            // As an admin, the change is sent on to the server and every client.
+            entry.BoxedValue = BepInEx.Configuration.TomlTypeConverter.ConvertToValue(args.ElementAtOrDefault(1) ?? "", entry.SettingType);
+            VfhLog.I(LogCat.Test, "fixture.cfg_set", ("key", entry.Definition.Key), ("value", VfhConfig.EffectiveValue(entry)));
             yield return null;
         }
     }
