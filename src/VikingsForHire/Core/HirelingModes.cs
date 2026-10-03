@@ -1,0 +1,18 @@
+namespace VikingsForHire.Core
+{
+    // Persisted in ZDOs as ints: never renumber. Value 2 is reserved (an old "Stay" mode; Stay is a FollowMode).
+    public enum HirelingMode
+    {
+        Working = 0,
+        Following = 1,
+        Idle = 3,
+        Leaving = 4,
+    }
+
+    public enum FollowMode
+    {
+        Follow = 0,
+        Stay = 1,
+        GatherNearby = 2,
+    }
+}

@@ -1,3 +1,14 @@
 # ServerDevcommands aliases (name: command). Commands chain with ';' and can pause with 'wait <ms>'.
 # Deployed to the profile's and the dedicated server's BepInEx/config/ on every build / server start.
-vfh_t_smoke: broadcast center VikingsForHire loaded
+# vfh_* test commands are cheats: run 'devcommands' first. A row passes when the log says evt=test.result ... pass=true.
+vfh_t_smoke: vfh_log_mark smoke;broadcast center VikingsForHire loaded
+
+# VFH-HARNESS-1: the harness itself and fast_timers (SP; on D you must be in the server's adminlist).
+vfh_t_harness1: vfh_test_begin VFH-HARNESS-1;vfh_fixture fast_timers on;vfh_assert fast_timers == true;vfh_assert cfg ArrivalDelayMinSeconds == 5;vfh_assert cfg ReturnMinSeconds == 6;vfh_fixture fast_timers off;vfh_assert cfg ArrivalDelayMinSeconds == 90;vfh_assert data HirelingLevels.3.CargoSlots == 12;vfh_assert log_errors == 0;vfh_test_end
+
+# VFH-CFG-1 (D): server cfg RequiredPieces = 25 and server yml boardLevels level 1 cost Wood = 30, then join and run.
+vfh_t_cfg1: vfh_test_begin VFH-CFG-1;vfh_assert data_source == server;vfh_assert cfg RequiredPieces == 25;vfh_assert data BoardLevels.1.Cost.Wood == 30;vfh_assert log_errors == 0;vfh_test_end
+
+# VFH-CFG-2 (SP): run _a, change boardLevels level 1 Wood from 40 to 45 in the yml and save, then run _b.
+vfh_t_cfg2_a: vfh_test_begin VFH-CFG-2;vfh_assert data_source == local;vfh_assert data BoardLevels.1.Cost.Wood == 40
+vfh_t_cfg2_b: vfh_assert_eventually 10 data BoardLevels.1.Cost.Wood == 45;vfh_assert data_source == local;vfh_assert log_errors == 0;vfh_test_end

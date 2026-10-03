@@ -2,6 +2,11 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using Jotunn.Utils;
+using VikingsForHire.Commands;
+using VikingsForHire.Config;
+using VikingsForHire.Core.Diagnostics;
+using VikingsForHire.Diagnostics;
+using VikingsForHire.Testing;
 
 namespace VikingsForHire
 {
@@ -21,12 +26,29 @@ namespace VikingsForHire
 
         internal static ManualLogSource Log = null!;
         internal static Harmony Harmony = null!;
+        internal static Plugin Instance = null!;
 
         private void Awake()
         {
+            Instance = this;
             Log = Logger;
+            VfhLog.Init(Logger);
+            VfhConfig.Bind(Config);
+            DataStore.Init();
+
             Harmony = new Harmony(Guid);
+            Harmony.PatchAll(typeof(Plugin).Assembly);
+
+            DebugCommands.Register();
+            TestHarness.Register();
+            Fixtures.Register();
+
+            SessionInfo.LogHeader("plugin load");
             Log.LogInfo($"{Name} {Version} loaded");
         }
+
+        private void Update() => VfhLog.Guard(LogCat.Data, "data.tick_failed", DataStore.Tick);
+
+        private void OnDestroy() => VfhLog.Shutdown();
     }
 }
