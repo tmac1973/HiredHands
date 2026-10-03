@@ -15,6 +15,7 @@ namespace VikingsForHire.Hirelings
     {
         private readonly List<IHirelingBehaviour> _behaviours = new();
         private IHirelingBehaviour? _current;
+        private bool _heldForCargo;
 
         public Hireling Hireling { get; private set; } = null!;
 
@@ -45,6 +46,26 @@ namespace VikingsForHire.Hirelings
                 m_randomMoveUpdateTimer -= dt;
             m_timeSinceHurt += dt;
             UpdateRegeneration(dt);
+
+            // Stand still while someone is using the cargo, so the container doesn't close as they walk off.
+            if (Hireling.CargoInUse)
+            {
+                if (!_heldForCargo)
+                {
+                    _heldForCargo = true;
+                    VfhLog.D(LogCat.AI, "ai.hold", ("hid", Hireling.Hid), ("reason", "cargo open"));
+                }
+                StopMoving();
+                Player nearest = Player.GetClosestPlayer(transform.position, 6f);
+                if (nearest != null)
+                    LookAt(nearest.GetHeadPoint());
+                return true;
+            }
+            if (_heldForCargo)
+            {
+                _heldForCargo = false;
+                VfhLog.D(LogCat.AI, "ai.release", ("hid", Hireling.Hid), ("reason", "cargo closed"));
+            }
 
             VfhLog.Guard(LogCat.AI, "ai.tick_failed", () =>
             {

@@ -51,6 +51,9 @@ namespace VikingsForHire.Hirelings
         public HirelingLevelData LevelData =>
             DataStore.Current.HirelingLevels.FirstOrDefault(l => l.Level == Level) ?? DataStore.Current.HirelingLevels[0];
 
+        /// <summary>Someone has this hireling's cargo open (vanilla syncs the flag through the ZDO).</summary>
+        public bool CargoInUse => _cargo != null && (_cargo.IsInUse() || (Zdo != null && Zdo.GetInt(ZDOVars.s_inUse) == 1));
+
         public int CargoSlots => Mathf.Clamp(LevelData.CargoSlots, 1, HirelingPrefab.CargoWidth * HirelingPrefab.CargoHeight);
 
         public static Hireling? Of(Component? c) => c == null ? null : c.GetComponent<Hireling>();
