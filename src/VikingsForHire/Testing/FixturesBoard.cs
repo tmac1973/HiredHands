@@ -36,7 +36,7 @@ namespace VikingsForHire.Testing
             Fixtures.Add("board_put", "<item> <n> - give yourself n items and move them into the nearest board like the UI does", BoardPut);
             Fixtures.Add("board_force_add", "<item> <n> - put items into the nearest board, skipping its food/coins filter", BoardForceAdd);
             Fixtures.Add("crafty_probe", "- add a workbench recipe 'Wood' costing 1 Coins + 1 CookedMeat (this session only)", _ => CraftyProbe());
-            Fixtures.Add("clear_area", "<radius=40> - remove everything these fixtures spawned nearby", ClearArea);
+            Fixtures.Add("clear_area", "<radius=40> - remove everything these fixtures spawned nearby, and every item lying on the ground there", ClearArea);
 
             TestHarness.RegisterCheck("placement_ok", "[meters=5] - can a hiring board go this far ahead: true | false | pending",
                 args => Verdict(args) is var v && v.Pending ? "pending" : v.Ok ? "true" : "false");
@@ -212,7 +212,16 @@ namespace VikingsForHire.Testing
                 view.ClaimOwnership();
                 ZNetScene.instance.Destroy(view.gameObject);
             }
-            VfhLog.I(LogCat.Test, "fixture.clear_area", ("radius", radius), ("removed", doomed.Count));
+            // Items on the ground too (drop piles, spilled upgrade materials, dead hirelings' cargo), or they pile up
+            // over runs and throw off later tests' drop-pile counts.
+            var drops = ItemDrop.s_instances.Where(d => d != null && d.m_nview != null && d.m_nview.IsValid() &&
+                                                        Vector3.Distance(d.transform.position, origin) <= radius).ToList();
+            foreach (ItemDrop d in drops)
+            {
+                d.m_nview.ClaimOwnership();
+                ZNetScene.instance.Destroy(d.gameObject);
+            }
+            VfhLog.I(LogCat.Test, "fixture.clear_area", ("radius", radius), ("removed", doomed.Count), ("groundItems", drops.Count));
             yield return null;
         }
 
