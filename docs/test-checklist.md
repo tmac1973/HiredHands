@@ -95,3 +95,10 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | 0dec920 | VFH-UPG-3 | SP | Pass | |
 | 2026-10-03 | 0dec920 | VFH-UPG-4 | SP | Pass | |
 | 2026-10-03 | 0dec920 | VFH-UPG-5 | SP | Pass | |
+| 2026-10-03 | 3dcf941 | VFH-HIRE-1 | SP | Pass | |
+| 2026-10-03 | 3dcf941 | VFH-HIRE-3 | SP | Pass | |
+| 2026-10-03 | 3dcf941 | VFH-HIRE-4 | SP | Pass | |
+| 2026-10-03 | 3dcf941 | VFH-HIRE-5 | SP | Pass | |
+| 2026-10-03 | 3dcf941 | VFH-HIRE-6 | SP | Pass | |
+| 2026-10-03 | 3dcf941 | VFH-HIRE-7 | SP | Pass | |
+| 2026-10-03 | 3dcf941 | VFH-HIRE-8 | SP | Pass | |
