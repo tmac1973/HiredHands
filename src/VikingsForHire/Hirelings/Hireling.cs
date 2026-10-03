@@ -86,6 +86,10 @@ namespace VikingsForHire.Hirelings
             if (CargoInventory != null)
                 ByCargo[CargoInventory] = this;
 
+            // The name shown on the health bar (EnemyHud) and anywhere else that reads Character.m_name.
+            if (DisplayName.Length > 0)
+                _humanoid.m_name = DisplayName;
+
             if (IsOwner)
             {
                 Appearance.Apply(this);
@@ -173,6 +177,32 @@ namespace VikingsForHire.Hirelings
         }
 
         public bool UseItem(Humanoid user, ItemDrop.ItemData item) => false;
+
+        /// <summary>
+        /// Character is Hoverable too and sits earlier on the object, so the hover raycast finds it first. Hand its hover
+        /// text and name to the Hireling for hirelings.
+        /// </summary>
+        [HarmonyLib.HarmonyPatch(typeof(Character), nameof(Character.GetHoverText))]
+        private static class CharacterHoverTextPatch
+        {
+            private static void Postfix(Character __instance, ref string __result)
+            {
+                Hireling? h = Of(__instance);
+                if (h != null && h.enabled)
+                    __result = h.GetHoverText();
+            }
+        }
+
+        [HarmonyLib.HarmonyPatch(typeof(Character), nameof(Character.GetHoverName))]
+        private static class CharacterHoverNamePatch
+        {
+            private static void Postfix(Character __instance, ref string __result)
+            {
+                Hireling? h = Of(__instance);
+                if (h != null && h.enabled && h.DisplayName.Length > 0)
+                    __result = h.DisplayName;
+            }
+        }
 
         public static Hireling? Nearest(Vector3 point, float range) =>
             Loaded.Where(h => h != null && h.Zdo != null && Vector3.Distance(h.transform.position, point) <= range)
