@@ -140,3 +140,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | b9e5fd2 | VFH-STN-4 | SP | Pass | |
 | 2026-10-03 | b9e5fd2 | VFH-STN-5 | SP | Pass | |
 | 2026-10-03 | b9e5fd2 | VFH-COMBAT-1 | SP | Pass | |
+| 2026-10-03 | b9e5fd2 | VFH-COMBAT-3 | SP | Pass | |
