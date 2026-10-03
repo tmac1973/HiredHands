@@ -162,3 +162,5 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | 0dab4b2 | VFH-WORK-3W | SP | To do | Checked during normal play |
 | 2026-10-03 | 0dab4b2 | VFH-WORK-4 | SP | To do | Checked during normal play |
 | 2026-10-03 | 0dab4b2 | VFH-AZU-2 | SP | To do | Checked during normal play |
+| 2026-10-03 | ff3efec | VFH-WORK-3 | SP | Pass | |
+| 2026-10-03 | ff3efec | VFH-TIER-1 | SP | Pass | |
