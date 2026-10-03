@@ -47,13 +47,16 @@ namespace VikingsForHire
 
             BoardPiece.Register();
             BoardRegistry.Register();
+            Hirelings.HirelingPrefab.Register();
 
             DebugCommands.Register();
             BoardCommands.Register();
+            HirelingCommands.Register();
             TestHarness.Register();
             Fixtures.Register();
             FixturesBoard.Register();
             FixturesUpgrade.Register();
+            FixturesHireling.Register();
 
             SessionInfo.LogHeader("plugin load");
             Log.LogInfo($"{Name} {Version} loaded");

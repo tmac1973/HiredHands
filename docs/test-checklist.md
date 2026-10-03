@@ -59,6 +59,15 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-UPG-4 Live data | SP | — | Panel open on the Upgrade tab of an L2 board; change level 3's cost in the yml and save | The tab shows the new cost within a second |
 | VFH-UPG-5 Deconstruct | SP | — | `vfh_board_setlevel 4`, then deconstruct with the Hammer | Only the level 1 build cost drops |
 | VFH-BOARD-2 Concurrent upgrade | D | — | Two clients at one L2 board, both with L3 mats, both click Upgrade within a second | One upgrade applies (L3); the other client sees the "someone else upgraded" message and has all its mats back |
+| VFH-HIRE-1 Persistence | SP | `vfh_t_hire1_a`, relog, `vfh_t_hire1_b` | Open ground. After `_a`, look at the miner (iron pickaxe, iron armour), log out to the menu and back in | `pass=true`; same name and looks after relog |
+| VFH-HIRE-3 Gear & stats | SP | `vfh_t_hire3` | Open ground | `pass=true` |
+| VFH-HIRE-4 Cargo slots | SP | `vfh_t_hire4` | Open ground | `pass=true`; by hand, E on an L1 hireling shows its cargo with only the top row usable and the rest greyed |
+| VFH-HIRE-5 Snapshot | SP | `vfh_t_hire5` | Open ground | `pass=true`; the hireling reappears 3m to the side with the same look |
+| VFH-HIRE-6 Looks | SP | — | `vfh_spawn Woodcutter 1 10` | Ten different vikings: both genders, varied hair/beards (no beards on women), skin and hair colours, gender-matched names on hover |
+| VFH-HIRE-7 Damage rules | SP | — | `vfh_spawn GuardMelee 1`; hit it with a sword; set `FriendlyFireOnHirelings = true` and hit again; then `spawn Greyling` next to it | Your hits do nothing, then do damage with friendly fire on; the Greyling's hits land (reduced by armor). The hireling doesn't fight back yet (phase 07) |
+| VFH-HIRE-8 Death | SP | — | `vfh_spawn Miner 4`, `vfh_kill_hirelings` | It dies (ragdoll) and nothing drops |
+| VFH-HIRE-2 Seen by others | D | — | Spawn a hireling; a second client looks at it | Same looks and gear on both clients |
+| VFH-CLLC-1 CreatureLevelControl | SP | `vfh_t_hire3` | Profile with Smoothbrain CreatureLevelAndLootControl enabled | `pass=true` (charlevel 1, maxhealth from the table); session header shows `CreatureLevelControl:1/1` |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.

@@ -8,7 +8,7 @@ namespace VikingsForHire.Compat
     /// </summary>
     internal static class ExcludedContainers
     {
-        public static readonly HashSet<string> Prefabs = new() { Board.BoardZdo.PrefabName };
+        public static readonly HashSet<string> Prefabs = new() { Board.BoardZdo.PrefabName, Hirelings.HirelingZdo.PrefabName };
 
         public static bool IsExcluded(string? prefabName) => prefabName != null && Prefabs.Contains(prefabName);
 

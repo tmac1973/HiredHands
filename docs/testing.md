@@ -86,3 +86,17 @@ tagged, and `clear_area` removes it.
 | fixture `upgrade_mats <toLevel>` | Adds exactly that level's upgrade cost to your inventory |
 | fixture `upgrade` | Upgrades the nearest board through the real request (pays from your inventory) and waits for the answer |
 | command `vfh_board_setlevel <1-8>` | Cheat: sets the nearest board's level for free |
+
+## Phase 05
+
+| Check / fixture / command | |
+|---|---|
+| check `hireling <nearest\|id-prefix> <field>` | `name job level mode stance health maxhealth charlevel tamed faction armor behaviour`, `gear.right\|left\|helmet\|chest\|legs\|ammo`, `cargo.<item>`, `cargo_used`, `cargo_slots`, or any `vfh_` key (with or without the prefix) |
+| check `hireling_count [job]` | Loaded hirelings within 50m |
+| check `snapshot_roundtrip` | Result of the last snapshot test: `true`, or `false: …` listing differing values |
+| fixture `hirelings <job> <level> [n]` | Spawns hirelings 4m ahead, linked to the nearest board |
+| fixture `cargo_put <item> <stacks>` | Moves full stacks from you into the nearest hireling's cargo the way the UI does |
+| fixture `snapshot_test` / `kill_hirelings [r]` | As the commands below |
+| command `vfh_spawn <job> <level> [count]` | Spawns where you look (jobs: Woodcutter, Miner, Smelter, GuardMelee, GuardRanged) |
+| command `vfh_snapshot_test` | Snapshot the nearest hireling, destroy it, rebuild it 3m away, compare every value |
+| command `vfh_kill_hirelings [r]` | Kills hirelings within `r` (50) metres |

@@ -24,6 +24,7 @@ namespace VikingsForHire.Compat
             Patch(harmony, "Azumatt.AzuAutoStore", "AzuAutoStore.Util.Boxes", "CanItemBeStored", "Azumatt.AzuAutoStore.yml");
             Patch(harmony, "Azumatt.AzuCraftyBoxes", "AzuCraftyBoxes.Util.Functions.Boxes", "CanItemBePulled", "Azumatt.AzuCraftyBoxes.yml");
             PatchPetPantry(harmony);
+            PatchCreatureLevelControl(harmony);
             if (Chainloader.PluginInfos.ContainsKey("Spronglehump.PullMats"))
                 Report("PullMats", true, 0, 0, "covered by the AzuCraftyBoxes exclusion");
         }
@@ -95,6 +96,39 @@ namespace VikingsForHire.Compat
             if (patched == 0)
                 VfhLog.W(LogCat.Compat, "compat.petpantry_unpatched", ("effect", "tamed animals may eat food stored on hiring boards"));
         }
+
+        /// <summary>
+        /// CreatureLevelAndLootControl gives every non-player character extra effects and infusions in a Character.Awake
+        /// postfix. Hirelings must stay plain level-1 characters whose stats come from our tables, so that postfix is
+        /// skipped for them. (Its health/damage factors follow the character level, which stays 1.)
+        /// </summary>
+        private static void PatchCreatureLevelControl(Harmony harmony)
+        {
+            const string guid = "org.bepinex.plugins.creaturelevelcontrol";
+            if (!Chainloader.PluginInfos.TryGetValue(guid, out var info) || info.Instance == null)
+            {
+                Report("CreatureLevelControl", false, 0, 0, "not installed");
+                return;
+            }
+            int patched = 0;
+            try
+            {
+                Type? nested = info.Instance.GetType().Assembly.GetTypes().FirstOrDefault(t => t.Name == "AttachLevelBehaviorToCharacters");
+                MethodInfo? postfix = nested == null ? null : AccessTools.Method(nested, "Postfix");
+                if (postfix != null)
+                {
+                    harmony.Patch(postfix, prefix: new HarmonyMethod(typeof(CompatPatcher), nameof(SkipForHireling)));
+                    patched++;
+                }
+            }
+            catch (Exception ex)
+            {
+                VfhLog.Exception(LogCat.Compat, "compat.patch_failed", ex, ("mod", "CreatureLevelControl"));
+            }
+            Report("CreatureLevelControl", true, patched, 1, patched == 1 ? "ok" : "incomplete: hirelings may get extra effects");
+        }
+
+        private static bool SkipForHireling(Character __0) => __0 == null || __0.GetComponent<Hirelings.Hireling>() == null;
 
         private static void Report(string mod, bool loaded, int patched, int wanted, string note)
         {
