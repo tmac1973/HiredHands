@@ -30,6 +30,8 @@ namespace VikingsForHire.Board
         private MaterialPropertyBlock? _block;
         private int _shownLevel = -1;
         private float _nextPoll;
+        private float _nextOwnerTick;
+        private const float OwnerTickSeconds = 5f;
 
         public ZDO? Zdo => _nview != null && _nview.IsValid() ? _nview.GetZDO() : null;
         public string Id => Zdo != null ? BoardZdo.GetId(Zdo) : "";
@@ -51,6 +53,7 @@ namespace VikingsForHire.Board
             _renderers = GetComponentsInChildren<Renderer>(true);
             Loaded.Add(this);
             BoardUpgrade.RegisterRpcs(this, _nview);
+            Net.MutationService.RegisterApply(_nview);
             EnsureId();
             ApplyLevelVisual();
             VfhLog.D(LogCat.Board, "board.loaded", ("board", Id), ("level", Level), ("pos", transform.position),
@@ -71,6 +74,11 @@ namespace VikingsForHire.Board
             VfhLog.Guard(LogCat.Board, "board.tick_failed", () =>
             {
                 EnsureId();
+                if (_nview.IsOwner() && Time.time >= _nextOwnerTick)
+                {
+                    _nextOwnerTick = Time.time + OwnerTickSeconds;
+                    BoardTick.Run(this);
+                }
                 if (Level != _shownLevel)
                     ApplyLevelVisual();
             }, ("board", Id));

@@ -10,6 +10,8 @@ namespace VikingsForHire.Core
         void Write(long value);
         void Write(float value);
         void Write(string value);
+        void Write(double value);
+        void Write(byte[] value);
     }
 
     public interface IPackageReader
@@ -19,6 +21,8 @@ namespace VikingsForHire.Core
         long ReadLong();
         float ReadSingle();
         string ReadString();
+        double ReadDouble();
+        byte[] ReadBytes();
     }
 
     /// <summary>

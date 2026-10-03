@@ -29,6 +29,7 @@ namespace VikingsForHire.Hirelings
                 return;
             Hireling = hireling;
             Add(new IdleBehaviour());
+            Add(new LeaveBehaviour());
         }
 
         /// <summary>Later phases register job, combat and follow behaviours here.</summary>

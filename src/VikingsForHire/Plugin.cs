@@ -47,16 +47,20 @@ namespace VikingsForHire
 
             BoardPiece.Register();
             BoardRegistry.Register();
+            Net.MutationService.Register();
+            Net.BoardServer.Register();
             Hirelings.HirelingPrefab.Register();
 
             DebugCommands.Register();
             BoardCommands.Register();
             HirelingCommands.Register();
+            RosterCommands.Register();
             TestHarness.Register();
             Fixtures.Register();
             FixturesBoard.Register();
             FixturesUpgrade.Register();
             FixturesHireling.Register();
+            FixturesRoster.Register();
 
             SessionInfo.LogHeader("plugin load");
             Log.LogInfo($"{Name} {Version} loaded");
@@ -66,6 +70,7 @@ namespace VikingsForHire
         {
             VfhLog.Guard(LogCat.Data, "data.tick_failed", DataStore.Tick);
             VfhLog.Guard(LogCat.Board, "upgrade.tick_failed", BoardUpgrade.Tick);
+            VfhLog.Guard(LogCat.Roster, "server.tick_failed", Net.BoardServer.Tick);
         }
 
         private void OnDestroy() => VfhLog.Shutdown();

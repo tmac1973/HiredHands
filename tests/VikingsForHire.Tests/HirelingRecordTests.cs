@@ -7,7 +7,7 @@ namespace VikingsForHire.Tests
 {
     public class HirelingRecordTests
     {
-        private sealed class Writer : IPackageWriter
+        internal sealed class Writer : IPackageWriter
         {
             public readonly MemoryStream Stream = new();
             private readonly BinaryWriter _w;
@@ -17,9 +17,11 @@ namespace VikingsForHire.Tests
             public void Write(long value) => _w.Write(value);
             public void Write(float value) => _w.Write(value);
             public void Write(string value) => _w.Write(value);
+            public void Write(double value) => _w.Write(value);
+            public void Write(byte[] value) { _w.Write(value.Length); _w.Write(value); }
         }
 
-        private sealed class Reader : IPackageReader
+        internal sealed class Reader : IPackageReader
         {
             private readonly BinaryReader _r;
             public Reader(byte[] bytes) => _r = new BinaryReader(new MemoryStream(bytes));
@@ -28,6 +30,8 @@ namespace VikingsForHire.Tests
             public long ReadLong() => _r.ReadInt64();
             public float ReadSingle() => _r.ReadSingle();
             public string ReadString() => _r.ReadString();
+            public double ReadDouble() => _r.ReadDouble();
+            public byte[] ReadBytes() => _r.ReadBytes(_r.ReadInt32());
         }
 
         private static HirelingRecord Sample() => new()

@@ -161,6 +161,9 @@ namespace VikingsForHire.Hirelings
             };
         }
 
+        /// <summary>Overrides one stored value (e.g. a contract's current level when the hireling spawns).</summary>
+        public void Set(string key, object value) => Put(key.GetStableHashCode(), value);
+
         private void Put(int hash, object value)
         {
             switch (value)
@@ -223,7 +226,7 @@ namespace VikingsForHire.Hirelings
 
         private static string Show<T>(T value) => value is byte[] bytes ? $"{bytes.Length}b" : value?.ToString() ?? "null";
 
-        private sealed class PackageWriter : IPackageWriter
+        internal sealed class PackageWriter : IPackageWriter
         {
             private readonly ZPackage _pkg;
             public PackageWriter(ZPackage pkg) => _pkg = pkg;
@@ -232,9 +235,11 @@ namespace VikingsForHire.Hirelings
             public void Write(long value) => _pkg.Write(value);
             public void Write(float value) => _pkg.Write(value);
             public void Write(string value) => _pkg.Write(value);
+            public void Write(double value) => _pkg.Write(value);
+            public void Write(byte[] value) => _pkg.Write(value);
         }
 
-        private sealed class PackageReader : IPackageReader
+        internal sealed class PackageReader : IPackageReader
         {
             private readonly ZPackage _pkg;
             public PackageReader(ZPackage pkg) => _pkg = pkg;
@@ -243,6 +248,8 @@ namespace VikingsForHire.Hirelings
             public long ReadLong() => _pkg.ReadLong();
             public float ReadSingle() => _pkg.ReadSingle();
             public string ReadString() => _pkg.ReadString();
+            public double ReadDouble() => _pkg.ReadDouble();
+            public byte[] ReadBytes() => _pkg.ReadByteArray();
         }
     }
 

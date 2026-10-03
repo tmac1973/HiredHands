@@ -68,6 +68,18 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-HIRE-8 Death | SP | — | `vfh_spawn Miner 4`, `vfh_kill_hirelings` | It dies (ragdoll) and nothing drops |
 | VFH-HIRE-2 Seen by others | D | — | Spawn a hireling; a second client looks at it | Same looks and gear on both clients |
 | VFH-CLLC-1 CreatureLevelControl | SP | `vfh_t_hire3` | Profile with Smoothbrain CreatureLevelAndLootControl enabled | `pass=true` (charlevel 1, maxhealth from the table); session header shows `CreatureLevelControl:1/1` |
+| VFH-CON-1 Hire | SP | `vfh_t_con1` | Open ground | `pass=true`; a viking walks in from ~35m and reports to the board |
+| VFH-CON-2 Refusals | SP | `vfh_t_con2` | Open ground | `pass=true` |
+| VFH-CON-3 Cancel refund | SP | `vfh_t_con3` | Open ground | `pass=true` |
+| VFH-CON-4 Panel | SP | — | A board with food; Shift+E | Contracts tab: job/level/radius/stance pickers, fee and upkeep update live (fee red when short), Post greyed at the cap. Roster tab: the hireling listed with its status; select it to change stance/radius, promote (on an L2+ board) or dismiss (asks first) |
+| VFH-UPK-1 Unpaid | SP | `vfh_t_upk1` | Open ground | `pass=true`; hover shows "Unpaid (1/2)", "(2/2)", then it drops its cargo and walks off |
+| VFH-UPK-2 Paid day | SP | `vfh_t_upk2` | Open ground | `pass=true` |
+| VFH-DTH-1 Permadeath | SP | `vfh_t_death1` | Open ground | `pass=true`; "… has died" message |
+| VFH-DTH-2 Respawn | SP | `vfh_t_death2` | Open ground | `pass=true`; it walks back in after ~10s (fast timers) |
+| VFH-PRO-1 Promote | SP | `vfh_t_pro1` | Open ground, room in your inventory | `pass=true`; its gear changes to level 2 |
+| VFH-DIS-1 Dismiss | SP | `vfh_t_dis1` | Open ground | `pass=true` |
+| VFH-REM-1 Remove board | SP | — | A board with a hireling; deconstruct it with the Hammer | Asks first; on Yes the hireling drops its cargo and walks off, the board's storage drops |
+| VFH-HIRE-3-6 Multiplayer roster | D | — | See the phase 06 plan's dedicated-server test | Ops applied once, forwarded to the board's owner, and applied by the server when nobody is near |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.

@@ -100,3 +100,23 @@ tagged, and `clear_area` removes it.
 | command `vfh_spawn <job> <level> [count]` | Spawns where you look (jobs: Woodcutter, Miner, Smelter, GuardMelee, GuardRanged) |
 | command `vfh_snapshot_test` | Snapshot the nearest hireling, destroy it, rebuild it 3m away, compare every value |
 | command `vfh_kill_hirelings [r]` | Kills hirelings within `r` (50) metres |
+
+## Phase 06
+
+| Check / fixture / command | |
+|---|---|
+| check `roster <Pending\|Active\|Leaving\|all>` | Contracts on the nearest board |
+| check `roster_entry <last\|hid> <state\|level\|unpaid\|radius\|stance\|respawn\|name>` | A contract's field (`last` = the last one you posted) |
+| check `contract_gone <last\|hid>` | `true` once the contract is off the board |
+| check `last_op` | Outcome of your last contract action: `Ok`, `CapReached`, `InsufficientFunds`, `NotFound`, `BadLevel`… |
+| check `posted_hireling <present\|mode\|status\|level>` | The hireling from your last posted contract |
+| check `last_upkeep_day` / `today` | Upkeep bookkeeping |
+| check `index <last\|hid> exists` | (server) whether the server's index has that hireling |
+| fixture `stock_board <food> <coins>` / `board_clear` | Fill / empty the nearest board's storage |
+| fixture `post <job> <level> [radius]` | Posts a contract (pays like the panel) and waits for the answer |
+| fixture `contract <cancel\|dismiss\|promote>` | Acts on your last posted contract |
+| fixture `skip_days <n>` | Advances the clock n days and waits for the board to charge |
+| fixture `cfg_set <key> <value>` | Sets a config value (put it back afterwards) |
+| command `vfh_spawn_contract <job> <level>` | Free hire that arrives at once |
+| command `vfh_dismiss_contract <hid-prefix>` | Dismisses one of your hirelings from anywhere |
+| command `vfh_dump_index` | (server/SP) logs every board and hireling the server knows of |

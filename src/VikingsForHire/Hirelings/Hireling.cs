@@ -31,6 +31,8 @@ namespace VikingsForHire.Hirelings
         private JobType _gearJob;
         private int _gearLevel = -1;
         private float _nextPoll;
+        private float _nextBoardCheck;
+        private const float BoardCheckSeconds = 60f;
 
         public ZDO? Zdo => _nview != null && _nview.IsValid() ? _nview.GetZDO() : null;
         public bool IsOwner => _nview != null && _nview.IsValid() && _nview.IsOwner();
@@ -46,6 +48,7 @@ namespace VikingsForHire.Hirelings
         public int Level => Mathf.Max(1, Zdo?.GetInt(HirelingZdo.Level, 1) ?? 1);
         public HirelingMode Mode => (HirelingMode)(Zdo?.GetInt(HirelingZdo.Mode, (int)HirelingMode.Idle) ?? (int)HirelingMode.Idle);
         public string DisplayName => Zdo?.GetString(HirelingZdo.Name) ?? "";
+        public float Radius => Zdo?.GetFloat(HirelingZdo.Radius, 20f) ?? 20f;
         public Vector3 Home => Zdo?.GetVec3(HirelingZdo.Home, transform.position) ?? transform.position;
 
         public HirelingLevelData LevelData =>
@@ -72,6 +75,8 @@ namespace VikingsForHire.Hirelings
             _humanoid = GetComponent<Humanoid>();
             _ai = GetComponent<HirelingAI>();
             _ai.Init(this);
+            Net.MutationService.RegisterApply(_nview);
+            _humanoid.m_onDeath += OnDeath;
             _vis = GetComponent<VisEquipment>();
             _cargo = GetComponentInChildren<Container>(true);
 
@@ -134,6 +139,34 @@ namespace VikingsForHire.Hirelings
                 }
                 if (IsOwner && Job == JobType.GuardRanged)
                     GearApplier.RefillAmmo(_humanoid);
+                if (IsOwner && BoardId.Length > 0 && Mode != HirelingMode.Leaving && Time.time >= _nextBoardCheck)
+                {
+                    _nextBoardCheck = Time.time + BoardCheckSeconds;
+                    Net.BoardServer.CheckBoardExists(BoardId, exists =>
+                    {
+                        if (exists || this == null || Zdo == null || Mode == HirelingMode.Leaving)
+                            return;
+                        VfhLog.I(LogCat.Hireling, "hireling.board_gone", ("hid", Hid), ("board", BoardId));
+                        Net.MutationService.SubmitHireling(Hid, new HirelingOp { Mode = HirelingMode.Leaving, LeavingSince = (long)ZNet.instance.GetTimeSeconds(), Status = "$vfh_status_board_gone" });
+                    });
+                }
+            }, ("hid", Hid));
+        }
+
+        /// <summary>
+        /// Owner, as it dies: cargo drops where it fell (gear never does), and the board learns of the death, which
+        /// either ends the contract (permadeath) or schedules the return.
+        /// </summary>
+        private void OnDeath()
+        {
+            if (!IsOwner)
+                return;
+            VfhLog.Guard(LogCat.Hireling, "hireling.death_failed", () =>
+            {
+                int dropped = CargoInventory != null ? Work.DropPile.DropAll(CargoInventory, transform.position + Vector3.up * 0.5f, "died", Hid) : 0;
+                VfhLog.I(LogCat.Hireling, "hireling.died", ("hid", Hid), ("board", BoardId), ("name", DisplayName), ("job", Job), ("level", Level), ("cargoStacks", dropped));
+                if (BoardId.Length > 0 && Mode != HirelingMode.Leaving)
+                    Net.MutationService.SubmitBoard(BoardId, new RosterOp { Type = RosterOpType.MarkDied, Hid = Hid, Name = DisplayName });
             }, ("hid", Hid));
         }
 
@@ -158,6 +191,13 @@ namespace VikingsForHire.Hirelings
             sb.Append(DisplayName).Append(" — $vfh_job_").Append(Job.ToString().ToLowerInvariant())
                 .Append(" ($vfh_level ").Append(Level).Append(')');
             string status = Zdo?.GetString(HirelingZdo.Status) ?? "";
+            if (status.Length == 0)
+                status = Mode switch
+                {
+                    HirelingMode.Working => "$vfh_status_working",
+                    HirelingMode.Leaving => "$vfh_status_leaving",
+                    _ => "",
+                };
             if (status.Length > 0)
                 sb.Append('\n').Append(status);
             sb.Append("\n$vfh_health ").Append(Mathf.CeilToInt(_humanoid.GetHealth())).Append('/').Append(Mathf.CeilToInt(_humanoid.GetMaxHealth()));

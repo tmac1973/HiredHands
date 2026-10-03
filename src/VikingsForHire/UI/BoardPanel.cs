@@ -27,13 +27,13 @@ namespace VikingsForHire.UI
         private HiringBoard? _board;
         private RectTransform _content = null!;
         private Text _title = null!;
-        private int _tab = 2;
+        private int _tab;
         private string _shown = "";
         private float _nextRefresh;
 
         public static bool IsOpen => _instance != null && _instance.gameObject.activeSelf;
 
-        public static void Open(HiringBoard board, int tab = 2)
+        public static void Open(HiringBoard board, int tab = 0)
         {
             Player player = Player.m_localPlayer;
             if (player == null || GUIManager.IsHeadless())
