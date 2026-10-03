@@ -27,7 +27,7 @@ namespace VikingsForHire.Testing
             TestHarness.RegisterCheck("hireling_count", "[job] - loaded hirelings within 50m (optionally of one job)", args =>
                 Hireling.Loaded.Count(h => h != null && h.Zdo != null && Vector3.Distance(h.transform.position, Player.m_localPlayer.transform.position) <= 50f &&
                                            (args.Length == 0 || string.Equals(h.Job.ToString(), args[0], StringComparison.OrdinalIgnoreCase))).ToString());
-            TestHarness.RegisterCheck("hireling", "<last|nearest|short-hid> <field> - last = the most recently spawned; name, job, level, health, maxhealth, charlevel, tamed, faction, armor, behaviour, gear.right|left|helmet|chest|legs|ammo|sidearm (none when empty), cargo.<item>, cargo_used, cargo_slots, or any vfh_ key",
+            TestHarness.RegisterCheck("hireling", "<last|posted|nearest|short-hid> <field> - last = most recently spawned, posted = from your last contract; name, job, level, health, maxhealth, charlevel, tamed, faction, armor, behaviour, gear.right|left|helmet|chest|legs|ammo|sidearm (none when empty), cargo.<item>, cargo_used, cargo_slots, or any vfh_ key",
                 args => Field(Select(args.ElementAtOrDefault(0) ?? "nearest"), args.ElementAtOrDefault(1) ?? ""));
             TestHarness.RegisterCheck("snapshot_roundtrip", "- result of the last snapshot test: true, or false with the differing values", _ => SnapshotTest.LastResult);
         }
@@ -73,6 +73,12 @@ namespace VikingsForHire.Testing
         {
             if (selector == "nearest")
                 return HirelingCommands.NearestOrThrow();
+            if (selector == "posted")
+            {
+                string posted = Board.BoardContracts.LastPostedHid;
+                return Hireling.Loaded.FirstOrDefault(h => h != null && h.Hid == posted)
+                       ?? throw new InvalidOperationException($"the hireling from the last posted contract ({posted}) isn't here yet");
+            }
             if (selector == "last")
             {
                 string hid = HirelingCommands.LastSpawned.LastOrDefault() ?? throw new InvalidOperationException("nothing spawned yet");

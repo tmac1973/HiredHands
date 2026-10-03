@@ -48,6 +48,49 @@ namespace VikingsForHire.Hirelings
         public int Level => Mathf.Max(1, Zdo?.GetInt(HirelingZdo.Level, 1) ?? 1);
         public HirelingMode Mode => (HirelingMode)(Zdo?.GetInt(HirelingZdo.Mode, (int)HirelingMode.Idle) ?? (int)HirelingMode.Idle);
         public string DisplayName => Zdo?.GetString(HirelingZdo.Name) ?? "";
+        // Work state (owner side).
+        public bool NoTargets { get; set; }
+        public float CarryingSince { get; private set; }
+        public bool DeliverPending => Zdo?.GetBool(HirelingZdo.DeliverPending) ?? false;
+        public ItemDrop.ItemData? Tool => _humanoid.GetRightItem();
+        public int ToolTier => Tool?.m_shared.m_toolTier ?? 0;
+        public HitData.DamageTypes ToolDamage => Tool?.GetDamage() ?? new HitData.DamageTypes();
+
+        public bool CargoFull
+        {
+            get
+            {
+                Inventory? cargo = CargoInventory;
+                return cargo != null && cargo.NrOfItems() >= CargoSlots && cargo.GetAllItems().All(i => i.m_stack >= i.m_shared.m_maxStackSize);
+            }
+        }
+
+        private string _activity = "";
+
+        /// <summary>Owner: what it's doing, for the hover (written only when it changes).</summary>
+        public void SetActivity(string token)
+        {
+            if (token == _activity || !IsOwner || Zdo == null)
+                return;
+            _activity = token;
+            Zdo.Set(HirelingZdo.Activity, token);
+        }
+
+        public void OnPickedUp()
+        {
+            if (CarryingSince <= 0f)
+                CarryingSince = Time.time;
+        }
+
+        public void OnDelivered()
+        {
+            CarryingSince = 0f;
+            NoTargets = false;
+            if (IsOwner && Zdo != null && Zdo.GetBool(HirelingZdo.DeliverPending))
+                Zdo.Set(HirelingZdo.DeliverPending, false);
+            SetActivity("");
+        }
+
         public Core.Stance Stance => (Core.Stance)(Zdo?.GetInt(HirelingZdo.Stance) ?? 0);
 
         private bool _sidearmOut;
@@ -243,6 +286,9 @@ namespace VikingsForHire.Hirelings
                 };
             if (status.Length > 0)
                 sb.Append('\n').Append(status);
+            string activity = Zdo?.GetString(HirelingZdo.Activity) ?? "";
+            if (activity.Length > 0 && Mode == HirelingMode.Working)
+                sb.Append(" — ").Append(activity);
             sb.Append("\n$vfh_health ").Append(Mathf.CeilToInt(_humanoid.GetHealth())).Append('/').Append(Mathf.CeilToInt(_humanoid.GetMaxHealth()));
             Inventory? cargo = CargoInventory;
             if (cargo != null)

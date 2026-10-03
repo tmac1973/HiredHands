@@ -47,6 +47,16 @@ namespace VikingsForHire.Hirelings
             Add(new IdleBehaviour());
             Add(new LeaveBehaviour());
             Add(new GuardPatrolBehaviour());
+            switch (hireling.Job)
+            {
+                case JobType.Woodcutter:
+                    Add(new Work.GatherBehaviour(new Work.WoodcutterProfile()));
+                    Add(new Work.DeliverBehaviour(new Work.GathererDeliveryPolicy()));
+                    break;
+                default:
+                    Add(new Work.DeliverBehaviour(new Work.OnRequestDeliveryPolicy()));
+                    break;
+            }
             Add(new FleeBehaviour());
             _combat = new CombatBehaviour();
             Add(_combat);

@@ -27,6 +27,8 @@ namespace VikingsForHire.Hirelings
         public const string HairColor = "vfh_hair_color";
         public const string Home = "vfh_home";
         public const string Status = "vfh_status";
+        /// <summary>What the hireling is doing right now (chopping, delivering…), shown under the status on hover.</summary>
+        public const string Activity = "vfh_activity";
 
         /// <summary>Set once the first-spawn setup (full health) has run, so later loads keep the saved health.</summary>
         public const string Initialized = "vfh_initialized";

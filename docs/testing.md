@@ -132,3 +132,17 @@ tagged, and `clear_area` removes it.
 | fixture `kill_enemies [r=60]` | Kills hostile creatures near you |
 | fixture `stance <last\|all> <stance>` | Sets stance (Flee, Defend, Passive, Defensive, Aggressive) |
 | fixture `wait <seconds>` | Pauses the run |
+
+## Phase 08
+
+| Check / fixture | |
+|---|---|
+| check `chest <tag> <item\|free_slots>` | Contents of a fixture chest |
+| check `drop_pile <item>` | Items lying in front of the nearest board |
+| check `object_alive <tag>` / `reservations_unique` | Tagged object exists / no target claimed twice |
+| fixture `board_level <n>` | Sets the nearest board's level |
+| fixture `trees <prefab> <n> <distance>` | Plants trees behind the board |
+| fixture `tree_near_wall [distance]` | A wall with a beech 4 m from it (tagged `near_wall`) |
+| fixture `chest <tag> [item count]…` / `fill_chest <tag> <item>` | A tagged chest with contents / fill it up |
+| fixture `deliver_now` | Sends the hireling from your last contract to deliver what it carries |
+| selector `hireling posted <field>` | The hireling from your last contract |

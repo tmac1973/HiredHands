@@ -89,6 +89,13 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-COMBAT-3 Patrol & regen | SP | — | Hire a guard from a board (vfh_spawn_contract GuardMelee 1) | It walks around the board's radius, pausing; after a fight its health creeps back up |
 | VFH-COMBAT-4 Raid | SP | — | Base with 2 contracted guards and a worker; `event army_eikthyr` | Guards engage, the worker flees or defends by stance, no input needed |
 | VFH-COMBAT-2 Seen by others | D | — | Combat near two clients | Same animations and hits on both |
+| VFH-DLV-1 Per-type delivery | SP | `vfh_t_deliver1` | Open ground (takes a few minutes) | `pass=true`; you can watch it fell the beeches, clear logs and stumps, pick up wood, then carry it to chest A |
+| VFH-DLV-2 Overflow | SP | `vfh_t_deliver2` | Open ground | `pass=true`; wood piles up in front of the board |
+| VFH-WORK-1 Tree safety | SP | `vfh_t_work1` | Open ground | `pass=true` |
+| VFH-WORK-3 Tiers | SP | — | A level 1 woodcutter near oaks and beeches; then promote to level 3 (bronze axe) | Level 1 skips oaks; level 3 cuts them, and chops faster |
+| VFH-WORK-4 Two woodcutters | SP | — | Two woodcutters on one board with a few trees | They work different trees |
+| VFH-AZU-2 Pile vs AzuAutoStore | SP | — | AzuAutoStore on; overflow on the pile | Azu may store the pile into chests; the woodcutter never picks the pile back up or loops |
+| VFH-WORK-2 Chest in use | D | — | Client B holds the wood chest open while the woodcutter delivers | It skips that chest (other chests or the pile), no items lost or doubled |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.
