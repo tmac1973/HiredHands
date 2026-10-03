@@ -118,10 +118,11 @@ namespace VikingsForHire.Testing
                 go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_creator, piece.m_creator);
             }
             yield return null; // let the Container wake up
+            bool azu = Compat.AzuAutoStoreCompat.Register(go.GetComponent<Container>());
             Inventory inv = go.GetComponent<Container>().GetInventory();
             for (int i = 1; i + 1 < args.Length; i += 2)
                 inv.AddItem(ObjectDB.instance.GetItemPrefab(args[i]), int.Parse(args[i + 1], CultureInfo.InvariantCulture));
-            VfhLog.I(LogCat.Test, "fixture.chest", ("tag", tag), ("pos", pos), ("items", string.Join(" ", args.Skip(1))));
+            VfhLog.I(LogCat.Test, "fixture.chest", ("tag", tag), ("pos", pos), ("items", string.Join(" ", args.Skip(1))), ("azu", azu));
         }
 
         private static IEnumerator FillChest(string[] args)
