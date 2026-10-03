@@ -40,7 +40,7 @@ Start milestone 2. Add the **Command Stone**, a 4-quality item crafted and upgra
 
 ## Test plan
 - **Test macros** (phase 02 harness): `FixturesFollow.cs`. Fixtures: `stone <quality>` (adds a Command Stone of that quality to the inventory), `recruit_nearest` (issues the real `Recruit` op on the nearest hireling), `release_nearest`. Checks: `followers` (count for the local player, server-forwarded), `hireling <h> vfh_mode|vfh_follow_mode|vfh_owner`, `craftable <recipe> <quality>`. Aliases added to `test/alias_vfh.yaml`: `vfh_t_follow1` (logout rule, split a/b around the relog), `vfh_t_follow2` (two players' caps), plus single-player `vfh_t_stone1` (quality gating vs board level) and `vfh_t_recruit1` (cap, release, cargo delivered). Each row in `docs/test-checklist.md` names its alias, and a row passes when its `evt=test.result` line says `pass=true`.
-- With an L2 board, the stone recipe shows as unavailable with the board message. Upgrade to L3: Q1 is craftable with Q1 mats only. Upgrading to Q2 needs L4 and the Q2 mats only (verify the shown amounts match the YAML for each quality).
+- With an L1 board, the stone recipe shows as unavailable with the board message. Upgrade to L2: Q1 is craftable with Q1 mats only. Upgrading to Q2 needs L4 and the Q2 mats only (verify the shown amounts match the YAML for each quality).
 - Recruit with a Q1 stone: one follower follows. A second recruit is refused (1/1).
 - The follower fights by its stance while following (Defensive guard defends you within 30 m).
 - Walk back into the home radius and release it to work: it deposits field cargo per type and resumes woodcutting.

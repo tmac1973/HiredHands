@@ -105,7 +105,7 @@ namespace VikingsForHire.Core.Data
             },
             CommandStone = new List<StoneLevelData>
             {
-                Stone(1, 3, 1, ("SurtlingCore", 5), ("Bronze", 10), ("GreydwarfEye", 20), ("FineWood", 10)),
+                Stone(1, 2, 1, ("SurtlingCore", 3), ("GreydwarfEye", 20), ("Resin", 20), ("DeerHide", 10)),
                 Stone(2, 4, 2, ("Iron", 15), ("Guck", 10), ("Ooze", 10), ("WitheredBone", 10)),
                 Stone(3, 6, 3, ("BlackMetal", 15), ("Silver", 10), ("Needle", 10), ("LinenThread", 10)),
                 Stone(4, 8, 4, ("FlametalNew", 15), ("Eitr", 10), ("BlackCore", 2), ("MoltenCore", 2)),

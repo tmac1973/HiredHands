@@ -45,7 +45,7 @@ Vikings for Hire adds a hiring economy. Players pay gold to bring in wandering v
 8. When a hireling dies, it's gone for good by default and drops what it carried (configurable: respawn at the board after a cooldown).
 
 **Milestone 2 — Followers**
-1. With a board at level 3 or higher near the workbench, the player crafts a **Command Stone** (upgradeable to L4 with board L4/L6/L8).
+1. With a board at level 2 or higher near the workbench, the player crafts a **Command Stone** (upgradeable to L4 with board L4/L6/L8).
 2. With the stone in hand, the player aims at one of the board's hirelings and presses the primary attack to recruit it as a follower, up to the stone's cap. Its base work is suspended, but the contract stays active: it still counts against the board cap and still pays upkeep.
 3. Followers walk with the player and go through portals with them, unless they carry non-teleportable items, in which case they stay behind with a message. When the player takes a ship's helm, nearby followers are stowed aboard as passengers and reappear beside the player on disembarking.
 4. With the stone in hand, the player aims at a target and presses the primary attack: rock/ore = mine, tree = chop, enemy = attack, ground = move/hold there. A hotkey cycles Follow / Stay / Gather Nearby, and another sets combat stance.
@@ -91,7 +91,7 @@ Vikings for Hire adds a hiring economy. Players pay gold to bring in wandering v
 - **Going home** → Followers walk with the player and resume work with "Release to work" (Command Stone) at base. Orphaned followers (stuck, separated, owner dead or offline) despawn and respawn at their board after a distance-based timer, keeping their cargo.
 - **Portal ore** → Respect vanilla teleport restrictions by default (configurable).
 - **Ore via return-home** → Allowed, but the timer matches roughly walking pace with a minimum, so it's no faster than walking.
-- **Command stone** → Upgradeable item, 4 levels: needs board L3 / L4 / L6 / L8 nearby, follower cap 1 / 2 / 3 / 4.
+- **Command stone** → Upgradeable item, 4 levels: needs board L2 / L4 / L6 / L8 nearby, follower cap 1 / 2 / 3 / 4. (Changed from L3 on 2026-10-03: miners unlock at board L2, since there is no pickaxe before Eikthyr, and are mostly useful as followers, so the stone comes at the same time. Q1 uses Black Forest mats available before the Elder.)
 - **Install & compat** → Required on the server and all clients. Server config is synced. AzuAutoStore, AzuCraftyBoxes, PullMats and PetPantry are explicitly supported soft dependencies. Multiplayer testing happens on Tim's live server (Gale profile `1dotohsupermodded`, about 55 mods); the phase 05 file lists the mods there that affect hirelings. ValheimPlus isn't supported and stays disabled in the dev profile.
 - **Board stacking** → One board per base area (minimum distance between boards, default 100m). Optional world-wide cap, default unlimited.
 - **Plugin identity** → `Spronglehump.VikingsForHire` (same author prefix as PullMats). Thunderstore package `Spronglehump-VikingsForHire`.

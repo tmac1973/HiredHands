@@ -54,7 +54,7 @@ namespace VikingsForHire.Tests
         {
             Assert.Equal(1, _rules.StoneFollowerCap(1));
             Assert.Equal(4, _rules.StoneFollowerCap(4));
-            Assert.Equal(3, _rules.RequiredBoardLevelForStone(1));
+            Assert.Equal(2, _rules.RequiredBoardLevelForStone(1));
             Assert.Equal(8, _rules.RequiredBoardLevelForStone(4));
         }
     }
