@@ -51,3 +51,12 @@ Support roles unlocked at higher board levels, since magic belongs to the later 
 - **Wizard:** a ranged magic guard using the Mistlands staves (fire/ice/lightning) as its gear, with eitr standing in for ammo in the same way archers have endless arrows. Strong against groups but fragile up close.
 - Both need gear and animations that suit NPCs; staves are player items like bows, so the same "fully drawn" trick may be needed.
 - Gate them by board level (e.g. healer from L5, wizard from L7) and price them high.
+
+## Scout
+A hireling sent out to find things and report back, instead of the player wandering the map.
+- **Ordering it:** from the board, pick what to look for and roughly where (a direction or a map pin), e.g. ore deposits (copper, tin, silver, iron in crypts), a biome, a boss altar or location type (crypts, villages, dungeons), a trader, or resources like berries and mushrooms.
+- **What it does:** leaves the base, travels out (it's away from the board, like a follower on a trip), and comes back after a while, timed like return-home (distance-based, about walking pace).
+- **What you get:** map pins for what it found (vanilla minimap pins, maybe a "Scouted" icon), and possibly the explored map area revealed along its route.
+- **Risk and level:** it can be hurt or killed on the way (a chance based on biome danger vs. its level), so higher levels scout further and more dangerous biomes and survive more often. Its fee and upkeep would reflect that.
+- **Multiplayer:** whose map gets the pins (the player who sent it, or everyone sharing the board).
+- **Balance:** long cooldowns and costs so it doesn't replace exploring, and no finding things a player couldn't (e.g. respect the vanilla "location must be discovered" rules for things like the trader, or only reveal coarse areas).
