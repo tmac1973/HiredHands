@@ -86,6 +86,19 @@ namespace VikingsForHire.Hirelings
 
         public override bool UpdateAI(float dt)
         {
+            long started = PerfCounters.Start();
+            try
+            {
+                return UpdateAIInner(dt);
+            }
+            finally
+            {
+                PerfCounters.Add("ai", started);
+            }
+        }
+
+        private bool UpdateAIInner(float dt)
+        {
             if (Hireling == null || !m_nview.IsValid() || !m_nview.IsOwner())
                 return false;
             if (m_randomMoveUpdateTimer > 0f)
@@ -123,13 +136,17 @@ namespace VikingsForHire.Hirelings
 
             VfhLog.Guard(LogCat.AI, "ai.tick_failed", () =>
             {
+                long t = PerfCounters.Start();
                 IHirelingBehaviour next = _behaviours.First(b => b.Wants(this));
+                PerfCounters.Add("choose", t);
                 if (next != _current)
                 {
                     VfhLog.D(LogCat.AI, "ai.switch", ("hid", Hireling.Hid), ("from", CurrentBehaviour), ("to", next.Name));
                     _current = next;
                 }
+                t = PerfCounters.Start();
                 next.Tick(this, dt);
+                PerfCounters.Add(next.Name, t);
             }, ("hid", Hireling.Hid));
             return true;
         }

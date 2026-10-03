@@ -19,6 +19,7 @@ namespace VikingsForHire.Diagnostics
     {
         private const int GuardFullReports = 5;
         private const float GuardSummarySeconds = 60f;
+        private const float PatchFailedSeconds = 10f;
 
         private static ManualLogSource _source = null!;
         private static LogFileSink? _file;
@@ -27,6 +28,7 @@ namespace VikingsForHire.Diagnostics
         private static readonly HashSet<string> SeenIds = new();
         private static readonly Dictionary<string, GuardState> Guards = new();
         private static readonly Dictionary<string, float> ThrottleUntil = new();
+        private static readonly Dictionary<string, float> PatchFailedAt = new();
 
         /// <summary>Errors logged this session; the test harness asserts this stays 0.</summary>
         public static int ErrorCount { get; private set; }
@@ -137,6 +139,19 @@ namespace VikingsForHire.Diagnostics
                 return;
             ThrottleUntil[key] = now + seconds;
             Write(level, cat, evt, fields);
+        }
+
+        /// <summary>
+        /// Logs an exception caught in a Harmony patch body (evt patch.failed), at most once per
+        /// <see cref="PatchFailedSeconds"/> per patch name, so a patch failing every frame can't flood the log.
+        /// </summary>
+        public static void PatchFailed(string patch, Exception ex)
+        {
+            float now = Now();
+            if (PatchFailedAt.TryGetValue(patch, out float last) && now - last < PatchFailedSeconds)
+                return;
+            PatchFailedAt[patch] = now;
+            Exception(LogCat.Core, "patch.failed", ex, ("patch", patch));
         }
 
         /// <summary>Writes a raw line (session header blocks) to both sinks without the standard prefix.</summary>

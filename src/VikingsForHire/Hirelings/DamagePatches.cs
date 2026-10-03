@@ -1,3 +1,4 @@
+using System;
 using HarmonyLib;
 using VikingsForHire.Config;
 using VikingsForHire.Core;
@@ -20,31 +21,40 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(Character __instance, HitData hit)
             {
-                Character? attacker = hit.GetAttacker();
-                Hireling? target = Hireling.Of(__instance);
-                Hireling? from = Hireling.Of(attacker);
-                if (target == null && from == null)
-                    return true;
-
-                if (target != null)
+                try
                 {
-                    if (from != null)
-                        return Blocked("hireling_on_hireling", target, attacker);
-                    if (attacker is Player && !VfhConfig.FriendlyFireOnHirelings.Value)
-                        return Blocked("friendly_fire", target, attacker);
-                    VfhLog.D(LogCat.Combat, "hireling.hit", ("hid", target.Hid), ("by", attacker != null ? attacker.m_name : "none"),
-                        ("damage", hit.GetTotalDamage()), ("armor", target.LevelData.Armor));
+                    Character? attacker = hit.GetAttacker();
+                    Hireling? target = Hireling.Of(__instance);
+                    Hireling? from = Hireling.Of(attacker);
+                    if (target == null && from == null)
+                        return true;
+
+                    if (target != null)
+                    {
+                        if (from != null)
+                            return Blocked("hireling_on_hireling", target, attacker);
+                        if (attacker is Player && !VfhConfig.FriendlyFireOnHirelings.Value)
+                            return Blocked("friendly_fire", target, attacker);
+                        VfhLog.D(LogCat.Combat, "hireling.hit", ("hid", target.Hid), ("by", attacker != null ? attacker.m_name : "none"),
+                            ("damage", hit.GetTotalDamage()), ("armor", target.LevelData.Armor));
+                        return true;
+                    }
+
+                    if (__instance.IsTamed())
+                        return Blocked("hireling_on_tame", from!, __instance);
+
+                    float mult = DamageMultiplier(from!);
+                    hit.m_damage.Modify(mult);
+                    VfhLog.T(LogCat.Combat, "hireling.attack", ("hid", from!.Hid), ("target", __instance.m_name), ("mult", mult),
+                        ("damage", hit.GetTotalDamage()));
                     return true;
                 }
-
-                if (__instance.IsTamed())
-                    return Blocked("hireling_on_tame", from!, __instance);
-
-                float mult = DamageMultiplier(from!);
-                hit.m_damage.Modify(mult);
-                VfhLog.T(LogCat.Combat, "hireling.attack", ("hid", from!.Hid), ("target", __instance.m_name), ("mult", mult),
-                    ("damage", hit.GetTotalDamage()));
-                return true;
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("DamagePatches.RPC_Damage", e);
+                    // Vanilla behaviour on failure: the hit lands, even if it would normally have been blocked.
+                    return true;
+                }
             }
         }
 
@@ -53,9 +63,16 @@ namespace VikingsForHire.Hirelings
         {
             private static void Postfix(Character __instance, ref float __result)
             {
-                Hireling? h = Hireling.Of(__instance);
-                if (h != null)
-                    __result = h.LevelData.Armor;
+                try
+                {
+                    Hireling? h = Hireling.Of(__instance);
+                    if (h != null)
+                        __result = h.LevelData.Armor;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("DamagePatches.GetBodyArmor", e);
+                }
             }
         }
 
@@ -64,11 +81,19 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(WearNTear __instance, HitData hit)
             {
-                Hireling? from = Hireling.Of(hit.GetAttacker());
-                if (from == null)
+                try
+                {
+                    Hireling? from = Hireling.Of(hit.GetAttacker());
+                    if (from == null)
+                        return true;
+                    VfhLog.T(LogCat.Combat, "hireling.piece_hit_blocked", ("hid", from.Hid), ("piece", __instance.name));
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("DamagePatches.WearNTearDamage", e);
                     return true;
-                VfhLog.T(LogCat.Combat, "hireling.piece_hit_blocked", ("hid", from.Hid), ("piece", __instance.name));
-                return false;
+                }
             }
         }
 
@@ -76,7 +101,18 @@ namespace VikingsForHire.Hirelings
         [HarmonyPatch(typeof(Humanoid), "DrainEquipedItemDurability")]
         private static class DurabilityPatch
         {
-            private static bool Prefix(Humanoid __instance) => Hireling.Of(__instance) == null;
+            private static bool Prefix(Humanoid __instance)
+            {
+                try
+                {
+                    return Hireling.Of(__instance) == null;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("DamagePatches.DrainEquipedItemDurability", e);
+                    return true;
+                }
+            }
         }
 
         public static float DamageMultiplier(Hireling h)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
@@ -102,12 +103,12 @@ namespace VikingsForHire.Board
         {
             private static void Postfix(Player __instance)
             {
-                if (__instance != Player.m_localPlayer || __instance.m_placementGhost == null ||
-                    __instance.m_placementStatus != Player.PlacementStatus.Valid || !PlacementCheck.IsBoard(__instance.GetSelectedPiece()))
-                    return;
-
-                VfhLog.Guard(LogCat.Placement, "placement.ghost_failed", () =>
+                try
                 {
+                    if (__instance != Player.m_localPlayer || __instance.m_placementGhost == null ||
+                        __instance.m_placementStatus != Player.PlacementStatus.Valid || !PlacementCheck.IsBoard(__instance.GetSelectedPiece()))
+                        return;
+
                     Vector3 pos = __instance.m_placementGhost.transform.position;
                     if ((pos - _cachedPos).sqrMagnitude > 1f || Time.time - _cachedAt > CacheSeconds)
                     {
@@ -129,7 +130,11 @@ namespace VikingsForHire.Board
                         _lastHintText = hint;
                         __instance.Message(MessageHud.MessageType.TopLeft, hint);
                     }
-                });
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("PlacementPatches.UpdatePlacementGhost", e);
+                }
             }
         }
 
@@ -139,25 +144,33 @@ namespace VikingsForHire.Board
         {
             private static bool Prefix(Player __instance, Piece piece, ref bool __result)
             {
-                if (!PlacementCheck.IsBoard(piece) || __instance.m_placementGhost == null)
-                    return true;
-
-                Vector3 pos = __instance.m_placementGhost.transform.position;
-                PlacementVerdict verdict = PlacementCheck.Evaluate(pos);
-                if (verdict.Ok)
+                try
                 {
-                    VfhLog.I(LogCat.Placement, "placement.allowed", ("pos", pos), ("workbenches", verdict.Counts.Workbenches),
-                        ("beds", verdict.Counts.Beds), ("pieces", verdict.Counts.Pieces), ("nearestBoard", NearestOrNone(verdict.Counts)),
-                        ("worldBoards", verdict.Counts.WorldBoardCount));
+                    if (!PlacementCheck.IsBoard(piece) || __instance.m_placementGhost == null)
+                        return true;
+
+                    Vector3 pos = __instance.m_placementGhost.transform.position;
+                    PlacementVerdict verdict = PlacementCheck.Evaluate(pos);
+                    if (verdict.Ok)
+                    {
+                        VfhLog.I(LogCat.Placement, "placement.allowed", ("pos", pos), ("workbenches", verdict.Counts.Workbenches),
+                            ("beds", verdict.Counts.Beds), ("pieces", verdict.Counts.Pieces), ("nearestBoard", NearestOrNone(verdict.Counts)),
+                            ("worldBoards", verdict.Counts.WorldBoardCount));
+                        return true;
+                    }
+
+                    VfhLog.I(LogCat.Placement, "placement.blocked", ("pos", pos), ("missing", verdict.MissingTokens()),
+                        ("workbenches", verdict.Counts.Workbenches), ("beds", verdict.Counts.Beds), ("pieces", verdict.Counts.Pieces),
+                        ("nearestBoard", NearestOrNone(verdict.Counts)), ("worldBoards", verdict.Counts.WorldBoardCount));
+                    __instance.Message(MessageHud.MessageType.Center, verdict.Message());
+                    __result = false;
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("PlacementPatches.TryPlacePiece", e);
                     return true;
                 }
-
-                VfhLog.I(LogCat.Placement, "placement.blocked", ("pos", pos), ("missing", verdict.MissingTokens()),
-                    ("workbenches", verdict.Counts.Workbenches), ("beds", verdict.Counts.Beds), ("pieces", verdict.Counts.Pieces),
-                    ("nearestBoard", NearestOrNone(verdict.Counts)), ("worldBoards", verdict.Counts.WorldBoardCount));
-                __instance.Message(MessageHud.MessageType.Center, verdict.Message());
-                __result = false;
-                return false;
             }
         }
 

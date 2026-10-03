@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using Jotunn.Managers;
@@ -146,14 +147,22 @@ namespace VikingsForHire.UI
         {
             private static bool Prefix()
             {
-                if (!IsOpen)
-                    return true;
-                if (ZInput.GetKeyDown(KeyCode.Escape) || ZInput.GetButtonDown("JoyButtonB"))
+                try
                 {
-                    Close("escape");
-                    return false;
+                    if (!IsOpen)
+                        return true;
+                    if (ZInput.GetKeyDown(KeyCode.Escape) || ZInput.GetButtonDown("JoyButtonB"))
+                    {
+                        Close("escape");
+                        return false;
+                    }
+                    return true;
                 }
-                return true;
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("BoardPanel.MenuUpdate", e);
+                    return true;
+                }
             }
         }
     }

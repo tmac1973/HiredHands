@@ -56,6 +56,8 @@ namespace VikingsForHire.Testing
 
         private static readonly Dictionary<string, Check> Checks = new(StringComparer.OrdinalIgnoreCase);
         private static readonly Queue<Func<IEnumerator>> QueueItems = new();
+        private static readonly HashSet<Func<IEnumerator>> EndSteps = new();
+        private static string? _skipToEndReason;
         private static readonly List<Result> Results = new();
         private static readonly Dictionary<int, string> ServerReplies = new();
         private static Run? _run;
@@ -73,7 +75,12 @@ namespace VikingsForHire.Testing
                 string row = args.Length > 0 ? args[0] : "adhoc";
                 Enqueue(() => Begin(row));
             });
-            Add("vfh_test_end", "- finish the run and log its result line", _ => Enqueue(End));
+            Add("vfh_test_end", "- finish the run and log its result line", _ =>
+            {
+                Func<IEnumerator> end = End;
+                EndSteps.Add(end);
+                Enqueue(end);
+            });
             Add("vfh_assert", "<check> [args…] <op> <value> - e.g. vfh_assert data BoardLevels.1.Cost.Wood == 40", args =>
             {
                 if (Parse(args, out string check, out string[] checkArgs, out string op, out string expected))
@@ -90,7 +97,13 @@ namespace VikingsForHire.Testing
                     Enqueue(() => Assert(check, checkArgs, op, expected, timeout));
             });
             Add("vfh_test_abort", "- stop the running test and drop every queued step", _ => Abort("vfh_test_abort"));
-            Add("vfh_test_summary", "- print every test result since login", _ => Summary());
+            Add("vfh_test_summary", "- print every test result since login (after any queued tests finish)", _ =>
+            {
+                if (_running)
+                    Enqueue(SummaryStep);
+                else
+                    Summary();
+            });
             Add("vfh_test_reset", "- clear stored test results", _ =>
             {
                 Results.Clear();
@@ -112,15 +125,42 @@ namespace VikingsForHire.Testing
         public static void FailSetup(string what, string reason)
         {
             Record("setup " + what, Array.Empty<string>(), "==", "ok", reason, false, 0f);
-            // Carrying on would run the rest of the test against the wrong world (e.g. your own board), so stop here.
-            // The step that called this is still running, so the queue is stopped after it returns.
-            Plugin.Instance.StartCoroutine(AbortNextFrame("setup " + what + " failed"));
+            // Carrying on would run the rest of this test against the wrong world (e.g. your own board), so the queue
+            // skips to the end of this test once the current step returns. Later tests in a chained run still go.
+            _skipToEndReason = "setup " + what + " failed";
         }
 
-        private static IEnumerator AbortNextFrame(string reason)
+        // Drops the rest of the current test (through its vfh_test_end) and records it as aborted.
+        private static void SkipToEnd()
         {
-            yield return null;
-            Abort(reason);
+            string reason = _skipToEndReason!;
+            _skipToEndReason = null;
+            int dropped = 0;
+            while (QueueItems.Count > 0)
+            {
+                if (_skipToEndReason != null)
+                {
+                    SkipToEnd();
+                    continue;
+                }
+                Func<IEnumerator> step = QueueItems.Dequeue();
+                dropped++;
+                if (EndSteps.Remove(step))
+                    break;
+            }
+            FinishAborted(reason, dropped);
+        }
+
+        private static void FinishAborted(string reason, int dropped)
+        {
+            if (_run == null)
+                return;
+            Run run = _run;
+            _run = null;
+            VfhLog.W(LogCat.Test, "test.result", ("row", run.Row), ("pass", false), ("checks", run.Checks), ("failed", run.Fails.Count),
+                ("aborted", reason), ("droppedSteps", dropped), ("fails", string.Join("; ", run.Fails)));
+            Results.Add(new Result(run.Row, false, run.Checks, run.Fails.Count));
+            Message($"<color=#f66>ABORTED</color> {run.Row}: {reason}. Clean up with vfh_fixture kill_hirelings / clear_area if needed");
         }
 
         /// <summary>Stops the queue, drops every pending step and records the current run as failed.</summary>
@@ -128,19 +168,14 @@ namespace VikingsForHire.Testing
         {
             int dropped = QueueItems.Count;
             QueueItems.Clear();
+            EndSteps.Clear();
+            _skipToEndReason = null;
             if (_queue != null)
                 Plugin.Instance.StopCoroutine(_queue);
             _queue = null;
             _running = false;
             if (_run != null)
-            {
-                Run run = _run;
-                _run = null;
-                VfhLog.W(LogCat.Test, "test.result", ("row", run.Row), ("pass", false), ("checks", run.Checks), ("failed", run.Fails.Count),
-                    ("aborted", reason), ("droppedSteps", dropped), ("fails", string.Join("; ", run.Fails)));
-                Results.Add(new Result(run.Row, false, run.Checks, run.Fails.Count));
-                Message($"<color=#f66>ABORTED</color> {run.Row}: {reason}. Clean up with vfh_fixture kill_hirelings / clear_area if needed");
-            }
+                FinishAborted(reason, dropped);
             else if (dropped > 0)
             {
                 VfhLog.W(LogCat.Test, "test.aborted", ("reason", reason), ("droppedSteps", dropped));
@@ -170,7 +205,9 @@ namespace VikingsForHire.Testing
             while (QueueItems.Count > 0)
             {
                 IEnumerator? step = null;
-                VfhLog.Guard(LogCat.Test, "test.step_failed", () => step = QueueItems.Dequeue()());
+                Func<IEnumerator> next = QueueItems.Dequeue();
+                EndSteps.Remove(next);
+                VfhLog.Guard(LogCat.Test, "test.step_failed", () => step = next());
                 if (step == null)
                     continue;
                 while (true)
@@ -324,6 +361,12 @@ namespace VikingsForHire.Testing
             op = args[args.Length - 2];
             expected = args[args.Length - 1];
             return true;
+        }
+
+        private static IEnumerator SummaryStep()
+        {
+            Summary();
+            yield break;
         }
 
         private static void Summary()

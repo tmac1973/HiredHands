@@ -1,3 +1,4 @@
+using System;
 using HarmonyLib;
 using VikingsForHire.Config;
 using VikingsForHire.Core.Diagnostics;
@@ -19,15 +20,23 @@ namespace VikingsForHire.Hirelings.Work
         {
             private static bool Prefix(Character character, ref GameObject? __result)
             {
-                if (!VfhConfig.MinerProtectsTerrain.Value || Hireling.Of(character) == null)
-                    return true;
-                __result = null;
-                if (Time.time - _lastLog > 10f)
+                try
                 {
-                    _lastLog = Time.time;
-                    VfhLog.D(LogCat.Work, "work.terrain_protected", ("hid", Hireling.Of(character)!.Hid));
+                    if (!VfhConfig.MinerProtectsTerrain.Value || Hireling.Of(character) == null)
+                        return true;
+                    __result = null;
+                    if (Time.time - _lastLog > 10f)
+                    {
+                        _lastLog = Time.time;
+                        VfhLog.D(LogCat.Work, "work.terrain_protected", ("hid", Hireling.Of(character)!.Hid));
+                    }
+                    return false;
                 }
-                return false;
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("TerrainProtection.SpawnOnHitTerrain", e);
+                    return true;
+                }
             }
         }
     }

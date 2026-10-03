@@ -57,18 +57,26 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, ref bool __result)
             {
-                if (item == null)
-                    return true;
-                if (!FitsAuto(__instance, item, out Hireling? h))
+                try
                 {
-                    Refused(h!, item, "auto");
-                    __result = false;
+                    if (item == null)
+                        return true;
+                    if (!FitsAuto(__instance, item, out Hireling? h))
+                    {
+                        Refused(h!, item, "auto");
+                        __result = false;
+                        return false;
+                    }
+                    if (h == null)
+                        return true;
+                    __result = PlaceInUsable(__instance, item, h.CargoSlots);
                     return false;
                 }
-                if (h == null)
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("CargoGate.AddItem", e);
                     return true;
-                __result = PlaceInUsable(__instance, item, h.CargoSlots);
-                return false;
+                }
             }
         }
 
@@ -110,11 +118,19 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, Vector2i pos, ref bool __result)
             {
-                if (item == null || SlotAllowed(__instance, pos.x, pos.y, out Hireling? h))
+                try
+                {
+                    if (item == null || SlotAllowed(__instance, pos.x, pos.y, out Hireling? h))
+                        return true;
+                    Refused(h!, item, "slot");
+                    __result = false;
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("CargoGate.AddItemAt", e);
                     return true;
-                Refused(h!, item, "slot");
-                __result = false;
-                return false;
+                }
             }
         }
 
@@ -123,11 +139,19 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, int x, int y, ref bool __result)
             {
-                if (item == null || SlotAllowed(__instance, x, y, out Hireling? h))
+                try
+                {
+                    if (item == null || SlotAllowed(__instance, x, y, out Hireling? h))
+                        return true;
+                    Refused(h!, item, "move");
+                    __result = false;
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("CargoGate.MoveItemToThis", e);
                     return true;
-                Refused(h!, item, "move");
-                __result = false;
-                return false;
+                }
             }
         }
 
@@ -136,11 +160,19 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(InventoryGrid __instance, ItemDrop.ItemData item, Vector2i pos, ref bool __result)
             {
-                if (item == null || SlotAllowed(__instance.GetInventory(), pos.x, pos.y, out Hireling? h))
+                try
+                {
+                    if (item == null || SlotAllowed(__instance.GetInventory(), pos.x, pos.y, out Hireling? h))
+                        return true;
+                    Refused(h!, item, "drop");
+                    __result = false;
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("CargoGate.DropItem", e);
                     return true;
-                Refused(h!, item, "drop");
-                __result = false;
-                return false;
+                }
             }
         }
 
@@ -152,24 +184,31 @@ namespace VikingsForHire.Hirelings
 
             private static void Postfix(InventoryGrid __instance)
             {
-                Hireling? h = Hireling.ForCargo(__instance.GetInventory());
-                int limit = h != null ? h.CargoSlots : int.MaxValue;
-                for (int i = 0; i < __instance.m_elements.Count; i++)
+                try
                 {
-                    Image img = __instance.m_elements[i].GetComponent<Image>();
-                    if (img == null)
-                        continue;
-                    if (i >= limit)
+                    Hireling? h = Hireling.ForCargo(__instance.GetInventory());
+                    int limit = h != null ? h.CargoSlots : int.MaxValue;
+                    for (int i = 0; i < __instance.m_elements.Count; i++)
                     {
-                        if (!Original.ContainsKey(img))
-                            Original[img] = img.color;
-                        img.color = Locked;
+                        Image img = __instance.m_elements[i].GetComponent<Image>();
+                        if (img == null)
+                            continue;
+                        if (i >= limit)
+                        {
+                            if (!Original.ContainsKey(img))
+                                Original[img] = img.color;
+                            img.color = Locked;
+                        }
+                        else if (Original.TryGetValue(img, out Color c))
+                        {
+                            img.color = c;
+                            Original.Remove(img);
+                        }
                     }
-                    else if (Original.TryGetValue(img, out Color c))
-                    {
-                        img.color = c;
-                        Original.Remove(img);
-                    }
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("CargoGate.UpdateGui", e);
                 }
             }
         }

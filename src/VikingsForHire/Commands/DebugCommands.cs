@@ -60,6 +60,12 @@ namespace VikingsForHire.Commands
                 VfhCommand.Print($"VikingsForHire: marked '{text}'");
             }));
             Add(new VfhCommand("vfh_dump_data", "- print the data tables in effect (server's when connected)", false, _ => DumpData()));
+            Add(new VfhCommand("vfh_perf", "- hireling AI cost on this machine (rolling 10 s average)", false, _ =>
+            {
+                string report = PerfCounters.Report();
+                VfhCommand.Print(report);
+                VfhLog.I(LogCat.Perf, "perf.report", ("aiMsPerFrame", PerfCounters.LastAiMsPerFrame), ("text", report.Replace("\n", " |")));
+            }));
             Add(new VfhCommand("vfh_dump_state", "- log the session header and every loaded board and hireling", false, _ => DumpState()));
             Add(new VfhCommand("vfh_debug_throw", "- (test) throw inside a guarded command to check exception logging", true,
                 _ => throw new InvalidOperationException("vfh_debug_throw test exception")));

@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
+using VikingsForHire.Diagnostics;
 using UnityEngine;
 
 namespace VikingsForHire.Hirelings.Combat
@@ -51,13 +53,20 @@ namespace VikingsForHire.Hirelings.Combat
         {
             private static void Postfix(Character __instance, HitData hit)
             {
-                Character? attacker = hit?.GetAttacker();
-                if (attacker == null || __instance == null || attacker == __instance)
-                    return;
-                bool friendly = __instance is Player || __instance.IsTamed() || Hireling.Of(__instance) != null;
-                if (!friendly || attacker is Player || Hireling.Of(attacker) != null)
-                    return;
-                Hits.Add(new Hit(__instance.transform.position, attacker, Time.time));
+                try
+                {
+                    Character? attacker = hit?.GetAttacker();
+                    if (attacker == null || __instance == null || attacker == __instance)
+                        return;
+                    bool friendly = __instance is Player || __instance.IsTamed() || Hireling.Of(__instance) != null;
+                    if (!friendly || attacker is Player || Hireling.Of(attacker) != null)
+                        return;
+                    Hits.Add(new Hit(__instance.transform.position, attacker, Time.time));
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("AllyHits.RPC_Damage", e);
+                }
             }
         }
     }

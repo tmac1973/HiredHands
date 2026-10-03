@@ -128,7 +128,18 @@ namespace VikingsForHire.Compat
             Report("CreatureLevelControl", true, patched, 1, patched == 1 ? "ok" : "incomplete: hirelings may get extra effects");
         }
 
-        private static bool SkipForHireling(Character __0) => __0 == null || __0.GetComponent<Hirelings.Hireling>() == null;
+        private static bool SkipForHireling(Character __0)
+        {
+            try
+            {
+                return __0 == null || __0.GetComponent<Hirelings.Hireling>() == null;
+            }
+            catch (Exception e)
+            {
+                VfhLog.PatchFailed("CompatPatcher.SkipForHireling", e);
+                return true;
+            }
+        }
 
         private static void Report(string mod, bool loaded, int patched, int wanted, string note)
         {
@@ -138,19 +149,35 @@ namespace VikingsForHire.Compat
 
         private static bool AddContainerPrefix(Container container)
         {
-            if (!ExcludedContainers.IsExcluded(container))
+            try
+            {
+                if (!ExcludedContainers.IsExcluded(container))
+                    return true;
+                VfhLog.D(LogCat.Compat, "compat.container_hidden", ("prefab", Utils.GetPrefabName(container.m_rootObjectOverride != null ? container.m_rootObjectOverride.gameObject : container.gameObject)));
+                return false;
+            }
+            catch (Exception e)
+            {
+                VfhLog.PatchFailed("CompatPatcher.AddContainer", e);
                 return true;
-            VfhLog.D(LogCat.Compat, "compat.container_hidden", ("prefab", Utils.GetPrefabName(container.m_rootObjectOverride != null ? container.m_rootObjectOverride.gameObject : container.gameObject)));
-            return false;
+            }
         }
 
         // Shared by CanItemBeStored(string container, string prefab) and CanItemBePulled(string container, string prefab, ...).
         private static bool CanUsePrefix(string __0, ref bool __result)
         {
-            if (!ExcludedContainers.IsExcluded(__0))
+            try
+            {
+                if (!ExcludedContainers.IsExcluded(__0))
+                    return true;
+                __result = false;
+                return false;
+            }
+            catch (Exception e)
+            {
+                VfhLog.PatchFailed("CompatPatcher.CanUse", e);
                 return true;
-            __result = false;
-            return false;
+            }
         }
     }
 }

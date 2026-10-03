@@ -73,10 +73,18 @@ namespace VikingsForHire.Board
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, ref bool __result)
             {
-                if (!Reject(__instance, item))
+                try
+                {
+                    if (!Reject(__instance, item))
+                        return true;
+                    __result = false;
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("BoardStorage.AddItem", e);
                     return true;
-                __result = false;
-                return false;
+                }
             }
         }
 
@@ -85,10 +93,18 @@ namespace VikingsForHire.Board
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, ref bool __result)
             {
-                if (!Reject(__instance, item))
+                try
+                {
+                    if (!Reject(__instance, item))
+                        return true;
+                    __result = false;
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("BoardStorage.AddItemAt", e);
                     return true;
-                __result = false;
-                return false;
+                }
             }
         }
 
@@ -97,10 +113,18 @@ namespace VikingsForHire.Board
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, ref bool __result)
             {
-                if (!Reject(__instance, item))
+                try
+                {
+                    if (!Reject(__instance, item))
+                        return true;
+                    __result = false;
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("BoardStorage.MoveItemToThis", e);
                     return true;
-                __result = false;
-                return false;
+                }
             }
         }
 
@@ -110,10 +134,18 @@ namespace VikingsForHire.Board
         {
             private static bool Prefix(InventoryGrid __instance, ItemDrop.ItemData item, ref bool __result)
             {
-                if (!Reject(__instance.GetInventory(), item))
+                try
+                {
+                    if (!Reject(__instance.GetInventory(), item))
+                        return true;
+                    __result = false;
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("BoardStorage.DropItem", e);
                     return true;
-                __result = false;
-                return false;
+                }
             }
         }
     }
