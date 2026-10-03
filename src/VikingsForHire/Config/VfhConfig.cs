@@ -184,8 +184,14 @@ namespace VikingsForHire.Config
             _file.Keys.Where(k => string.Equals(k.Key, key, System.StringComparison.OrdinalIgnoreCase))
                 .Select(k => _file[k]).FirstOrDefault();
 
+        /// <summary>
+        /// The value in effect. Not GetSerializedValue: Jotunn patches that to return the player's own local value for
+        /// server-synced entries (so the local file is never overwritten), which hides the server's value.
+        /// </summary>
         public static string EffectiveValue(ConfigEntryBase entry) =>
-            entry is ConfigEntry<float> fe && Overrides.ContainsKey(fe) ? Get(fe).ToString(System.Globalization.CultureInfo.InvariantCulture) : entry.GetSerializedValue();
+            entry is ConfigEntry<float> fe && Overrides.ContainsKey(fe)
+                ? Get(fe).ToString(System.Globalization.CultureInfo.InvariantCulture)
+                : TomlTypeConverter.ConvertToString(entry.BoxedValue, entry.SettingType);
 
         public static IEnumerable<(string Key, string Value)> AllEffective() =>
             _file.Keys.OrderBy(k => k.Section).ThenBy(k => k.Key).Select(k => ($"{k.Section}/{k.Key}", EffectiveValue(_file[k])));
