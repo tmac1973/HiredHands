@@ -25,6 +25,20 @@ A farmer role is a priority once the basics work, but how it should behave isn't
 - **Level gating:** higher levels could handle later crops (Barley and Flax are Plains crops), farm a bigger field, or tend more plants per trip.
 - **Animals:** out of scope at first (tending chickens or lox could be its own later role).
 
+## Steward (the Smelter, renamed and widened)
+The Smelter becomes the **Steward**: the hireling that keeps the base running.
+- **Keeps stations fed** (what the Smelter does today): smelters, kilns, blast furnaces, eitr refineries, with the same reserves and chest rules.
+- **Repairs** (see Repairs below for the rules): damaged pieces near a workbench or forge of the right type, worst first, after fights rather than during them.
+- **Odds and ends**, one at a time:
+  - fuel the fires, braziers, torches and hot tubs (vanilla `Fireplace` fuel, from chests that hold it);
+  - refill the cooking station's spits and collect what's cooked;
+  - empty beehives, sap collectors and windmill/spinning wheel output into chests, and feed the windmill and spinning wheel from chests;
+  - feed tamed animals in pens from a chest of their food (PetPantry users may not want this; check compat).
+
+  Each one could be a per-hireling toggle in the Shift+E panel, like the gatherers' item toggles, so a base owner can keep it to the chores they want.
+- **Rename only on the surface:** `JobType.Smelter` stays as the enum value and data key (it's saved in worlds and in everyone's YAML), and only the shown name, description and hover change. If the data key ever has to change, `DataDefaults` would need to accept the old key.
+- **Level gating:** higher levels unlock more chores or a bigger radius, the way gatherers get better tools.
+
 ## Repairs
 One hireling job (or a perk of a higher-level job) repairs damaged building pieces inside its work radius.
 - **Who:** a dedicated Builder/Carpenter role, or a perk for higher-level Guards, who'd naturally patrol the base and patch it up after raids.
@@ -97,7 +111,8 @@ Tell players before a board runs dry, not after hirelings start going unpaid (to
   - A message when it crosses the threshold, once per in-game day at most: to players near the board, and to the players who posted its contracts wherever they are (they may be out exploring with followers). For example: "The hiring board at Home has food for 1 more day."
 - **Settings:** `LowFundsWarnDays` (default 2) for when the warning starts, and an on/off switch for the messages (the hover and panel always show the days left).
 - **Multiplayer:** the server runs upkeep for unloaded boards, so the check sits beside the upkeep code and the message goes out the way follower messages do (`FollowerServer.Tell`). Which player to tell comes from each contract's poster, which would need recording on the contract (it isn't stored today).
-- **Nice to have:** a map pin or a marker on the board while it's low, and a "fill from my inventory" button in the Funds panel that tops it up with your cheapest food.
+- **Map pin:** while a board is low, a pin on the map at the board for everyone who hired from it ("Hiring board: food for 1 day"), updated each in-game day and removed once it's topped up above the threshold. It helps when you're far away and have forgotten which base needs feeding. It's a local pin each player's game adds and removes from the board's state, not one saved into the shared map, so it never lingers.
+- **Nice to have:** a marker on the board itself while it's low, and a "fill from my inventory" button in the Funds panel that tops it up with your cheapest food.
 
 ## Tombstone for a dead hireling's cargo
 Today a hireling's cargo falls to the ground where it dies, as loose items that vanilla clears after about an hour outside a base. A tombstone would keep it safe until someone comes for it, as a player's does.
