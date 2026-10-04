@@ -50,6 +50,10 @@ namespace VikingsForHire.Hirelings.Combat
                     continue;
                 if (!BaseAI.IsEnemy(_ai.Hireling.Humanoid, c))
                     continue;
+                // Harmless wildlife (deer, hares…: creatures with the passive animal AI) isn't a threat: a guard
+                // shouldn't chase every deer that wanders by. Anything that hits a hireling is still fought back.
+                if (c.GetBaseAI() is AnimalAI)
+                    continue;
                 float sq = (c.transform.position - me).sqrMagnitude;
                 if (sq < bestSq && _ai.CanSeeTarget(c))
                 {

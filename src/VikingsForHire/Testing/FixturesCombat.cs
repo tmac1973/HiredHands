@@ -108,7 +108,8 @@ namespace VikingsForHire.Testing
         {
             Vector3 me = Player.m_localPlayer.transform.position;
             return Character.GetAllCharacters().Where(c => c != null && !c.IsDead() && !(c is Player) && !c.IsTamed() && Hireling.Of(c) == null &&
-                                                           BaseAI.IsEnemy(Player.m_localPlayer, c) && Vector3.Distance(c.transform.position, me) <= radius);
+                                                           BaseAI.IsEnemy(Player.m_localPlayer, c) && !(c.GetBaseAI() is AnimalAI) &&
+                                                           Vector3.Distance(c.transform.position, me) <= radius);
         }
 
         private static IEnumerator Wait(float seconds)
