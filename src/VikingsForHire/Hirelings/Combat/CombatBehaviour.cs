@@ -53,7 +53,7 @@ namespace VikingsForHire.Hirelings.Combat
             _lastAction = Time.time;
             _engagedAt = Time.time;
             VfhLog.D(LogCat.Combat, "combat.engage", ("hid", ai.Hireling.Hid), ("target", pick.m_name), ("stance", ai.Stance),
-                ("dist", Vector3.Distance(pick.transform.position, ai.transform.position)));
+                ("dist", Vector3.Distance(pick.transform.position, ai.transform.position)), ("gear", GearApplier.Describe(ai.Hireling.Humanoid)));
             return true;
         }
 

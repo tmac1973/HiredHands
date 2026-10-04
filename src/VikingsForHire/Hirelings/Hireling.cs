@@ -153,6 +153,32 @@ namespace VikingsForHire.Hirelings
             VfhLog.D(LogCat.Combat, "weapon.swap", ("hid", Hid), ("to", on ? GearApplier.Name(club) : GearApplier.Name(bow)));
         }
 
+        /// <summary>
+        /// Owner: a guard always has its weapon in hand (the bow for an archer, unless the club is out). If it's ever
+        /// found empty-handed or holding the wrong thing, the weapon goes back in its hand and what was there is logged.
+        /// </summary>
+        private void EnsureArmed()
+        {
+            if (!Job.IsGuard())
+                return;
+            ItemDrop.ItemData? right = _humanoid.GetRightItem();
+            bool ok = Job == JobType.GuardRanged
+                ? _sidearmOut ? right != null : right != null && right.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Bow
+                : right != null;
+            if (ok)
+                return;
+            ItemDrop.ItemData? weapon = Job == JobType.GuardRanged && !_sidearmOut
+                ? _humanoid.GetInventory().GetAllItems().FirstOrDefault(i => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Bow)
+                : _humanoid.GetInventory().GetAllItems().FirstOrDefault(i => i.IsWeapon() && i.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Bow);
+            string before = GearApplier.Describe(_humanoid);
+            if (weapon != null)
+                _humanoid.EquipItem(weapon, false);
+            else
+                GearApplier.Regear(_humanoid, Job, Level);
+            VfhLog.W(LogCat.Combat, "weapon.restored", ("hid", Hid), ("had", GearApplier.Name(right)), ("gearBefore", before),
+                ("now", GearApplier.Describe(_humanoid)), ("sidearmOut", _sidearmOut), ("stowed", IsStowed), ("how", weapon != null ? "re-equipped" : "regeared"));
+        }
+
         public float Radius => Zdo?.GetFloat(HirelingZdo.Radius, 20f) ?? 20f;
         public Vector3 Home => Zdo?.GetVec3(HirelingZdo.Home, transform.position) ?? transform.position;
 
@@ -253,6 +279,8 @@ namespace VikingsForHire.Hirelings
                 }
                 if (IsOwner && Job == JobType.GuardRanged)
                     GearApplier.RefillAmmo(_humanoid);
+                if (IsOwner && !IsStowed)
+                    EnsureArmed();
                 if (IsOwner && BoardId.Length > 0 && Mode != HirelingMode.Leaving && Time.time >= _nextBoardCheck)
                 {
                     _nextBoardCheck = Time.time + BoardCheckSeconds;
