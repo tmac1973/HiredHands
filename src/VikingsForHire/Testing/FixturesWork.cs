@@ -19,7 +19,7 @@ namespace VikingsForHire.Testing
         public static void Register()
         {
             Fixtures.Add("board_level", "<1-8> - set the nearest board's level (free, through its owner)", BoardLevel);
-            Fixtures.Add("trees", "<prefab> <n> <distance> - plant trees in a ring that far from the nearest board", Trees);
+            Fixtures.Add("trees", "<prefab> <n> <distance> [tag] - plant trees in a ring that far from the nearest board (the first gets the tag)", Trees);
             Fixtures.Add("tree_near_wall", "<distance=22> - a wall and a beech 4 m from it (tagged near_wall), that far from the board", TreeNearWall);
             Fixtures.Add("chest", "<tag> [item count]… - a wooden chest beside the board holding those items", Chest);
             Fixtures.Add("room", "<tag> [item count]… - a closed 6x6 m room 12 m to the board's right with a door facing the board (tagged <tag>_door) and a chest inside (tagged <tag>)", Room);
@@ -74,7 +74,7 @@ namespace VikingsForHire.Testing
             for (int i = 0; i < n; i++)
             {
                 Vector3 dir = Quaternion.Euler(0f, (i - (n - 1) / 2f) * 15f, 0f) * away;
-                GameObject tree = Spawn(prefab, board.transform.position + dir * dist, "");
+                GameObject tree = Spawn(prefab, board.transform.position + dir * dist, i == 0 ? args.ElementAtOrDefault(3) ?? "" : "");
                 Component? target = (Component?)tree.GetComponent<TreeBase>() ?? tree.GetComponent<Destructible>();
                 if (target != null)
                 {

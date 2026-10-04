@@ -25,6 +25,7 @@ namespace VikingsForHire.Testing
             Fixtures.Add("post_posted", "<right|back|front|left> <distance> - post the guard from your last contract at that spot next to the board, facing away from it", PostPosted);
             Fixtures.Add("clear_post_posted", "- clear the post of the guard from your last contract", _ => Op(FollowerServer.Kind.ClearPost, Posted()));
             Fixtures.Add("park_posted", "<GatherHere|Stay|Follow> <right|back|front|left> <distance> - set your follower's follow mode, parked at that spot next to the board", Park);
+            Fixtures.Add("order_harvest", "<tag> - give the follower from your last contract a stone order to harvest a tagged tree or rock", HarvestTagged);
             Fixtures.Add("order_harvest_nearest", "- give your followers a stone order to harvest the nearest tree or rock to the board", HarvestNearest);
             Fixtures.Add("release_all", "- ask the server to send every follower that's home back to work", _ => Op(FollowerServer.Kind.ReleaseAll, ""));
 
@@ -83,6 +84,20 @@ namespace VikingsForHire.Testing
             MutationService.SubmitHireling(Posted(), new HirelingOp { FollowMode = mode, StayPos = (p.x, p.y, p.z) });
             VfhLog.I(LogCat.Test, "fixture.park", ("hid", Posted()), ("mode", mode), ("pos", p));
             yield return new WaitForSeconds(0.5f);
+        }
+
+        private static IEnumerator HarvestTagged(string[] args)
+        {
+            Hireling h = Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == Posted()) ?? throw new InvalidOperationException("posted hireling not here");
+            GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged object");
+            Component target = (Component?)go.GetComponent<TreeBase>() ?? (Component?)go.GetComponent<MineRock5>() ?? (Component?)go.GetComponent<MineRock>()
+                               ?? go.GetComponent<Destructible>() ?? throw new InvalidOperationException("tagged object isn't a tree or rock");
+            if (h.Ai.Gather == null || !h.Ai.Gather.CanHarvest(target, h))
+                throw new InvalidOperationException("that follower can't harvest it");
+            h.Ai.Order = new FieldOrder { Kind = FieldOrder.OrderKind.Harvest, Target = target, Position = target.transform.position, Until = Time.time + FieldOrder.Lifetime };
+            h.Ai.Gather.Force(h.Ai, target);
+            VfhLog.I(LogCat.Test, "fixture.order_harvest", ("hid", h.Hid), ("target", target.name));
+            yield return null;
         }
 
         private static IEnumerator HarvestNearest(string[] args)

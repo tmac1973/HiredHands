@@ -94,6 +94,7 @@ namespace VikingsForHire.Net
                 Kind.ClearPost => ClearPost(hid),
                 _ => ReleaseAll(pid),
             };
+            VfhLog.I(LogCat.Follow, "follow.reply", ("kind", kind), ("hid", hid), ("player", pid), ("reply", reply));
             Reply(sender, reply);
         }
 
@@ -154,8 +155,10 @@ namespace VikingsForHire.Net
                 return "$vfh_follow_not_yours";
             if (!((JobType)zdo.GetInt(HirelingZdo.Job)).IsGuard())
                 return "$vfh_post_guards_only";
-            if (!InsideHome(zdo))
-                return "$vfh_follow_too_far";
+            // The post itself must be inside the board's area (that's where it'll stand), not the guard right now.
+            Vector3 home = zdo.GetVec3(HirelingZdo.Home, pos);
+            if (Utils.DistanceXZ(pos, home) > zdo.GetFloat(HirelingZdo.Radius, 20f))
+                return "$vfh_post_outside";
             string board = zdo.GetString(HirelingZdo.BoardId);
             MutationService.SubmitBoard(board, new RosterOp { Type = RosterOpType.SetPost, Hid = hid, Post = new GuardPost { X = pos.x, Y = pos.y, Z = pos.z, Yaw = yaw } });
             MutationService.SubmitHireling(hid, new HirelingOp { Mode = HirelingMode.Working, Owner = 0L, OwnerName = "", FollowMode = FollowMode.Follow });

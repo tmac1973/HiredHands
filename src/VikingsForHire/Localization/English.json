@@ -29,6 +29,7 @@
   "vfh_post_cleared": "Post cleared",
   "vfh_post_cleared_name": "$1 is back on patrol",
   "vfh_post_guards_only": "Only guards can be posted",
+  "vfh_post_outside": "A post has to be inside its board's area",
   "vfh_order_recall": "$1 followers: follow me",
   "vfh_order_none_near": "No followers nearby",
   "vfh_order_chop": "$1 woodcutters: chop that",
