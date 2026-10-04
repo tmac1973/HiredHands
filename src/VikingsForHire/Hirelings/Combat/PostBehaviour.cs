@@ -28,7 +28,7 @@ namespace VikingsForHire.Hirelings.Combat
         {
             Hireling h = ai.Hireling;
             Vector3 post = h.PostPos;
-            float dist = Utils.DistanceXZ(ai.transform.position, post);
+            float dist = Vector3.Distance(ai.transform.position, post); // height counts: a tower post is up the stairs
             if (dist > AtPost)
             {
                 if (dist < _bestDistance - 0.3f)
