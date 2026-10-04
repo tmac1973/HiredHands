@@ -106,7 +106,7 @@ namespace VikingsForHire.Hirelings
             m_timeSinceHurt += dt;
             UpdateRegeneration(dt);
             Regenerate(dt);
-            Threats.Tick(VfhConfig.AiScanIntervalSeconds.Value);
+            Threats.Tick(VfhConfig.ThreatScanIntervalSeconds.Value);
             bool retreat = StanceRules.ShouldRetreat(Stance, Hireling.Job.IsGuard(), Hireling.Humanoid.GetHealthPercentage(), Retreating);
             if (retreat != Retreating)
             {

@@ -3,6 +3,7 @@
 ## 0.1.1
 
 - Investigating a frame-rate drop reported on a heavily modded server: `vfh_perf` now also reports the time spent in each of the mod's game hooks, a `perf.minute` line logs frame rate and hook cost every minute, and `vfh_patches off|on` removes and restores the hooks for an A/B comparison.
+- Hirelings fight back much sooner: they swing whenever their swing is ready and only raise the shield in between (guards used to block for as long as the enemy kept attacking), stop at a big enemy's edge instead of pushing into it, and look around for enemies every 0.5 s (`ThreatScanIntervalSeconds`).
 - Tames (pets, summons, Defend Your Base guardians) can no longer hurt hirelings, matching hirelings not hurting tames, and a hireling hit by a tame doesn't turn on it. A hireling's death log now names what last hit it.
 - The cargo-slot hook on inventory grids no longer loops over every slot when the grid isn't a hireling's cargo.
 - Fixes since 0.1.0: miners stand at the rock's real surface and keep at copper they can nearly reach; drops they can't reach are skipped; the "other boards nearby" check retries when an answer is lost; settings missing from an older data file use the shipped defaults.

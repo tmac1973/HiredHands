@@ -24,6 +24,7 @@ namespace VikingsForHire.Hirelings.Combat
         private float _blockUntil;
         private float _nextAttack;
         private Character? _ignored;
+        private float _engagedAt = -1f;
         private float _ignoredUntil;
 
         public string Name => "Combat";
@@ -44,6 +45,7 @@ namespace VikingsForHire.Hirelings.Combat
                 return false;
             _target = pick;
             _lastAction = Time.time;
+            _engagedAt = Time.time;
             VfhLog.D(LogCat.Combat, "combat.engage", ("hid", ai.Hireling.Hid), ("target", pick.m_name), ("stance", ai.Stance),
                 ("dist", Vector3.Distance(pick.transform.position, ai.transform.position)));
             return true;
@@ -69,6 +71,11 @@ namespace VikingsForHire.Hirelings.Combat
         /// </summary>
         private void Attacked(float cooldown)
         {
+            if (_engagedAt > 0f)
+            {
+                VfhLog.D(LogCat.Combat, "combat.first_swing", ("target", _target != null ? _target.m_name : ""), ("secondsAfterEngage", Time.time - _engagedAt));
+                _engagedAt = -1f;
+            }
             _lastAction = Time.time;
             _nextAttack = Time.time + cooldown;
         }
@@ -77,20 +84,30 @@ namespace VikingsForHire.Hirelings.Combat
         {
             if (dist > MeleeReach)
             {
-                ai.WalkTo(dt, target.transform.position, MeleeReach * 0.8f, run: true);
+                // Stop at the target's edge, not its centre: walking to within reach of a troll's centre means walking
+                // into the troll, which never ends, so the hireling never got close enough to swing.
+                ai.WalkTo(dt, target.transform.position, target.GetRadius() + MeleeReach * 0.7f, run: true);
                 return;
             }
             ai.Halt();
             ai.Face(target.GetCenterPoint());
+            // Swing whenever the swing is ready; raise the shield only in between. Blocking first meant a guard facing
+            // a fast or busy enemy (nearly always mid-attack) held its shield up and never hit back.
+            if (Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 35f))
+            {
+                me.m_blocking = false;
+                if (ai.Attack(target))
+                {
+                    Attacked(Config.VfhConfig.MeleeAttackCooldown.Value);
+                    return;
+                }
+            }
             bool guard = ai.Hireling.Job == JobType.GuardMelee;
-            if (guard && me.GetLeftItem() != null && target.InAttack() && dist < 4f)
+            if (guard && me.GetLeftItem() != null && target.InAttack() && dist < 4f && !me.InAttack())
             {
                 me.m_blocking = true;
                 _blockUntil = Time.time + BlockSeconds;
-                return;
             }
-            if (!me.m_blocking && Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 20f) && ai.Attack(target))
-                Attacked(Config.VfhConfig.MeleeAttackCooldown.Value);
         }
 
         private void Ranged(HirelingAI ai, Humanoid me, Character target, float dist, float dt)
@@ -115,7 +132,7 @@ namespace VikingsForHire.Hirelings.Combat
             }
             ai.Halt();
             ai.Face(target.GetCenterPoint());
-            if (Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 10f))
+            if (Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f))
             {
                 // Player bows only reach full power when drawn; NPCs never hold the button, so draw them fully.
                 me.m_attackDrawTime = 10f;

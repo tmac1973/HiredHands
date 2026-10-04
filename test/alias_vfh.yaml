@@ -110,3 +110,8 @@ vfh_t_keep1: vfh_test_begin VFH-SMELT-4;vfh_fixture fast_timers on;vfh_fixture b
 # another via vfh_test_chain (which keeps them in order and cleans up in between). Start in a fresh test world, standing on open ground far from any build. Takes a while
 # (roughly an hour); vfh_test_abort stops it. A test whose setup fails is skipped and the run carries on.
 vfh_t_m1_sp: vfh_test_reset;vfh_fixture clear_area 80;vfh_test_chain harness1 place1 place2 place3 place4 store1 upg1 upg2 hire3 hire4 hire5 con1 con2 con3 upk1 upk2 death1 death2 pro1 dis1 stance1 stance2 stance3 stance4 stance5 combat1 deliver1 deliver2 work1 work3 tier1 keep1 azu3;vfh_test_summary
+
+# Combat responsiveness (0.1.1). VFH-COMBAT-5: a level 1 guard engages a greydwarf within a second or two and kills it.
+vfh_t_combat5: vfh_test_begin VFH-COMBAT-5;vfh_fixture hirelings GuardMelee 1;vfh_fixture wait 1;vfh_fixture enemies Greydwarf 1 8;vfh_assert_eventually 4 hireling last behaviour == Combat;vfh_assert_eventually 45 enemies_alive 30 == 0;vfh_assert hireling last alive == true;vfh_fixture kill_hirelings;vfh_assert log_errors == 0;vfh_test_end
+# VFH-COMBAT-6: two level 3 guards get in reach of a troll and fight it (they used to push into its body and never swing).
+vfh_t_combat6: vfh_test_begin VFH-COMBAT-6;vfh_fixture hirelings GuardMelee 3 2;vfh_fixture wait 1;vfh_fixture enemies Troll 1 14;vfh_assert_eventually 6 hireling last behaviour == Combat;vfh_assert_eventually 180 enemies_alive 40 == 0;vfh_fixture kill_hirelings;vfh_fixture kill_enemies;vfh_assert log_errors == 0;vfh_test_end
