@@ -29,8 +29,8 @@ namespace VikingsForHire.Testing
 
         public static void Register()
         {
-            Fixtures.Add("base", "<radius=12> <floors=40> - workbench, bed and wood floors 6m ahead, built by you", args => Base(args, null));
-            Fixtures.Add("base_partial", "<workbench|bed|pieces> - like base but missing one requirement (pieces = only 10 floors)",
+            Fixtures.Add("base", "<radius=12> <pieces=40> - workbench and bed 6m ahead, plus a block of short posts off to the left, built by you", args => Base(args, null));
+            Fixtures.Add("base_partial", "<workbench|bed|pieces> - like base but missing one requirement (pieces = only 10 posts)",
                 args => Base(new[] { "12", args.FirstOrDefault() == "pieces" ? "10" : "40" }, args.FirstOrDefault()));
             Fixtures.Add("board_here", "- place a hiring board 5m ahead through the real base check", _ => BoardHere());
             Fixtures.Add("board_put", "<item> <n> - give yourself n items and move them into the nearest board like the UI does", BoardPut);
@@ -79,20 +79,20 @@ namespace VikingsForHire.Testing
             if (missing != "bed")
                 Spawn("bed", Ground(center + right * 3f), player.transform.rotation);
 
-            // Floors on a 2m grid, ring by ring outward from 4m, so they stay inside the radius and clear of the bench and bed.
+            // Short posts in a tight block off to the left, 13-17 m from the centre: they count as built pieces for the
+            // base check but stay out of the area where boards, chests, stations and hirelings work. (Floors laid round
+            // the board followed the terrain, left steps and edges everywhere and got in the hirelings' way.)
             int placed = 0;
-            for (int ring = 2; placed < floors && ring * 2f <= radius; ring++)
+            for (int i = 0; placed < floors && i < 200; i++)
             {
-                for (int x = -ring; x <= ring && placed < floors; x++)
-                for (int z = -ring; z <= ring && placed < floors; z++)
-                {
-                    if (Math.Max(Math.Abs(x), Math.Abs(z)) != ring)
-                        continue;
-                    Spawn("wood_floor", Ground(center + new Vector3(x * 2f, 0f, z * 2f)), Quaternion.identity);
-                    placed++;
-                }
+                int col = i % 5, row = i / 5;
+                Vector3 at = center - right * (13f + col) + player.transform.forward * (row - 4f);
+                if (Vector3.Distance(at, center) > radius + 8f)
+                    continue;
+                Spawn("wood_pole", Ground(at), Quaternion.identity);
+                placed++;
             }
-            VfhLog.I(LogCat.Test, "fixture.base", ("center", center), ("radius", radius), ("floors", placed), ("missing", missing ?? "none"));
+            VfhLog.I(LogCat.Test, "fixture.base", ("center", center), ("radius", radius), ("pieces", placed), ("missing", missing ?? "none"));
             yield return null;
         }
 
