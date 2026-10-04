@@ -19,8 +19,8 @@ namespace VikingsForHire.Hirelings.Work
         private const float PickupRadius = 8f;
         private const float PickupReach = 1.6f;
         private const float RescanNoTargets = 30f;
-        private const float UnreachableSkip = 300f;
-        private const float ApproachGiveUp = 20f;
+        private const float UnreachableSkip = 120f;
+        private const float ApproachGiveUp = 12f; // seconds without getting closer
         private const float MaxExtraReach = 30f; // largest IGatherProfile.ExtraReach
 
         private readonly IGatherProfile _profile;
@@ -30,6 +30,7 @@ namespace VikingsForHire.Hirelings.Work
         private float _impactAt = -1f;
         private float _rescanAt;
         private float _approachStarted;
+        private float _approachBest = float.MaxValue;
         private ItemDrop? _pickup;
         private float _pickupStarted;
         private readonly HashSet<ItemDrop> _unreachableDrops = new();
@@ -101,20 +102,32 @@ namespace VikingsForHire.Hirelings.Work
                 return;
             }
             float stand = _profile.StandOff(_target);
-            // A tree with a planned fall direction is worked from the opposite side, so the hit pushes it that way.
-            Vector3 spot = _fellDir is Vector3 fell ? at - fell * stand : at;
-            float stop = _fellDir != null ? 0.5f : stand;
-            if (Utils.DistanceXZ(ai.transform.position, spot) > stop + 0.6f)
+            // Where to stand: a tree with a planned fall direction is worked from the opposite side, so the hit pushes
+            // it that way. Anything else from just outside the aim point on our side: the aim point itself is on (or
+            // in) the rock or trunk, where the pathfinder can't take us.
+            Vector3 toMe = ai.transform.position - at;
+            toMe.y = 0f;
+            Vector3 spot = _fellDir is Vector3 fell ? at - fell * stand
+                : toMe.sqrMagnitude > 0.01f ? at + toMe.normalized * stand : at;
+            float dist = Utils.DistanceXZ(ai.transform.position, spot);
+            // A tree being felled one way must be hit from its spot; anything else may be worked from any side.
+            bool inPlace = _fellDir != null ? dist <= 1.1f : dist <= 1.1f || Utils.DistanceXZ(ai.transform.position, at) <= stand + 0.6f;
+            if (!inPlace)
             {
+                if (dist < _approachBest - 0.5f)
+                {
+                    _approachBest = dist;
+                    _approachStarted = Time.time; // still getting closer
+                }
                 if (Time.time - _approachStarted > ApproachGiveUp)
                 {
-                    VfhLog.D(LogCat.Work, "work.unreachable", ("hid", h.Hid), ("target", _target.name));
+                    VfhLog.D(LogCat.Work, "work.unreachable", ("hid", h.Hid), ("target", _target.name), ("dist", dist));
                     Reservations.Skip(_target, UnreachableSkip);
                     Reservations.Release(_target, h.Hid);
                     _target = null;
                     return;
                 }
-                ai.WalkTo(dt, spot, stop, run: false);
+                ai.WalkTo(dt, spot, 0.5f, run: false);
                 return;
             }
 
@@ -229,6 +242,7 @@ namespace VikingsForHire.Hirelings.Work
             _target = best;
             _profile.Plan(best, out _fellDir, out _);
             _approachStarted = Time.time;
+            _approachBest = float.MaxValue;
             VfhLog.D(LogCat.Work, "work.target", ("hid", h.Hid), ("target", best.name), ("dist", Vector3.Distance(me, best.transform.position)),
                 ("fellDir", _fellDir?.ToString() ?? "any"));
             return true;
