@@ -188,3 +188,5 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | 0922b32 | VFH-TIER-1 | D | Pass | |
 | 2026-10-03 | 00f518b | VFH-HIRE-1 | D | Pass | Hireling and cargo survived a server restart |
 | 2026-10-03 | 00f518b | SCAFFOLD-2 | D | Pass | Joining without the mod is refused |
+| 2026-10-03 | 0658a4d | VFH-WORK-5 | D | Pass | AzuAutoStore off; smelter stalled once on the old test floor near the kiln (floors since removed from the fixture) |
+| 2026-10-03 | 0658a4d | VFH-AZU-3 | D | Pass | |
