@@ -7,8 +7,9 @@ namespace VikingsForHire.Hirelings.Combat
 {
     /// <summary>
     /// Fight by stance. Melee closes in and swings, guards with shields block incoming swings; archers keep 8–20 m and
-    /// shoot, switching to their club when something gets within 6 m. Gives up when the target dies, runs past the
-    /// leash, or nothing has happened for 10 s.
+    /// shoot when the shot is clear (otherwise they move in, or wait at a post), switching to their club when something
+    /// gets within 6 m. Posted guards watch all round. Gives up when the target dies, runs past the leash, or nothing
+    /// has happened for 10 s.
     /// </summary>
     internal sealed class CombatBehaviour : IHirelingBehaviour
     {
@@ -18,6 +19,8 @@ namespace VikingsForHire.Hirelings.Combat
         private const float SidearmRange = 6f;
         private const float QuietSeconds = 10f;
         private const float BlockSeconds = 0.8f;
+        private const float ShotRadius = 0.1f;
+        private static readonly int ShotBlockMask = LayerMask.GetMask("Default", "static_solid", "Default_small", "piece", "terrain", "vehicle");
 
         private Character? _target;
         private float _lastAction;
@@ -26,6 +29,7 @@ namespace VikingsForHire.Hirelings.Combat
         private Character? _ignored;
         private float _engagedAt = -1f;
         private float _ignoredUntil;
+        private float _blockedSince = -1f;
 
         public string Name => "Combat";
         public int Priority => 900;
@@ -119,36 +123,44 @@ namespace VikingsForHire.Hirelings.Combat
                 Melee(ai, me, target, dist, dt);
                 return;
             }
-            // A posted archer shoots from its post: no backing off or closing in, it just waits for targets in range.
-            if (ai.Hireling.HasPost && ai.Hireling.Mode == HirelingMode.Working)
-            {
-                ai.Halt();
-                ai.Face(target.GetCenterPoint());
-                if (dist <= RangedMax + 10f && Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f))
-                {
-                    me.m_attackDrawTime = 10f;
-                    if (ai.Attack(target))
-                    {
-                        float postDraw = me.GetCurrentWeapon()?.m_shared.m_attack.m_drawDurationMin ?? 0f;
-                        Attacked(Mathf.Max(Config.VfhConfig.RangedAttackCooldown.Value, postDraw + 0.8f));
-                    }
-                }
-                return;
-            }
-            if (dist < RangedMin)
+            // A posted archer shoots from its post: no backing off or closing in, it just waits for targets in range
+            // (and a clear shot).
+            bool posted = ai.Hireling.HasPost && ai.Hireling.Mode == HirelingMode.Working;
+            if (!posted && dist < RangedMin)
             {
                 Vector3 away = (ai.transform.position - target.transform.position).normalized;
                 ai.WalkTo(dt, ai.transform.position + away * 5f, 1f, run: true);
                 return;
             }
-            if (dist > RangedMax)
+            if (!posted && dist > RangedMax)
             {
                 ai.WalkTo(dt, target.transform.position, RangedMax * 0.8f, run: true);
                 return;
             }
+            Vector3? aim = ArrowAim(me, target, out Vector3 from);
+            if (aim == null)
+            {
+                // Every line to the target runs into the ground or a wall: don't waste arrows. A free archer moves in
+                // until it has a shot (or the target is close enough for the club); a posted one waits.
+                BlockedShot(ai, target);
+                if (posted)
+                {
+                    ai.Halt();
+                    ai.Face(target.GetCenterPoint());
+                }
+                else
+                {
+                    ai.WalkTo(dt, target.transform.position, SidearmRange - 1f, run: true);
+                }
+                return;
+            }
+            _blockedSince = -1f;
             ai.Halt();
-            ai.Face(target.GetCenterPoint());
-            if (Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f))
+            // Aim from where the arrow leaves the bow, not from the eyes: vanilla shoots along the look direction from
+            // the bow hand, so looking from the eyes put every arrow half a metre low, into the ground before a
+            // low target.
+            ai.LookTowards((aim.Value - from).normalized);
+            if ((!posted || dist <= RangedMax + 10f) && Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f))
             {
                 // Player bows only reach full power when drawn; NPCs never hold the button, so draw them fully.
                 me.m_attackDrawTime = 10f;
@@ -158,6 +170,53 @@ namespace VikingsForHire.Hirelings.Combat
                     Attacked(Mathf.Max(Config.VfhConfig.RangedAttackCooldown.Value, draw + 0.8f));
                 }
             }
+        }
+
+        private void BlockedShot(HirelingAI ai, Character target)
+        {
+            if (_blockedSince >= 0f)
+                return;
+            _blockedSince = Time.time;
+            VfhLog.D(LogCat.Combat, "combat.shot_blocked", ("hid", ai.Hireling.Hid), ("target", target.m_name),
+                ("dist", Vector3.Distance(target.transform.position, ai.transform.position)));
+        }
+
+        /// <summary>
+        /// Where to aim so the arrow reaches the target: its middle (or else its head) raised for the arrow's drop,
+        /// provided the line from the bow to that point isn't blocked by terrain or buildings. Null when no shot is clear.
+        /// </summary>
+        private static Vector3? ArrowAim(Humanoid me, Character target, out Vector3 from)
+        {
+            ItemDrop.ItemData? bow = me.GetCurrentWeapon();
+            Attack? attack = bow?.m_shared.m_attack;
+            from = me.m_eye.position;
+            if (attack == null)
+                return target.GetCenterPoint();
+            Transform origin = me.transform;
+            if (attack.m_attackOriginJoint.Length > 0 && Utils.FindChild(me.GetVisual().transform, attack.m_attackOriginJoint) is Transform joint)
+                origin = joint;
+            Transform t = me.transform;
+            from = origin.position + t.up * attack.m_attackHeight + t.forward * attack.m_attackRange + t.right * attack.m_attackOffset;
+
+            float speed = attack.m_projectileVel;
+            GameObject? projectile = attack.m_attackProjectile;
+            ItemDrop.ItemData? ammo = me.GetAmmoItem();
+            if (ammo != null && ammo.m_shared.m_attack.m_attackProjectile != null)
+            {
+                projectile = ammo.m_shared.m_attack.m_attackProjectile;
+                speed += ammo.m_shared.m_attack.m_projectileVel;
+            }
+            float gravity = projectile != null && projectile.GetComponent<Projectile>() is Projectile p ? p.m_gravity : 0f;
+
+            foreach (Vector3 point in new[] { target.GetCenterPoint(), target.GetHeadPoint() })
+            {
+                Vector3 line = point - from;
+                if (Physics.SphereCast(from, ShotRadius, line.normalized, out _, Mathf.Max(0f, line.magnitude - 0.3f), ShotBlockMask))
+                    continue;
+                float flight = speed > 1f ? line.magnitude / speed : 0f;
+                return point + Vector3.up * (0.5f * gravity * flight * flight);
+            }
+            return null;
         }
 
         private Character? Choose(HirelingAI ai)
@@ -200,6 +259,7 @@ namespace VikingsForHire.Hirelings.Combat
                 }
             }
             _target = null;
+            _blockedSince = -1f;
             ai.Hireling.Humanoid.m_blocking = false;
             ai.Hireling.UseSidearm(false);
             return false;

@@ -1,3 +1,4 @@
+using VikingsForHire.Core;
 using UnityEngine;
 
 namespace VikingsForHire.Hirelings.Combat
@@ -55,7 +56,7 @@ namespace VikingsForHire.Hirelings.Combat
                 if (c.GetBaseAI() is AnimalAI)
                     continue;
                 float sq = (c.transform.position - me).sqrMagnitude;
-                if (sq < bestSq && _ai.CanSeeTarget(c))
+                if (sq < bestSq && Sees(c))
                 {
                     best = c;
                     bestSq = sq;
@@ -63,6 +64,16 @@ namespace VikingsForHire.Hirelings.Combat
             }
             Nearest = best;
             NearestDistance = best != null ? Mathf.Sqrt(bestSq) : float.MaxValue;
+        }
+
+        // A posted guard is on watch: it notices anything in range and in line of sight, whichever way it's facing
+        // (vanilla vision only covers the view cone, and a guard holds its post facing one way).
+        private bool Sees(Character c)
+        {
+            Hireling h = _ai.Hireling;
+            if (!(h.HasPost && h.Mode == HirelingMode.Working))
+                return _ai.CanSeeTarget(c);
+            return BaseAI.CanSeeTarget(_ai.transform, h.Humanoid.m_eye.position, _ai.m_viewRange, _ai.m_viewAngle, alerted: true, _ai.m_mistVision, c);
         }
 
         public static bool Alive(Character? c) => c != null && !c.IsDead();
