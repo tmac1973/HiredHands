@@ -36,7 +36,7 @@ namespace VikingsForHire.Testing
             Fixtures.Add("board_put", "<item> <n> - give yourself n items and move them into the nearest board like the UI does", BoardPut);
             Fixtures.Add("board_force_add", "<item> <n> - put items into the nearest board, skipping its food/coins filter", BoardForceAdd);
             Fixtures.Add("crafty_probe", "- add a workbench recipe 'Wood' costing 1 Coins + 1 CookedMeat (this session only)", _ => CraftyProbe());
-            Fixtures.Add("clear_area", "<radius=40> - remove everything these fixtures spawned nearby, and every item lying on the ground there", ClearArea);
+            Fixtures.Add("clear_area", "<radius=40> - remove everything these fixtures spawned nearby, plus logs, stumps, rock chunks and items lying on the ground there", ClearArea);
 
             TestHarness.RegisterCheck("placement_ok", "[meters=5] - can a hiring board go this far ahead: true | false | pending",
                 args => Verdict(args) is var v && v.Pending ? "pending" : v.Ok ? "true" : "false");
@@ -212,6 +212,18 @@ namespace VikingsForHire.Testing
                 view.ClaimOwnership();
                 ZNetScene.instance.Destroy(view.gameObject);
             }
+            // What felled trees and broken rocks leave behind (logs, stumps, rock chunks), so the next test's
+            // gatherers don't wander off to leftovers from earlier runs.
+            var leftovers = ZNetScene.instance.m_instances.Values
+                .Where(v => v != null && v.GetZDO() != null && Vector3.Distance(v.transform.position, origin) <= radius &&
+                            (v.GetComponent<TreeLog>() != null || v.GetComponent<MineRock5>() != null ||
+                             (v.GetComponent<Destructible>() is Destructible d && d.m_destructibleType == DestructibleType.Tree && v.name.Contains("_Stub"))))
+                .ToList();
+            foreach (ZNetView view in leftovers)
+            {
+                view.ClaimOwnership();
+                ZNetScene.instance.Destroy(view.gameObject);
+            }
             // Items on the ground too (drop piles, spilled upgrade materials, dead hirelings' cargo), or they pile up
             // over runs and throw off later tests' drop-pile counts.
             var drops = ItemDrop.s_instances.Where(d => d != null && d.m_nview != null && d.m_nview.IsValid() &&
@@ -221,7 +233,7 @@ namespace VikingsForHire.Testing
                 d.m_nview.ClaimOwnership();
                 ZNetScene.instance.Destroy(d.gameObject);
             }
-            VfhLog.I(LogCat.Test, "fixture.clear_area", ("radius", radius), ("removed", doomed.Count), ("groundItems", drops.Count));
+            VfhLog.I(LogCat.Test, "fixture.clear_area", ("radius", radius), ("removed", doomed.Count), ("leftovers", leftovers.Count), ("groundItems", drops.Count));
             yield return null;
         }
 

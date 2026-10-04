@@ -22,7 +22,7 @@ namespace VikingsForHire.Hirelings.Work
         private const float UnreachableSkip = 120f;
         private const float ApproachGiveUp = 12f; // seconds without getting closer
         private const float ApproachStuckWorkFrom = 3f; // stalled this long within reach: work from where we are
-        private const float MaxWorkReach = 2.6f;
+        private const float MaxWorkReach = 3.0f; // about an axe or pickaxe swing
         private const float MaxExtraReach = 30f; // largest IGatherProfile.ExtraReach
 
         private readonly IGatherProfile _profile;
