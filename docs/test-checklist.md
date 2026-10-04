@@ -197,3 +197,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | 0658a4d | VFH-AZU-3 | D | Pass | |
 | 2026-10-03 | a73079b | VFH-WORK-3 | D | Pass | Rerun after the work-from-within-reach fix: miner stays on the copper |
 | 2026-10-03 | a73079b | PACKAGE-1 Clean install | SP | Pass | dist zip imported into a fresh Gale profile: board placed, hireling hired |
+| 2026-10-04 | 0105cd8 | VFH-NAV-2 | D | Pass | Woodcutter detoured to the room's door, opened it, delivered inside and closed it behind itself |
