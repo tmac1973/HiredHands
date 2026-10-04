@@ -198,3 +198,8 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | a73079b | VFH-WORK-3 | D | Pass | Rerun after the work-from-within-reach fix: miner stays on the copper |
 | 2026-10-03 | a73079b | PACKAGE-1 Clean install | SP | Pass | dist zip imported into a fresh Gale profile: board placed, hireling hired |
 | 2026-10-04 | 0105cd8 | VFH-NAV-2 | D | Pass | Woodcutter detoured to the room's door, opened it, delivered inside and closed it behind itself |
+| 2026-10-04 | 0105cd8 | VFH-SMELT-5 | D | Pass | 60 wood in storage: the kiln got 10, 50 stayed |
+| 2026-10-04 | 0105cd8 | VFH-COMBAT-6 | D | Pass | With worn-set armor (26 at L3) both guards survived troll hits of 149/169 and killed it |
+| 2026-10-04 | 0105cd8 | VFH-COMBAT-5 | D | Pass | First swing about 1 s after engaging |
+| 2026-10-04 | 0105cd8 | VFH-COMBAT-1 | D | Pass | |
+| 2026-10-04 | 0105cd8 | VFH-TAME-1 | D | Pass | |
