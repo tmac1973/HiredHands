@@ -147,12 +147,14 @@ namespace VikingsForHire.UI
                 for (int i = 0; i < job.GatherToggles.Count; i++)
                 {
                     string item = job.GatherToggles[i];
-                    Button b = PanelUi.Button(t, ItemName(item), -5f + i % 2 * 170f, y - i / 2 * 40f, 164f, 34f, () => ToggleItem(item));
-                    Highlight(b, !skip.Contains(item));
+                    bool on = !skip.Contains(item);
+                    string label = Localization.instance.Localize(ItemName(item)) + ": " + Localization.instance.Localize(on ? "$vfh_on" : "$vfh_off");
+                    Button b = PanelUi.Button(t, label, -5f + i % 2 * 170f, y - i / 2 * 40f, 164f, 34f, () => ToggleItem(item));
+                    ShowToggle(b, on);
                 }
                 y -= (job.GatherToggles.Count + 1) / 2 * 40f + 10f;
                 Button home = PanelUi.Button(t, h.WorksAtHome ? "$vfh_orders_home_work_on" : "$vfh_orders_home_work_off", 0f, y, 360f, 34f, ToggleHome);
-                Highlight(home, h.WorksAtHome);
+                ShowToggle(home, h.WorksAtHome);
                 y -= 55f;
             }
 
@@ -222,6 +224,17 @@ namespace VikingsForHire.UI
             else
                 MutationService.SubmitHireling(f.Hid, new HirelingOp { SkipItems = list, NoHomeWork = noHomeWork });
             VfhLog.I(LogCat.UI, "hireling.gather_set", ("hid", f.Hid), ("skip", list), ("noHomeWork", noHomeWork));
+        }
+
+        // An on/off button that reads at a glance: bright orange text on a normal button when on, grey text on a
+        // dimmed button when off (the label says which too).
+        private static void ShowToggle(Button b, bool on)
+        {
+            Text label = b.GetComponentInChildren<Text>();
+            if (label != null)
+                label.color = on ? GUIManager.Instance.ValheimOrange : new Color(0.55f, 0.55f, 0.55f);
+            if (b.targetGraphic is Image image)
+                image.color = on ? Color.white : new Color(0.45f, 0.45f, 0.45f, 0.8f);
         }
 
         private static void Highlight(Button b, bool on)
