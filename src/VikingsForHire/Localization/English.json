@@ -33,6 +33,8 @@
   "vfh_post_outside": "A post has to be inside its board's area",
   "vfh_order_recall": "$1 followers: follow me",
   "vfh_orders_rename": "Rename",
+  "vfh_orders_send_home": "Send home",
+  "vfh_orders_send_home_hint": "Walks back to its board with its cargo, then goes back to work",
   "vfh_rename_topic": "Name this hireling",
   "vfh_follow_sent_home": "$1 is heading home (about $2 min)",
   "vfh_follow_lost": "$1 lost track of you and is heading home (about $2 min)",

@@ -14,7 +14,8 @@ namespace VikingsForHire.UI
 {
     /// <summary>
     /// Shift+E on a hireling: its orders. Followers: follow mode (Follow / Stay / Gather Here). Everyone you may give
-    /// orders to: stance (saved on its contract). Release a follower at home, or clear a posted guard's post. With
+    /// orders to: stance (saved on its contract). Release a follower at home, send one home from the field, or clear a
+    /// posted guard's post. With
     /// "Apply to all my followers nearby" a change goes to every follower of yours within 30 m. Rename opens the vanilla
     /// text box.
     /// </summary>
@@ -141,11 +142,15 @@ namespace VikingsForHire.UI
                 Button all = PanelUi.Button(t, _all ? "$vfh_orders_all_on" : "$vfh_orders_all_off", 0f, y, 360f, 34f, () => { _all = !_all; _shown = ""; });
                 Highlight(all, _all);
                 y -= 55f;
+                // At home: back to work now. In the field: it heads home on its own (a walking-pace trip) and works there.
                 bool home = Utils.DistanceXZ(h.transform.position, h.Home) <= h.Radius;
-                Button release = PanelUi.Button(t, "$vfh_orders_release", 0f, y, 240f, 38f, () => Act(FollowerServer.Kind.Release));
-                release.interactable = home;
-                if (!home)
-                    PanelUi.Text(t, "$vfh_follow_too_far", 0f, y - 35f, 440f, 15, color: PanelUi.Dim);
+                if (home)
+                    PanelUi.Button(t, "$vfh_orders_release", 0f, y, 240f, 38f, () => Act(FollowerServer.Kind.Release));
+                else
+                {
+                    PanelUi.Button(t, "$vfh_orders_send_home", 0f, y, 240f, 38f, () => Act(FollowerServer.Kind.SendHome));
+                    PanelUi.Text(t, "$vfh_orders_send_home_hint", 0f, y - 35f, 440f, 15, color: PanelUi.Dim);
+                }
             }
             else if (h.HasPost)
             {
