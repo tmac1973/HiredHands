@@ -50,6 +50,7 @@ namespace VikingsForHire.Core.Data
                     WorkerCombatFactor = 0.4f,
                     PickupItems = List("Wood", "FineWood", "RoundLog", "ElderBark", "YggdrasilWood", "Blackwood", "Resin",
                         "BeechSeeds", "FirCone", "PineCone", "BirchSeeds", "Acorn"),
+                    GatherToggles = List("Wood", "FineWood", "RoundLog", "ElderBark", "YggdrasilWood", "Blackwood"),
                     Gear = Mains("AxeStone", "AxeFlint", "AxeBronze", "AxeIron", "AxeIron", "AxeBlackMetal", "AxeJotunBane", "AxeJotunBane"),
                 },
                 [JobType.Miner] = new()
@@ -59,6 +60,8 @@ namespace VikingsForHire.Core.Data
                     WorkRadiusMultiplier = 2f,
                     WorkerCombatFactor = 0.4f,
                     PickupItems = List("Stone", "CopperOre", "TinOre", "IronScrap", "SilverOre", "BlackMetalScrap", "CopperScrap",
+                        "Obsidian", "FlametalOreNew", "Grausten"),
+                    GatherToggles = List("Stone", "CopperOre", "TinOre", "IronScrap", "SilverOre", "BlackMetalScrap", "CopperScrap",
                         "Obsidian", "FlametalOreNew", "Grausten"),
                     Gear = Mains("PickaxeAntler", "PickaxeAntler", "PickaxeBronze", "PickaxeIron", "PickaxeIron",
                         "PickaxeBlackMetal", "PickaxeBlackMetal", "PickaxeBlackMetal"),

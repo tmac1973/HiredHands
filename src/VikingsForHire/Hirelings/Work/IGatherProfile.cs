@@ -53,6 +53,9 @@ namespace VikingsForHire.Hirelings.Work
         /// <summary>The part is still under the ground: swings at it dig the dirt above it rather than hit it.</summary>
         bool NeedsDigging(Collider part);
 
+        /// <summary>What harvesting it yields (item prefab names), for the "what to gather" settings.</summary>
+        IEnumerable<string> Yield(Component target);
+
         /// <summary>Damage for one swing of the hireling's tool (chop or pickaxe).</summary>
         HitData.DamageTypes SwingDamage(HitData.DamageTypes toolDamage, float gatherMult);
 

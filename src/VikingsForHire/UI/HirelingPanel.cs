@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Jotunn.Managers;
+using VikingsForHire.Config;
 using VikingsForHire.Core;
+using VikingsForHire.Core.Data;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
 using VikingsForHire.Followers;
@@ -17,7 +19,7 @@ namespace VikingsForHire.UI
     /// orders to: stance (saved on its contract). Release a follower at home, send one home from the field, or clear a
     /// posted guard's post. With
     /// "Apply to all my followers nearby" a change goes to every follower of yours within 30 m. Rename opens the vanilla
-    /// text box.
+    /// text box. Gatherers also get what to gather and whether to work at home.
     /// </summary>
     internal sealed class HirelingPanel : MonoBehaviour
     {
@@ -97,7 +99,7 @@ namespace VikingsForHire.UI
             if (Time.unscaledTime < _nextRefresh)
                 return;
             _nextRefresh = Time.unscaledTime + 0.3f;
-            string signature = $"{h.Mode}|{h.FollowMode}|{h.Stance}|{h.HasPost}|{_all}|{h.DisplayName}";
+            string signature = $"{h.Mode}|{h.FollowMode}|{h.Stance}|{h.HasPost}|{_all}|{h.DisplayName}|{h.Zdo.GetString(HirelingZdo.SkipItems)}|{h.WorksAtHome}";
             if (signature == _shown)
                 return;
             _shown = signature;
@@ -137,6 +139,23 @@ namespace VikingsForHire.UI
             }
             y -= 60f;
 
+            // Gatherers: what to gather (each tree or rock counts as its best drop), and whether to work at home at all.
+            if (h.Job is JobType.Woodcutter or JobType.Miner && DataStore.Current.Jobs.TryGetValue(h.Job, out JobData? job) && job.GatherToggles.Count > 0)
+            {
+                PanelUi.Text(t, "$vfh_orders_gather", -170f, y, 140f, 18, TextAnchor.MiddleLeft);
+                HashSet<string> skip = h.SkipItems;
+                for (int i = 0; i < job.GatherToggles.Count; i++)
+                {
+                    string item = job.GatherToggles[i];
+                    Button b = PanelUi.Button(t, ItemName(item), -5f + i % 2 * 170f, y - i / 2 * 40f, 164f, 34f, () => ToggleItem(item));
+                    Highlight(b, !skip.Contains(item));
+                }
+                y -= (job.GatherToggles.Count + 1) / 2 * 40f + 10f;
+                Button home = PanelUi.Button(t, h.WorksAtHome ? "$vfh_orders_home_work_on" : "$vfh_orders_home_work_off", 0f, y, 360f, 34f, ToggleHome);
+                Highlight(home, h.WorksAtHome);
+                y -= 55f;
+            }
+
             if (follower)
             {
                 Button all = PanelUi.Button(t, _all ? "$vfh_orders_all_on" : "$vfh_orders_all_off", 0f, y, 360f, 34f, () => { _all = !_all; _shown = ""; });
@@ -156,6 +175,53 @@ namespace VikingsForHire.UI
             {
                 PanelUi.Button(t, "$vfh_orders_clear_post", 0f, y, 240f, 38f, () => Act(FollowerServer.Kind.ClearPost));
             }
+            // Grow the panel to fit (everything is pinned to its top).
+            if (transform is RectTransform rt)
+                rt.sizeDelta = new Vector2(rt.sizeDelta.x, Mathf.Max(MinHeight, -y + 70f));
+        }
+
+        private const float MinHeight = 420f;
+
+        private static string ItemName(string prefab)
+        {
+            GameObject? go = ObjectDB.instance != null ? ObjectDB.instance.GetItemPrefab(prefab) : null;
+            ItemDrop? drop = go != null ? go.GetComponent<ItemDrop>() : null;
+            return drop != null ? drop.m_itemData.m_shared.m_name : prefab;
+        }
+
+        // Switch one item on or off for this gatherer (with "all": every follower of yours with the same job nearby).
+        private void ToggleItem(string item)
+        {
+            Hireling h = _hireling!;
+            bool turnOff = !h.SkipItems.Contains(item);
+            foreach (Hireling f in Targets().Where(f => f.Job == h.Job))
+            {
+                var skip = new HashSet<string>(f.SkipItems);
+                if (turnOff)
+                    skip.Add(item);
+                else
+                    skip.Remove(item);
+                SubmitGather(f, skip, !f.WorksAtHome);
+            }
+        }
+
+        private void ToggleHome()
+        {
+            Hireling h = _hireling!;
+            bool noHome = h.WorksAtHome;
+            foreach (Hireling f in Targets().Where(f => f.Job == h.Job))
+                SubmitGather(f, f.SkipItems, noHome);
+        }
+
+        // On the contract (so it survives respawns), which sets the hireling too; a hireling without a board directly.
+        private static void SubmitGather(Hireling f, HashSet<string> skip, bool noHomeWork)
+        {
+            string list = GatherRules.FormatSkip(skip);
+            if (f.BoardId.Length > 0)
+                MutationService.SubmitBoard(f.BoardId, new RosterOp { Type = RosterOpType.SetGather, Hid = f.Hid, SkipItems = list, NoHomeWork = noHomeWork });
+            else
+                MutationService.SubmitHireling(f.Hid, new HirelingOp { SkipItems = list, NoHomeWork = noHomeWork });
+            VfhLog.I(LogCat.UI, "hireling.gather_set", ("hid", f.Hid), ("skip", list), ("noHomeWork", noHomeWork));
         }
 
         private static void Highlight(Button b, bool on)

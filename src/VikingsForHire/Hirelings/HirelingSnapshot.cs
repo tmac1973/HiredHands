@@ -261,7 +261,7 @@ namespace VikingsForHire.Hirelings
             HirelingZdo.Hid, HirelingZdo.BoardId, HirelingZdo.Job, HirelingZdo.Level, HirelingZdo.Stance, HirelingZdo.Mode,
             HirelingZdo.FollowMode, HirelingZdo.Owner, HirelingZdo.OwnerName, HirelingZdo.Radius, HirelingZdo.LeavingSince,
             HirelingZdo.Order, HirelingZdo.DeliverPending, HirelingZdo.Name, HirelingZdo.Model, HirelingZdo.Hair, HirelingZdo.Beard,
-            HirelingZdo.Skin, HirelingZdo.HairColor, HirelingZdo.Home, HirelingZdo.Status, HirelingZdo.Initialized, HirelingZdo.Stowed,
+            HirelingZdo.Skin, HirelingZdo.HairColor, HirelingZdo.Home, HirelingZdo.Status, HirelingZdo.Initialized, HirelingZdo.Stowed, HirelingZdo.SkipItems, HirelingZdo.NoHomeWork,
             "health", "max_health", "items", "ModelIndex", "HairItem", "BeardItem", "SkinColor", "HairColor", "seed", "spawntime",
             "spawnpoint", "level", "tamed", "RightItem", "LeftItem", "ChestItem", "LegItem", "HelmetItem", "ShoulderItem", "UtilityItem",
         }.Distinct().ToDictionary(n => n.GetStableHashCode(), n => n);

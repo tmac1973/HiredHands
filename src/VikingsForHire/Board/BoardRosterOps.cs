@@ -129,6 +129,17 @@ namespace VikingsForHire.Board
                     result = new OpResult(OpOutcome.Ok);
                     break;
                 }
+                case RosterOpType.SetGather:
+                {
+                    OpOutcome o = roster.SetGather(op.Hid, op.SkipItems, op.NoHomeWork);
+                    if (o != OpOutcome.Ok)
+                        return Done(zdo, null, boardId, op, new OpResult(o, "$vfh_op_failed"));
+                    ContractEntry e = roster.ByHid(op.Hid)!;
+                    MutationService.SubmitHireling(op.Hid, new HirelingOp { SkipItems = e.SkipItems, NoHomeWork = e.NoHomeWork });
+                    VfhLog.I(LogCat.Roster, "contract.gather", ("board", boardId), ("hid", op.Hid), ("skip", e.SkipItems), ("noHomeWork", e.NoHomeWork));
+                    result = new OpResult(OpOutcome.Ok);
+                    break;
+                }
                 case RosterOpType.Promote:
                 {
                     ContractEntry? e = roster.ByHid(op.Hid);

@@ -169,6 +169,47 @@ namespace VikingsForHire.Hirelings.Work
 
         public bool NeedsDigging(Collider part) => false;
 
+        // A standing tree yields what its logs yield; a log, its own drops and its smaller logs'; a small tree or stump,
+        // its destroy drops.
+        public IEnumerable<string> Yield(Component target)
+        {
+            var items = new List<string>();
+            void Add(DropTable? t)
+            {
+                if (t?.m_drops == null)
+                    return;
+                foreach (DropTable.DropData d in t.m_drops)
+                    if (d.m_item != null)
+                        items.Add(d.m_item.name);
+            }
+            void AddLogs(GameObject? log)
+            {
+                for (int depth = 0; log != null && depth < 5; depth++)
+                {
+                    TreeLog? tl = log.GetComponent<TreeLog>();
+                    if (tl == null)
+                        break;
+                    Add(tl.m_dropWhenDestroyed);
+                    log = tl.m_subLogPrefab;
+                }
+            }
+            switch (target)
+            {
+                case TreeBase tree:
+                    Add(tree.m_dropWhenDestroyed);
+                    AddLogs(tree.m_logPrefab);
+                    break;
+                case TreeLog log:
+                    Add(log.m_dropWhenDestroyed);
+                    AddLogs(log.m_subLogPrefab);
+                    break;
+                default:
+                    Add(target.GetComponent<DropOnDestroyed>()?.m_dropWhenDestroyed);
+                    break;
+            }
+            return items;
+        }
+
         public Collider? Aim(Component target, Vector3 from, out Vector3 point)
         {
             if (target is TreeLog)

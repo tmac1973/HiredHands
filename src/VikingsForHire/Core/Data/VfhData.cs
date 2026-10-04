@@ -92,6 +92,9 @@ namespace VikingsForHire.Core.Data
         [YamlMember(Description = "Items this job picks up while working.")]
         public List<string> PickupItems { get; set; } = new();
 
+        [YamlMember(Description = "Gatherers: what the Shift+E panel lets a player switch on and off. Each tree or rock counts as its best drop on this list (the first that isn't the first entry, else the first entry), so a copper deposit is CopperOre and a birch FineWood; the first entry is the plain one (Wood, Stone).")]
+        public List<string> GatherToggles { get; set; } = new();
+
         [YamlMember(Description = "Cosmetic weapons by level. The main item's real tool tier decides what a gatherer can harvest.")]
         public List<WeaponSetData> Gear { get; set; } = new();
 

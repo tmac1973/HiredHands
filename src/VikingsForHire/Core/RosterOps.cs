@@ -13,6 +13,7 @@ namespace VikingsForHire.Core
         Remove = 7,
         SetPost = 8,
         Rename = 9,
+        SetGather = 10,
     }
 
     /// <summary>A change to a board's roster, as sent over the network to whoever owns the board.</summary>
@@ -31,6 +32,9 @@ namespace VikingsForHire.Core
         public bool Free { get; set; }
         /// <summary>SetPost: the post to set, or null to clear it.</summary>
         public GuardPost? Post { get; set; }
+        /// <summary>SetGather: items switched off, and whether it stays idle at home.</summary>
+        public string SkipItems { get; set; } = "";
+        public bool NoHomeWork { get; set; }
 
         public void Write(IPackageWriter w)
         {
@@ -52,6 +56,8 @@ namespace VikingsForHire.Core
                 w.Write(Post.Z);
                 w.Write(Post.Yaw);
             }
+            w.Write(SkipItems);
+            w.Write(NoHomeWork ? 1 : 0);
         }
 
         public static RosterOp Read(IPackageReader r)
@@ -59,6 +65,8 @@ namespace VikingsForHire.Core
             RosterOp op = ReadFields(r);
             if (r.ReadInt() == 1)
                 op.Post = new GuardPost { X = r.ReadSingle(), Y = r.ReadSingle(), Z = r.ReadSingle(), Yaw = r.ReadSingle() };
+            op.SkipItems = r.ReadString();
+            op.NoHomeWork = r.ReadInt() == 1;
             return op;
         }
 
@@ -99,13 +107,16 @@ namespace VikingsForHire.Core
         public bool? ClearPost { get; set; }
         public bool? DeliverPending { get; set; }
         public string? Name { get; set; }
+        public string? SkipItems { get; set; }
+        public bool? NoHomeWork { get; set; }
 
         public void Write(IPackageWriter w)
         {
             int flags = (Mode.HasValue ? 1 : 0) | (Stance.HasValue ? 2 : 0) | (Radius.HasValue ? 4 : 0) | (Level.HasValue ? 8 : 0)
                         | (LeavingSince.HasValue ? 16 : 0) | (Status != null ? 32 : 0) | (Owner.HasValue ? 64 : 0) | (OwnerName != null ? 128 : 0)
                         | (FollowMode.HasValue ? 256 : 0) | (StayPos.HasValue ? 512 : 0) | (DeliverPending.HasValue ? 1024 : 0)
-                        | (Post.HasValue ? 2048 : 0) | (ClearPost == true ? 4096 : 0) | (Name != null ? 8192 : 0);
+                        | (Post.HasValue ? 2048 : 0) | (ClearPost == true ? 4096 : 0) | (Name != null ? 8192 : 0)
+                        | (SkipItems != null ? 16384 : 0) | (NoHomeWork.HasValue ? 32768 : 0);
             w.Write(flags);
             if (Mode.HasValue) w.Write((int)Mode.Value);
             if (Stance.HasValue) w.Write((int)Stance.Value);
@@ -131,6 +142,8 @@ namespace VikingsForHire.Core
                 w.Write(yaw);
             }
             if (Name != null) w.Write(Name);
+            if (SkipItems != null) w.Write(SkipItems);
+            if (NoHomeWork.HasValue) w.Write(NoHomeWork.Value ? 1 : 0);
         }
 
         public static HirelingOp Read(IPackageReader r)
@@ -151,6 +164,8 @@ namespace VikingsForHire.Core
             if ((flags & 2048) != 0) op.Post = (r.ReadSingle(), r.ReadSingle(), r.ReadSingle(), r.ReadSingle());
             if ((flags & 4096) != 0) op.ClearPost = true;
             if ((flags & 8192) != 0) op.Name = r.ReadString();
+            if ((flags & 16384) != 0) op.SkipItems = r.ReadString();
+            if ((flags & 32768) != 0) op.NoHomeWork = r.ReadInt() != 0;
             return op;
         }
 

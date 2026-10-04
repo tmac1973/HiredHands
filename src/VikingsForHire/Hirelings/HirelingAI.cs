@@ -98,7 +98,7 @@ namespace VikingsForHire.Hirelings
             {
                 Hireling h = Hireling;
                 if (h.Mode == HirelingMode.Working)
-                    return (h.Home, h.Radius);
+                    return h.WorksAtHome ? (h.Home, h.Radius) : null; // "work at home" off: idle at base
                 if (h.Mode != HirelingMode.Following)
                     return null;
                 if (Order is { Kind: Followers.FieldOrder.OrderKind.Harvest } o && !o.Expired)

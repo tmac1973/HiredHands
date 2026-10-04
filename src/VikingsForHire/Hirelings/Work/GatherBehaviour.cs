@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using VikingsForHire.Config;
 using VikingsForHire.Core;
+using VikingsForHire.Core.Data;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
 using UnityEngine;
@@ -271,6 +273,7 @@ namespace VikingsForHire.Hirelings.Work
                     continue;
                 candidates++;
                 string? skip = h.Ai.Order is { } order && !order.Allows(c) ? "not part of the order"
+                    : h.Ai.Order == null && SwitchedOff(h, c) is string off ? $"{off} switched off"
                     : Reservations.IsSkipped(c) ? "skipped after a failed approach"
                     : Reservations.IsReservedByOther(c, h.Hid) ? "claimed by another hireling"
                     : !_profile.IsValid(c, h, out string reason) ? reason
@@ -309,9 +312,20 @@ namespace VikingsForHire.Hirelings.Work
             return true;
         }
 
+        // The "what to gather" setting: the item this tree or rock counts as, if it's switched off.
+        private string? SwitchedOff(Hireling h, Component target)
+        {
+            HashSet<string> skip = h.SkipItems;
+            if (skip.Count == 0 || !DataStore.Current.Jobs.TryGetValue(h.Job, out JobData? job))
+                return null;
+            string? primary = GatherRules.Primary(_profile.Yield(target), job.GatherToggles);
+            return primary != null && skip.Contains(primary) ? primary : null;
+        }
+
         private bool FindPickup(Hireling h, ItemDrop? exclude = null)
         {
-            HashSet<string> wanted = _profile.PickupItems;
+            HashSet<string> wanted = new(_profile.PickupItems);
+            wanted.ExceptWith(h.SkipItems); // switched off: left on the ground
             Vector3 me = h.transform.position;
             Vector3 anchor = _anchor != Vector3.zero ? _anchor : me;
             ItemDrop? best = null;

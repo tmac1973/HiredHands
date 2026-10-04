@@ -23,6 +23,9 @@ namespace VikingsForHire.Hirelings
         public const string Stowed = "vfh_stowed";
         /// <summary>Heading home (mode Returning): ZNet time (s) it arrives at its board.</summary>
         public const string ReturnAt = "vfh_return_at";
+        /// <summary>Gatherers: items switched off ("CopperOre,Stone"), and staying idle at home.</summary>
+        public const string SkipItems = "vfh_skip_items";
+        public const string NoHomeWork = "vfh_no_home_work";
         public const string Radius = "vfh_radius";
         public const string LeavingSince = "vfh_leaving_since";
         public const string Order = "vfh_order";

@@ -250,6 +250,8 @@ namespace VikingsForHire.Hirelings.Work
         /// What mining it yields. An unbroken deposit (rock4_copper, Rock_3, silvervein…) is a Destructible that turns
         /// into its chunked "_frac" MineRock5 on the first hit, so its yield is that prefab's.
         /// </summary>
+        public IEnumerable<string> Yield(Component target) => Drops(target);
+
         private static IEnumerable<string> Drops(Component target)
         {
             DropTable? table = target switch

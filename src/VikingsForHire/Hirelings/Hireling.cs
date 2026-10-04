@@ -50,6 +50,26 @@ namespace VikingsForHire.Hirelings
         /// <summary>The ship it's aboard as a passenger (its ZDOID as "user:id"), or empty.</summary>
         public string StowedOn => Zdo?.GetString(HirelingZdo.Stowed) ?? "";
         public bool IsStowed => StowedOn.Length > 0;
+
+        /// <summary>Gatherers: items switched off in the Shift+E panel (parsed once per change of the ZDO value).</summary>
+        public HashSet<string> SkipItems
+        {
+            get
+            {
+                string raw = Zdo?.GetString(HirelingZdo.SkipItems) ?? "";
+                if (raw != _skipRaw)
+                {
+                    _skipRaw = raw;
+                    _skip = GatherRules.ParseSkip(raw);
+                }
+                return _skip;
+            }
+        }
+        private string _skipRaw = "";
+        private HashSet<string> _skip = new();
+
+        /// <summary>Gatherers: whether it harvests inside its board's area (off for decorative bases).</summary>
+        public bool WorksAtHome => !(Zdo?.GetBool(HirelingZdo.NoHomeWork) ?? false);
         public Vector3 PostPos => Zdo?.GetVec3(HirelingZdo.Post, transform.position) ?? transform.position;
         public float PostYaw => Zdo?.GetFloat(HirelingZdo.PostYaw) ?? 0f;
 

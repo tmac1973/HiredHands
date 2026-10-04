@@ -53,6 +53,10 @@ namespace VikingsForHire.Core
         public string Paid { get; set; } = "";
         /// <summary>A guard's post (phase 13): it stands guard here instead of patrolling. Null = patrol.</summary>
         public GuardPost? Post { get; set; }
+        /// <summary>Gatherers: items switched off in the Shift+E panel ("CopperOre,Stone"), left unharvested and on the ground.</summary>
+        public string SkipItems { get; set; } = "";
+        /// <summary>Gatherers: don't harvest inside the board's own area (decorative trees and rocks in a base).</summary>
+        public bool NoHomeWork { get; set; }
 
         public ContractEntry Clone()
         {
@@ -60,6 +64,30 @@ namespace VikingsForHire.Core
             c.Snapshot = (byte[])Snapshot.Clone();
             return c;
         }
+    }
+
+    /// <summary>Gatherers' "what to gather" settings (phase 15 follow-up).</summary>
+    public static class GatherRules
+    {
+        /// <summary>
+        /// What a tree or rock counts as: its best drop on the toggle list (the first one that isn't the plain first
+        /// entry), else the plain one if it drops that, else null (not on the list: never filtered).
+        /// </summary>
+        public static string? Primary(IEnumerable<string> drops, IList<string> toggles)
+        {
+            if (toggles.Count == 0)
+                return null;
+            var set = new HashSet<string>(drops);
+            foreach (string t in toggles.Skip(1))
+                if (set.Contains(t))
+                    return t;
+            return set.Contains(toggles[0]) ? toggles[0] : null;
+        }
+
+        public static HashSet<string> ParseSkip(string? skip) =>
+            new((skip ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).Where(x => x.Length > 0));
+
+        public static string FormatSkip(IEnumerable<string> items) => string.Join(",", items.Where(i => i.Length > 0).Distinct().OrderBy(i => i));
     }
 
     /// <summary>What a player may name a hireling.</summary>
@@ -109,8 +137,8 @@ namespace VikingsForHire.Core
     /// </summary>
     public sealed class Roster
     {
-        // 2: adds the guard post. Version 1 rosters (no posts) still read.
-        public const byte FormatVersion = 2;
+        // 2: adds the guard post. 3: adds the gather settings. Older rosters still read.
+        public const byte FormatVersion = 3;
 
         public List<ContractEntry> Entries { get; } = new();
 
@@ -160,6 +188,17 @@ namespace VikingsForHire.Core
                 return OpOutcome.BadValue;
             e.Radius = radius;
             e.Stance = stance;
+            return OpOutcome.Ok;
+        }
+
+        /// <summary>Sets a gatherer's "what to gather" and "work at home" settings.</summary>
+        public OpOutcome SetGather(string hid, string skipItems, bool noHomeWork)
+        {
+            ContractEntry? e = ByHid(hid);
+            if (e == null)
+                return OpOutcome.NotFound;
+            e.SkipItems = GatherRules.FormatSkip(GatherRules.ParseSkip(skipItems));
+            e.NoHomeWork = noHomeWork;
             return OpOutcome.Ok;
         }
 
@@ -305,13 +344,15 @@ namespace VikingsForHire.Core
                     w.Write(e.Post.Z);
                     w.Write(e.Post.Yaw);
                 }
+                w.Write(e.SkipItems);
+                w.Write(e.NoHomeWork ? 1 : 0);
             }
         }
 
         public static Roster Read(IPackageReader r)
         {
             byte version = r.ReadByte();
-            if (version != 1 && version != FormatVersion)
+            if (version < 1 || version > FormatVersion)
                 throw new NotSupportedException($"roster version {version} (this build reads {FormatVersion})");
             var roster = new Roster();
             int n = r.ReadInt();
@@ -335,6 +376,11 @@ namespace VikingsForHire.Core
                 };
                 if (version >= 2 && r.ReadInt() == 1)
                     entry.Post = new GuardPost { X = r.ReadSingle(), Y = r.ReadSingle(), Z = r.ReadSingle(), Yaw = r.ReadSingle() };
+                if (version >= 3)
+                {
+                    entry.SkipItems = r.ReadString();
+                    entry.NoHomeWork = r.ReadInt() == 1;
+                }
                 roster.Entries.Add(entry);
             }
             return roster;

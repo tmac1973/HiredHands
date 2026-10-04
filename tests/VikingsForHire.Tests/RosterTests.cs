@@ -134,6 +134,47 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void GatherSettingsRoundTripAndAreTidied()
+        {
+            Roster r = WithActive("a");
+            Assert.Equal(OpOutcome.Ok, r.SetGather("ha", " Stone,CopperOre,,Stone ", true));
+            Assert.Equal("CopperOre,Stone", r.ByHid("ha")!.SkipItems);
+            Assert.True(r.ByHid("ha")!.NoHomeWork);
+            Assert.Equal(OpOutcome.NotFound, r.SetGather("nobody", "", false));
+            var w = new W();
+            r.Write(w);
+            ContractEntry back = Roster.Read(new R(w.Stream.ToArray())).ByHid("ha")!;
+            Assert.Equal("CopperOre,Stone", back.SkipItems);
+            Assert.True(back.NoHomeWork);
+
+            var op = new RosterOp { Type = RosterOpType.SetGather, Hid = "ha", SkipItems = "TinOre", NoHomeWork = true };
+            var w2 = new W();
+            op.Write(w2);
+            Assert.Equivalent(op, RosterOp.Read(new R(w2.Stream.ToArray())));
+
+            var h = new HirelingOp { SkipItems = "Wood", NoHomeWork = false };
+            var w3 = new W();
+            h.Write(w3);
+            HirelingOp hb = HirelingOp.Read(new R(w3.Stream.ToArray()));
+            Assert.Equal("Wood", hb.SkipItems);
+            Assert.False(hb.NoHomeWork);
+        }
+
+        private static readonly string[] Wood = { "Wood", "FineWood", "RoundLog", "ElderBark" };
+        private static readonly string[] Rock = { "Stone", "CopperOre", "TinOre" };
+
+        [Theory]
+        [InlineData(new[] { "Wood", "BeechSeeds" }, "W", "Wood")]
+        [InlineData(new[] { "Wood", "FineWood" }, "W", "FineWood")]
+        [InlineData(new[] { "Wood", "RoundLog", "PineCone" }, "W", "RoundLog")]
+        [InlineData(new[] { "Resin" }, "W", null)]
+        [InlineData(new[] { "Stone" }, "R", "Stone")]
+        [InlineData(new[] { "CopperOre", "Stone" }, "R", "CopperOre")]
+        [InlineData(new[] { "Stone", "TinOre" }, "R", "TinOre")]
+        public void PrimaryIsTheBestDropOnTheList(string[] drops, string list, string? expected) =>
+            Assert.Equal(expected, GatherRules.Primary(drops, list == "W" ? Wood : Rock));
+
+        [Fact]
         public void PostsRoundTripAndOnlyGuardsGetThem()
         {
             var r = WithActive("a");

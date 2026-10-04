@@ -141,6 +141,8 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-ORPHAN-1 Left behind | SP, D | — | Sail away from a follower left on the shore (or outrun it where it can't follow) | After about 30 s more than 60 m away: "… lost track of you and is heading home"; it returns as above |
 | VFH-ORPHAN-2 Left in Stay | SP, D | — | Leave a follower in Stay and go 160 m+ away for 2 min | It heads home with the message |
 | VFH-ORPHAN-3 Owner logs out | D | — | Log out with a follower out in the field; wait a minute; log back in | It went home (Roster shows it working or returning); a follower inside its board's area went straight back to work |
+| VFH-GATHER-2 What to gather | SP, D | — | Shift+E on a miner at a copper deposit next to plain rocks: switch Stone off; on a woodcutter among beech and birch: switch Wood off | The miner mines only the copper and leaves the stone it drops on the ground; the woodcutter fells only the birches; a stone order on a switched-off tree or rock is still done |
+| VFH-GATHER-3 Work at home off | SP, D | — | Shift+E on a working woodcutter at home: "Works at home: off" | It stops chopping in the base and idles; recruited, it still gathers in the field (Gather Here, orders) and delivers at home; the setting survives a respawn |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.
