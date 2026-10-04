@@ -121,6 +121,7 @@ namespace VikingsForHire.Testing
             float ring = 4f + index / 6 * 1.6f;
             Vector3 pos = board.transform.position + Quaternion.Euler(0f, 60f * (index % 6) + 30f, 0f) * board.transform.forward * ring;
             GameObject go = Spawn("piece_chest_wood", pos, tag);
+            Hirelings.Work.ContainerAccess.ResetDeposited(tag); // counts start fresh for this test's chest
             Piece piece = go.GetComponent<Piece>();
             if (piece != null && Player.m_localPlayer != null)
             {

@@ -43,11 +43,18 @@ namespace VikingsForHire.Testing
         {
             string tag = args.ElementAtOrDefault(0) ?? "vfhtest";
             TeleportWorld portal = Nearest(tag) ?? throw new InvalidOperationException($"no portal tagged {tag} nearby");
+            Player me = Player.m_localPlayer;
+            if (!me.IsTeleportable(portal.m_allowAllItems))
+                throw new InvalidOperationException("you're carrying something a portal won't take (ore, metal): put it in a chest first");
             // Vanilla refuses a second teleport within 2 s of the last one.
             yield return new WaitForSeconds(2.5f);
-            portal.Teleport(Player.m_localPlayer);
+            Vector3 before = me.transform.position;
+            portal.Teleport(me);
             VfhLog.I(LogCat.Test, "fixture.portal_use", ("tag", tag), ("from", portal.transform.position));
-            yield return new WaitForSeconds(1f);
+            for (float waited = 0f; waited < 20f && (me.IsTeleporting() || Vector3.Distance(me.transform.position, before) < 10f); waited += 0.5f)
+                yield return new WaitForSeconds(0.5f);
+            if (Vector3.Distance(me.transform.position, before) < 10f)
+                throw new InvalidOperationException("the portal didn't take you anywhere");
         }
 
         private static TeleportWorld? Nearest(string tag)
