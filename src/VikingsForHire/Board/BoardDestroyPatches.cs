@@ -7,12 +7,27 @@ using VikingsForHire.Net;
 namespace VikingsForHire.Board
 {
     /// <summary>
-    /// Deconstructing a board that still has hirelings asks first. However a board goes (hammer or destroyed), its
+    /// Deconstructing a board that still has hirelings asks first (repairing it doesn't). However a board goes (hammer or destroyed), its
     /// hirelings are sent away; its storage drops like any chest's.
     /// </summary>
     internal static class BoardDestroyPatches
     {
         private static ZDOID _confirmed = ZDOID.None;
+
+        // CheckCanRemovePiece is also called by hammer repair; only deconstructing should ask.
+        private static bool _removing;
+
+        [HarmonyPatch(typeof(Player), "RemovePiece")]
+        private static class RemoveContextPatch
+        {
+            private static void Prefix() => _removing = true;
+
+            private static Exception? Finalizer(Exception? __exception)
+            {
+                _removing = false;
+                return __exception;
+            }
+        }
 
         [HarmonyPatch(typeof(Player), "CheckCanRemovePiece")]
         private static class ConfirmPatch
@@ -23,7 +38,7 @@ namespace VikingsForHire.Board
                 try
                 {
                     HiringBoard? board = piece != null ? piece.GetComponent<HiringBoard>() : null;
-                    if (board == null || board.Zdo == null || board.Zdo.m_uid == _confirmed)
+                    if (!_removing || board == null || board.Zdo == null || board.Zdo.m_uid == _confirmed)
                         return true;
                     int count = BoardRosterOps.Read(board.Zdo).Count;
                     if (count == 0)

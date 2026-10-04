@@ -78,7 +78,7 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-DTH-2 Respawn | SP | `vfh_t_death2` | Open ground | `pass=true`; it walks back in after ~10s (fast timers) |
 | VFH-PRO-1 Promote | SP | `vfh_t_pro1` | Open ground, room in your inventory | `pass=true`; its gear changes to level 2 |
 | VFH-DIS-1 Dismiss | SP | `vfh_t_dis1` | Open ground | `pass=true` |
-| VFH-REM-1 Remove board | SP | — | A board with a hireling; deconstruct it with the Hammer | Asks first; on Yes the hireling drops its cargo and walks off, the board's storage drops |
+| VFH-REM-1 Remove board | SP | — | A board with a hireling; damage it a little, repair it with the Hammer, then deconstruct it | Repair just repairs (no dialog). Deconstruct asks first; on Yes the hireling drops its cargo and walks off, the board's storage drops |
 | VFH-HIRE-3-6 Multiplayer roster | D | — | See the phase 06 plan's dedicated-server test | Ops applied once, forwarded to the board's owner, and applied by the server when nobody is near |
 | VFH-STN-1 Flee | SP | `vfh_t_stance1` | Open ground | `pass=true`; the woodcutter runs off |
 | VFH-STN-2 Defend | SP | `vfh_t_stance2` | Open ground | `pass=true`; the miner swings its pickaxe |
