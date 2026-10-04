@@ -42,6 +42,10 @@ namespace VikingsForHire.Hirelings
                             return Blocked("tame_on_hireling", target, attacker);
                         // Vanilla only applies body armor to players; hirelings get the armor of what they wear.
                         hit.ApplyArmor(target.Armor);
+                        // Vanilla gives sneak attacks (x4 from monster weapons) on any creature whose AI isn't alerted, and the
+                        // hireling brain never raises vanilla's alert: every enemy's first hit was a sneak attack. Players
+                        // can't be sneak-attacked; neither can hirelings.
+                        hit.m_backstabBonus = 1f;
                         // Vanilla doubles damage to a staggered creature (the player's "critical hit" on monsters).
                         // Players never take that double, and neither should a hireling: halve it here to cancel it.
                         if (__instance.IsStaggering())
