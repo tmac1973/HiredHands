@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.1 (unreleased)
+## 0.2.1
 
 - **Hire with coins, pay upkeep in food.** From level 2 the hire fee is coins only (level 1 is still hired for food: there are hardly any coins in the Meadows), and the daily upkeep is food only. Promotions and respawn fees follow the hire fee. Coins are scarce, and the old daily coin upkeep came to hundreds of coins an hour of play at higher levels. **Existing servers:** the data file keeps its old values, so in `Spronglehump.HiredHands.yml` set `hireFood` to 0 for levels 2–8 and `upkeepCoins` to 0 for every level (or delete the file to get the new defaults).
 - **Cargo weight limits.** Hirelings carry about what a player can: 300 at level 1, 25 more per level (475 at level 8), on top of the slot limit (`cargoWeight` per level in the data file, 0 for no limit). A gatherer that's full by weight goes to deliver, and picks up only part of a pile when that's all it can take. Handing a follower more than it can carry is refused with a message. The hover shows the weight.
