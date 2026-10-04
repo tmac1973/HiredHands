@@ -57,3 +57,6 @@ Followers who get separated from their owner never stay lost. The followers that
 
 ## Rollback
 Revert the commit. Pending `ReturnPending` entries already queued still arrive (phase 14 code handles them). Followers fall back to phase 14 behaviour, so stranded ones need dismissing or `vfh_kill_hirelings`.
+
+## Manual return home (agreed 2026-10-04)
+Besides the automatic cases above, the owner can send a follower home on purpose: **right click with the Command Stone on your follower in the field** (phase 13's release input) starts the same return trip as an orphan: it despawns, and after the distance-based timer respawns at its board with its cargo, delivers it and resumes work. Logged as `follow.sent_home`.

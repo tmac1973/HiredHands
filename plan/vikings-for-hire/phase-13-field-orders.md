@@ -57,3 +57,18 @@ Revert the commit. Followers fall back to phase 12 behaviour (basic follow only)
 - **Recall without aiming:** with the stone in hand, the **secondary attack (right click)** sets every one of your followers within 50 m back to `Follow`, wherever you're looking. Mid-fight you can't aim at a follower, so this is the panic button. The stone has no block, so the button is free.
 - **Gather Here replaces Gather Nearby.** The third follow mode makes gatherers (woodcutters, miners) work within `GatherNearbyRadius` (15 m) of the spot where you set the mode (stored as `vfh_stay_pos`), not around you. Non-gatherers in this mode just hold the spot like `Stay`. When cargo is full they stop and wait at the spot ("Cargo full" over the hireling and a message to the owner) until recalled or sent home. `FieldGatherBehaviour` uses the stay position as its centre.
 - **G** cycles Follow → Stay → Gather Here for followers within 30 m; aiming the stone at your follower away from home keeps toggling Follow/Stay (phase 12).
+
+## Stone controls and guard posts (agreed 2026-10-04, replaces the recall/Shift notes above where they differ)
+
+| Input | Aiming at | Result |
+|---|---|---|
+| Left click | a board hireling | Recruit: it follows you (uses a stone slot) |
+| Left click | your follower inside its board's work radius | Guards: **post it here** (below). Workers: back to work |
+| Left click | your follower in the field | Toggle Follow / Stay |
+| Right click | your follower or a posted guard | **Release**: at home back to patrol/job (a posted guard loses its post); in the field the return-home trip (phase 15) |
+| Right click | nothing (no hireling under the crosshair) | **Recall**: every follower of yours within 50 m switches to Follow |
+| G / H | — | Cycle follow mode (Follow / Stay / Gather Here) / stance of followers within 30 m |
+
+Shift + attack (phase 12's release-all) is retired in favour of right click.
+
+**Guard posts.** Posting a guard sets the contract's post (position + facing = the player's facing at the time): stored on the roster entry (`ContractEntry.Post`, so a respawned guard returns to it) and on the hireling ZDO (`vfh_post`, `vfh_post_dir`). The hireling leaves follower mode (mode `Working`, owner 0), so it no longer counts against the stone's cap; it still counts against the board's cap and pays upkeep. A posted guard runs `PostBehaviour` (priority 100, replacing `GuardPatrolBehaviour` for that hireling): walk to the post, stand facing the post direction, engage by stance with `LeashCenter` = post and radius = `PostLeashRadius` (config, default 20 m), and walk back after the fight. Archers shoot from the post and only leave it for the sidearm when something is within 6 m. A post the pathfinder can't reach is still stored; the guard stands as close as it can get and logs `post.unreachable`. Only guards can be posted; left-clicking a worker follower at home sends it back to work. The Roster tab shows "Posted" for posted guards, with a button to clear the post.
