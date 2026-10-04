@@ -181,6 +181,32 @@ namespace VikingsForHire.Hirelings
                 ("how", equipped ? "re-equipped" : "regeared"));
         }
 
+        private static readonly int AnimStateHash = Animator.StringToHash("statei");
+
+        /// <summary>
+        /// Owner: the animator's weapon state ("statei": unarmed, one-handed, bow, pickaxe…) matches what's in hand.
+        /// The game only sets it when the gear changes, so after the hireling's object is rebuilt (dungeon trips) or
+        /// changes hands between machines it could stay at "unarmed": pickaxe in hand, punching animation, and swings
+        /// that never connect.
+        /// </summary>
+        private void EnsureWeaponAnimation()
+        {
+            Animator? anim = _humanoid.m_animator;
+            if (anim == null)
+                return;
+            ItemDrop.ItemData? left = _humanoid.GetLeftItem(), right = _humanoid.GetRightItem();
+            ItemDrop.ItemData.AnimationState want = left != null
+                ? left.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Torch ? ItemDrop.ItemData.AnimationState.LeftTorch : left.m_shared.m_animationState
+                : right != null ? right.m_shared.m_animationState
+                : _humanoid.m_unarmedWeapon != null ? _humanoid.m_unarmedWeapon.m_itemData.m_shared.m_animationState
+                : ItemDrop.ItemData.AnimationState.Unarmed;
+            int have = anim.GetInteger(AnimStateHash);
+            if (have == (int)want)
+                return;
+            _humanoid.SetupAnimationState();
+            VfhLog.D(LogCat.Hireling, "hireling.anim_state_fixed", ("hid", Hid), ("had", (ItemDrop.ItemData.AnimationState)have), ("now", want));
+        }
+
         public float Radius => Zdo?.GetFloat(HirelingZdo.Radius, 20f) ?? 20f;
         public Vector3 Home => Zdo?.GetVec3(HirelingZdo.Home, transform.position) ?? transform.position;
 
@@ -282,7 +308,10 @@ namespace VikingsForHire.Hirelings
                 if (IsOwner && Job == JobType.GuardRanged)
                     GearApplier.RefillAmmo(_humanoid);
                 if (IsOwner && !IsStowed)
+                {
                     EnsureArmed();
+                    EnsureWeaponAnimation();
+                }
                 if (IsOwner && BoardId.Length > 0 && Mode != HirelingMode.Leaving && Time.time >= _nextBoardCheck)
                 {
                     _nextBoardCheck = Time.time + BoardCheckSeconds;
