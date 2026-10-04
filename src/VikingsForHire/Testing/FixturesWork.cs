@@ -127,7 +127,7 @@ namespace VikingsForHire.Testing
             bool azu = Compat.AzuAutoStoreCompat.Register(go.GetComponent<Container>());
             Inventory inv = go.GetComponent<Container>().GetInventory();
             for (int i = 1; i + 1 < args.Length; i += 2)
-                inv.AddItem(ObjectDB.instance.GetItemPrefab(args[i]), int.Parse(args[i + 1], CultureInfo.InvariantCulture));
+                AddStacks(inv, args[i], int.Parse(args[i + 1], CultureInfo.InvariantCulture));
             VfhLog.I(LogCat.Test, "fixture.chest", ("tag", tag), ("pos", pos), ("items", string.Join(" ", args.Skip(1))), ("azu", azu));
         }
 
@@ -175,10 +175,19 @@ namespace VikingsForHire.Testing
             yield return null;
             Inventory inv = chest.GetComponent<Container>().GetInventory();
             for (int i = 1; i + 1 < args.Length; i += 2)
-                inv.AddItem(ObjectDB.instance.GetItemPrefab(args[i]), int.Parse(args[i + 1], CultureInfo.InvariantCulture));
+                AddStacks(inv, args[i], int.Parse(args[i + 1], CultureInfo.InvariantCulture));
             bool azu = Compat.AzuAutoStoreCompat.Register(chest.GetComponent<Container>());
             VfhLog.I(LogCat.Test, "fixture.room", ("tag", tag), ("center", c), ("items", string.Join(" ", args.Skip(1))), ("azu", azu));
             yield return new WaitForSeconds(0.5f);
+        }
+
+        // One AddItem call is capped at a single stack (50 wood), so add stack by stack.
+        private static void AddStacks(Inventory inv, string prefab, int amount)
+        {
+            GameObject item = ObjectDB.instance.GetItemPrefab(prefab) ?? throw new ArgumentException($"no item {prefab}");
+            int max = Math.Max(1, item.GetComponent<ItemDrop>().m_itemData.m_shared.m_maxStackSize);
+            for (int left = amount; left > 0; left -= max)
+                inv.AddItem(item, Math.Min(left, max));
         }
 
         private static void OwnBuilt(GameObject go)
