@@ -42,6 +42,10 @@ namespace VikingsForHire.Hirelings
                             return Blocked("tame_on_hireling", target, attacker);
                         // Vanilla only applies body armor to players; hirelings get the armor of what they wear.
                         hit.ApplyArmor(target.Armor);
+                        // Vanilla doubles damage to a staggered creature (the player's "critical hit" on monsters).
+                        // Players never take that double, and neither should a hireling: halve it here to cancel it.
+                        if (__instance.IsStaggering())
+                            hit.ApplyModifier(0.5f);
                         target.LastHitBy = attacker != null ? $"{Utils.GetPrefabName(attacker.gameObject)}{(attacker.IsTamed() ? "(tame)" : "")}" : "none";
                         target.LastHitDamage = hit.GetTotalDamage();
                         VfhLog.D(LogCat.Combat, "hireling.hit", ("hid", target.Hid), ("by", attacker != null ? attacker.m_name : "none"),
