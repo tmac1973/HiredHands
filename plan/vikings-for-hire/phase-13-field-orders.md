@@ -52,3 +52,8 @@ Make followers useful in the field without micromanagement. With the Command Sto
 
 ## Rollback
 Revert the commit. Followers fall back to phase 12 behaviour (basic follow only). The extra ZDO keys are ignored.
+
+## Changes agreed 2026-10-04 (after playing with phase 12)
+- **Recall without aiming:** with the stone in hand, the **secondary attack (right click)** sets every one of your followers within 50 m back to `Follow`, wherever you're looking. Mid-fight you can't aim at a follower, so this is the panic button. The stone has no block, so the button is free.
+- **Gather Here replaces Gather Nearby.** The third follow mode makes gatherers (woodcutters, miners) work within `GatherNearbyRadius` (15 m) of the spot where you set the mode (stored as `vfh_stay_pos`), not around you. Non-gatherers in this mode just hold the spot like `Stay`. When cargo is full they stop and wait at the spot ("Cargo full" over the hireling and a message to the owner) until recalled or sent home. `FieldGatherBehaviour` uses the stay position as its centre.
+- **G** cycles Follow → Stay → Gather Here for followers within 30 m; aiming the stone at your follower away from home keeps toggling Follow/Stay (phase 12).
