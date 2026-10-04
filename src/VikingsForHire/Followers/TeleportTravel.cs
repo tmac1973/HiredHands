@@ -29,6 +29,7 @@ namespace VikingsForHire.Followers
             public string Hid = "";
             public ZDOID Zdo;
             public float Deadline;
+            public float ArrivedAt = -1f;
         }
 
         private static readonly List<Traveler> Travelers = new();
@@ -109,11 +110,18 @@ namespace VikingsForHire.Followers
                 Hireling? h = Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == t.Hid);
                 if (h != null && h.IsOwner)
                 {
+                    // The far side's ground can take a moment to load after you arrive: keep looking for a free spot
+                    // beside you for up to 2 s before putting the follower down where you stand.
+                    if (t.ArrivedAt < 0f)
+                        t.ArrivedAt = Time.time;
+                    Vector3? found = FollowCatchUp.SpotNear(me, outOfSight: false, slot: i);
+                    if (found == null && Time.time - t.ArrivedAt < 2f)
+                        continue;
                     h.Ai.TravelPin = null;
-                    Vector3 spot = FollowCatchUp.SpotNear(me, outOfSight: false, slot: i) ?? me.transform.position;
+                    Vector3 spot = found ?? me.transform.position;
                     FollowCatchUp.Place(h.Ai, spot, me.transform.position);
                     Travelers.RemoveAt(i);
-                    VfhLog.I(LogCat.Follow, "follow.travel_end", ("hid", t.Hid), ("pos", spot));
+                    VfhLog.I(LogCat.Follow, "follow.travel_end", ("hid", t.Hid), ("pos", spot), ("spot", found != null ? "beside" : "on you"));
                     continue;
                 }
                 // Not loaded here: the trip ended somewhere else (a blocked dungeon door sends you back). Fetch it.
