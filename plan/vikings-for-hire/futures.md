@@ -16,6 +16,7 @@ Hirelings use creature pathfinding, which treats a closed door as a wall, so che
 Moves items between chests and to stations, and picks up loose items. Left out because AzuAutoStore covers it on Tim's server. The phase 08 delivery framework is the building block.
 
 ## Farmer (wanted, design open)
+Works to quotas set with the production orders below ("keep 50 carrots", "keep 100 barley"): it replants what's needed to meet them and leaves the rest of the field to you.
 A farmer role is a priority once the basics work, but how it should behave isn't settled. Questions to answer in its planning pass, with possible answers:
 - **What does it farm?** Only fields the player has already cultivated (simplest; the player stays in charge of the layout), or does it also cultivate new ground inside a marked area?
 - **Harvest and replant:** harvest ripe crops (`Pickable`) and immediately replant the same crop from its own harvest or from seed chests. That keeps a field cycling without the player micromanaging which crop goes where.
@@ -31,13 +32,30 @@ The Smelter becomes the **Steward**: the hireling that keeps the base running.
 - **Repairs** (see Repairs below for the rules): damaged pieces near a workbench or forge of the right type, worst first, after fights rather than during them.
 - **Odds and ends**, one at a time:
   - fuel the fires, braziers, torches and hot tubs (vanilla `Fireplace` fuel, from chests that hold it);
-  - refill the cooking station's spits and collect what's cooked;
   - empty beehives, sap collectors and windmill/spinning wheel output into chests, and feed the windmill and spinning wheel from chests;
   - feed tamed animals in pens from a chest of their food (PetPantry users may not want this; check compat).
 
   Each one could be a per-hireling toggle in the Shift+E panel, like the gatherers' item toggles, so a base owner can keep it to the chores they want.
 - **Rename only on the surface:** `JobType.Smelter` stays as the enum value and data key (it's saved in worlds and in everyone's YAML), and only the shown name, description and hover change. If the data key ever has to change, `DataDefaults` would need to accept the old key.
 - **Level gating:** higher levels unlock more chores or a bigger radius, the way gatherers get better tools.
+
+## Production orders ("make until you have X")
+A RimWorld-style bill list on crafting stations, so the Cook and the Farmer have quotas to keep filled instead of the player micromanaging them.
+- **Where:** a small "Orders" panel on a station (cauldron, cooking station, oven, fermenter, and for the Farmer the cultivated field or a seed chest), opened from the station's hover with a key, as the Shift+E panel is for hirelings.
+- **Two kinds of order** per recipe:
+  - **Make X:** craft this many, then the order is done (for example "Make 20 Queen's jam").
+  - **Keep X in stock:** craft whenever the chests in the work radius hold fewer than X of it (for example "Keep 40 cooked meat", "Keep 10 bread"). This is the one that runs a base on its own.
+- **Ingredients:** only from chests in the work radius, never the player's inventory, and respecting the same reserve rules as the Steward (never the last of an item, per-item reserves). An order with missing ingredients waits and says so ("needs 3 more Barley flour").
+- **Priority:** orders run top to bottom; drag to reorder. A paused order is skipped.
+- **Vanilla rules:** only recipes the base's owner (or the board's owner) has discovered, and only at a station of the level the recipe needs, so a hireling can't make anything a player couldn't.
+- **Saved on the station's ZDO**, so the orders survive restarts and anyone with ward access sees and edits the same list.
+- **Feeds the board:** "Keep X cooked meat" pairs naturally with the board's food: a Cook can keep the board's funds stocked from the base's own food chain (as a later option, since it changes the economy).
+
+## Cook
+Runs the kitchen against the production orders above.
+- Cooking station and iron cooking station: puts raw meat and fish on, takes the cooked food off before it burns.
+- Cauldron, oven, fermenter: crafts the recipes the orders ask for, fetches the ingredients, delivers the results to chests that hold that item (the usual delivery rule).
+- Level gating: higher levels cook faster and handle more stations at once; later stations (oven, fermenter) could need a higher board level.
 
 ## Repairs
 One hireling job (or a perk of a higher-level job) repairs damaged building pieces inside its work radius.
