@@ -19,6 +19,11 @@ namespace VikingsForHire.Testing
         public static void Register()
         {
             Fixtures.Add("enemies", "<prefab> <n> <distance> - spawn creatures that far from the last spawned hireling", Enemies);
+            Fixtures.Add("tame_ally", "<prefab> <distance> - spawn a tamed creature (tagged tame) that far from the last spawned hireling", TameAlly);
+            TestHarness.RegisterCheck("tame_alive", "- whether the tame from tame_ally is alive", _ =>
+                FixturesWork.FindTagged("tame") is GameObject t && t.GetComponent<Character>() is Character c && !c.IsDead() ? "true" : "false");
+            TestHarness.RegisterCheck("damage_blocked", "<reason> - hits between hirelings and others blocked since login (e.g. tame_on_hireling)", args =>
+                Hirelings.DamagePatches.BlockedCount(args.ElementAtOrDefault(0) ?? "").ToString());
             Fixtures.Add("kill_enemies", "<radius=60> - kill every hostile creature near you", KillEnemies);
             Fixtures.Add("stance", "<last|all> <stance> - set the stance of the last spawned hireling (or all nearby)", SetStance);
             Fixtures.Add("wait", "<seconds> - pause the test run", args => Wait(float.Parse(args.ElementAtOrDefault(0) ?? "1", CultureInfo.InvariantCulture)));
@@ -52,6 +57,22 @@ namespace VikingsForHire.Testing
                 e.GetComponent<ZNetView>()?.GetZDO()?.Set(BoardZdo.Fixture, true);
             }
             VfhLog.I(LogCat.Test, "fixture.enemies", ("prefab", prefab), ("n", n), ("dist", dist), ("around", Last().Hid));
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        private static IEnumerator TameAlly(string[] args)
+        {
+            string prefab = args.ElementAtOrDefault(0) ?? "Troll";
+            float dist = float.Parse(args.ElementAtOrDefault(1) ?? "3", CultureInfo.InvariantCulture);
+            GameObject go = ZNetScene.instance.GetPrefab(prefab) ?? throw new ArgumentException($"no prefab {prefab}");
+            Vector3 p = Last().transform.position + Last().transform.right * dist;
+            p.y = ZoneSystem.instance.GetGroundHeight(p) + 0.5f;
+            GameObject t = Object.Instantiate(go, p, Quaternion.identity);
+            ZDO zdo = t.GetComponent<ZNetView>().GetZDO();
+            zdo.Set(BoardZdo.Fixture, true);
+            zdo.Set(FixturesWork.TagKey, "tame");
+            t.GetComponent<Character>().SetTamed(true);
+            VfhLog.I(LogCat.Test, "fixture.tame_ally", ("prefab", prefab), ("pos", p));
             yield return new WaitForSeconds(0.5f);
         }
 

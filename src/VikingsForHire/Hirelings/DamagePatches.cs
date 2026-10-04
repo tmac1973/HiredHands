@@ -149,8 +149,14 @@ namespace VikingsForHire.Hirelings
             return level.GuardDamageMult * factor;
         }
 
+        private static readonly System.Collections.Generic.Dictionary<string, int> BlockedCounts = new();
+
+        /// <summary>How many hits were blocked for this reason since the game started (for tests).</summary>
+        public static int BlockedCount(string reason) => BlockedCounts.TryGetValue(reason, out int n) ? n : 0;
+
         private static bool Blocked(string reason, Hireling h, Character? other)
         {
+            BlockedCounts[reason] = BlockedCount(reason) + 1;
             VfhLog.T(LogCat.Combat, "damage.blocked", ("reason", reason), ("hid", h.Hid), ("other", other != null ? other.m_name : "none"));
             return false;
         }
