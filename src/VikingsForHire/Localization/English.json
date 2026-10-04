@@ -33,6 +33,8 @@
   "vfh_post_outside": "A post has to be inside its board's area",
   "vfh_order_recall": "$1 followers: follow me",
   "vfh_orders_rename": "Rename",
+  "vfh_grave_pin": "$1's grave",
+  "vfh_grave_not_yours": "This grave's cargo belongs to the hireling's owner",
   "vfh_board_upkeep": "Upkeep a day:",
   "vfh_board_lasts": "Food lasts $1 days, coins $2 days",
   "vfh_low_funds_food": "The hiring board has food for only $1 more day(s)",

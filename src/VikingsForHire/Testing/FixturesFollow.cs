@@ -29,6 +29,17 @@ namespace VikingsForHire.Testing
             Fixtures.Add("order_harvest_nearest", "- give your followers a stone order to harvest the nearest tree or rock to the board", HarvestNearest);
             Fixtures.Add("strand_posted", "<distance> - put your follower from your last contract that far behind the camera, out of your view (to test catching up)", Strand);
             Fixtures.Add("send_home_posted", "- Send home (Shift+E) for your follower from your last contract: home from the field, back to work at home", _ => Op(FollowerServer.Kind.SendHome, Posted()));
+            Fixtures.Add("clear_graves", "<radius=60> - remove hirelings' graves near you (test cleanup)", args =>
+            {
+                float r = float.Parse(args.ElementAtOrDefault(0) ?? "60", CultureInfo.InvariantCulture);
+                foreach (TombStone t in Graves.Near(Player.m_localPlayer.transform.position, r))
+                {
+                    ZNetView v = t.GetComponent<ZNetView>();
+                    v.ClaimOwnership();
+                    ZNetScene.instance.Destroy(t.gameObject);
+                }
+                return Done();
+            });
             Fixtures.Add("retreat", "- the stone's middle click: your followers nearby retreat with you", _ => RetreatNow());
             Fixtures.Add("follow_stats_reset", "- start counting follower lag and catch-up teleports afresh", _ => ResetStats());
             Fixtures.Add("release_all", "- ask the server to send every follower that's home back to work", _ => Op(FollowerServer.Kind.ReleaseAll, ""));
@@ -40,6 +51,9 @@ namespace VikingsForHire.Testing
             TestHarness.RegisterCheck("follow_max_lag", "- the furthest (m) any follower has been behind you since follow_stats_reset",
                 _ => FollowCatchUp.MaxLag.ToString("0.0", CultureInfo.InvariantCulture));
             TestHarness.RegisterCheck("follow_teleports", "- catch-up teleports since follow_stats_reset", _ => FollowCatchUp.Teleports.ToString());
+            TestHarness.RegisterCheck("grave_items", "<radius=30> - items in hirelings' graves within that distance of you", args =>
+                Graves.Near(Player.m_localPlayer.transform.position, float.Parse(args.ElementAtOrDefault(0) ?? "30", CultureInfo.InvariantCulture))
+                    .Sum(t => t.GetComponent<Container>().GetInventory().CountItems(null)).ToString());
             TestHarness.RegisterCheck("craftable", "<quality> - whether you could make that Command Stone quality at the nearest workbench right now", args =>
             {
                 int q = int.Parse(args.ElementAtOrDefault(0) ?? "1", CultureInfo.InvariantCulture);
@@ -122,6 +136,11 @@ namespace VikingsForHire.Testing
             h.Ai.Order = FieldOrder.Harvest(target);
             h.Ai.Gather.Force(h.Ai, target);
             VfhLog.I(LogCat.Test, "fixture.order_harvest", ("hid", h.Hid), ("target", target.name), ("dist", Vector3.Distance(target.transform.position, at)));
+            yield return null;
+        }
+
+        private static IEnumerator Done()
+        {
             yield return null;
         }
 

@@ -431,7 +431,9 @@ namespace VikingsForHire.Hirelings
                 return;
             VfhLog.Guard(LogCat.Hireling, "hireling.death_failed", () =>
             {
-                int dropped = CargoInventory != null ? Work.DropPile.DropAll(CargoInventory, transform.position + Vector3.up * 0.5f, "died", Hid) : 0;
+                // Into a grave named after it (HirelingTombstones), or a loose pile.
+                int dropped = CargoInventory == null ? 0 : Graves.Bury(this, CargoInventory, transform.position) is int buried && buried >= 0
+                    ? buried : Work.DropPile.DropAll(CargoInventory, transform.position + Vector3.up * 0.5f, "died", Hid);
                 Telemetry.BalanceFights.Died(this, LastHitBy, LastHitDamage);
                 VfhLog.I(LogCat.Hireling, "hireling.died", ("hid", Hid), ("board", BoardId), ("name", DisplayName), ("job", Job), ("level", Level), ("cargoStacks", dropped),
                     ("lastHitBy", LastHitBy), ("lastHitDamage", LastHitDamage));

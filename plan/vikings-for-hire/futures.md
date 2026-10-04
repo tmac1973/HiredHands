@@ -130,7 +130,7 @@ Tell players before a board runs dry, not after hirelings start going unpaid (to
 - **Map pin:** while a board is low, a pin on the map at the board for everyone who hired from it ("Hiring board: food for 1 day"), updated each in-game day and removed once it's topped up above the threshold. It helps when you're far away and have forgotten which base needs feeding. It's a local pin each player's game adds and removes from the board's state, not one saved into the shared map, so it never lingers.
 - **Nice to have:** a marker on the board itself while it's low, and a "fill from my inventory" button in the Funds panel that tops it up with your cheapest food.
 
-## Tombstone for a dead hireling's cargo
+## Tombstone for a dead hireling's cargo (done in 0.2.1)
 Today a hireling's cargo falls to the ground where it dies, as loose items that vanilla clears after about an hour outside a base. A tombstone would keep it safe until someone comes for it, as a player's does.
 - **How:** spawn the vanilla `Player_tombstone` where it died, name it after the hireling ("Bjorn's grave"), and move the cargo into its container instead of dropping it. A tombstone floats and is found as a player's is, and it doesn't despawn. Gear still isn't dropped.
 - **Who can open it:** the follower's owner, or for a base worker anyone with ward access at its board, so a passer-by on a public server can't loot it. Check how vanilla `Tombstone` decides who may open it and whether that ties to a player profile, and work around it (an owner id written on the ZDO and a check on `Interact`).

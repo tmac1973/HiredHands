@@ -145,6 +145,10 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-GATHER-3 Work at home off | SP, D | — | Shift+E on a working woodcutter at home: "Works at home: off" | It stops chopping in the base and idles; recruited, it still gathers in the field (Gather Here, orders) and delivers at home; the setting survives a respawn |
 | VFH-NOISE-1 Gathering is loud | SP, D | `vfh_t_noise1` | Open ground; stand still at the board | `pass=true`: a greydwarf placed 45 m from the chopping woodcutter (beyond its sight) hears it, comes over and hits it |
 | VFH-HOME-3 Ore stays behind | SP, D | — | Server config ReturnHomeWithNonTeleportable = false; a follower in the field carrying copper ore and wood; Shift+E | The button reads "Send home (leaves cargo here)" and names the ore; sent home, it drops the ore in a pile where it stood and brings only the wood home. Also: a guard carrying ore is stopped at a portal like a miner |
+| VFH-GRAVE-1 Grave | SP, D | `vfh_t_grave1` | Open ground | `pass=true`; a follower carrying 2 stacks of wood dies and the wood is in a grave named after it |
+| VFH-GRAVE-2 Grave by hand | D | — | A follower carrying something dies away from base; a second player tries the grave | The grave shows the hireling's name and a map pin for you; the other player can't open it; you can, and the pin goes once it's empty |
+| VFH-WEIGHT-1 Weight limit | SP, D | — | A level 1 miner at copper; then hand a follower lots of stone | The miner goes to deliver at about 300 weight (25 ore); the hover shows the weight; handing over too much says "can't carry that much" |
+| VFH-FUNDS-1 Low funds | SP, D | — | A board with two hirelings and food for about 1 day | Hover shows the upkeep and days left in red; next upkeep, players at the base are told; the builder sees a map pin until it's topped up |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.

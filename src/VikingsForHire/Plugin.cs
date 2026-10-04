@@ -91,6 +91,7 @@ namespace VikingsForHire
             VfhLog.Guard(LogCat.Follow, "ship.tick_failed", Followers.ShipStowage.Tick);
             VfhLog.Guard(LogCat.UI, "hud.tick_failed", Followers.FollowerHud.Tick);
             VfhLog.Guard(LogCat.Board, "funds.tick_failed", Board.LowFunds.Tick);
+            VfhLog.Guard(LogCat.Hireling, "graves.tick_failed", Hirelings.Graves.Tick);
         }
 
         private void OnDestroy() => VfhLog.Shutdown();
