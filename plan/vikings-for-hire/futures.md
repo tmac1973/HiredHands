@@ -98,3 +98,12 @@ Tell players before a board runs dry, not after hirelings start going unpaid (to
 - **Settings:** `LowFundsWarnDays` (default 2) for when the warning starts, and an on/off switch for the messages (the hover and panel always show the days left).
 - **Multiplayer:** the server runs upkeep for unloaded boards, so the check sits beside the upkeep code and the message goes out the way follower messages do (`FollowerServer.Tell`). Which player to tell comes from each contract's poster, which would need recording on the contract (it isn't stored today).
 - **Nice to have:** a map pin or a marker on the board while it's low, and a "fill from my inventory" button in the Funds panel that tops it up with your cheapest food.
+
+## Tombstone for a dead hireling's cargo
+Today a hireling's cargo falls to the ground where it dies, as loose items that vanilla clears after about an hour outside a base. A tombstone would keep it safe until someone comes for it, as a player's does.
+- **How:** spawn the vanilla `Player_tombstone` where it died, name it after the hireling ("Bjorn's grave"), and move the cargo into its container instead of dropping it. A tombstone floats and is found as a player's is, and it doesn't despawn. Gear still isn't dropped.
+- **Who can open it:** the follower's owner, or for a base worker anyone with ward access at its board, so a passer-by on a public server can't loot it. Check how vanilla `Tombstone` decides who may open it and whether that ties to a player profile, and work around it (an owner id written on the ZDO and a check on `Interact`).
+- **Finding it:** a map pin for the owner ("Bjorn's cargo"), removed when the tombstone is emptied, plus the death message saying where it is.
+- **Empty is deleted:** like a player's, the tombstone goes away once it's emptied, and the pin with it.
+- **Setting:** `HirelingTombstones` (default on); off keeps today's loose pile.
+- **Watch out for:** the tombstone's own "pick up all" and its "you died" status effect, which mustn't touch the player who opens it. Test both, and test that AzuAutoStore and AzuCraftyBoxes don't pull from it (as they don't from cargo today).
