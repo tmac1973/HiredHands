@@ -76,7 +76,7 @@ With the stone in hand (the list of your followers shows on the left of the scre
 | Left click | A board's hireling | Recruit it (needs the ward, if any) |
 | Left click | Your follower at home | A guard (or a gatherer with "Works at home" off) is posted on that spot; any other worker goes back to work |
 | Left click | Your follower in the field | Follow ↔ Stay |
-| Left click | A tree or log / a rock | Your woodcutters / miners harvest it (and what it leaves behind), then follow again |
+| Left click | A tree or log / a rock | Your woodcutters / miners harvest it (and what it leaves behind), staying there (Stay) until you call them |
 | Left click | An enemy | Your guards attack it |
 | Left click | The ground | Your followers go there and hold; at home, guards (and gatherers with "Works at home" off) are posted there |
 | Right click | Your follower at home / a posted guard | Back to work / clear the post |

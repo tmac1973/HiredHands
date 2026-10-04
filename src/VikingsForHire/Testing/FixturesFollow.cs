@@ -115,8 +115,7 @@ namespace VikingsForHire.Testing
                                ?? go.GetComponent<Destructible>() ?? throw new InvalidOperationException("tagged object isn't a tree or rock");
             if (h.Ai.Gather == null || !h.Ai.Gather.CanHarvest(target, h))
                 throw new InvalidOperationException("that follower can't harvest it");
-            h.Ai.Order = FieldOrder.Harvest(target);
-            h.Ai.Gather.Force(h.Ai, target);
+            StoneInput.GiveHarvestOrder(h, target);
             VfhLog.I(LogCat.Test, "fixture.order_harvest", ("hid", h.Hid), ("target", target.name));
             yield return null;
         }
@@ -133,8 +132,7 @@ namespace VikingsForHire.Testing
                 .Where(c => h.Ai.Gather.CanHarvest(c, h))
                 .OrderBy(c => Vector3.Distance(c.transform.position, at)).FirstOrDefault()
                 ?? throw new InvalidOperationException("nothing harvestable near the board");
-            h.Ai.Order = FieldOrder.Harvest(target);
-            h.Ai.Gather.Force(h.Ai, target);
+            StoneInput.GiveHarvestOrder(h, target);
             VfhLog.I(LogCat.Test, "fixture.order_harvest", ("hid", h.Hid), ("target", target.name), ("dist", Vector3.Distance(target.transform.position, at)));
             yield return null;
         }

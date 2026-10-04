@@ -2,6 +2,7 @@
 
 ## 0.2.3 (unreleased)
 
+- **A chop or mine order keeps the worker at the job.** It switches to Stay at that tree or rock, so it doesn't drop the job and follow you as soon as you walk on (or get sent home as left behind); it finishes and waits there for you. Orders last 10 minutes instead of 2, long enough for a big tree's logs or a whole deposit.
 - **Hirelings go through the doors they open.** A hireling with no route to its goal (for example inside a fence) heads for a door and opens it, but the game's walkable map only catches up with an open door a few seconds later, so it walked away again, the door closed behind it, and it came back to open it: over and over. It now walks straight through to the far side first, and the door isn't closed until it's through.
 
 ## 0.2.2

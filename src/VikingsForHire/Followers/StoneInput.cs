@@ -211,12 +211,24 @@ namespace VikingsForHire.Followers
             {
                 if (!f.Ai.Gather!.CanHarvest(target, f))
                     continue;
-                f.Ai.Order = FieldOrder.Harvest(target);
-                f.Ai.Gather.Force(f.Ai, target);
+                GiveHarvestOrder(f, target);
                 n++;
             }
             VfhLog.I(LogCat.Orders, "order.harvest", ("job", job), ("target", target.name), ("followers", n));
             Say(n == 0 ? none : Localization.instance.Localize(done, n.ToString()));
+        }
+
+        /// <summary>
+        /// A harvest order: work this tree or rock and what it leaves behind, staying at the job (Stay there) so the
+        /// follower doesn't leave it as soon as you move, nor get sent home as "left behind"; it waits there afterwards.
+        /// </summary>
+        public static void GiveHarvestOrder(Hireling f, Component target)
+        {
+            f.Ai.Order = FieldOrder.Harvest(target);
+            f.Ai.Gather?.Force(f.Ai, target);
+            Vector3 at = target.transform.position;
+            if (f.FollowMode != FollowMode.Stay || Vector3.Distance(f.StayPos, at) > 1f)
+                MutationService.SubmitHireling(f.Hid, new HirelingOp { FollowMode = FollowMode.Stay, StayPos = (at.x, at.y, at.z) });
         }
 
         private static void Attack(List<Hireling> near, Character enemy)

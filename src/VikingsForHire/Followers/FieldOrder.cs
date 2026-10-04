@@ -6,11 +6,12 @@ namespace VikingsForHire.Followers
     /// <summary>
     /// An explicit order from the Command Stone, held by the follower's AI on its owner's machine (followers are
     /// simulated there). Harvest: work this tree or rock and what it leaves behind. Attack: go for this enemy. Orders
-    /// expire after two minutes; afterwards the follower goes back to its follow mode.
+    /// expire after ten minutes; afterwards the follower goes back to its follow mode (Stay at the job, for a harvest).
     /// </summary>
     internal sealed class FieldOrder
     {
-        public const float Lifetime = 120f;
+        // Long enough for a big tree and all its logs, or a whole copper deposit; the follower stays at the spot anyway.
+        public const float Lifetime = 600f;
         public const float HarvestRadius = 8f;
 
         public enum OrderKind
