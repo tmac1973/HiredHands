@@ -191,3 +191,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | 0658a4d | VFH-WORK-5 | D | Pass | AzuAutoStore off; smelter stalled once on the old test floor near the kiln (floors since removed from the fixture) |
 | 2026-10-03 | 0658a4d | VFH-AZU-3 | D | Pass | |
 | 2026-10-03 | a73079b | VFH-WORK-3 | D | Pass | Rerun after the work-from-within-reach fix: miner stays on the copper |
+| 2026-10-03 | a73079b | PACKAGE-1 Clean install | SP | Pass | dist zip imported into a fresh Gale profile: board placed, hireling hired |
