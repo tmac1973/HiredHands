@@ -54,7 +54,7 @@ echo "Save dir: $SAVE_DIR (adminlist.txt lives here)"
 
 # Make the local player an admin so devcommands (and the vfh_t_* test macros) work. The ID is the plain Steam
 # number the server logs as "Got connection SteamID ...", taken from the dev profile's client log.
-ADMIN_ID="${ADMIN_ID:-$(grep -oE 'Steam_[0-9]{17}' "$PROFILE/BepInEx/LogOutput.log" 2>/dev/null | head -1 | sed 's/Steam_//')}"
+ADMIN_ID="${ADMIN_ID:-$( (grep -oE 'Steam_[0-9]{17}' "$PROFILE/BepInEx/LogOutput.log" 2>/dev/null || true) | head -1 | sed 's/Steam_//')}"
 if [[ -n "$ADMIN_ID" ]] && ! grep -qx "$ADMIN_ID" "$SAVE_DIR/adminlist.txt" 2>/dev/null; then
     echo "$ADMIN_ID" >> "$SAVE_DIR/adminlist.txt"
     echo "Added $ADMIN_ID to adminlist.txt"
