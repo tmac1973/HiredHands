@@ -1,11 +1,29 @@
 # Changelog
 
+## 0.2.0
+
+Milestone 2: followers.
+
+- **Command Stone** (4 qualities, crafted at a workbench near a board of level 2/4/6/8, 1 to 4 followers). With it in hand: recruit a hireling, give orders by clicking (harvest a tree or rock, attack an enemy, go to a spot and hold, post a guard at home, Follow/Stay), right click to recall or send back to work, middle click to **retreat**. The **Shift+E** panel on any hireling sets follow mode (Follow, Stay, Gather Here), stance, what to gather, work at home, a new name, send home, and can apply to all your followers. A list of your followers shows on screen while the stone is in hand.
+- **Followers keep up**: they sprint with you, catch up faster when well behind, unstick themselves, and reappear just behind you (out of sight) when they're far behind or stuck.
+- **Portals, dungeons and ships**: followers go through portals and dungeon doors with you (portal item rules apply to their cargo, including the world modifier), and board your ship as passengers.
+- **Going home**: send a follower home from the field, and lost followers (left far behind, left in Stay while you're far away, owner offline for 5 minutes) walk home on a distance-based timer with their cargo. `ReturnHomeWithNonTeleportable` off makes them drop what a portal wouldn't take first.
+- **Guard posts**: guards stand watch on a chosen spot at home, watching all round. Archers aim from the bow, allow for arrow drop, hold fire when the shot is blocked and shoot flyers overhead.
+- **Gatherers**: choose what a woodcutter or miner gathers (switched-off drops stay on the ground) and whether it works at home at all. Miners dig down to buried ore out in the field (never near your buildings, never into an undiscovered deposit such as a hidden silver vein), give up on an unreachable chunk rather than the whole deposit, and work chunks from a little further away. A stone order covers only what you clicked and what it leaves behind.
+- **Noise**: chopping and mining make the noise a player's would, so monsters come for workers (`GatheringMakesNoise`).
+- **Rename** any hireling (Shift+E); the name stays on its contract.
+- **Balance log** for server owners (`BalanceLog`, off by default): fight, death, delivery, upkeep and hire summaries written on the server for tuning.
+- A new contract's work radius starts at the most the job allows on that board (it was always 20 m), and still goes down in 5 m steps.
+- Hirelings ignore harmless wildlife (deer, hares and other passive animals) instead of chasing them; anything that attacks is still fought.
+- Combat fixes: enemies can no longer sneak-attack hirelings for 4x damage, staggered hirelings don't take double damage (players don't), hirelings no longer lose their weapon or tool (showing it but punching), aiming at creatures without a head no longer errors.
+- A hireling's death is now announced to its follower owner and players near where it died (on dedicated servers nobody was told).
+- The dedicated-server script starts even when the client log has no Steam ID to make admin.
+- Board rosters are saved in a new format (3); older boards still load, but a board saved by 0.2.0 can't be read by 0.1.x.
+
 ## 0.1.2
 
 An early 0.1.1 build was briefly published; 0.1.2 is the full set of changes below.
 
-- A new contract's work radius starts at the most the job allows on that board (it was always 20 m), and still goes down in 5 m steps.
-- Hirelings ignore harmless wildlife (deer, hares and other passive animals) instead of chasing them; anything that attacks is still fought.
 - **Woodcutters chop fallen logs.** Logs weren't found by their search at all, so they cut trees and stumps and left the logs (most of the wood) lying. They now find every log in range and work it from the nearest point of its surface.
 - **Hireling armor now works.** Vanilla only applies body armor to players, so hirelings took every hit unarmored. They now get the real armor of the set they wear (bronze at level 3, iron at level 4…) plus a small per-level `armorBonus`; the old `armor` value in the data file is no longer used.
 - Smelters leave a reserve of chosen items in storage, counted across all chests in their radius: `jobs.Smelter.keepInStorage` in the data file, default Wood 50, so the charcoal kiln doesn't burn all your wood.

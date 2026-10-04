@@ -208,6 +208,24 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void VersionTwoRostersStillLoad()
+        {
+            // A roster saved by 0.1.x after guard posts (format 2, a post, no gather settings).
+            var w = new W();
+            w.Write((byte)2);
+            w.Write(1);
+            w.Write("c1"); w.Write("h1"); w.Write("Ragnhild"); w.Write((int)JobType.GuardRanged); w.Write(3); w.Write(25f);
+            w.Write((int)Stance.Aggressive); w.Write((int)ContractState.Active); w.Write(0); w.Write(0.0); w.Write(new byte[] { 1 });
+            w.Write(0); w.Write("");
+            w.Write(1); w.Write(1f); w.Write(2f); w.Write(3f); w.Write(90f);
+            ContractEntry e = Roster.Read(new R(w.Stream.ToArray())).ByHid("h1")!;
+            Assert.Equal("Ragnhild", e.Name);
+            Assert.Equal(90f, e.Post!.Yaw);
+            Assert.Equal("", e.SkipItems);
+            Assert.False(e.NoHomeWork);
+        }
+
+        [Fact]
         public void RenameChangesTheContractName()
         {
             Roster r = WithActive("a");
