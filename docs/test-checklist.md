@@ -216,3 +216,6 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-04 | 36cd584 | VFH-STONE-1 | D | Pass | |
 | 2026-10-04 | 36cd584 | VFH-RECRUIT-1 | D | Pass | |
 | 2026-10-04 | c762306 | VFH-FOLLOW-0 | D | Pass | Recruit, follow, fight, stay/follow toggle, release at home (guard). Gatherer field delivery to be rechecked with phase 13 |
+| 2026-10-04 | 85f255e | VFH-POST-1 | D | Pass | Posted guard held its post, fought a greydwarf there and walked back; clearing the post sent it back to patrol |
+| 2026-10-04 | 85f255e | VFH-GATHER-1 | D | Pass | 12 wood gathered in Gather Here, all 12 delivered after release |
+| 2026-10-04 | 85f255e | VFH-ORDER-1 | D | Pass | Harvest order on a tagged beech: felled and cleared, then the order ended |
