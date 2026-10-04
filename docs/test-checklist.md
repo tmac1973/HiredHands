@@ -248,3 +248,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-04 | b15a90f | VFH-NOISE-1 | D | Pass (by hand) | Miner digging and mining copper in the field drew a greydwarf, which came up to it; the miner (Defend) fought back |
 | 2026-10-04 | a524ac8 | VFH-DIG-1 | D | Pass (by hand) | Miner in the field dug down through the dirt to buried copper chunks and mined them; unreachable chunks were given up one at a time, not the whole deposit |
 | 2026-10-04 | a91e7d7 | VFH-HOME-2 | D | Pass (part) | Send home from Shift+E in the field: follower vanished at once with the trip time; arrival at the board still to watch |
+| 2026-10-04 | 8c74246 | VFH-HOME-3 | D | Pass | ReturnHomeWithNonTeleportable off: Send home warned, the ore was dropped where the follower stood and only the wood came home |
