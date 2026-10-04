@@ -2,6 +2,7 @@
 
 ## 0.2.3 (unreleased)
 
+- **Move a board without losing its level.** Deconstructing a board of level 2 or more with the hammer gives you a **Hiring Charter** (into your inventory, or at your feet) that remembers its level. Build a new Hiring Board while carrying it and the new board starts at that level; the charter is used up. A board destroyed by monsters or damage gives none. Its contracts still end when it comes down, as before.
 - **Hirelings reach chests upstairs.** Walking counted only the distance along the ground, so a hireling could "arrive" on the stairs under a chest on the floor above and stay there for good, too far to put anything away. It now keeps climbing until the height matches too, and if it still can't get to a chest after 25 s it uses other chests (or the pile) for 5 minutes.
 - **Stuck hirelings are logged** (`nav.stuck`, always on, at most every 30 s per hireling): where it is and where it's going, the height gap, what the pathfinder offered and what it was doing; a stuck hireling also tries a jump or two. `deliver.chest_unreachable` says when it gives up on a chest.
 - **Followers use doorways.** A follower with a wall between it and you and no route (the game's walkable map lags behind a door you just opened) walks to the doorway, opens the door if it's closed, and goes straight through, instead of pushing against the wall beside the door until it jumped over it.

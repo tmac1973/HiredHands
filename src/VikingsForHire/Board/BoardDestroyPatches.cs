@@ -17,14 +17,28 @@ namespace VikingsForHire.Board
         // CheckCanRemovePiece is also called by hammer repair; only deconstructing should ask.
         private static bool _removing;
 
+        // The board being deconstructed with the hammer right now (no confirmation needed), for its charter.
+        private static HiringBoard? _removingBoard;
+
         [HarmonyPatch(typeof(Player), "RemovePiece")]
         private static class RemoveContextPatch
         {
-            private static void Prefix() => _removing = true;
+            private static void Prefix()
+            {
+                _removing = true;
+                _removingBoard = null;
+            }
+
+            private static void Postfix(bool __result)
+            {
+                if (__result && _removingBoard != null)
+                    VfhLog.Guard(LogCat.Board, "charter.give_failed", () => HiringCharter.Give(_removingBoard));
+            }
 
             private static Exception? Finalizer(Exception? __exception)
             {
                 _removing = false;
+                _removingBoard = null;
                 return __exception;
             }
         }
@@ -38,16 +52,23 @@ namespace VikingsForHire.Board
                 try
                 {
                     HiringBoard? board = piece != null ? piece.GetComponent<HiringBoard>() : null;
-                    if (!_removing || board == null || board.Zdo == null || board.Zdo.m_uid == _confirmed)
+                    if (!_removing || board == null || board.Zdo == null)
                         return true;
                     int count = BoardRosterOps.Read(board.Zdo).Count;
                     if (count == 0)
+                    {
+                        _removingBoard = board; // handed its charter once the removal goes through
                         return true;
+                    }
+                    if (board.Zdo.m_uid == _confirmed)
+                        return true; // the confirmation already handed the charter
 
                     __result = false;
                     ZDOID id = board.Zdo.m_uid;
-                    UnifiedPopup.Push(new YesNoPopup(Localization.instance.Localize("$vfh_board"),
-                        Localization.instance.Localize("$vfh_confirm_remove", count.ToString()),
+                    string text = Localization.instance.Localize("$vfh_confirm_remove", count.ToString());
+                    if (board.Level >= 2)
+                        text += "\n" + Localization.instance.Localize("$vfh_confirm_remove_charter", board.Level.ToString());
+                    UnifiedPopup.Push(new YesNoPopup(Localization.instance.Localize("$vfh_board"), text,
                         () =>
                         {
                             UnifiedPopup.Pop();
@@ -55,6 +76,7 @@ namespace VikingsForHire.Board
                                 return;
                             _confirmed = id;
                             VfhLog.I(LogCat.Board, "board.remove_confirmed", ("board", board.Id), ("hirelings", count));
+                            HiringCharter.Give(board);
                             board.GetComponent<WearNTear>()?.Remove();
                         },
                         () => UnifiedPopup.Pop(), localizeText: false));

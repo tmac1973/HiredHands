@@ -139,7 +139,7 @@ Today a hireling's cargo falls to the ground where it dies, as loose items that 
 - **Setting:** `HirelingTombstones` (default on); off keeps today's loose pile.
 - **Watch out for:** the tombstone's own "pick up all" and its "you died" status effect, which mustn't touch the player who opens it. Test both, and test that AzuAutoStore and AzuCraftyBoxes don't pull from it (as they don't from cargo today).
 
-## Moving a board without losing its level
+## Moving a board without losing its level (done in 0.2.3: the Hiring Charter, level only)
 Today deconstructing a hiring board gives back only its build cost (vanilla piece rules), so the boss trophies and materials spent upgrading it are lost, and moving a base means killing every boss again. Two ways to fix it; the second is preferred.
 - **Refund the upgrades:** on deconstruction, drop everything spent on the levels it reached (trophies and materials, from the board's upgrade history; record what was actually paid per upgrade on the board's ZDO, since the data file's costs can change later). Simple, but it hands back trophies that could then be spent again, and you'd have to carry a pile of materials to the new base and pay them all over again.
 - **A charter item (preferred):** deconstructing a board of level 2 or more drops a **Hiring Charter** (a small teleportable item) that remembers the board's level, and its contracts if we want to keep them. Placing a new board while carrying the charter gives it that level straight away and uses up the charter. Nothing can be spent twice, nothing heavy to carry, and it fits "moving the business".

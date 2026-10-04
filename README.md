@@ -106,6 +106,8 @@ With the stone in hand (the list of your followers shows on the left of the scre
 | 7 | The Queen trophy, Black core 3, Eitr 15, Yggdrasil wood 40, Carapace 20 | 8 | 50 m |
 | 8 | Fader trophy, Flametal 20, Blackwood 40, Asksvin hide 10, Molten core 3 | 10 | 60 m |
 
+**Moving a board.** Deconstruct it with the hammer and you keep a **Hiring Charter** that remembers its level (from level 2). Build the new board while carrying the charter and it starts at that level, so you don't have to fight the bosses again. Its hirelings leave when the board comes down; hire them again at the new board.
+
 A board hires up to its own level. Higher-level hirelings have more health and armour, better gear, work faster and carry more, and cost more (see *What it costs* above).
 
 ## Configuration

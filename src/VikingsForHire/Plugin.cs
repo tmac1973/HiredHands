@@ -47,6 +47,7 @@ namespace VikingsForHire
 
             BoardPiece.Register();
             Followers.CommandStoneItem.Register();
+            Board.HiringCharter.Register();
             Net.FollowerServer.Register();
             Telemetry.BalanceLog.Register();
             Board.LowFunds.Register();
