@@ -245,3 +245,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-04 | f17c3ad | VFH-TRAVEL-3 | D | Pass | Recheck after d4038f4: Burial Chamber in and out, both followers came along each way |
 | 2026-10-04 | 25d00f7 | VFH-ORPHAN-3 | D | Pass | Server restart with two followers 880 m out and the owner offline: both headed home (220 s trip) and were back at the board, working, when the player came home. Offline wait raised to 5 min after (d12b75f) |
 | 2026-10-04 | b15a90f | VFH-NOISE-1 | D | Pass (by hand) | Miner digging and mining copper in the field drew a greydwarf, which came up to it; the miner (Defend) fought back |
+| 2026-10-04 | a524ac8 | VFH-DIG-1 | D | Pass (by hand) | Miner in the field dug down through the dirt to buried copper chunks and mined them; unreachable chunks were given up one at a time, not the whole deposit |
