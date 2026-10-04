@@ -177,7 +177,8 @@ namespace VikingsForHire.Hirelings.Work
             }
 
             ai.Halt();
-            ai.Face(at + Vector3.up);
+            // Digging: face the dirt itself so the swing comes down into it; otherwise chest height on the target.
+            ai.Face(_aimPart != null && _profile.NeedsDigging(_aimPart) ? at : at + Vector3.up);
             if (_impactAt > 0f && Time.time >= _impactAt)
             {
                 _impactAt = -1f;
@@ -229,6 +230,13 @@ namespace VikingsForHire.Hirelings.Work
                 Reservations.Release(target, h.Hid);
                 _target = null;
                 _lastStruck = null;
+                return;
+            }
+            // Still under the dirt: this swing digs (the pickaxe's own hit on the ground does that, out in the field);
+            // the chunk is hit once it's exposed. The strike count above gives up on a chunk that never comes free.
+            if (_profile.NeedsDigging(col))
+            {
+                VfhLog.T(LogCat.Work, "work.dig", ("hid", h.Hid), ("target", target.name), ("part", col.name), ("n", _strikesOnIt), ("at", aim));
                 return;
             }
             hit.m_hitCollider = col;

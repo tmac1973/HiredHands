@@ -16,10 +16,14 @@ namespace VikingsForHire.Hirelings.Work
     internal static class TerrainProtectionPatches
     {
         private static float _lastLog;
+        private static float _lastDugLog;
         private static readonly System.Collections.Generic.List<Piece> Pieces = new();
 
-        // Away from any building and outside its own board's work area.
-        private static bool InField(Hireling h, Vector3 point)
+        /// <summary>Whether this hireling's pickaxe may dig the ground here.</summary>
+        public static bool MayDig(Hireling h, Vector3 point) => !VfhConfig.MinerProtectsTerrain.Value || InField(h, point);
+
+        /// <summary>Away from any building and outside its own board's work area: where a miner may dig.</summary>
+        public static bool InField(Hireling h, Vector3 point)
         {
             if (Utils.DistanceXZ(point, h.Home) <= h.Radius)
                 return false;
@@ -42,8 +46,17 @@ namespace VikingsForHire.Hirelings.Work
                 try
                 {
                     Hireling? h = Hireling.Of(character);
-                    if (!VfhConfig.MinerProtectsTerrain.Value || h == null || InField(h, hitPoint))
+                    if (h == null)
                         return true;
+                    if (MayDig(h, hitPoint))
+                    {
+                        if (Time.time - _lastDugLog > 10f)
+                        {
+                            _lastDugLog = Time.time;
+                            VfhLog.D(LogCat.Work, "work.dug", ("hid", h.Hid), ("at", hitPoint));
+                        }
+                        return true;
+                    }
                     __result = null;
                     if (Time.time - _lastLog > 10f)
                     {

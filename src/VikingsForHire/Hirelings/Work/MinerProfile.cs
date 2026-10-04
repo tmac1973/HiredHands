@@ -22,6 +22,12 @@ namespace VikingsForHire.Hirelings.Work
         // A chunk whose top is this far below the ground is buried; one whose bottom is this far above it is out of reach.
         private const float BuriedBelow = 0.3f;
         private const float ReachAbove = 3.5f;
+        // Buried chunks down to this depth (top below the ground) are dug out where digging is allowed (the field).
+        private const float DigDepth = 1.5f;
+
+        private readonly Hireling _hireling;
+
+        public MinerProfile(Hireling hireling) => _hireling = hireling;
 
         public string Status => "$vfh_status_mining";
 
@@ -73,7 +79,7 @@ namespace VikingsForHire.Hirelings.Work
         {
             fellDir = null;
             reason = "";
-            if (!Areas(target).Any(c => Workable(c) && !IsBad(c)))
+            if (!Areas(target).Any(c => (Workable(c) || Diggable(c)) && !IsBad(c)))
             {
                 reason = "only buried or out-of-reach chunks left";
                 return false;
@@ -107,7 +113,7 @@ namespace VikingsForHire.Hirelings.Work
         public bool GiveUpOnPart(Component target, Collider part)
         {
             _badParts[part] = Time.time + BadPartSeconds;
-            return Areas(target).Any(c => Workable(c) && !IsBad(c));
+            return Areas(target).Any(c => (Workable(c) || Diggable(c)) && !IsBad(c));
         }
 
         private bool IsBad(Collider c)
@@ -133,8 +139,32 @@ namespace VikingsForHire.Hirelings.Work
                     best = c;
                 }
             }
-            point = best != null ? Surface(best, from) : target.transform.position;
-            return best;
+            if (best != null)
+            {
+                point = Surface(best, from);
+                return best;
+            }
+            // Nothing to hit above ground: dig towards the shallowest buried chunk, aiming at the dirt right above it.
+            Collider? dig = Areas(target).Where(c => Diggable(c) && !IsBad(c)).OrderByDescending(c => c.bounds.max.y).FirstOrDefault();
+            if (dig != null)
+            {
+                Vector3 above = dig.bounds.center;
+                above.y = ZoneSystem.instance.GetGroundHeight(above);
+                point = above;
+                return dig;
+            }
+            point = target.transform.position;
+            return null;
+        }
+
+        public bool NeedsDigging(Collider part) => part != null && !Workable(part) && Diggable(part);
+
+        // Buried, but shallow enough to dig out, and where this miner may dig.
+        private bool Diggable(Collider c)
+        {
+            Bounds b = c.bounds;
+            float ground = ZoneSystem.instance.GetGroundHeight(b.center);
+            return b.max.y <= ground - BuriedBelow && b.max.y > ground - DigDepth && TerrainProtectionPatches.MayDig(_hireling, b.center);
         }
 
         /// <summary>

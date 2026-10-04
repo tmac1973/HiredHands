@@ -136,7 +136,7 @@ namespace VikingsForHire.Hirelings
                     Add(new Work.DeliverBehaviour(new Work.SmelterDeliveryPolicy()));
                     break;
                 case JobType.Miner:
-                    Add(Gather = new Work.GatherBehaviour(new Work.MinerProfile()));
+                    Add(Gather = new Work.GatherBehaviour(new Work.MinerProfile(hireling)));
                     Add(new Work.DeliverBehaviour(new Work.GathererDeliveryPolicy()));
                     break;
                 default:
