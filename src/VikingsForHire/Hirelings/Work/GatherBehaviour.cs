@@ -21,6 +21,8 @@ namespace VikingsForHire.Hirelings.Work
         private const float RescanNoTargets = 30f;
         private const float UnreachableSkip = 120f;
         private const float ApproachGiveUp = 12f; // seconds without getting closer
+        private const float ApproachStuckWorkFrom = 3f; // stalled this long within reach: work from where we are
+        private const float MaxWorkReach = 2.6f;
         private const float MaxExtraReach = 30f; // largest IGatherProfile.ExtraReach
 
         private readonly IGatherProfile _profile;
@@ -111,7 +113,8 @@ namespace VikingsForHire.Hirelings.Work
                 : toMe.sqrMagnitude > 0.01f ? at + toMe.normalized * stand : at;
             float dist = Utils.DistanceXZ(ai.transform.position, spot);
             // A tree being felled one way must be hit from its spot; anything else may be worked from any side.
-            bool inPlace = _fellDir != null ? dist <= 1.1f : dist <= 0.8f || Utils.DistanceXZ(ai.transform.position, at) <= stand + 0.4f;
+            float toAim = Utils.DistanceXZ(ai.transform.position, at);
+            bool inPlace = _fellDir != null ? dist <= 1.1f : dist <= 0.8f || toAim <= stand + 0.4f;
             if (!inPlace)
             {
                 if (dist < _approachBest - 0.5f)
@@ -119,16 +122,26 @@ namespace VikingsForHire.Hirelings.Work
                     _approachBest = dist;
                     _approachStarted = Time.time; // still getting closer
                 }
-                if (Time.time - _approachStarted > ApproachGiveUp)
+                // Can't get any closer, but already within a pickaxe's reach of the surface (the rock's own shape or a
+                // neighbouring chunk is in the way): work from here rather than give up on the deposit.
+                if (Time.time - _approachStarted > ApproachStuckWorkFrom && _fellDir == null && toAim <= MaxWorkReach)
                 {
-                    VfhLog.D(LogCat.Work, "work.unreachable", ("hid", h.Hid), ("target", _target.name), ("dist", dist));
+                    inPlace = true;
+                    VfhLog.T(LogCat.Work, "work.from_here", ("hid", h.Hid), ("target", _target.name), ("toAim", toAim));
+                }
+                else if (Time.time - _approachStarted > ApproachGiveUp)
+                {
+                    VfhLog.D(LogCat.Work, "work.unreachable", ("hid", h.Hid), ("target", _target.name), ("dist", dist), ("toAim", toAim));
                     Reservations.Skip(_target, UnreachableSkip);
                     Reservations.Release(_target, h.Hid);
                     _target = null;
                     return;
                 }
-                ai.WalkTo(dt, spot, 0.5f, run: false);
-                return;
+                if (!inPlace)
+                {
+                    ai.WalkTo(dt, spot, 0.5f, run: false);
+                    return;
+                }
             }
 
             ai.Halt();
