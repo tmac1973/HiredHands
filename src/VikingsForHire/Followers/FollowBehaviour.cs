@@ -98,7 +98,7 @@ namespace VikingsForHire.Followers
             if (_catchUp.Tick(ai, owner, dist, dt))
                 return;
             if (dist > FollowDistance)
-                ai.WalkTo(dt, owner.transform.position, FollowDistance * 0.8f, run: retreat || owner.IsRunning() || dist > FollowRunBeyond);
+                ai.Chase(dt, owner.transform.position, FollowDistance * 0.8f, run: retreat || owner.IsRunning() || dist > FollowRunBeyond);
             else
             {
                 ai.Halt();

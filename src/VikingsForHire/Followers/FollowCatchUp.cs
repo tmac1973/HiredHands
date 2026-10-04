@@ -201,6 +201,7 @@ namespace VikingsForHire.Followers
                 body.linearVelocity = Vector3.zero;
             }
             ai.Halt();
+            ai.ResetPath();
             ai.Hireling.Zdo?.SetPosition(spot);
         }
 
@@ -213,7 +214,10 @@ namespace VikingsForHire.Followers
             if (Time.time < _nextLagLog)
                 return;
             _nextLagLog = Time.time + LagLogSeconds;
-            VfhLog.D(LogCat.Follow, "follow.lag", ("hid", h.Hid), ("dist", dist), ("max5s", _lagMaxSinceLog), ("stuck", _stuckSince >= 0f));
+            Vector3 v = h.GetComponent<Rigidbody>() is Rigidbody body ? body.linearVelocity : Vector3.zero;
+            v.y = 0f;
+            VfhLog.D(LogCat.Follow, "follow.lag", ("hid", h.Hid), ("dist", dist), ("max5s", _lagMaxSinceLog), ("stuck", _stuckSince >= 0f),
+                ("speed", v.magnitude), ("running", h.Humanoid.IsRunning()), ("direct", h.Ai.ChasingDirect), ("runSpeed", h.Humanoid.m_runSpeed));
             _lagMaxSinceLog = 0f;
         }
     }

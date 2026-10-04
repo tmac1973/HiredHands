@@ -278,6 +278,43 @@ namespace VikingsForHire.Hirelings
         /// <summary>Walk straight at a point, steering round what's in the way (no pathfinding): unstick detours.</summary>
         public void MoveAround(float dt, Vector3 point) => MoveAndAvoid(dt, point, 0.5f, true);
 
+        /// <summary>Whether the last chase went straight at the target (no full route), for logs.</summary>
+        public bool ChasingDirect { get; private set; }
+
+        /// <summary>
+        /// Go after a moving target (a follower after its owner). Use the route when it reaches the target; otherwise
+        /// head straight for it, steering round obstacles. The game builds its walkable map a tile at a time around where
+        /// it's asked, so ahead of a sprinting player there's often none yet, and the pathfinder then returns a partial
+        /// route ending at the edge of what's built, behind the follower: following that walked it backwards.
+        /// </summary>
+        public bool Chase(float dt, Vector3 point, float stopDistance, bool run)
+        {
+            if (Utils.DistanceXZ(point, transform.position) <= stopDistance)
+            {
+                StopMoving();
+                return true;
+            }
+            bool route = PathReaches(point, Mathf.Max(stopDistance, 1f) + 3f);
+            if (route != !ChasingDirect)
+            {
+                ChasingDirect = !route;
+                VfhLog.D(LogCat.Follow, "follow.chase", ("hid", Hireling.Hid), ("how", route ? "route" : "direct"), ("dist", Utils.DistanceXZ(point, transform.position)));
+            }
+            if (route)
+                return WalkTo(dt, point, stopDistance, run);
+            _doors.Tick(point);
+            return MoveAndAvoid(dt, point, stopDistance, run);
+        }
+
+        /// <summary>Forget the current route (after a teleport it leads from where the hireling used to be).</summary>
+        public void ResetPath()
+        {
+            m_path.Clear();
+            m_lastFindPathTime = -10f;
+            m_lastFindPathTarget = new Vector3(-999999f, -999999f, -999999f);
+            ChasingDirect = false;
+        }
+
         public void Face(Vector3 point) => LookAt(point);
 
         /// <summary>Swing/shoot the current weapon at the target if its attack interval allows (vanilla MonsterAI.DoAttack).</summary>
