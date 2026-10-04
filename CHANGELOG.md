@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.3 (unreleased)
+## 0.2.3
 
 - **Board upgrades pull from nearby chests (AzuCraftyBoxes).** With AzuCraftyBoxes installed, the Upgrade tab counts the materials in the chests near the board that CraftyBoxes would let you pull from (its range, pull toggle and chest rules), and upgrading takes them from your inventory first, then from those chests. Per-player setting `UpgradeFromNearbyChests` (Hiring section, on by default).
 - **Move a board without losing its level.** Deconstructing a board of level 2 or more with the hammer gives you a **Hiring Charter** (into your inventory, or at your feet) that remembers its level. Build a new Hiring Board while carrying it and the new board starts at that level; the charter is used up. A board destroyed by monsters or damage gives none. Its contracts still end when it comes down, as before.

@@ -19,10 +19,10 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 - [ ] By hand (AzuCraftyBoxes installed): put some of the next upgrade's materials in a chest near the board and the rest in your inventory: the Upgrade tab heading says "counting nearby chests" and the counts include the chest; upgrade: your inventory's share goes first, the rest leaves the chest (log `upgrade.requested ... from_chests=`). A chest outside CraftyBoxes' range, or with pulling toggled off, isn't counted. With `UpgradeFromNearbyChests = false` only the inventory counts.
 - [ ] By hand: a chest on an upper floor (up stairs) holding wood; a woodcutter delivers into it. Check the log for `nav.stuck` / `deliver.chest_unreachable` lines (they're always on) wherever a hireling gets stuck during the session.
 - [ ] Charter: deconstruct a level 3 board (once with hirelings, so the confirmation shows the charter line, once without): a Hiring Charter (level 3) lands in your inventory, its tooltip shows the level; build a board elsewhere carrying it: the board is level 3 and the charter is gone; a level 1 board gives no charter; a board broken by monsters gives none.
-- [ ] `vfh_t_door1` (automated): a hireling gets into a closed room through its door to deliver.
+- [x] `vfh_t_door1` (automated, passed): a hireling gets into a closed room through its door to deliver.
 - [ ] Gerd's fence on the live server: a hireling outside a fenced area with a door goes in and out without looping.
 - [ ] By hand: walk into a building through a door (close it behind you, and again leaving it open) with followers: they come through the doorway (opening the closed door) without jumping or getting stuck at the wall.
-- [ ] `vfh_t_order1` (automated, now also checks the worker switches to Stay).
+- [x] `vfh_t_order1` (automated, passed, now also checks the worker switches to Stay).
 - [ ] By hand: order a woodcutter onto a tree, walk 40-80 m away: it keeps chopping the tree and its logs, then waits there; a right click on nothing calls it back.
 
 ### Released but not yet tested in game (0.2.1 / 0.2.2)
