@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 (unreleased)
+
+- Prices show their real numbers: the board's hire fee, upkeep and promotion costs read "[1] food pts + [2] coins" instead of the amounts. They now show only what's charged ("50 coins", "60 food pts").
+
 ## 0.2.1
 
 - **Hire with coins, pay upkeep in food.** From level 2 the hire fee is coins only (level 1 is still hired for food: there are hardly any coins in the Meadows), and the daily upkeep is food only. Promotions and respawn fees follow the hire fee. Coins are scarce, and the old daily coin upkeep came to hundreds of coins an hour of play at higher levels. **Existing servers:** the data file keeps its old values, so in `Spronglehump.HiredHands.yml` set `hireFood` to 0 for levels 2–8 and `upkeepCoins` to 0 for every level (or delete the file to get the new defaults).

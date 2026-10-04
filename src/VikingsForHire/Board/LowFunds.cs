@@ -57,7 +57,7 @@ namespace VikingsForHire.Board
             string color = days <= 1 ? "#ff5050" : IsLow(days) ? "orange" : "#c8c8c8";
             string lasts = Localization.instance.Localize("$vfh_board_lasts",
                 foodDays == int.MaxValue ? "—" : foodDays.ToString(), coinDays == int.MaxValue ? "—" : coinDays.ToString());
-            return $"\n$vfh_board_upkeep {daily.FoodPoints} $vfh_food_points · {daily.Coins} $vfh_coins\n<color={color}>{lasts}</color>";
+            return $"\n$vfh_board_upkeep {UI.ContractsTab.Price(daily)}\n<color={color}>{lasts}</color>";
         }
 
         /// <summary>After a day's upkeep (on the machine running the board): tell the players at the base if it's low.</summary>

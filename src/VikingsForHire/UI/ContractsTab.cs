@@ -55,7 +55,7 @@ namespace VikingsForHire.UI
 
             PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_fee") + "  " + Price(fee), 0f, -335f, 600f, 18, color: affordable ? PanelUi.Good : PanelUi.Bad);
             PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_upkeep") + "  " + Price(upkeep), 0f, -365f, 600f, 18);
-            PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_funds") + "  " + Price(funds), 0f, -395f, 600f, 18, color: PanelUi.Dim);
+            PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_funds") + "  " + $"{funds.FoodPoints} {Localization.instance.Localize("$vfh_food_points")} + {funds.Coins} {Localization.instance.Localize("$vfh_coins")}", 0f, -395f, 600f, 18, color: PanelUi.Dim);
             PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_count") + $"  {count} / {cap}", 0f, -425f, 600f, 18,
                 color: count < cap ? PanelUi.Dim : PanelUi.Bad);
 
@@ -66,8 +66,19 @@ namespace VikingsForHire.UI
                 PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_job_locked", rules.MinBoardLevel(job).ToString()), 0f, -515f, 600f, 18, color: PanelUi.Bad);
         }
 
-        public static string Price(Cost c) =>
-            Localization.instance.Localize(c.Coins > 0 ? "$1 $vfh_food_points + $2 $vfh_coins" : "$1 $vfh_food_points", c.FoodPoints.ToString(), c.Coins.ToString());
+        /// <summary>
+        /// "50 coins", "40 food pts", "40 food pts + 50 coins", or "free": only the parts that cost something. (Built here,
+        /// not as "$1 …" text: the localizer reads "$1" as an unknown key and shows "[1]".)
+        /// </summary>
+        public static string Price(Cost c)
+        {
+            var parts = new List<string>();
+            if (c.FoodPoints > 0)
+                parts.Add($"{c.FoodPoints} {Localization.instance.Localize("$vfh_food_points")}");
+            if (c.Coins > 0)
+                parts.Add($"{c.Coins} {Localization.instance.Localize("$vfh_coins")}");
+            return parts.Count > 0 ? string.Join(" + ", parts) : Localization.instance.Localize("$vfh_free");
+        }
 
         private void Clamp(HiringBoard board)
         {
