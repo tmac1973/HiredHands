@@ -9,7 +9,7 @@ Works in single-player and on dedicated servers. Every client and the server nee
 - BepInExPack Valheim
 - Jotunn 2.30+
 - YamlDotNet (ValheimModding)
-- Optional: AzuAutoStore. Smelters then leave finished bars for AzuAutoStore to store (see below).
+- Optional: AzuAutoStore. Stewards then leave finished bars for AzuAutoStore to store (see below).
 
 ## Getting started
 
@@ -27,7 +27,7 @@ Hover a hireling to see its name, job, level, health, what it's doing and its ca
 |---|---|---|
 | Woodcutter | Fells trees in its radius, clears the fallen logs and stumps, picks up wood, resin and seeds | Fells trees away from your buildings and leaves trees right next to them alone. Axe tier rises with level (stone, flint, bronze…), which decides what it can cut |
 | Miner | Mines copper, tin, rocks and boulders, ore before stone | Needs a level 2 board. Leaves rocks touching your builds alone and never digs near your buildings; out in the field it digs down to ore buried up to 1.5 m deep (but never digs up a deposit nobody has found, like a hidden silver vein). Pickaxe tier rises with level |
-| Smelter | Keeps smelters, kilns, blast furnaces and eitr refineries in its radius stocked from your chests | Tops a station up when it's below half full. Never takes the last of an item from a chest, and leaves a reserve of chosen items in storage (`keepInStorage`, default 50 Wood). Without AzuAutoStore it also collects the bars |
+| Steward | Keeps smelters, kilns, blast furnaces and eitr refineries in its radius stocked from your chests | Tops a station up when it's below half full. Never takes the last of an item from a chest, and leaves a reserve of chosen items in storage (`keepInStorage`, default 50 Wood). Without AzuAutoStore it also collects the bars |
 | Guard (melee) | Patrols the radius and fights | Stances: Passive, Defensive, Aggressive |
 | Guard (ranged) | Same, with a bow | |
 
@@ -108,7 +108,7 @@ jobs:
 ## AzuAutoStore, AzuCraftyBoxes, PullMats
 
 - The board's funds and hirelings' cargo are excluded from AzuAutoStore and AzuCraftyBoxes (and so from PullMats), so they never take your hireling money or cargo.
-- With AzuAutoStore, smelters never collect bars: Azu stores them into a chest that already holds that bar. Seed one bar into a chest.
+- With AzuAutoStore, stewards never collect bars: Azu stores them into a chest that already holds that bar. Seed one bar into a chest.
 
 ## Balance log (for server owners)
 

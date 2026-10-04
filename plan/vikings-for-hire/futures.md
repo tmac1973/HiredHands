@@ -12,8 +12,6 @@ Woodcutters already pick up the seeds and cones trees drop (BeechSeeds, FirCone,
 ## Doors (done in 0.1.1)
 Hirelings use creature pathfinding, which treats a closed door as a wall, so chests and stations behind a door are unreachable (the smelter skips the chest; gatherers drop at the board). Planned for 0.1.1: when a hireling's route is blocked and a door piece is within a couple of metres on the way, it opens it (Door.Interact as a Humanoid), walks through and closes it behind itself. Respect wards (only doors the board's owner could open) and never leave a door open. Test row VFH-NAV-2.
 
-## Porter
-Moves items between chests and to stations, and picks up loose items. Left out because AzuAutoStore covers it on Tim's server. The phase 08 delivery framework is the building block.
 
 ## Farmer (wanted, design open)
 Works to quotas set with the production orders below ("keep 50 carrots", "keep 100 barley"): it replants what's needed to meet them and leaves the rest of the field to you.

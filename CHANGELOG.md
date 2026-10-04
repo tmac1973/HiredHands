@@ -2,6 +2,7 @@
 
 ## 0.2.1 (unreleased)
 
+- The Smelter is now called the **Steward** (in time it'll do more around the base). Only the shown name changed: data files, commands (`vfh_spawn Smelter`) and saved worlds use `Smelter` as before.
 - **A follower's death far from its board is no longer lost.** The board's update was sent to the game that last owned the board, which no longer had it loaded (its player had gone through a portal), and was dropped, so the board kept a dead hireling as "away", using a slot and charging upkeep. Changes now go to the owner's game as a plain message and come back to the server to apply when that game doesn't have the board loaded.
 - **Boards repair themselves:** every minute the server checks each board's contracts, and one whose hireling has been missing from the world for 10 minutes is settled (an active contract counts as a death, with the board's permadeath or respawn rule; a leaving one is removed). Existing "away" contracts from 0.2.0 clear this way after the update.
 
