@@ -8,7 +8,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
-| (next) | Board upgrades take materials from chests near the board via AzuCraftyBoxes (inventory first); Upgrade tab counts them; per-player `UpgradeFromNearbyChests` | your game |
+| f3f3500 | Board upgrades take materials from chests near the board via AzuCraftyBoxes (inventory first); Upgrade tab counts them; per-player `UpgradeFromNearbyChests` | your game |
 | b2f0df6 | Chests upstairs: height counts when arriving (no more standing on the stairs under a chest); a chest it can't reach for 25 s is skipped for 5 min; `nav.stuck` Info log (always on) + a jump or two when stuck (Gerd on the stairs) | the game simulating the hireling |
 | 38d3ee2 | Hiring Charter: deconstructing a board of level 2+ gives a charter with its level; building a new board while carrying it starts it at that level and uses it up | your game |
 | 3dee659 | Door loop: a hireling that opens a door for lack of a route walks straight through it before anything else, and the door stays open until it's through (Gerd at the fence) | the game simulating the hireling |
