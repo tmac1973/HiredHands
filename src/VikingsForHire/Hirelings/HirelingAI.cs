@@ -257,6 +257,14 @@ namespace VikingsForHire.Hirelings
         {
             // Doors: open what's ahead, and if there's no route at all, go via a door that leads towards the goal.
             _doors.Tick(point);
+            // Going through a door it just opened: straight to the far side first.
+            if (_doors.Through is Vector3 beyond)
+            {
+                Vector3 dir = beyond - transform.position;
+                dir.y = 0f;
+                MoveTowards(dir.normalized, run);
+                return false;
+            }
             // Ask the pathfinder about the goal itself (cached by BaseAI): an earlier result may be for another target.
             bool near = Utils.DistanceXZ(transform.position, point) <= stopDistance + 1f;
             Vector3? via = _doors.Detour(point, near || _doors.HasDetour || PathReaches(point, Mathf.Max(stopDistance, 1f) + 1.5f));

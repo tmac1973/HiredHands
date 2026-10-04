@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3 (unreleased)
+
+- **Hirelings go through the doors they open.** A hireling with no route to its goal (for example inside a fence) heads for a door and opens it, but the game's walkable map only catches up with an open door a few seconds later, so it walked away again, the door closed behind it, and it came back to open it: over and over. It now walks straight through to the far side first, and the door isn't closed until it's through.
+
 ## 0.2.2
 
 - **Posts for gatherers.** A woodcutter or miner with "Works at home" off can be posted on a spot at home like a guard (with the stone: click it, or the ground, at home while it's following you), so it stands there instead of wandering about the base and getting in the way. Gatherers that do work at home go back to their post when they run out of work. Clear a post with a right click or the Shift+E panel.

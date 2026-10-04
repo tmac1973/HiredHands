@@ -29,10 +29,37 @@ namespace VikingsForHire.Hirelings
         private readonly Dictionary<Door, float> _opened = new();
         private float _nextCheck;
         private Door? _detour;
+        // Going through a door it opened because there was no route: straight to the far side before anything else.
+        // The walkable map only catches up with an opened door a few seconds later, so until then the pathfinder still
+        // says "no route" and the hireling walked away from the open door, which then closed behind it: a loop.
+        private Door? _throughDoor;
+        private Vector3 _throughPoint;
+        private float _throughUntil;
+        private const float ThroughSeconds = 6f;
+        private const float ThroughDepth = 1.8f;
 
         public DoorHelper(HirelingAI ai) => _ai = ai;
 
         public bool HasDetour => _detour != null;
+
+        /// <summary>The far side of a door it's going through right now (walk straight there), if any.</summary>
+        public Vector3? Through
+        {
+            get
+            {
+                if (_throughDoor == null)
+                    return null;
+                Vector3 me = _ai.transform.position;
+                bool there = Utils.DistanceXZ(me, _throughPoint) < 0.7f;
+                if (there || Time.time > _throughUntil || _throughDoor.m_nview == null || !IsOpen(_throughDoor))
+                {
+                    VfhLog.D(LogCat.AI, "door.through", ("hid", _ai.Hireling.Hid), ("door", _throughDoor.transform.position), ("made_it", there));
+                    _throughDoor = null;
+                    return null;
+                }
+                return _throughPoint;
+            }
+        }
 
         /// <summary>A door to walk to first because there's no route to the goal without it, if any.</summary>
         public Vector3? Detour(Vector3 goal, bool havePath)
@@ -87,7 +114,16 @@ namespace VikingsForHire.Hirelings
                 d.m_nview.InvokeRPC("UseDoor", Vector3.Dot(d.transform.forward, userDir) < 0f);
                 _opened[d] = Time.time;
                 if (d == _detour)
+                {
                     _detour = null;
+                    // The far side: the side of the doorway away from where we stand.
+                    Vector3 side = me - d.transform.position;
+                    side.y = 0f;
+                    Vector3 normal = Vector3.Dot(side, d.transform.forward) >= 0f ? d.transform.forward : -d.transform.forward;
+                    _throughDoor = d;
+                    _throughPoint = d.transform.position - normal * ThroughDepth;
+                    _throughUntil = Time.time + ThroughSeconds;
+                }
                 VfhLog.D(LogCat.AI, "door.open", ("hid", _ai.Hireling.Hid), ("door", d.transform.position));
             }
             CloseBehind(false);
@@ -107,6 +143,8 @@ namespace VikingsForHire.Hirelings
                     _opened.Remove(d!);
                     continue;
                 }
+                if (!now && d == _throughDoor)
+                    continue; // not until it's through
                 bool clear = now || (Vector3.Distance(me, d.transform.position) > CloseDistance && Time.time - kv.Value > CloseAfterSeconds);
                 if (!clear || Player.GetClosestPlayer(d.transform.position, PlayerClearance) != null)
                     continue;
