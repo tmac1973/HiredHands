@@ -321,11 +321,20 @@ namespace VikingsForHire.Hirelings
                 sb.Append('\n').Append(status);
             string activity = Zdo?.GetString(HirelingZdo.Activity) ?? "";
             if (Mode == HirelingMode.Following)
-                sb.Append('\n').Append("$vfh_roster_following").Replace("$1", OwnerName).Append(" — $vfh_mode_").Append(FollowMode.ToString().ToLowerInvariant());
-            else if (HasPost)
-                sb.Append(" — $vfh_roster_posted");
-            if (activity.Length > 0 && Mode != HirelingMode.Leaving)
-                sb.Append(" — ").Append(activity);
+            {
+                // "Following Tim (Stay)", plus what it's doing when that says more (chopping, cargo full…).
+                sb.Append('\n').Append(Localization.instance.Localize("$vfh_roster_following", OwnerName))
+                    .Append(" ($vfh_mode_").Append(FollowMode.ToString().ToLowerInvariant()).Append(')');
+                if (activity.Length > 0 && activity != "$vfh_status_following" && activity != "$vfh_status_staying")
+                    sb.Append(" — ").Append(activity);
+            }
+            else
+            {
+                if (HasPost)
+                    sb.Append(" — $vfh_roster_posted");
+                if (activity.Length > 0 && Mode != HirelingMode.Leaving)
+                    sb.Append(" — ").Append(activity);
+            }
             sb.Append("\n$vfh_stance: $vfh_stance_").Append(Stance.ToString().ToLowerInvariant());
             sb.Append("\n$vfh_health ").Append(Mathf.CeilToInt(_humanoid.GetHealth())).Append('/').Append(Mathf.CeilToInt(_humanoid.GetMaxHealth()));
             Inventory? cargo = CargoInventory;
