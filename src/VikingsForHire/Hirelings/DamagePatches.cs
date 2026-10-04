@@ -21,6 +21,7 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(Character __instance, HitData hit)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     Character? attacker = hit.GetAttacker();
@@ -55,6 +56,10 @@ namespace VikingsForHire.Hirelings
                     // Vanilla behaviour on failure: the hit lands, even if it would normally have been blocked.
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("DamagePatches.RPC_Damage", vfhStarted);
+                }
             }
         }
 
@@ -63,6 +68,7 @@ namespace VikingsForHire.Hirelings
         {
             private static void Postfix(Character __instance, ref float __result)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     Hireling? h = Hireling.Of(__instance);
@@ -73,6 +79,10 @@ namespace VikingsForHire.Hirelings
                 {
                     VfhLog.PatchFailed("DamagePatches.GetBodyArmor", e);
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("DamagePatches.GetBodyArmor", vfhStarted);
+                }
             }
         }
 
@@ -81,6 +91,7 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(WearNTear __instance, HitData hit)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     Hireling? from = Hireling.Of(hit.GetAttacker());
@@ -94,6 +105,10 @@ namespace VikingsForHire.Hirelings
                     VfhLog.PatchFailed("DamagePatches.WearNTearDamage", e);
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("DamagePatches.WearNTearDamage", vfhStarted);
+                }
             }
         }
 
@@ -103,6 +118,7 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(Humanoid __instance)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     return Hireling.Of(__instance) == null;
@@ -111,6 +127,10 @@ namespace VikingsForHire.Hirelings
                 {
                     VfhLog.PatchFailed("DamagePatches.DrainEquipedItemDurability", e);
                     return true;
+                }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("DamagePatches.DrainEquipedItemDurability", vfhStarted);
                 }
             }
         }

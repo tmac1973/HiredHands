@@ -19,6 +19,7 @@ namespace VikingsForHire.Board
         {
             private static bool Prefix(Piece piece, ref bool __result)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     HiringBoard? board = piece != null ? piece.GetComponent<HiringBoard>() : null;
@@ -49,6 +50,10 @@ namespace VikingsForHire.Board
                     VfhLog.PatchFailed("BoardDestroyPatches.CheckCanRemovePiece", e);
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("BoardDestroyPatches.CheckCanRemovePiece", vfhStarted);
+                }
             }
         }
 
@@ -57,6 +62,7 @@ namespace VikingsForHire.Board
         {
             private static void Prefix(WearNTear __instance)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     HiringBoard? board = __instance.GetComponent<HiringBoard>();
@@ -72,6 +78,10 @@ namespace VikingsForHire.Board
                 catch (Exception e)
                 {
                     VfhLog.PatchFailed("BoardDestroyPatches.WearNTearDestroy", e);
+                }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("BoardDestroyPatches.WearNTearDestroy", vfhStarted);
                 }
             }
         }

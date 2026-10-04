@@ -103,6 +103,7 @@ namespace VikingsForHire.Board
         {
             private static void Postfix(Player __instance)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     if (__instance != Player.m_localPlayer || __instance.m_placementGhost == null ||
@@ -135,6 +136,10 @@ namespace VikingsForHire.Board
                 {
                     VfhLog.PatchFailed("PlacementPatches.UpdatePlacementGhost", e);
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("PlacementPatches.UpdatePlacementGhost", vfhStarted);
+                }
             }
         }
 
@@ -144,6 +149,7 @@ namespace VikingsForHire.Board
         {
             private static bool Prefix(Player __instance, Piece piece, ref bool __result)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     if (!PlacementCheck.IsBoard(piece) || __instance.m_placementGhost == null)
@@ -170,6 +176,10 @@ namespace VikingsForHire.Board
                 {
                     VfhLog.PatchFailed("PlacementPatches.TryPlacePiece", e);
                     return true;
+                }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("PlacementPatches.TryPlacePiece", vfhStarted);
                 }
             }
         }

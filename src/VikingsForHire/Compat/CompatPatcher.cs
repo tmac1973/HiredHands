@@ -130,6 +130,7 @@ namespace VikingsForHire.Compat
 
         private static bool SkipForHireling(Character __0)
         {
+            long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
             try
             {
                 return __0 == null || __0.GetComponent<Hirelings.Hireling>() == null;
@@ -138,6 +139,10 @@ namespace VikingsForHire.Compat
             {
                 VfhLog.PatchFailed("CompatPatcher.SkipForHireling", e);
                 return true;
+            }
+            finally
+            {
+                VikingsForHire.Diagnostics.PerfCounters.Patch("CompatPatcher.SkipForHireling", vfhStarted);
             }
         }
 
@@ -149,6 +154,7 @@ namespace VikingsForHire.Compat
 
         private static bool AddContainerPrefix(Container container)
         {
+            long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
             try
             {
                 if (!ExcludedContainers.IsExcluded(container))
@@ -161,11 +167,16 @@ namespace VikingsForHire.Compat
                 VfhLog.PatchFailed("CompatPatcher.AddContainer", e);
                 return true;
             }
+            finally
+            {
+                VikingsForHire.Diagnostics.PerfCounters.Patch("CompatPatcher.AddContainer", vfhStarted);
+            }
         }
 
         // Shared by CanItemBeStored(string container, string prefab) and CanItemBePulled(string container, string prefab, ...).
         private static bool CanUsePrefix(string __0, ref bool __result)
         {
+            long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
             try
             {
                 if (!ExcludedContainers.IsExcluded(__0))
@@ -177,6 +188,10 @@ namespace VikingsForHire.Compat
             {
                 VfhLog.PatchFailed("CompatPatcher.CanUse", e);
                 return true;
+            }
+            finally
+            {
+                VikingsForHire.Diagnostics.PerfCounters.Patch("CompatPatcher.CanUse", vfhStarted);
             }
         }
     }

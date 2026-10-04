@@ -57,6 +57,7 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, ref bool __result)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     if (item == null)
@@ -76,6 +77,10 @@ namespace VikingsForHire.Hirelings
                 {
                     VfhLog.PatchFailed("CargoGate.AddItem", e);
                     return true;
+                }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("CargoGate.AddItem", vfhStarted);
                 }
             }
         }
@@ -118,6 +123,7 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, Vector2i pos, ref bool __result)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     if (item == null || SlotAllowed(__instance, pos.x, pos.y, out Hireling? h))
@@ -131,6 +137,10 @@ namespace VikingsForHire.Hirelings
                     VfhLog.PatchFailed("CargoGate.AddItemAt", e);
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("CargoGate.AddItemAt", vfhStarted);
+                }
             }
         }
 
@@ -139,6 +149,7 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, int x, int y, ref bool __result)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     if (item == null || SlotAllowed(__instance, x, y, out Hireling? h))
@@ -152,6 +163,10 @@ namespace VikingsForHire.Hirelings
                     VfhLog.PatchFailed("CargoGate.MoveItemToThis", e);
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("CargoGate.MoveItemToThis", vfhStarted);
+                }
             }
         }
 
@@ -160,6 +175,7 @@ namespace VikingsForHire.Hirelings
         {
             private static bool Prefix(InventoryGrid __instance, ItemDrop.ItemData item, Vector2i pos, ref bool __result)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     if (item == null || SlotAllowed(__instance.GetInventory(), pos.x, pos.y, out Hireling? h))
@@ -173,6 +189,10 @@ namespace VikingsForHire.Hirelings
                     VfhLog.PatchFailed("CargoGate.DropItem", e);
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("CargoGate.DropItem", vfhStarted);
+                }
             }
         }
 
@@ -184,9 +204,13 @@ namespace VikingsForHire.Hirelings
 
             private static void Postfix(InventoryGrid __instance)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     Hireling? h = Hireling.ForCargo(__instance.GetInventory());
+                    // Not a hireling's cargo and nothing greyed earlier: nothing to do (this runs every frame per grid).
+                    if (h == null && Original.Count == 0)
+                        return;
                     int limit = h != null ? h.CargoSlots : int.MaxValue;
                     for (int i = 0; i < __instance.m_elements.Count; i++)
                     {
@@ -209,6 +233,10 @@ namespace VikingsForHire.Hirelings
                 catch (Exception e)
                 {
                     VfhLog.PatchFailed("CargoGate.UpdateGui", e);
+                }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("CargoGate.UpdateGui", vfhStarted);
                 }
             }
         }

@@ -73,6 +73,7 @@ namespace VikingsForHire.Board
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, ref bool __result)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     if (!Reject(__instance, item))
@@ -85,6 +86,10 @@ namespace VikingsForHire.Board
                     VfhLog.PatchFailed("BoardStorage.AddItem", e);
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("BoardStorage.AddItem", vfhStarted);
+                }
             }
         }
 
@@ -93,6 +98,7 @@ namespace VikingsForHire.Board
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, ref bool __result)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     if (!Reject(__instance, item))
@@ -105,6 +111,10 @@ namespace VikingsForHire.Board
                     VfhLog.PatchFailed("BoardStorage.AddItemAt", e);
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("BoardStorage.AddItemAt", vfhStarted);
+                }
             }
         }
 
@@ -113,6 +123,7 @@ namespace VikingsForHire.Board
         {
             private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, ref bool __result)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     if (!Reject(__instance, item))
@@ -125,6 +136,10 @@ namespace VikingsForHire.Board
                     VfhLog.PatchFailed("BoardStorage.MoveItemToThis", e);
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("BoardStorage.MoveItemToThis", vfhStarted);
+                }
             }
         }
 
@@ -134,6 +149,7 @@ namespace VikingsForHire.Board
         {
             private static bool Prefix(InventoryGrid __instance, ItemDrop.ItemData item, ref bool __result)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     if (!Reject(__instance.GetInventory(), item))
@@ -145,6 +161,10 @@ namespace VikingsForHire.Board
                 {
                     VfhLog.PatchFailed("BoardStorage.DropItem", e);
                     return true;
+                }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("BoardStorage.DropItem", vfhStarted);
                 }
             }
         }

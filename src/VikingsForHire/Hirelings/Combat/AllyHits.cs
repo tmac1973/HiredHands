@@ -53,6 +53,7 @@ namespace VikingsForHire.Hirelings.Combat
         {
             private static void Postfix(Character __instance, HitData hit)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     Character? attacker = hit?.GetAttacker();
@@ -66,6 +67,10 @@ namespace VikingsForHire.Hirelings.Combat
                 catch (Exception e)
                 {
                     VfhLog.PatchFailed("AllyHits.RPC_Damage", e);
+                }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("AllyHits.RPC_Damage", vfhStarted);
                 }
             }
         }

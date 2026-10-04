@@ -20,6 +20,7 @@ namespace VikingsForHire.Hirelings.Work
         {
             private static bool Prefix(HitData hit)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     return Allow(hit);
@@ -29,6 +30,10 @@ namespace VikingsForHire.Hirelings.Work
                     VfhLog.PatchFailed("HarvestPatches.Tree", e);
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("HarvestPatches.Tree", vfhStarted);
+                }
             }
         }
 
@@ -37,6 +42,7 @@ namespace VikingsForHire.Hirelings.Work
         {
             private static bool Prefix(HitData hit)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     return Allow(hit);
@@ -46,6 +52,10 @@ namespace VikingsForHire.Hirelings.Work
                     VfhLog.PatchFailed("HarvestPatches.Log", e);
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("HarvestPatches.Log", vfhStarted);
+                }
             }
         }
 
@@ -54,6 +64,7 @@ namespace VikingsForHire.Hirelings.Work
         {
             private static bool Prefix(HitData hit)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     return Allow(hit);
@@ -63,6 +74,10 @@ namespace VikingsForHire.Hirelings.Work
                     VfhLog.PatchFailed("HarvestPatches.Destructible", e);
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("HarvestPatches.Destructible", vfhStarted);
+                }
             }
         }
 
@@ -71,6 +86,7 @@ namespace VikingsForHire.Hirelings.Work
         {
             private static bool Prefix(HitData hit)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     return Allow(hit);
@@ -80,6 +96,10 @@ namespace VikingsForHire.Hirelings.Work
                     VfhLog.PatchFailed("HarvestPatches.MineRock", e);
                     return true;
                 }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("HarvestPatches.MineRock", vfhStarted);
+                }
             }
         }
 
@@ -88,6 +108,7 @@ namespace VikingsForHire.Hirelings.Work
         {
             private static bool Prefix(HitData hit)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     return Allow(hit);
@@ -96,6 +117,10 @@ namespace VikingsForHire.Hirelings.Work
                 {
                     VfhLog.PatchFailed("HarvestPatches.MineRock5", e);
                     return true;
+                }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("HarvestPatches.MineRock5", vfhStarted);
                 }
             }
         }

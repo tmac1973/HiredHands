@@ -60,11 +60,24 @@ namespace VikingsForHire.Commands
                 VfhCommand.Print($"HiredHands: marked '{text}'");
             }));
             Add(new VfhCommand("vfh_dump_data", "- print the data tables in effect (server's when connected)", false, _ => DumpData()));
-            Add(new VfhCommand("vfh_perf", "- hireling AI cost on this machine (rolling 10 s average)", false, _ =>
+            Add(new VfhCommand("vfh_perf", "- hireling AI and Harmony patch cost on this machine (rolling 10 s window)", false, _ =>
             {
-                string report = PerfCounters.Report();
+                string report = PerfCounters.Report() + "\n" + PerfCounters.PatchReport();
                 VfhCommand.Print(report);
-                VfhLog.I(LogCat.Perf, "perf.report", ("aiMsPerFrame", PerfCounters.LastAiMsPerFrame), ("text", report.Replace("\n", " |")));
+                VfhLog.I(LogCat.Perf, "perf.report", ("aiMsPerFrame", PerfCounters.LastAiMsPerFrame), ("patchMsPerSec", PerfCounters.PatchMsPerSecond), ("text", report.Replace("\n", " |")));
+            }));
+            Add(new VfhCommand("vfh_patches", "<off|on> - (diagnosis) remove or restore all of this mod's game hooks on this machine, to compare frame rate", false, args =>
+            {
+                bool on = (args.Length > 0 ? args[0] : "").Equals("on", StringComparison.OrdinalIgnoreCase);
+                Plugin.Harmony.UnpatchSelf();
+                if (on)
+                {
+                    Plugin.Harmony.PatchAll(typeof(Plugin).Assembly);
+                    Compat.CompatPatcher.Status.Clear();
+                    Compat.CompatPatcher.Apply(Plugin.Harmony);
+                }
+                VfhLog.I(LogCat.Perf, "perf.patches_toggled", ("on", on));
+                VfhCommand.Print($"HiredHands: game hooks {(on ? "restored" : "removed: the mod won't work properly until 'vfh_patches on' or a restart")}");
             }));
             Add(new VfhCommand("vfh_dump_state", "- log the session header and every loaded board and hireling", false, _ => DumpState()));
             Add(new VfhCommand("vfh_debug_throw", "- (test) throw inside a guarded command to check exception logging", true,

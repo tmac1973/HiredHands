@@ -78,6 +78,90 @@ namespace VikingsForHire.Diagnostics
             return sb.ToString();
         }
 
+        private sealed class PatchTimer
+        {
+            public long Ticks, Calls, LastTicks, LastCalls;
+            public float LastWindow;
+        }
+
+        private static readonly Dictionary<string, PatchTimer> Patches = new();
+        private static float _patchWindowStart;
+
+        /// <summary>Time spent in one of our Harmony patch bodies. Cheap: two timestamps and a dictionary hit.</summary>
+        public static void Patch(string name, long started)
+        {
+            long elapsed = Stopwatch.GetTimestamp() - started;
+            if (!Patches.TryGetValue(name, out PatchTimer t))
+                Patches[name] = t = new PatchTimer();
+            t.Ticks += elapsed;
+            t.Calls++;
+            if (Time.realtimeSinceStartup - _patchWindowStart >= Window)
+                RollPatches();
+        }
+
+        private static void RollPatches()
+        {
+            float window = Time.realtimeSinceStartup - _patchWindowStart;
+            _patchWindowStart = Time.realtimeSinceStartup;
+            foreach (PatchTimer t in Patches.Values)
+            {
+                t.LastTicks = t.Ticks;
+                t.LastCalls = t.Calls;
+                t.LastWindow = window;
+                t.Ticks = t.Calls = 0;
+            }
+        }
+
+        /// <summary>Our Harmony patches over the last 10 s window: calls per second and milliseconds per second.</summary>
+        public static string PatchReport()
+        {
+            if (Time.realtimeSinceStartup - _patchWindowStart >= Window)
+                RollPatches();
+            var rows = Patches.Where(p => p.Value.LastWindow > 0f && p.Value.LastCalls > 0)
+                .OrderByDescending(p => p.Value.LastTicks).ToList();
+            if (rows.Count == 0)
+                return "HiredHands patches: none ran in the last window";
+            double totalMsPerSec = rows.Sum(r => r.Value.LastTicks * 1000.0 / Stopwatch.Frequency / r.Value.LastWindow);
+            var sb = new StringBuilder($"HiredHands patches (last window): {totalMsPerSec:0.00} ms per second in total");
+            foreach (var r in rows)
+            {
+                double msPerSec = r.Value.LastTicks * 1000.0 / Stopwatch.Frequency / r.Value.LastWindow;
+                sb.Append($"\n  {r.Key}: {r.Value.LastCalls / r.Value.LastWindow:0} calls/s, {msPerSec:0.000} ms/s");
+            }
+            return sb.ToString();
+        }
+
+        public static double PatchMsPerSecond =>
+            Patches.Values.Where(t => t.LastWindow > 0f).Sum(t => t.LastTicks * 1000.0 / Stopwatch.Frequency / t.LastWindow);
+
+        private static float _minuteStart = -1f;
+        private static int _minuteFrames;
+        private static float _worstFrame;
+
+        /// <summary>Called every frame: once a minute logs the frame rate and what our code cost, so a slowdown report
+        /// comes with numbers without anyone typing a command.</summary>
+        public static void FrameTick()
+        {
+            if (_minuteStart < 0f)
+                _minuteStart = Time.realtimeSinceStartup;
+            _minuteFrames++;
+            if (Time.unscaledDeltaTime > _worstFrame)
+                _worstFrame = Time.unscaledDeltaTime;
+            float elapsed = Time.realtimeSinceStartup - _minuteStart;
+            if (elapsed < 60f)
+                return;
+            if (Time.realtimeSinceStartup - _patchWindowStart >= Window)
+                RollPatches();
+            string top = string.Join(",", Patches.Where(p => p.Value.LastWindow > 0f && p.Value.LastCalls > 0)
+                .OrderByDescending(p => p.Value.LastTicks).Take(3)
+                .Select(p => $"{p.Key}:{p.Value.LastCalls / p.Value.LastWindow:0}/s:{p.Value.LastTicks * 1000.0 / Stopwatch.Frequency / p.Value.LastWindow:0.00}ms/s"));
+            VfhLog.I(Core.Diagnostics.LogCat.Perf, "perf.minute", ("fps", _minuteFrames / elapsed), ("worstFrameMs", _worstFrame * 1000f),
+                ("patchMsPerSec", PatchMsPerSecond), ("aiMsPerFrame", LastAiMsPerFrame), ("topPatches", top));
+            _minuteStart = Time.realtimeSinceStartup;
+            _minuteFrames = 0;
+            _worstFrame = 0f;
+        }
+
         public static double LastAiMsPerFrame => _lastFrames == 0 || !_last.TryGetValue("ai", out Bucket ai) ? 0 : ai.Ms / _lastFrames;
     }
 }

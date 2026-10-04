@@ -20,6 +20,7 @@ namespace VikingsForHire.Hirelings.Work
         {
             private static bool Prefix(Character character, ref GameObject? __result)
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     if (!VfhConfig.MinerProtectsTerrain.Value || Hireling.Of(character) == null)
@@ -36,6 +37,10 @@ namespace VikingsForHire.Hirelings.Work
                 {
                     VfhLog.PatchFailed("TerrainProtection.SpawnOnHitTerrain", e);
                     return true;
+                }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("TerrainProtection.SpawnOnHitTerrain", vfhStarted);
                 }
             }
         }

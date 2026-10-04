@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Investigating a frame-rate drop reported on a heavily modded server: `vfh_perf` now also reports the time spent in each of the mod's game hooks, a `perf.minute` line logs frame rate and hook cost every minute, and `vfh_patches off|on` removes and restores the hooks for an A/B comparison.
+- The cargo-slot hook on inventory grids no longer loops over every slot when the grid isn't a hireling's cargo.
+- Fixes since 0.1.0: miners stand at the rock's real surface and keep at copper they can nearly reach; drops they can't reach are skipped; the "other boards nearby" check retries when an answer is lost; settings missing from an older data file use the shipped defaults.
+
 ## 0.1.0
 
 First release: base workers (milestone 1).

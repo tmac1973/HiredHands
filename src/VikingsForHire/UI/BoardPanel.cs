@@ -147,6 +147,7 @@ namespace VikingsForHire.UI
         {
             private static bool Prefix()
             {
+                long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
                     if (!IsOpen)
@@ -162,6 +163,10 @@ namespace VikingsForHire.UI
                 {
                     VfhLog.PatchFailed("BoardPanel.MenuUpdate", e);
                     return true;
+                }
+                finally
+                {
+                    VikingsForHire.Diagnostics.PerfCounters.Patch("BoardPanel.MenuUpdate", vfhStarted);
                 }
             }
         }

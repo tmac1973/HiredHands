@@ -25,7 +25,7 @@ namespace VikingsForHire
     {
         public const string Guid = "Spronglehump.HiredHands";
         public const string Name = "HiredHands";
-        public const string Version = "0.1.0";
+        public const string Version = "0.1.1";
 
         internal static ManualLogSource Log = null!;
         internal static Harmony Harmony = null!;
@@ -72,6 +72,7 @@ namespace VikingsForHire
 
         private void Update()
         {
+            PerfCounters.FrameTick();
             VfhLog.Guard(LogCat.Data, "data.tick_failed", DataStore.Tick);
             VfhLog.Guard(LogCat.Board, "upgrade.tick_failed", BoardUpgrade.Tick);
             VfhLog.Guard(LogCat.Roster, "server.tick_failed", Net.BoardServer.Tick);
