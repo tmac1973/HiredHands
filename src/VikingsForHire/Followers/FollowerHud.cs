@@ -74,10 +74,11 @@ namespace VikingsForHire.Followers
             }
             var sb = new StringBuilder();
             sb.Append(Localization.instance.Localize("$vfh_hud_header", quality.ToString(), FollowerServer.LastCount.ToString(), cap.ToString()));
-            foreach (Hireling f in StoneInput.MyFollowers(me, ListRange).OrderBy(f => f.DisplayName))
+            foreach (Hireling f in Hireling.Loaded.Where(f => f != null && f.Mode == HirelingMode.Following && f.OwnerId == me.GetPlayerID() &&
+                                                           Vector3.Distance(f.transform.position, me.transform.position) <= ListRange).OrderBy(f => f.DisplayName))
             {
                 sb.Append('\n').Append(f.DisplayName).Append(" — ")
-                    .Append(Localization.instance.Localize(f.Ai.RetreatOrdered ? "$vfh_status_retreating" : $"$vfh_mode_{f.FollowMode.ToString().ToLowerInvariant()}"))
+                    .Append(Localization.instance.Localize(f.IsStowed ? "$vfh_mode_aboard" : f.Ai.RetreatOrdered ? "$vfh_status_retreating" : $"$vfh_mode_{f.FollowMode.ToString().ToLowerInvariant()}"))
                     .Append(" — ").Append(Mathf.CeilToInt(f.Humanoid.GetHealth())).Append('/').Append(Mathf.CeilToInt(f.Humanoid.GetMaxHealth()));
                 if (f.CargoInventory != null && f.Job is JobType.Woodcutter or JobType.Miner)
                     sb.Append(" — ").Append(f.CargoInventory.NrOfItems()).Append('/').Append(f.CargoSlots);

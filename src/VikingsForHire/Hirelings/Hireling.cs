@@ -47,6 +47,9 @@ namespace VikingsForHire.Hirelings
         public JobType Job => (JobType)(Zdo?.GetInt(HirelingZdo.Job) ?? 0);
         public int Level => Mathf.Max(1, Zdo?.GetInt(HirelingZdo.Level, 1) ?? 1);
         public bool HasPost => Zdo?.GetBool(HirelingZdo.Posted) ?? false;
+        /// <summary>The ship it's aboard as a passenger (its ZDOID as "user:id"), or empty.</summary>
+        public string StowedOn => Zdo?.GetString(HirelingZdo.Stowed) ?? "";
+        public bool IsStowed => StowedOn.Length > 0;
         public Vector3 PostPos => Zdo?.GetVec3(HirelingZdo.Post, transform.position) ?? transform.position;
         public float PostYaw => Zdo?.GetFloat(HirelingZdo.PostYaw) ?? 0f;
 
@@ -227,6 +230,12 @@ namespace VikingsForHire.Hirelings
 
         private void Update()
         {
+            if (Zdo != null && Time.time >= _nextHideCheck)
+            {
+                _nextHideCheck = Time.time + 0.25f;
+                if (IsStowed != _hidden)
+                    SetHidden(IsStowed);
+            }
             if (Time.time < _nextPoll || Zdo == null)
                 return;
             _nextPoll = Time.time + PollSeconds;
@@ -256,6 +265,51 @@ namespace VikingsForHire.Hirelings
                     });
                 }
             }, ("hid", Hid));
+        }
+
+        private bool _hidden;
+        private float _nextHideCheck;
+        private readonly List<Renderer> _hiddenRenderers = new();
+        private readonly List<Collider> _hiddenColliders = new();
+
+        // A passenger is out of sight and out of reach on every client (read from the ZDO, so everyone agrees): its
+        // renderers and colliders are switched off, and back on when it steps ashore.
+        private void SetHidden(bool hide)
+        {
+            _hidden = hide;
+            if (hide)
+            {
+                _hiddenRenderers.Clear();
+                _hiddenColliders.Clear();
+                foreach (Renderer r in GetComponentsInChildren<Renderer>(true))
+                {
+                    if (r.enabled)
+                    {
+                        r.enabled = false;
+                        _hiddenRenderers.Add(r);
+                    }
+                }
+                foreach (Collider c in GetComponentsInChildren<Collider>(true))
+                {
+                    if (c.enabled)
+                    {
+                        c.enabled = false;
+                        _hiddenColliders.Add(c);
+                    }
+                }
+            }
+            else
+            {
+                foreach (Renderer r in _hiddenRenderers)
+                    if (r != null)
+                        r.enabled = true;
+                foreach (Collider c in _hiddenColliders)
+                    if (c != null)
+                        c.enabled = true;
+                _hiddenRenderers.Clear();
+                _hiddenColliders.Clear();
+            }
+            VfhLog.D(LogCat.Follow, hide ? "follow.hidden" : "follow.shown", ("hid", Hid), ("ship", StowedOn));
         }
 
         /// <summary>

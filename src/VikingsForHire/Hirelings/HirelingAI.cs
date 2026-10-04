@@ -181,6 +181,13 @@ namespace VikingsForHire.Hirelings
         {
             if (Hireling == null || !m_nview.IsValid() || !m_nview.IsOwner())
                 return false;
+            // In transit through a portal, or aboard a ship: held at a point, nothing else runs.
+            Vector3? pin = TravelPin ?? (Hireling.IsStowed ? Followers.ShipStowage.CarryPoint(Hireling) : null);
+            if (pin is Vector3 at)
+            {
+                Hold(at);
+                return true;
+            }
             _doors.CloseBehind(false);
             if (m_randomMoveUpdateTimer > 0f)
                 m_randomMoveUpdateTimer -= dt;
@@ -304,6 +311,21 @@ namespace VikingsForHire.Hirelings
                 return WalkTo(dt, point, stopDistance, run);
             _doors.Tick(point);
             return MoveAndAvoid(dt, point, stopDistance, run);
+        }
+
+        /// <summary>Set while a follower waits on the far side of a portal for its owner to arrive (TeleportTravel).</summary>
+        public Vector3? TravelPin { get; set; }
+
+        private void Hold(Vector3 at)
+        {
+            StopMoving();
+            transform.position = at;
+            if (m_body != null)
+            {
+                m_body.position = at;
+                m_body.linearVelocity = Vector3.zero;
+            }
+            Hireling.Humanoid.m_maxAirAltitude = at.y;
         }
 
         /// <summary>Forget the current route (after a teleport it leads from where the hireling used to be).</summary>

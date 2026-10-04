@@ -131,6 +131,9 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-ORDER-1 Harvest order | SP, D | `vfh_t_order1` | Open ground | `pass=true`; the order sends it to the tree, it clears it, and the order ends |
 | VFH-STONE-2 Stone by hand | SP | — | Stone in hand: left click a tree / rock / enemy / the ground with followers near; right click nothing; Shift+E a follower | Woodcutters chop, miners mine, guards attack, everyone holds at the clicked spot; right click calls them back; the Shift+E panel changes follow mode and stance (with "apply to all") |
 | VFH-POST-2 Archer on a tower | SP | — | Lead an archer up the stairs of a tower inside your board's area and left click it there | It stays on the tower, shoots from there, and only steps off for something within 6 m |
+| VFH-PORTAL-1 Portal | SP, D | `vfh_t_portal1` | Open ground, flat 60 m ahead | `pass=true`; the woodcutter comes through with its wood; with copper ore it stays behind in Stay |
+| VFH-TRAVEL-2 Ship by hand | SP, D | — | Followers near a Karve or Longship; take the helm, sail, beach, step off | They vanish aboard ("Aboard: …", the helm hover says "Passengers: n", HUD says Aboard), and step off beside you on land; break the ship at sea with passengers: they appear in the water there and swim after you |
+| VFH-TRAVEL-3 Dungeon by hand | SP, D | — | Followers (one carrying ore) at a Burial Chamber; go in and out | All come in and out with you, ore included; a second player sees them vanish and reappear, never doubled |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.

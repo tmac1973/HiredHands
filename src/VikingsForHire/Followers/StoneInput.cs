@@ -264,8 +264,9 @@ namespace VikingsForHire.Followers
             VfhLog.I(LogCat.Follow, "follow.mode", ("hid", h.Hid), ("mode", stay ? FollowMode.Stay : FollowMode.Follow));
         }
 
+        /// <summary>Your followers within range that can take orders (not passengers below deck).</summary>
         public static IEnumerable<Hireling> MyFollowers(Player me, float range) =>
-            Hireling.Loaded.Where(f => f != null && f.Mode == HirelingMode.Following && f.OwnerId == me.GetPlayerID() &&
+            Hireling.Loaded.Where(f => f != null && f.Mode == HirelingMode.Following && f.OwnerId == me.GetPlayerID() && !f.IsStowed &&
                                        Vector3.Distance(f.transform.position, me.transform.position) <= range);
 
         private static bool AtHome(Hireling h) => Utils.DistanceXZ(h.transform.position, h.Home) <= h.Radius;

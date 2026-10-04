@@ -118,9 +118,11 @@ namespace VikingsForHire.Followers
             VfhLog.D(LogCat.Follow, "follow.unstick", ("hid", ai.Hireling.Hid), ("how", how), ("stuckFor", Time.time - _stuckSince), ("pos", pos));
         }
 
-        // Only on foot, on land: boats, mounts and portals come with phase 14.
+        // Only on foot, on land, not aboard a ship: portals and ships carry followers their own way (TeleportTravel,
+        // ShipStowage).
         private static bool CanTeleport(Player owner) =>
-            owner == Player.m_localPlayer && owner.IsOnGround() && !owner.IsSwimming() && !owner.IsAttached() && !owner.IsTeleporting();
+            owner == Player.m_localPlayer && owner.IsOnGround() && !owner.IsSwimming() && !owner.IsAttached() && !owner.IsTeleporting() &&
+            owner.GetStandingOnShip() == null;
 
         // Whether the owner could see the follower right now: inside the camera's view and not hidden behind terrain or
         // buildings (checked to its head and its middle).
@@ -142,14 +144,36 @@ namespace VikingsForHire.Followers
             return false;
         }
 
-        // A spot on solid ground 5–3 m behind the owner (away from the camera's look), also out of view; tries the
-        // sides if straight behind is blocked or visible.
         private bool Teleport(HirelingAI ai, Player owner, float dist, string why)
         {
-            Camera? cam = GameCamera.instance?.m_camera;
+            if (SpotNear(owner, outOfSight: true) is not Vector3 spot)
+            {
+                VfhLog.D(LogCat.Follow, "follow.teleport_no_spot", ("hid", ai.Hireling.Hid), ("why", why), ("dist", dist));
+                return false;
+            }
+            Vector3 from = ai.transform.position;
+            Place(ai, spot, owner.transform.position);
+            Teleports++;
+            _stuckSince = -1f;
+            _unstickStep = 0;
+            _checkAt = -1f;
+            _detourUntil = 0f;
+            VfhLog.I(LogCat.Follow, "follow.teleport", ("hid", ai.Hireling.Hid), ("why", why), ("dist", dist), ("from", from), ("to", spot));
+            return true;
+        }
+
+        /// <summary>
+        /// A spot on solid ground 3–5 m behind the owner (away from the camera's look), level with them and with a clear
+        /// line to them (not through a wall into the next room); the sides if straight behind won't do. With outOfSight,
+        /// also one the owner can't see. <paramref name="slot"/> turns the search so several followers get different spots.
+        /// </summary>
+        public static Vector3? SpotNear(Player owner, bool outOfSight, int slot = 0)
+        {
+            Camera? cam = GameCamera.instance != null ? GameCamera.instance.m_camera : null;
             Vector3 back = cam != null ? -Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up).normalized : -owner.transform.forward;
+            back = Quaternion.Euler(0f, (slot % 2 == 0 ? 1f : -1f) * 30f * ((slot + 1) / 2), 0f) * back;
             Vector3 origin = owner.transform.position;
-            foreach (float angle in new[] { 0f, 40f, -40f, 80f, -80f })
+            foreach (float angle in new[] { 0f, 40f, -40f, 80f, -80f, 120f, -120f })
             {
                 Vector3 dir = Quaternion.Euler(0f, angle, 0f) * back;
                 foreach (float range in new[] { 5f, 4f, 3f })
@@ -160,24 +184,14 @@ namespace VikingsForHire.Followers
                     Vector3 spot = ground.point + Vector3.up * 0.1f;
                     if (Mathf.Abs(spot.y - origin.y) > 2.5f || ZoneSystem.instance != null && spot.y < ZoneSystem.instance.m_waterLevel - 0.3f)
                         continue;
-                    // A clear line from the owner's chest to the spot: not through a wall into the next room.
                     if (Physics.Linecast(origin + Vector3.up * 1f, spot + Vector3.up * 1f, ViewBlockMask))
                         continue;
-                    if (cam != null && Visible(cam, spot + Vector3.up * 1f))
+                    if (outOfSight && cam != null && Visible(cam, spot + Vector3.up * 1f))
                         continue;
-                    Vector3 from = ai.transform.position;
-                    Place(ai, spot, owner);
-                    Teleports++;
-                    _stuckSince = -1f;
-                    _unstickStep = 0;
-                    _checkAt = -1f;
-                    _detourUntil = 0f;
-                    VfhLog.I(LogCat.Follow, "follow.teleport", ("hid", ai.Hireling.Hid), ("why", why), ("dist", dist), ("from", from), ("to", spot));
-                    return true;
+                    return spot;
                 }
             }
-            VfhLog.D(LogCat.Follow, "follow.teleport_no_spot", ("hid", ai.Hireling.Hid), ("why", why), ("dist", dist));
-            return false;
+            return null;
         }
 
         private static bool Visible(Camera cam, Vector3 point)
@@ -187,11 +201,12 @@ namespace VikingsForHire.Followers
                    !Physics.Linecast(cam.transform.position, point, ViewBlockMask);
         }
 
-        private static void Place(HirelingAI ai, Vector3 spot, Player owner)
+        /// <summary>Puts a follower down at a spot (owner side), facing a point, with no fall damage from the move.</summary>
+        public static void Place(HirelingAI ai, Vector3 spot, Vector3 face)
         {
             Transform t = ai.transform;
             t.position = spot;
-            Vector3 look = owner.transform.position - spot;
+            Vector3 look = face - spot;
             look.y = 0f;
             if (look.sqrMagnitude > 0.01f)
                 t.rotation = Quaternion.LookRotation(look);
@@ -200,6 +215,7 @@ namespace VikingsForHire.Followers
                 body.position = spot;
                 body.linearVelocity = Vector3.zero;
             }
+            ai.Hireling.Humanoid.m_maxAirAltitude = spot.y;
             ai.Halt();
             ai.ResetPath();
             ai.Hireling.Zdo?.SetPosition(spot);

@@ -40,6 +40,9 @@ namespace VikingsForHire.Hirelings
                         // shared fight mustn't kill a worker, just as hirelings can't hurt tames.
                         if (attacker != null && attacker.IsTamed())
                             return Blocked("tame_on_hireling", target, attacker);
+                        // Passengers are below deck: nothing reaches them.
+                        if (target.IsStowed)
+                            return Blocked("stowed", target, attacker);
                         // Vanilla only applies body armor to players; hirelings get the armor of what they wear.
                         hit.ApplyArmor(target.Armor);
                         // Vanilla gives sneak attacks (x4 from monster weapons) on any creature whose AI isn't alerted, and the

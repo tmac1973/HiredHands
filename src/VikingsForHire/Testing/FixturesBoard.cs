@@ -237,7 +237,7 @@ namespace VikingsForHire.Testing
             yield return null;
         }
 
-        private static GameObject Spawn(string prefabName, Vector3 pos, Quaternion rot)
+        internal static GameObject Spawn(string prefabName, Vector3 pos, Quaternion rot)
         {
             GameObject prefab = ZNetScene.instance.GetPrefab(prefabName) ?? throw new InvalidOperationException($"no prefab {prefabName}");
             GameObject go = Object.Instantiate(prefab, pos, rot);

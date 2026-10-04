@@ -68,6 +68,7 @@ namespace VikingsForHire
             FixturesMining.Register();
             FixturesSmelter.Register();
             FixturesFollow.Register();
+            FixturesTravel.Register();
 
             SessionInfo.LogHeader("plugin load");
             Log.LogInfo($"{Name} {Version} loaded");
@@ -81,6 +82,8 @@ namespace VikingsForHire
             VfhLog.Guard(LogCat.Roster, "server.tick_failed", Net.BoardServer.Tick);
             VfhLog.Guard(LogCat.Follow, "follow.tick_failed", Net.FollowerServer.Tick);
             Followers.StoneInput.Tick();
+            VfhLog.Guard(LogCat.Follow, "travel.tick_failed", Followers.TeleportTravel.Tick);
+            VfhLog.Guard(LogCat.Follow, "ship.tick_failed", Followers.ShipStowage.Tick);
             VfhLog.Guard(LogCat.UI, "hud.tick_failed", Followers.FollowerHud.Tick);
         }
 
