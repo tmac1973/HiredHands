@@ -108,8 +108,9 @@ namespace VikingsForHire.UI
             PanelUi.Clear(_content);
             Transform t = _content;
             bool follower = h.Mode == HirelingMode.Following;
-            PanelUi.Text(t, $"{h.DisplayName} — $vfh_job_{h.Job.ToString().ToLowerInvariant()} $vfh_level {h.Level}", -40f, -45f, 360f, 22, bold: true);
-            PanelUi.Button(t, "$vfh_orders_rename", 175f, -45f, 90f, 30f, () => Rename(h));
+            // Rename sits at the left: the panel's Close button takes the top right corner.
+            PanelUi.Button(t, "$vfh_orders_rename", -190f, -45f, 90f, 30f, () => Rename(h));
+            PanelUi.Text(t, $"{h.DisplayName} — $vfh_job_{h.Job.ToString().ToLowerInvariant()} $vfh_level {h.Level}", 15f, -45f, 290f, 22, bold: true);
             float y = -100f;
 
             if (follower)
