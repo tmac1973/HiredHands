@@ -46,6 +46,10 @@ namespace VikingsForHire.Hirelings
         public string BoardId => Zdo?.GetString(HirelingZdo.BoardId) ?? "";
         public JobType Job => (JobType)(Zdo?.GetInt(HirelingZdo.Job) ?? 0);
         public int Level => Mathf.Max(1, Zdo?.GetInt(HirelingZdo.Level, 1) ?? 1);
+        public bool HasPost => Zdo?.GetBool(HirelingZdo.Posted) ?? false;
+        public Vector3 PostPos => Zdo?.GetVec3(HirelingZdo.Post, transform.position) ?? transform.position;
+        public float PostYaw => Zdo?.GetFloat(HirelingZdo.PostYaw) ?? 0f;
+
         public long OwnerId => Zdo?.GetLong(HirelingZdo.Owner) ?? 0L;
         public string OwnerName => Zdo?.GetString(HirelingZdo.OwnerName) ?? "";
         public FollowMode FollowMode => (FollowMode)(Zdo?.GetInt(HirelingZdo.FollowMode) ?? 0);
@@ -316,13 +320,18 @@ namespace VikingsForHire.Hirelings
             if (status.Length > 0)
                 sb.Append('\n').Append(status);
             string activity = Zdo?.GetString(HirelingZdo.Activity) ?? "";
-            if (activity.Length > 0 && Mode == HirelingMode.Working)
+            if (Mode == HirelingMode.Following)
+                sb.Append('\n').Append("$vfh_roster_following").Replace("$1", OwnerName).Append(" — $vfh_mode_").Append(FollowMode.ToString().ToLowerInvariant());
+            else if (HasPost)
+                sb.Append(" — $vfh_roster_posted");
+            if (activity.Length > 0 && Mode != HirelingMode.Leaving)
                 sb.Append(" — ").Append(activity);
+            sb.Append("\n$vfh_stance: $vfh_stance_").Append(Stance.ToString().ToLowerInvariant());
             sb.Append("\n$vfh_health ").Append(Mathf.CeilToInt(_humanoid.GetHealth())).Append('/').Append(Mathf.CeilToInt(_humanoid.GetMaxHealth()));
             Inventory? cargo = CargoInventory;
             if (cargo != null)
                 sb.Append("\n$vfh_cargo ").Append(cargo.NrOfItems()).Append('/').Append(CargoSlots);
-            sb.Append("\n[<color=yellow><b>$KEY_Use</b></color>] $vfh_open_cargo");
+            sb.Append("\n[<color=yellow><b>$KEY_Use</b></color>] $vfh_open_cargo   [<color=yellow><b>Shift + $KEY_Use</b></color>] $vfh_orders");
             return Localization.instance.Localize(sb.ToString());
         }
 
@@ -332,8 +341,21 @@ namespace VikingsForHire.Hirelings
                 return false;
             if (Vector3.Distance(user.transform.position, transform.position) > InteractRange)
                 return false;
-            // Base workers: whoever may use the base. Followers (phase 13) will add an owner check.
-            if (!PrivateArea.CheckAccess(transform.position))
+            if (alt)
+            {
+                UI.HirelingPanel.Open(this);
+                return true;
+            }
+            // A follower's cargo is its owner's; base workers' is for whoever may use the base.
+            if (Mode == HirelingMode.Following)
+            {
+                if (user is Player p && p.GetPlayerID() != OwnerId)
+                {
+                    p.Message(MessageHud.MessageType.Center, "$vfh_not_your_follower");
+                    return true;
+                }
+            }
+            else if (!PrivateArea.CheckAccess(transform.position))
                 return true;
             VfhLog.D(LogCat.Hireling, "cargo.open", ("hid", Hid), ("by", Player.m_localPlayer?.GetPlayerName()));
             return _cargo.Interact(user, false, false);

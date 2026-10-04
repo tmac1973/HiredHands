@@ -91,6 +91,19 @@ namespace VikingsForHire.Board
                     result = new OpResult(OpOutcome.Ok, "$vfh_op_cancelled");
                     break;
                 }
+                case RosterOpType.SetPost:
+                {
+                    OpOutcome o = roster.SetPost(op.Hid, op.Post);
+                    if (o != OpOutcome.Ok)
+                        return Done(zdo, null, boardId, op, new OpResult(o, "$vfh_op_failed"));
+                    MutationService.SubmitHireling(op.Hid, op.Post is GuardPost p
+                        ? new HirelingOp { Post = (p.X, p.Y, p.Z, p.Yaw) }
+                        : new HirelingOp { ClearPost = true });
+                    VfhLog.I(LogCat.Roster, "contract.post", ("board", boardId), ("hid", op.Hid),
+                        ("post", op.Post != null ? $"{op.Post.X:0.0},{op.Post.Y:0.0},{op.Post.Z:0.0} yaw {op.Post.Yaw:0}" : "cleared"));
+                    result = new OpResult(OpOutcome.Ok, op.Post != null ? "$vfh_post_set" : "$vfh_post_cleared");
+                    break;
+                }
                 case RosterOpType.Edit:
                 {
                     JobType editJob = roster.ByHid(op.Hid)?.Job ?? JobType.GuardMelee;

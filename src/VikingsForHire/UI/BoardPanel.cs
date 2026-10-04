@@ -150,7 +150,7 @@ namespace VikingsForHire.UI
                 long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
-                    if (!IsOpen)
+                    if (!IsOpen && !HirelingPanel.IsOpen)
                         return true;
                     if (ZInput.GetKeyDown(KeyCode.Escape) || ZInput.GetButtonDown("JoyButtonB"))
                     {

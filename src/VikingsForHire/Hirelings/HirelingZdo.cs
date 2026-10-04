@@ -16,6 +16,9 @@ namespace VikingsForHire.Hirelings
         public const string Owner = "vfh_owner";
         public const string OwnerName = "vfh_owner_name";
         public const string StayPos = "vfh_stay_pos";
+        public const string Posted = "vfh_posted";
+        public const string Post = "vfh_post";
+        public const string PostYaw = "vfh_post_yaw";
         public const string Radius = "vfh_radius";
         public const string LeavingSince = "vfh_leaving_since";
         public const string Order = "vfh_order";

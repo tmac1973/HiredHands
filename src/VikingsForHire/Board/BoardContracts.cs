@@ -42,6 +42,9 @@ namespace VikingsForHire.Board
         public static void Edit(HiringBoard board, string hid, float radius, Stance stance, Action<OpResult>? done = null) =>
             MutationService.SubmitBoard(board.Id, new RosterOp { Type = RosterOpType.Edit, Hid = hid, Radius = radius, Stance = stance }, r => Show(r, done));
 
+        public static void ClearPost(HiringBoard board, string hid, Action<OpResult>? done = null) =>
+            MutationService.SubmitBoard(board.Id, new RosterOp { Type = RosterOpType.SetPost, Hid = hid, Post = null }, r => Show(r, done));
+
         public static void Promote(HiringBoard board, string hid, int level, Action<OpResult>? done = null) =>
             MutationService.SubmitBoard(board.Id, new RosterOp { Type = RosterOpType.Promote, Hid = hid, Level = level }, r => Show(r, done));
 

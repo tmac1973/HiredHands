@@ -13,6 +13,6 @@ namespace VikingsForHire.Core
     {
         Follow = 0,
         Stay = 1,
-        GatherNearby = 2,
+        GatherHere = 2, // gatherers work around the stay spot; others hold it like Stay
     }
 }

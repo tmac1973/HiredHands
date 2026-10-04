@@ -78,3 +78,19 @@ Other mods often use G and H, so there are no new hotkeys (`CycleFollowModeKey` 
 - **E** on your own follower opens its cargo (step 5).
 - **Shift+E** (Valheim's alternate interact) on one of your hirelings (a follower, a posted guard, or a hireling of a board you have ward access to) opens a small command panel (Jotunn `GUIManager`, built like the board panel): follow mode buttons Follow / Stay / Gather Here (followers only), stance buttons for the hireling's allowed stances (saved to the roster entry too), **Release** (back to work, or the return trip in the field) and **Clear post** (posted guards), plus an "Apply to all my followers nearby" toggle (followers within 30 m). Hover text shows "[E] Cargo  [Shift+E] Orders".
 - Left/right click with the stone stay as in the control table above; right click on nothing is still the recall.
+
+## As built
+- Orders live in memory on the follower's AI (`HirelingAI.Order`, a `FieldOrder`), not in a ZDO: followers are simulated on their owner's machine, and an order is only meant to last two minutes. There's no separate `OrderBehaviour`:
+  - **Harvest** gives the gather behaviour a work area of 8 m round the target, forced to the target first; the anchor rule then takes it to the logs and stump.
+  - **Attack** makes the target win in `CombatBehaviour.Choose`.
+  - **Move and hold** is just Stay with a stay position per follower (2 m ring).
+- `FollowBehaviour` drives the job's `GatherBehaviour` while a harvest order or Gather Here has work. `HirelingAI.WorkArea` gives the gather behaviour its centre and radius in every mode (board area when working).
+- Guard posts:
+  - `ContractEntry.Post` (roster format 2; format 1 still reads) and `RosterOpType.SetPost`.
+  - Hireling ZDO keys `vfh_posted` / `vfh_post` / `vfh_post_yaw`, restored on respawn.
+  - `PostBehaviour` (priority 101) replaces patrol; `PostLeashRadius` (20 m) is the leash.
+  - Posted archers don't reposition: they shoot from the post.
+- Right click is read from the Block button in `StoneInput.Tick` (called from `Plugin.Update`); left click from `Humanoid.StartAttack`.
+- Not built in this phase:
+  - **The follower HUD list:** hover text now shows mode, stance and post, and the Shift+E panel covers the rest. It can be added later if it's missed.
+  - **The local "ping" marker at the order target:** a centre message says what was ordered instead.

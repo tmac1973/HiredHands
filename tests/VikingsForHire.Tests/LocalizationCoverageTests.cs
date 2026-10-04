@@ -48,6 +48,15 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void NoKeyIsDefinedTwice()
+        {
+            string json = File.ReadAllText(Path.Combine(RepoRoot(), "src", "VikingsForHire", "Localization", "English.json"));
+            var dupes = Regex.Matches(json, "^\\s*\"(vfh_[a-z0-9_]+)\"\\s*:", RegexOptions.Multiline)
+                .Cast<Match>().GroupBy(m => m.Groups[1].Value).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            Assert.True(dupes.Count == 0, "Defined more than once in English.json: " + string.Join(", ", dupes));
+        }
+
+        [Fact]
         public void EveryJobAndStanceHasAString()
         {
             HashSet<string> keys = EnglishKeys();

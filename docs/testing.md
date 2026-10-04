@@ -181,3 +181,12 @@ tagged, and `clear_area` removes it.
 | fixture `recruit_posted` / `release_posted` / `release_all` | The real recruit / release requests, for the hireling from your last contract |
 | check `followers` | Your follower count, as the server counts it |
 | check `craftable <quality>` | Whether that quality could be made at the nearest workbench (materials and board level) |
+
+## Phase 13
+
+| Check / fixture | |
+|---|---|
+| fixture `post_posted <side> <distance>` / `clear_post_posted` | Post the guard from your last contract next to the board (facing away) / clear it |
+| fixture `park_posted <mode> <side> <distance>` | Set that follower's follow mode, parked at a spot next to the board |
+| fixture `order_harvest_nearest` | A stone harvest order on the tree or rock nearest the board |
+| check `hireling <h> post_dist / posted / follow_mode / order` | Distance from its post, whether it has one, its follow mode, its current stone order |

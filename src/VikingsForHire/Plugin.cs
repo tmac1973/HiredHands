@@ -80,6 +80,7 @@ namespace VikingsForHire
             VfhLog.Guard(LogCat.Board, "upgrade.tick_failed", BoardUpgrade.Tick);
             VfhLog.Guard(LogCat.Roster, "server.tick_failed", Net.BoardServer.Tick);
             VfhLog.Guard(LogCat.Follow, "follow.tick_failed", Net.FollowerServer.Tick);
+            Followers.StoneInput.Tick();
         }
 
         private void OnDestroy() => VfhLog.Shutdown();

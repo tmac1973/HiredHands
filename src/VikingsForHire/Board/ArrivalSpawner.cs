@@ -30,6 +30,13 @@ namespace VikingsForHire.Board
             snap.Set(HirelingZdo.Owner, 0L); // a hireling always arrives (or comes back) as nobody's follower
             snap.Set(HirelingZdo.OwnerName, "");
             snap.Set(HirelingZdo.FollowMode, (int)FollowMode.Follow);
+            // A posted guard comes back to its post.
+            snap.Set(HirelingZdo.Posted, entry.Post != null);
+            if (entry.Post != null)
+            {
+                snap.Set(HirelingZdo.Post, new Vector3(entry.Post.X, entry.Post.Y, entry.Post.Z));
+                snap.Set(HirelingZdo.PostYaw, entry.Post.Yaw);
+            }
 
             Vector3 point = FindPoint(board, out string how);
             Quaternion facing = Quaternion.LookRotation(Vector3.ProjectOnPlane(board.transform.position - point, Vector3.up).normalized + Vector3.forward * 0.001f);

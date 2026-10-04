@@ -70,8 +70,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> RangedAttackCooldown = null!;
 
         // 6 - Controls (local). The board panel is Shift+E: Valheim's alt-interact, so it follows the game's own bindings.
-        public static ConfigEntry<KeyboardShortcut> CycleFollowModeKey = null!;
-        public static ConfigEntry<KeyboardShortcut> CycleStanceKey = null!;
+        public static ConfigEntry<float> PostLeashRadius = null!;
 
         // 7 - Debug (local)
         public static ConfigEntry<bool> LogToFile = null!;
@@ -109,6 +108,7 @@ namespace VikingsForHire.Config
             DropPileOffset = Synced(h, "DropPileOffset", 2.5f, "Distance (m) in front of the board where overflow items are dropped.");
 
             AiScanIntervalSeconds = Synced(w, "AiScanIntervalSeconds", 2f, "Seconds between a hireling's scans for work (trees, rocks, chests).");
+            PostLeashRadius = Synced("8 - Combat", "PostLeashRadius", 20f, "How far (m) a posted guard goes from its post to fight, before walking back to it.");
             ThreatScanIntervalSeconds = Synced("8 - Combat", "ThreatScanIntervalSeconds", 0.5f, "Seconds between a hireling's looks around for enemies. Lower reacts faster; being hit always triggers an immediate look.");
             HirelingsOpenDoors = Synced(w, "HirelingsOpenDoors", true, "Hirelings open doors in their way (only doors the board's owner may use under wards, never locked ones) and close them behind themselves.");
             TreeSafetyDistanceFromPieces = Synced(w, "TreeSafetyDistanceFromPieces", 6f, "Woodcutters skip trees with a player-built piece this close to the trunk (m).");
@@ -135,9 +135,6 @@ namespace VikingsForHire.Config
 
             MeleeAttackCooldown = Synced("8 - Combat", "MeleeAttackCooldown", 1.2f, "Seconds between a hireling's melee swings.");
             RangedAttackCooldown = Synced("8 - Combat", "RangedAttackCooldown", 2.5f, "Seconds between an archer's shots (at least the bow's draw time plus a beat).");
-
-            CycleFollowModeKey = config.Bind("6 - Controls", "CycleFollowModeKey", new KeyboardShortcut(UnityEngine.KeyCode.G), "With the Command Stone equipped: cycle Follow / Stay / Gather Nearby.");
-            CycleStanceKey = config.Bind("6 - Controls", "CycleStanceKey", new KeyboardShortcut(UnityEngine.KeyCode.H), "With the Command Stone equipped: cycle followers' combat stance.");
 
             LogToFile = config.Bind("7 - Debug", "LogToFile", true, "Also write log lines to BepInEx/HiredHands.log.");
             DebugCategories = config.Bind("7 - Debug", "DebugCategories", "", $"Categories logging at Debug, comma separated, or All. Categories: {string.Join(", ", System.Enum.GetNames(typeof(LogCat)))}.");

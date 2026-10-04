@@ -18,6 +18,7 @@ namespace VikingsForHire.Followers
         private const float StaySlack = 3f;
 
         private string _shown = "";
+        private bool _toldFull;
 
         public string Name => "Follow";
         public int Priority => 400;
@@ -27,9 +28,40 @@ namespace VikingsForHire.Followers
         public void Tick(HirelingAI ai, float dt)
         {
             Hireling h = ai.Hireling;
-            if (h.FollowMode == FollowMode.Stay)
+            if (ai.Order != null && ai.Order.Expired)
             {
-                Show(h, "$vfh_status_staying");
+                VfhLog.D(LogCat.Orders, "order.done", ("hid", h.Hid), ("kind", ai.Order.Kind));
+                ai.Order = null;
+            }
+
+            // Gatherers with a harvest order or parked in Gather Here work while there's something to work; the shared
+            // gather behaviour does the chopping and mining, inside the follower's work area.
+            if (ai.Gather != null && ai.WorkArea != null)
+            {
+                if (h.CargoFull)
+                {
+                    TellFull(h);
+                }
+                else
+                {
+                    _toldFull = false;
+                    if (ai.Gather.Wants(ai))
+                    {
+                        Show(h, h.Job == JobType.Miner ? "$vfh_status_mining" : "$vfh_status_chopping");
+                        ai.Gather.Tick(ai, dt);
+                        return;
+                    }
+                }
+                if (ai.Order is { Kind: FieldOrder.OrderKind.Harvest })
+                {
+                    VfhLog.D(LogCat.Orders, "order.done", ("hid", h.Hid), ("kind", "harvest"), ("why", h.CargoFull ? "cargo full" : "nothing left"));
+                    ai.Order = null;
+                }
+            }
+
+            if (h.FollowMode != FollowMode.Follow)
+            {
+                Show(h, h.CargoFull && h.FollowMode == FollowMode.GatherHere ? "$vfh_status_cargo_full" : "$vfh_status_staying");
                 Vector3 spot = h.StayPos;
                 if (Utils.DistanceXZ(ai.transform.position, spot) > StaySlack)
                     ai.WalkTo(dt, spot, 1f, run: false);
@@ -55,6 +87,17 @@ namespace VikingsForHire.Followers
                 ai.Halt();
                 ai.Face(owner.GetHeadPoint());
             }
+        }
+
+        // Tell the owner once when a parked gatherer fills up.
+        private void TellFull(Hireling h)
+        {
+            if (_toldFull)
+                return;
+            _toldFull = true;
+            if (Player.m_localPlayer != null && Player.m_localPlayer.GetPlayerID() == h.OwnerId)
+                Player.m_localPlayer.Message(MessageHud.MessageType.TopLeft, Localization.instance.Localize("$vfh_follow_cargo_full", h.DisplayName));
+            VfhLog.I(LogCat.Follow, "follow.cargo_full", ("hid", h.Hid));
         }
 
         private void Show(Hireling h, string token)

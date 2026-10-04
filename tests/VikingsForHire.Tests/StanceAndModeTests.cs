@@ -22,7 +22,7 @@ namespace VikingsForHire.Tests
             Assert.Equal(1, (int)HirelingMode.Following);
             Assert.Equal(3, (int)HirelingMode.Idle);
             Assert.Equal(4, (int)HirelingMode.Leaving);
-            Assert.Equal(2, (int)FollowMode.GatherNearby);
+            Assert.Equal(2, (int)FollowMode.GatherHere);
         }
     }
 }

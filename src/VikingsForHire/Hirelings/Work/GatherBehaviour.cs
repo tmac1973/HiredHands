@@ -39,6 +39,27 @@ namespace VikingsForHire.Hirelings.Work
         private const float PickupGiveUp = 8f;
         private const float PickupReachUp = 2.5f; // items on a rock or in a dip still count as in reach
         private Vector3? _fellDir;
+        private (Vector3 Center, float Radius) _area;
+
+        /// <summary>A stone order: work this target first (its logs and stump follow from the anchor rule).</summary>
+        public void Force(HirelingAI ai, Component target)
+        {
+            Reservations.Release(_target, ai.Hireling.Hid);
+            _pickup = null;
+            _target = target;
+            _anchor = target.transform.position;
+            _profile.Plan(target, out _fellDir, out _);
+            _approachStarted = Time.time;
+            _approachBest = float.MaxValue;
+            _rescanAt = 0f;
+            Reservations.TryReserve(target, ai.Hireling.Hid);
+        }
+
+        /// <summary>Whether this profile can harvest the target with this hireling's tool.</summary>
+        public bool CanHarvest(Component target, Hireling h) =>
+            _profile.IsValid(target, h, out _) && _profile.Plan(target, out _, out _);
+
+        public HashSet<string> PickupItems => _profile.PickupItems;
         private Collider? _lastStruck;
         private int _strikesOnIt;
 
@@ -53,8 +74,9 @@ namespace VikingsForHire.Hirelings.Work
         public bool Wants(HirelingAI ai)
         {
             Hireling h = ai.Hireling;
-            if (h.Mode != HirelingMode.Working || h.CargoFull)
+            if (ai.WorkArea == null || h.CargoFull)
                 return false;
+            _area = ai.WorkArea.Value;
             if (_pickup != null || (_target != null && _profile.IsValid(_target, h, out _)))
                 return true;
             if (Time.time < _rescanAt)
@@ -69,7 +91,7 @@ namespace VikingsForHire.Hirelings.Work
             {
                 h.NoTargets = true;
                 h.SetActivity("$vfh_status_no_targets");
-                VfhLog.I(LogCat.Work, "work.no_targets", ("hid", h.Hid), ("job", h.Job), ("radius", h.Radius), ("home", h.Home), ("skipped", why));
+                VfhLog.I(LogCat.Work, "work.no_targets", ("hid", h.Hid), ("job", h.Job), ("radius", _area.Radius), ("center", _area.Center), ("skipped", why));
             }
             _rescanAt = Time.time + RescanNoTargets;
             return false;
@@ -218,9 +240,9 @@ namespace VikingsForHire.Hirelings.Work
             bool haveAnchor = near != Vector3.zero;
             Component? best = null;
             float bestScore = float.MaxValue;
-            foreach (Component c in _profile.Candidates(h.Home, h.Radius + MaxExtraReach))
+            foreach (Component c in _profile.Candidates(_area.Center, _area.Radius + MaxExtraReach))
             {
-                if (Utils.DistanceXZ(c.transform.position, h.Home) > h.Radius + _profile.ExtraReach(c))
+                if (Utils.DistanceXZ(c.transform.position, _area.Center) > _area.Radius + _profile.ExtraReach(c))
                     continue;
                 candidates++;
                 string? skip = Reservations.IsSkipped(c) ? "skipped after a failed approach"
@@ -272,7 +294,7 @@ namespace VikingsForHire.Hirelings.Work
             {
                 if (d == null || d == exclude || _unreachableDrops.Contains(d) || d.m_itemData?.m_dropPrefab == null || !wanted.Contains(d.m_itemData.m_dropPrefab.name) || d.m_itemData.m_customData.ContainsKey(DropPile.Tag))
                     continue;
-                if ((d.transform.position - anchor).sqrMagnitude > PickupRadius * PickupRadius || Vector3.Distance(d.transform.position, h.Home) > h.Radius + MaxExtraReach + 5f)
+                if ((d.transform.position - anchor).sqrMagnitude > PickupRadius * PickupRadius || Vector3.Distance(d.transform.position, _area.Center) > _area.Radius + MaxExtraReach + 5f)
                     continue;
                 float sq = (d.transform.position - me).sqrMagnitude;
                 if (sq < bestSq)

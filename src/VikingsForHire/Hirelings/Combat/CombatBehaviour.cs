@@ -119,6 +119,22 @@ namespace VikingsForHire.Hirelings.Combat
                 Melee(ai, me, target, dist, dt);
                 return;
             }
+            // A posted archer shoots from its post: no backing off or closing in, it just waits for targets in range.
+            if (ai.Hireling.HasPost && ai.Hireling.Mode == HirelingMode.Working)
+            {
+                ai.Halt();
+                ai.Face(target.GetCenterPoint());
+                if (dist <= RangedMax + 10f && Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f))
+                {
+                    me.m_attackDrawTime = 10f;
+                    if (ai.Attack(target))
+                    {
+                        float postDraw = me.GetCurrentWeapon()?.m_shared.m_attack.m_drawDurationMin ?? 0f;
+                        Attacked(Mathf.Max(Config.VfhConfig.RangedAttackCooldown.Value, postDraw + 0.8f));
+                    }
+                }
+                return;
+            }
             if (dist < RangedMin)
             {
                 Vector3 away = (ai.transform.position - target.transform.position).normalized;
@@ -146,6 +162,10 @@ namespace VikingsForHire.Hirelings.Combat
 
         private Character? Choose(HirelingAI ai)
         {
+            // A stone order to attack something wins over the stance (guards only get such orders).
+            if (ai.Order is { Kind: Followers.FieldOrder.OrderKind.Attack } order && !order.Expired && order.Enemy != null &&
+                Vector3.Distance(order.Enemy.transform.position, ai.LeashCenter) <= ai.LeashRadius + StanceRules.LeashBeyondRadius(Stance.Aggressive))
+                return order.Enemy;
             ThreatScanner scan = ai.Threats;
             Vector3 home = ai.LeashCenter;
             float radius = ai.LeashRadius;

@@ -15,7 +15,7 @@ namespace VikingsForHire.Hirelings.Combat
         public string Name => "Patrol";
         public int Priority => 100;
 
-        public bool Wants(HirelingAI ai) => ai.Hireling.Job.IsGuard() && ai.Hireling.Mode == HirelingMode.Working;
+        public bool Wants(HirelingAI ai) => ai.Hireling.Job.IsGuard() && ai.Hireling.Mode == HirelingMode.Working && !ai.Hireling.HasPost;
 
         public void Tick(HirelingAI ai, float dt)
         {

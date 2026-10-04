@@ -11,6 +11,7 @@ namespace VikingsForHire.Core
         Dismiss = 5,
         MarkDied = 6,
         Remove = 7,
+        SetPost = 8,
     }
 
     /// <summary>A change to a board's roster, as sent over the network to whoever owns the board.</summary>
@@ -27,6 +28,8 @@ namespace VikingsForHire.Core
         public byte[] Snapshot { get; set; } = Array.Empty<byte>();
         /// <summary>Test cheat (vfh_spawn_contract): no fee and immediate arrival.</summary>
         public bool Free { get; set; }
+        /// <summary>SetPost: the post to set, or null to clear it.</summary>
+        public GuardPost? Post { get; set; }
 
         public void Write(IPackageWriter w)
         {
@@ -40,9 +43,25 @@ namespace VikingsForHire.Core
             w.Write((int)Stance);
             w.Write(Snapshot);
             w.Write(Free ? 1 : 0);
+            w.Write(Post != null ? 1 : 0);
+            if (Post != null)
+            {
+                w.Write(Post.X);
+                w.Write(Post.Y);
+                w.Write(Post.Z);
+                w.Write(Post.Yaw);
+            }
         }
 
-        public static RosterOp Read(IPackageReader r) => new()
+        public static RosterOp Read(IPackageReader r)
+        {
+            RosterOp op = ReadFields(r);
+            if (r.ReadInt() == 1)
+                op.Post = new GuardPost { X = r.ReadSingle(), Y = r.ReadSingle(), Z = r.ReadSingle(), Yaw = r.ReadSingle() };
+            return op;
+        }
+
+        private static RosterOp ReadFields(IPackageReader r) => new()
         {
             Type = (RosterOpType)r.ReadInt(),
             ContractId = r.ReadString(),
@@ -74,13 +93,17 @@ namespace VikingsForHire.Core
         public string? OwnerName { get; set; }
         public FollowMode? FollowMode { get; set; }
         public (float X, float Y, float Z)? StayPos { get; set; }
+        /// <summary>A guard post: position and facing (yaw). ClearPost removes it.</summary>
+        public (float X, float Y, float Z, float Yaw)? Post { get; set; }
+        public bool? ClearPost { get; set; }
         public bool? DeliverPending { get; set; }
 
         public void Write(IPackageWriter w)
         {
             int flags = (Mode.HasValue ? 1 : 0) | (Stance.HasValue ? 2 : 0) | (Radius.HasValue ? 4 : 0) | (Level.HasValue ? 8 : 0)
                         | (LeavingSince.HasValue ? 16 : 0) | (Status != null ? 32 : 0) | (Owner.HasValue ? 64 : 0) | (OwnerName != null ? 128 : 0)
-                        | (FollowMode.HasValue ? 256 : 0) | (StayPos.HasValue ? 512 : 0) | (DeliverPending.HasValue ? 1024 : 0);
+                        | (FollowMode.HasValue ? 256 : 0) | (StayPos.HasValue ? 512 : 0) | (DeliverPending.HasValue ? 1024 : 0)
+                        | (Post.HasValue ? 2048 : 0) | (ClearPost == true ? 4096 : 0);
             w.Write(flags);
             if (Mode.HasValue) w.Write((int)Mode.Value);
             if (Stance.HasValue) w.Write((int)Stance.Value);
@@ -98,6 +121,13 @@ namespace VikingsForHire.Core
                 w.Write(z);
             }
             if (DeliverPending.HasValue) w.Write(DeliverPending.Value ? 1 : 0);
+            if (Post is (float px, float py, float pz, float yaw))
+            {
+                w.Write(px);
+                w.Write(py);
+                w.Write(pz);
+                w.Write(yaw);
+            }
         }
 
         public static HirelingOp Read(IPackageReader r)
@@ -115,6 +145,8 @@ namespace VikingsForHire.Core
             if ((flags & 256) != 0) op.FollowMode = (FollowMode)r.ReadInt();
             if ((flags & 512) != 0) op.StayPos = (r.ReadSingle(), r.ReadSingle(), r.ReadSingle());
             if ((flags & 1024) != 0) op.DeliverPending = r.ReadInt() != 0;
+            if ((flags & 2048) != 0) op.Post = (r.ReadSingle(), r.ReadSingle(), r.ReadSingle(), r.ReadSingle());
+            if ((flags & 4096) != 0) op.ClearPost = true;
             return op;
         }
 

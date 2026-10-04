@@ -22,6 +22,10 @@ namespace VikingsForHire.Testing
             Fixtures.Add("stone_mats", "<quality> - give yourself the materials that quality needs", StoneMats);
             Fixtures.Add("recruit_posted", "- ask the server to recruit the hireling from your last contract (as the stone does)", _ => Op(FollowerServer.Kind.Recruit, Posted()));
             Fixtures.Add("release_posted", "- ask the server to send the hireling from your last contract back to work", _ => Op(FollowerServer.Kind.Release, Posted()));
+            Fixtures.Add("post_posted", "<right|back|front|left> <distance> - post the guard from your last contract at that spot next to the board, facing away from it", PostPosted);
+            Fixtures.Add("clear_post_posted", "- clear the post of the guard from your last contract", _ => Op(FollowerServer.Kind.ClearPost, Posted()));
+            Fixtures.Add("park_posted", "<GatherHere|Stay|Follow> <right|back|front|left> <distance> - set your follower's follow mode, parked at that spot next to the board", Park);
+            Fixtures.Add("order_harvest_nearest", "- give your followers a stone order to harvest the nearest tree or rock to the board", HarvestNearest);
             Fixtures.Add("release_all", "- ask the server to send every follower that's home back to work", _ => Op(FollowerServer.Kind.ReleaseAll, ""));
 
             TestHarness.RegisterCheck("followers", "- how many followers you have (server's count)",
@@ -47,6 +51,56 @@ namespace VikingsForHire.Testing
             if (hid.Length == 0)
                 throw new InvalidOperationException("no contract posted yet");
             return hid;
+        }
+
+        private static Vector3 Spot(string side, float dist, out Vector3 dir)
+        {
+            HiringBoard board = HiringBoard.Nearest(Player.m_localPlayer.transform.position, 60f) ?? throw new InvalidOperationException("no hiring board within 60m");
+            dir = side switch
+            {
+                "right" => board.transform.right,
+                "left" => -board.transform.right,
+                "back" => -board.transform.forward,
+                _ => board.transform.forward,
+            };
+            Vector3 p = board.transform.position + dir * dist;
+            p.y = ZoneSystem.instance.GetGroundHeight(p);
+            return p;
+        }
+
+        private static IEnumerator PostPosted(string[] args)
+        {
+            Vector3 p = Spot(args.ElementAtOrDefault(0) ?? "right", float.Parse(args.ElementAtOrDefault(1) ?? "10", CultureInfo.InvariantCulture), out Vector3 dir);
+            FollowerServer.Send(FollowerServer.Kind.Post, Posted(), StoneQuality(), p, Quaternion.LookRotation(dir).eulerAngles.y);
+            VfhLog.I(LogCat.Test, "fixture.post", ("hid", Posted()), ("pos", p));
+            yield return new WaitForSeconds(1f);
+        }
+
+        private static IEnumerator Park(string[] args)
+        {
+            FollowMode mode = (FollowMode)Enum.Parse(typeof(FollowMode), args.ElementAtOrDefault(0) ?? "Stay", true);
+            Vector3 p = Spot(args.ElementAtOrDefault(1) ?? "back", float.Parse(args.ElementAtOrDefault(2) ?? "20", CultureInfo.InvariantCulture), out _);
+            MutationService.SubmitHireling(Posted(), new HirelingOp { FollowMode = mode, StayPos = (p.x, p.y, p.z) });
+            VfhLog.I(LogCat.Test, "fixture.park", ("hid", Posted()), ("mode", mode), ("pos", p));
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        private static IEnumerator HarvestNearest(string[] args)
+        {
+            Hireling h = Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == Posted()) ?? throw new InvalidOperationException("posted hireling not here");
+            if (h.Ai.Gather == null)
+                throw new InvalidOperationException("that hireling doesn't gather");
+            Vector3 at = h.Home;
+            Component? target = UnityEngine.Object.FindObjectsByType<TreeBase>(FindObjectsSortMode.None).Cast<Component>()
+                .Concat(UnityEngine.Object.FindObjectsByType<MineRock5>(FindObjectsSortMode.None))
+                .Concat(UnityEngine.Object.FindObjectsByType<MineRock>(FindObjectsSortMode.None))
+                .Where(c => h.Ai.Gather.CanHarvest(c, h))
+                .OrderBy(c => Vector3.Distance(c.transform.position, at)).FirstOrDefault()
+                ?? throw new InvalidOperationException("nothing harvestable near the board");
+            h.Ai.Order = new FieldOrder { Kind = FieldOrder.OrderKind.Harvest, Target = target, Position = target.transform.position, Until = Time.time + FieldOrder.Lifetime };
+            h.Ai.Gather.Force(h.Ai, target);
+            VfhLog.I(LogCat.Test, "fixture.order_harvest", ("hid", h.Hid), ("target", target.name), ("dist", Vector3.Distance(target.transform.position, at)));
+            yield return null;
         }
 
         private static int StoneQuality() =>

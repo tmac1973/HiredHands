@@ -36,8 +36,8 @@ namespace VikingsForHire.Hirelings
             get
             {
                 if (Hireling.Mode != HirelingMode.Following)
-                    return Hireling.Home;
-                if (Hireling.FollowMode == FollowMode.Stay)
+                    return Hireling.HasPost ? Hireling.PostPos : Hireling.Home;
+                if (Hireling.FollowMode != FollowMode.Follow)
                     return Hireling.StayPos;
                 Player? owner = Player.GetPlayer(Hireling.OwnerId);
                 return owner != null ? owner.transform.position : transform.position;
@@ -45,9 +45,37 @@ namespace VikingsForHire.Hirelings
         }
 
         /// <summary>How far from LeashCenter a fight may go: the work radius at home, 30 m around the owner.</summary>
-        public float LeashRadius => Hireling.Mode == HirelingMode.Following ? FollowerLeash : Hireling.Radius;
+        public float LeashRadius => Hireling.Mode == HirelingMode.Following ? FollowerLeash
+            : Hireling.HasPost ? VfhConfig.PostLeashRadius.Value : Hireling.Radius;
 
         public const float FollowerLeash = 30f;
+
+        /// <summary>The current stone order, if any (only on the owner's machine).</summary>
+        public Followers.FieldOrder? Order { get; set; }
+
+        /// <summary>The job's gathering behaviour (woodcutters, miners), which Follow drives in the field.</summary>
+        public Work.GatherBehaviour? Gather { get; private set; }
+
+        /// <summary>
+        /// Where this hireling may gather right now: the board's area while working; around a harvest order's target;
+        /// around its parked spot in Gather Here. Null = not gathering.
+        /// </summary>
+        public (Vector3 Center, float Radius)? WorkArea
+        {
+            get
+            {
+                Hireling h = Hireling;
+                if (h.Mode == HirelingMode.Working)
+                    return (h.Home, h.Radius);
+                if (h.Mode != HirelingMode.Following)
+                    return null;
+                if (Order is { Kind: Followers.FieldOrder.OrderKind.Harvest } o && !o.Expired)
+                    return (o.Position, Followers.FieldOrder.HarvestRadius);
+                if (h.FollowMode == FollowMode.GatherHere)
+                    return (h.StayPos, VfhConfig.GatherNearbyRadius.Value);
+                return null;
+            }
+        }
 
         public Hireling Hireling { get; private set; } = null!;
 
@@ -64,10 +92,11 @@ namespace VikingsForHire.Hirelings
             Add(new IdleBehaviour());
             Add(new LeaveBehaviour());
             Add(new GuardPatrolBehaviour());
+            Add(new PostBehaviour());
             switch (hireling.Job)
             {
                 case JobType.Woodcutter:
-                    Add(new Work.GatherBehaviour(new Work.WoodcutterProfile()));
+                    Add(Gather = new Work.GatherBehaviour(new Work.WoodcutterProfile()));
                     Add(new Work.DeliverBehaviour(new Work.GathererDeliveryPolicy()));
                     break;
                 case JobType.Smelter:
@@ -75,7 +104,7 @@ namespace VikingsForHire.Hirelings
                     Add(new Work.DeliverBehaviour(new Work.SmelterDeliveryPolicy()));
                     break;
                 case JobType.Miner:
-                    Add(new Work.GatherBehaviour(new Work.MinerProfile()));
+                    Add(Gather = new Work.GatherBehaviour(new Work.MinerProfile()));
                     Add(new Work.DeliverBehaviour(new Work.GathererDeliveryPolicy()));
                     break;
                 default:

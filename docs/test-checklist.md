@@ -122,6 +122,11 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-FOLLOW-0 Following by hand | SP | — | Craft a stone at a workbench near a level 2 board; recruit a woodcutter; walk around, fight a greydwarf, walk far away; aim at it away from home | It follows within a few metres, runs to catch up, defends you, and toggles to Stay/Follow when you aim at it away from home; at home, aiming at it sends it back to work and it delivers what it carries |
 | VFH-FOLLOW-1 Owner logs out | D | — | Recruit a follower, walk far from base, log out, log back in | It stays where it was (Stay); a follower inside its board's radius goes back to work instead |
 | VFH-FOLLOW-2 Two players | D | — | Two players with quality 1 stones each recruit one | Each has their own follower; neither can take the other's |
+| VFH-POST-1 Guard post | SP, D | `vfh_t_post1` | Open ground | `pass=true`; posted guard leaves follower status, holds its post, fights there and returns; clearing the post sends it back to patrol |
+| VFH-GATHER-1 Gather Here | SP, D | `vfh_t_gather1` | Open ground | `pass=true`; parked woodcutter chops the trees by its spot, then delivers once released |
+| VFH-ORDER-1 Harvest order | SP, D | `vfh_t_order1` | Open ground | `pass=true`; the order sends it to the tree, it clears it, and the order ends |
+| VFH-STONE-2 Stone by hand | SP | — | Stone in hand: left click a tree / rock / enemy / the ground with followers near; right click nothing; Shift+E a follower | Woodcutters chop, miners mine, guards attack, everyone holds at the clicked spot; right click calls them back; the Shift+E panel changes follow mode and stance (with "apply to all") |
+| VFH-POST-2 Archer on a tower | SP | — | Lead an archer up the stairs of a tower inside your board's area and left click it there | It stays on the tower, shoots from there, and only steps off for something within 6 m |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.

@@ -23,6 +23,15 @@ namespace VikingsForHire.Core
     }
 
     /// <summary>One contract on a board: a hireling that's coming, working or on its way out.</summary>
+    /// <summary>Where a posted guard stands, and which way it faces (yaw, degrees).</summary>
+    public sealed class GuardPost
+    {
+        public float X { get; set; }
+        public float Y { get; set; }
+        public float Z { get; set; }
+        public float Yaw { get; set; }
+    }
+
     public sealed class ContractEntry
     {
         public string ContractId { get; set; } = "";
@@ -42,6 +51,8 @@ namespace VikingsForHire.Core
         public bool RespawnPending { get; set; }
         /// <summary>What was taken from the board for the hire fee ("Prefab:count;…"), so a cancel refunds exactly that.</summary>
         public string Paid { get; set; } = "";
+        /// <summary>A guard's post (phase 13): it stands guard here instead of patrolling. Null = patrol.</summary>
+        public GuardPost? Post { get; set; }
 
         public ContractEntry Clone()
         {
@@ -64,7 +75,8 @@ namespace VikingsForHire.Core
     /// </summary>
     public sealed class Roster
     {
-        public const byte FormatVersion = 1;
+        // 2: adds the guard post. Version 1 rosters (no posts) still read.
+        public const byte FormatVersion = 2;
 
         public List<ContractEntry> Entries { get; } = new();
 
@@ -114,6 +126,18 @@ namespace VikingsForHire.Core
                 return OpOutcome.BadValue;
             e.Radius = radius;
             e.Stance = stance;
+            return OpOutcome.Ok;
+        }
+
+        /// <summary>Sets (or with null clears) a guard's post. Only guards can be posted.</summary>
+        public OpOutcome SetPost(string hid, GuardPost? post)
+        {
+            ContractEntry? e = ByHid(hid);
+            if (e == null)
+                return OpOutcome.NotFound;
+            if (post != null && !e.Job.IsGuard())
+                return OpOutcome.BadValue;
+            e.Post = post;
             return OpOutcome.Ok;
         }
 
@@ -227,19 +251,27 @@ namespace VikingsForHire.Core
                 w.Write(e.Snapshot);
                 w.Write(e.RespawnPending ? 1 : 0);
                 w.Write(e.Paid);
+                w.Write(e.Post != null ? 1 : 0);
+                if (e.Post != null)
+                {
+                    w.Write(e.Post.X);
+                    w.Write(e.Post.Y);
+                    w.Write(e.Post.Z);
+                    w.Write(e.Post.Yaw);
+                }
             }
         }
 
         public static Roster Read(IPackageReader r)
         {
             byte version = r.ReadByte();
-            if (version != FormatVersion)
+            if (version != 1 && version != FormatVersion)
                 throw new NotSupportedException($"roster version {version} (this build reads {FormatVersion})");
             var roster = new Roster();
             int n = r.ReadInt();
             for (int i = 0; i < n; i++)
             {
-                roster.Entries.Add(new ContractEntry
+                var entry = new ContractEntry
                 {
                     ContractId = r.ReadString(),
                     Hid = r.ReadString(),
@@ -254,7 +286,10 @@ namespace VikingsForHire.Core
                     Snapshot = r.ReadBytes(),
                     RespawnPending = r.ReadInt() == 1,
                     Paid = r.ReadString(),
-                });
+                };
+                if (version >= 2 && r.ReadInt() == 1)
+                    entry.Post = new GuardPost { X = r.ReadSingle(), Y = r.ReadSingle(), Z = r.ReadSingle(), Yaw = r.ReadSingle() };
+                roster.Entries.Add(entry);
             }
             return roster;
         }

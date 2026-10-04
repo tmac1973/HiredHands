@@ -27,6 +27,8 @@ namespace VikingsForHire.Net
             Recruit = 1,
             Release = 2,
             ReleaseAll = 3,
+            Post = 4,
+            ClearPost = 5,
         }
 
         private const float OwnershipSeconds = 5f;
@@ -36,7 +38,10 @@ namespace VikingsForHire.Net
         public static void Register() => _rpc = NetworkManager.Instance.AddRPC("VFH_FollowerOp", OnServer, OnClient);
 
         /// <summary>Client: ask the server. <paramref name="quality"/> is the equipped stone's quality.</summary>
-        public static void Send(Kind kind, string hid, int quality)
+        public static void Send(Kind kind, string hid, int quality) => Send(kind, hid, quality, Vector3.zero, 0f);
+
+        /// <summary>Client: ask the server; <paramref name="pos"/>/<paramref name="yaw"/> are the post for Kind.Post.</summary>
+        public static void Send(Kind kind, string hid, int quality, Vector3 pos, float yaw)
         {
             if (ZNet.instance == null || Player.m_localPlayer == null)
                 return;
@@ -45,6 +50,8 @@ namespace VikingsForHire.Net
             pkg.Write(hid);
             pkg.Write(quality);
             pkg.Write(Player.m_localPlayer.GetPlayerName());
+            pkg.Write(pos);
+            pkg.Write(yaw);
             VfhLog.D(LogCat.Follow, "follow.request", ("kind", kind), ("hid", hid), ("quality", quality));
             if (ZNet.instance.IsServer())
                 VfhLog.Guard(LogCat.Follow, "follow.op_failed", () => Handle(ZDOMan.GetSessionID(), pkg));
@@ -71,6 +78,8 @@ namespace VikingsForHire.Net
             string hid = pkg.ReadString();
             int quality = pkg.ReadInt();
             string name = pkg.ReadString();
+            Vector3 pos = pkg.ReadVector3();
+            float yaw = pkg.ReadSingle();
             long pid = PlayerIdOf(sender);
             if (pid == 0L)
             {
@@ -81,6 +90,8 @@ namespace VikingsForHire.Net
             {
                 Kind.Recruit => Recruit(pid, name, hid, quality),
                 Kind.Release => Release(pid, hid),
+                Kind.Post => Post(pid, hid, pos, yaw),
+                Kind.ClearPost => ClearPost(hid),
                 _ => ReleaseAll(pid),
             };
             Reply(sender, reply);
@@ -132,6 +143,34 @@ namespace VikingsForHire.Net
                 return "$vfh_follow_too_far";
             ReleaseOne(zdo, "released");
             return Localization.instance.Localize("$vfh_follow_released", zdo.GetString(HirelingZdo.Name));
+        }
+
+        // A guard follower at home becomes a posted guard: it stops being a follower (freeing the stone slot) and
+        // guards the spot for good; the post is kept on its contract.
+        private static string Post(long pid, string hid, Vector3 pos, float yaw)
+        {
+            ZDO? zdo = WorldIndex.Hireling(hid);
+            if (zdo == null || zdo.GetLong(HirelingZdo.Owner) != pid)
+                return "$vfh_follow_not_yours";
+            if (!((JobType)zdo.GetInt(HirelingZdo.Job)).IsGuard())
+                return "$vfh_post_guards_only";
+            if (!InsideHome(zdo))
+                return "$vfh_follow_too_far";
+            string board = zdo.GetString(HirelingZdo.BoardId);
+            MutationService.SubmitBoard(board, new RosterOp { Type = RosterOpType.SetPost, Hid = hid, Post = new GuardPost { X = pos.x, Y = pos.y, Z = pos.z, Yaw = yaw } });
+            MutationService.SubmitHireling(hid, new HirelingOp { Mode = HirelingMode.Working, Owner = 0L, OwnerName = "", FollowMode = FollowMode.Follow });
+            VfhLog.I(LogCat.Follow, "follow.posted", ("player", pid), ("hid", hid), ("pos", pos), ("yaw", yaw));
+            return Localization.instance.Localize("$vfh_post_here", zdo.GetString(HirelingZdo.Name));
+        }
+
+        private static string ClearPost(string hid)
+        {
+            ZDO? zdo = WorldIndex.Hireling(hid);
+            if (zdo == null)
+                return "$vfh_follow_not_found";
+            MutationService.SubmitBoard(zdo.GetString(HirelingZdo.BoardId), new RosterOp { Type = RosterOpType.SetPost, Hid = hid, Post = null });
+            VfhLog.I(LogCat.Follow, "follow.post_cleared", ("hid", hid));
+            return Localization.instance.Localize("$vfh_post_cleared_name", zdo.GetString(HirelingZdo.Name));
         }
 
         private static string ReleaseAll(long pid)

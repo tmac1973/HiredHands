@@ -134,6 +134,39 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void PostsRoundTripAndOnlyGuardsGetThem()
+        {
+            var r = WithActive("a");
+            r.Post(Entry("g", JobType.GuardRanged, 3), 9);
+            r.Activate("g", "hg");
+            Assert.Equal(OpOutcome.BadValue, r.SetPost("ha", new GuardPost { X = 1 }));
+            Assert.Equal(OpOutcome.Ok, r.SetPost("hg", new GuardPost { X = 1.5f, Y = 2f, Z = -3f, Yaw = 90f }));
+            var w = new W();
+            r.Write(w);
+            Roster back = Roster.Read(new R(w.Stream.ToArray()));
+            Assert.Equivalent(r.Entries, back.Entries);
+            Assert.Equal(90f, back.ByHid("hg")!.Post!.Yaw);
+            Assert.Null(back.ByHid("ha")!.Post);
+            Assert.Equal(OpOutcome.Ok, back.SetPost("hg", null));
+            Assert.Null(back.ByHid("hg")!.Post);
+        }
+
+        [Fact]
+        public void VersionOneRostersStillLoad()
+        {
+            // A roster saved before guard posts existed (format 1, no post fields).
+            var w = new W();
+            w.Write((byte)1);
+            w.Write(1);
+            w.Write("c1"); w.Write("h1"); w.Write("Sigrun"); w.Write((int)JobType.GuardMelee); w.Write(2); w.Write(20f);
+            w.Write((int)Stance.Defensive); w.Write((int)ContractState.Active); w.Write(0); w.Write(10.0); w.Write(new byte[] { 1 });
+            w.Write(0); w.Write("Coins:5");
+            Roster back = Roster.Read(new R(w.Stream.ToArray()));
+            Assert.Equal("Sigrun", back.ByHid("h1")!.Name);
+            Assert.Null(back.ByHid("h1")!.Post);
+        }
+
+        [Fact]
         public void OpsRoundTrip()
         {
             var op = new RosterOp { Type = RosterOpType.Post, ContractId = "c", Hid = "h", Name = "Sigrun", Job = JobType.Miner, Level = 3, Radius = 25, Stance = Stance.Defend, Snapshot = new byte[] { 9 } };
@@ -162,6 +195,20 @@ namespace VikingsForHire.Tests
             Assert.Equal((1.5f, 2f, -3.25f), f2.StayPos);
             Assert.True(f2.DeliverPending);
             Assert.Null(f2.Stance);
+
+            var p = new HirelingOp { Post = (1f, 2f, 3f, 45f) };
+            var w4 = new W();
+            p.Write(w4);
+            Assert.Equal((1f, 2f, 3f, 45f), HirelingOp.Read(new R(w4.Stream.ToArray())).Post);
+            var c = new HirelingOp { ClearPost = true };
+            var w5 = new W();
+            c.Write(w5);
+            Assert.True(HirelingOp.Read(new R(w5.Stream.ToArray())).ClearPost);
+
+            var setPost = new RosterOp { Type = RosterOpType.SetPost, Hid = "h", Post = new GuardPost { X = 4, Y = 5, Z = 6, Yaw = 7 } };
+            var w6 = new W();
+            setPost.Write(w6);
+            Assert.Equivalent(setPost, RosterOp.Read(new R(w6.Stream.ToArray())));
         }
 
         [Fact]

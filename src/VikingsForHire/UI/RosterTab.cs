@@ -113,6 +113,8 @@ namespace VikingsForHire.UI
                 return;
             }
             PanelUi.Button(root, "$vfh_roster_dismiss", x, -465f, 200f, 34f, () => _confirmDismiss = e.ContractId);
+            if (e.Post != null)
+                PanelUi.Button(root, "$vfh_orders_clear_post", x, -505f, 280f, 34f, () => BoardContracts.ClearPost(board, e.Hid));
         }
 
         private static string Status(ContractEntry e, Hireling? live)
@@ -128,6 +130,8 @@ namespace VikingsForHire.UI
                 case ContractState.Leaving:
                     return "$vfh_status_leaving";
                 default:
+                    if (e.Post != null && (live == null || live.Mode == HirelingMode.Working))
+                        return "$vfh_roster_posted";
                     if (live != null && live.Mode == HirelingMode.Following)
                         return Localization.instance.Localize("$vfh_roster_following", live.OwnerName);
                     string status = live?.Zdo?.GetString(HirelingZdo.Status) ?? "";

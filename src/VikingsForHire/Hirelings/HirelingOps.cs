@@ -21,6 +21,13 @@ namespace VikingsForHire.Hirelings
             if (op.FollowMode.HasValue) zdo.Set(HirelingZdo.FollowMode, (int)op.FollowMode.Value);
             if (op.StayPos is (float x, float y, float z)) zdo.Set(HirelingZdo.StayPos, new UnityEngine.Vector3(x, y, z));
             if (op.DeliverPending.HasValue) zdo.Set(HirelingZdo.DeliverPending, op.DeliverPending.Value);
+            if (op.Post is (float px, float py, float pz, float yaw))
+            {
+                zdo.Set(HirelingZdo.Post, new UnityEngine.Vector3(px, py, pz));
+                zdo.Set(HirelingZdo.PostYaw, yaw);
+                zdo.Set(HirelingZdo.Posted, true);
+            }
+            if (op.ClearPost == true) zdo.Set(HirelingZdo.Posted, false);
             VfhLog.D(LogCat.Hireling, "hireling.fields", ("hid", zdo.GetString(HirelingZdo.Hid)), ("op", op.ToString()));
             return new OpResult(OpOutcome.Ok);
         }
