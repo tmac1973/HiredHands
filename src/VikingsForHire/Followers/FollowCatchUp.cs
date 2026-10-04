@@ -15,6 +15,7 @@ namespace VikingsForHire.Followers
     internal sealed class FollowCatchUp
     {
         private const float BoostBeyond = 15f;
+        private const float DoubleBoostBeyond = 25f;
         private const float StuckCheckSeconds = 2f;
         private const float StuckMoveLess = 1f;
         private const float DetourSeconds = 1.5f;
@@ -49,8 +50,9 @@ namespace VikingsForHire.Followers
         {
             Hireling h = ai.Hireling;
             Log(h, dist);
+            // The bonus matches a player at full run skill; well behind, double it so the gap closes even against that.
             if (dist > BoostBeyond)
-                ai.BoostRun(VfhConfig.FollowerCatchUpSpeedBonus.Value);
+                ai.BoostRun(VfhConfig.FollowerCatchUpSpeedBonus.Value * (dist > DoubleBoostBeyond ? 2f : 1f));
 
             bool shouldMove = dist > 6f;
             UpdateStuck(ai, shouldMove);

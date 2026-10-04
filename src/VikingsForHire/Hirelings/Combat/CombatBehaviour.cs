@@ -175,9 +175,13 @@ namespace VikingsForHire.Hirelings.Combat
             ai.LookTowards((aim.Value - from).normalized);
             if (dist <= RangedMax + 10f && Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f))
             {
-                // Player bows only reach full power when drawn; NPCs never hold the button, so draw them fully.
+                // Player bows only reach full power when drawn; NPCs never hold the button, so draw them fully. The draw
+                // is read only as the shot starts: clear it straight after, because while it's set the game counts the
+                // archer as drawing a bow, and an archer drawing a bow can't run (she jogged behind her owner for good).
                 me.m_attackDrawTime = 10f;
-                if (ai.Attack(target))
+                bool shot = ai.Attack(target);
+                me.m_attackDrawTime = 0f;
+                if (shot)
                 {
                     float draw = me.GetCurrentWeapon()?.m_shared.m_attack.m_drawDurationMin ?? 0f;
                     Attacked(Mathf.Max(Config.VfhConfig.RangedAttackCooldown.Value, draw + 0.8f));
@@ -221,7 +225,9 @@ namespace VikingsForHire.Hirelings.Combat
             }
             float gravity = projectile != null && projectile.GetComponent<Projectile>() is Projectile p ? p.m_gravity : 0f;
 
-            foreach (Vector3 point in new[] { target.GetCenterPoint(), target.GetHeadPoint() })
+            // Not every creature has a head bone (greylings don't): use its eyes, or just its middle.
+            Vector3 head = target.m_head != null ? target.GetHeadPoint() : target.m_eye != null ? target.m_eye.position : target.GetCenterPoint();
+            foreach (Vector3 point in new[] { target.GetCenterPoint(), head })
             {
                 Vector3 line = point - from;
                 if (Physics.SphereCast(from, ShotRadius, line.normalized, out _, Mathf.Max(0f, line.magnitude - 0.3f), ShotBlockMask))
