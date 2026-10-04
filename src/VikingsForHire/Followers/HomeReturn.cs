@@ -23,7 +23,33 @@ namespace VikingsForHire.Followers
     {
         private static readonly System.Random Rng = new();
 
-        /// <summary>Server: start the trip home straight on the ZDO (works in unloaded areas). Returns the trip time.</summary>
+        /// <summary>The trip time from where it is to its board.</summary>
+        public static float TripSeconds(ZDO zdo)
+        {
+            Vector3 from = zdo.GetPosition();
+            float distance = Utils.DistanceXZ(from, zdo.GetVec3(HirelingZdo.Home, from));
+            return OrphanRules.ReturnSeconds(distance, VfhConfig.Get(VfhConfig.ReturnSecondsPer100m),
+                VfhConfig.Get(VfhConfig.ReturnMinSeconds), VfhConfig.Get(VfhConfig.ReturnMaxSeconds));
+        }
+
+        /// <summary>
+        /// Server: send it home. The machine simulating it must make the change (its own updates would overwrite the
+        /// server's otherwise), so if a connected player's game owns it the order goes there; with nobody simulating it
+        /// (owner offline, area unloaded) the server changes the ZDO itself. Returns the trip time.
+        /// </summary>
+        public static float Order(ZDO zdo, string why)
+        {
+            long owner = zdo.GetOwner();
+            bool remote = owner != 0L && owner != ZDOMan.GetSessionID() && ZNet.instance.GetPeer(owner) != null;
+            if (remote)
+            {
+                FollowerServer.SendHomeOrder(owner, zdo.GetString(HirelingZdo.Hid), why);
+                return TripSeconds(zdo);
+            }
+            return Begin(zdo, why);
+        }
+
+        /// <summary>Start the trip home on the ZDO (on the machine that owns it, or the server when nobody does).</summary>
         public static float Begin(ZDO zdo, string why)
         {
             Vector3 from = zdo.GetPosition();
@@ -32,8 +58,6 @@ namespace VikingsForHire.Followers
             float seconds = OrphanRules.ReturnSeconds(distance, VfhConfig.Get(VfhConfig.ReturnSecondsPer100m),
                 VfhConfig.Get(VfhConfig.ReturnMinSeconds), VfhConfig.Get(VfhConfig.ReturnMaxSeconds));
             Vector3 at = home + Quaternion.Euler(0f, (float)Rng.NextDouble() * 360f, 0f) * Vector3.forward * 8f;
-            // Whoever is simulating it stops (it's no longer anyone's follower); a client near the board picks it up.
-            zdo.SetOwner(0L);
             zdo.Set(HirelingZdo.Mode, (int)HirelingMode.Returning);
             zdo.Set(HirelingZdo.Owner, 0L);
             zdo.Set(HirelingZdo.OwnerName, "");
@@ -43,6 +67,14 @@ namespace VikingsForHire.Followers
             zdo.Set(HirelingZdo.Status, "");
             zdo.Set(HirelingZdo.ReturnAt, (long)(ZNet.instance.GetTimeSeconds() + seconds));
             zdo.SetPosition(at);
+            if (ZNetScene.instance?.FindInstance(zdo) is ZNetView view)
+            {
+                view.transform.position = at;
+                if (view.GetComponent<Rigidbody>() is Rigidbody body)
+                    body.position = at;
+            }
+            // Last: whoever simulated it lets go (it's nobody's follower now); a client near the board picks it up.
+            zdo.SetOwner(0L);
             VfhLog.I(LogCat.Follow, "follow.returning", ("hid", zdo.GetString(HirelingZdo.Hid)), ("why", why), ("from", from),
                 ("distance", distance), ("seconds", seconds));
             return seconds;

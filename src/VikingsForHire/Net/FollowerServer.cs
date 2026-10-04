@@ -35,6 +35,7 @@ namespace VikingsForHire.Net
         private const float OwnershipSeconds = 5f;
         private static CustomRPC _rpc = null!;
         private static CustomRPC _countRpc = null!;
+        private static CustomRPC _homeRpc = null!;
 
         /// <summary>Client: the server's last answer to "how many followers do I have", for the follower HUD.</summary>
         public static int LastCount { get; private set; }
@@ -44,6 +45,39 @@ namespace VikingsForHire.Net
         {
             _rpc = NetworkManager.Instance.AddRPC("VFH_FollowerOp", OnServer, OnClient);
             _countRpc = NetworkManager.Instance.AddRPC("VFH_FollowerCount", OnCountServer, OnCountClient);
+            _homeRpc = NetworkManager.Instance.AddRPC("VFH_HomeOrder", OnHomeServer, OnHomeClient);
+        }
+
+        /// <summary>Server: tell the game simulating a follower to send it home (HomeReturn.Order).</summary>
+        public static void SendHomeOrder(long peer, string hid, string why)
+        {
+            var pkg = new ZPackage();
+            pkg.Write(hid);
+            pkg.Write(why);
+            _homeRpc.SendPackage(peer, pkg);
+        }
+
+        private static IEnumerator OnHomeServer(long sender, ZPackage pkg)
+        {
+            yield break;
+        }
+
+        // The game simulating the follower makes the change itself, so its own updates can't undo it.
+        private static IEnumerator OnHomeClient(long sender, ZPackage pkg)
+        {
+            string hid = pkg.ReadString();
+            string why = pkg.ReadString();
+            VfhLog.Guard(LogCat.Follow, "follow.home_order_failed", () =>
+            {
+                Hireling? h = Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == hid);
+                if (h?.Zdo == null)
+                {
+                    VfhLog.W(LogCat.Follow, "follow.home_order_lost", ("hid", hid), ("why", "not loaded here"));
+                    return;
+                }
+                Followers.HomeReturn.Begin(h.Zdo, why);
+            });
+            yield break;
         }
 
         /// <summary>Client: ask the server for this player's follower count (answer lands in LastCount).</summary>
@@ -214,7 +248,7 @@ namespace VikingsForHire.Net
                 ReleaseOne(zdo, "sent_home_at_home");
                 return Localization.instance.Localize("$vfh_follow_released", zdo.GetString(HirelingZdo.Name));
             }
-            float seconds = Followers.HomeReturn.Begin(zdo, "sent home");
+            float seconds = Followers.HomeReturn.Order(zdo, "sent home");
             VfhLog.I(LogCat.Follow, "follow.sent_home", ("player", pid), ("hid", hid), ("seconds", seconds));
             return Localization.instance.Localize("$vfh_follow_sent_home", zdo.GetString(HirelingZdo.Name), Minutes(seconds));
         }

@@ -75,7 +75,7 @@ namespace VikingsForHire.Net
                 if (reason == OrphanReason.None)
                     continue;
                 string name = zdo.GetString(HirelingZdo.Name);
-                float seconds = HomeReturn.Begin(zdo, reason.ToString());
+                float seconds = HomeReturn.Order(zdo, reason.ToString());
                 Tracks.Remove(hid);
                 VfhLog.I(LogCat.Follow, "follow.orphaned", ("hid", hid), ("owner", owner), ("reason", reason), ("distance", distance), ("seconds", seconds));
                 if (online)
