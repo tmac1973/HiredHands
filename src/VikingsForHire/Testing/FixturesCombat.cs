@@ -37,8 +37,11 @@ namespace VikingsForHire.Testing
 
         private static Hireling Last()
         {
-            string hid = HirelingCommands.LastSpawned.LastOrDefault() ?? BoardContracts.LastPostedHid;
-            return Hireling.Loaded.FirstOrDefault(h => h != null && h.Hid == hid) ?? throw new InvalidOperationException("the last spawned hireling isn't loaded");
+            // The last one spawned by a fixture if it's still here, else the one from your last contract.
+            string? spawned = HirelingCommands.LastSpawned.LastOrDefault();
+            return Hireling.Loaded.FirstOrDefault(h => h != null && spawned != null && h.Hid == spawned)
+                   ?? Hireling.Loaded.FirstOrDefault(h => h != null && h.Hid == BoardContracts.LastPostedHid)
+                   ?? throw new InvalidOperationException("the last spawned hireling isn't loaded");
         }
 
         private static IEnumerator Enemies(string[] args)
