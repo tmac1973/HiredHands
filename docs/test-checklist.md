@@ -208,3 +208,5 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-04 | 0105cd8 | VFH-COMBAT-5 | D | Pass | First swing about 1 s after engaging |
 | 2026-10-04 | 0105cd8 | VFH-COMBAT-1 | D | Pass | |
 | 2026-10-04 | 0105cd8 | VFH-TAME-1 | D | Pass | |
+| 2026-10-04 | 36cd584 | VFH-STONE-1 | D | Pass | |
+| 2026-10-04 | 36cd584 | VFH-RECRUIT-1 | D | Pass | |
