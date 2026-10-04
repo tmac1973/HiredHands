@@ -86,6 +86,14 @@ namespace VikingsForHire.Hirelings.Combat
 
         private void Melee(HirelingAI ai, Humanoid me, Character target, float dist, float dt)
         {
+            // Something flying out of reach overhead: wait under it rather than walk into it forever (it's dropped
+            // after the quiet time if it never comes down).
+            if (target.IsFlying() && target.transform.position.y - ai.transform.position.y > MeleeReach + 1.5f)
+            {
+                ai.Halt();
+                ai.Face(target.GetCenterPoint());
+                return;
+            }
             if (dist > MeleeReach)
             {
                 // Stop at the target's edge, not its centre: walking to within reach of a troll's centre means walking
@@ -132,7 +140,10 @@ namespace VikingsForHire.Hirelings.Combat
                 ai.WalkTo(dt, ai.transform.position + away * 5f, 1f, run: true);
                 return;
             }
-            if (!posted && dist > RangedMax)
+            // Closing in is measured along the ground: a bat or drake overhead is already as close as walking gets
+            // (measured in 3D, an archer under a high flyer kept walking and never shot).
+            float flat = Utils.DistanceXZ(target.transform.position, ai.transform.position) - target.GetRadius();
+            if (!posted && flat > RangedMax)
             {
                 ai.WalkTo(dt, target.transform.position, RangedMax * 0.8f, run: true);
                 return;
@@ -160,7 +171,7 @@ namespace VikingsForHire.Hirelings.Combat
             // the bow hand, so looking from the eyes put every arrow half a metre low, into the ground before a
             // low target.
             ai.LookTowards((aim.Value - from).normalized);
-            if ((!posted || dist <= RangedMax + 10f) && Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f))
+            if (dist <= RangedMax + 10f && Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f))
             {
                 // Player bows only reach full power when drawn; NPCs never hold the button, so draw them fully.
                 me.m_attackDrawTime = 10f;
