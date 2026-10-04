@@ -135,6 +135,7 @@ jobs:
 ## AzuAutoStore, AzuCraftyBoxes, PullMats
 
 - The board's funds and hirelings' cargo are excluded from AzuAutoStore and AzuCraftyBoxes (and so from PullMats), so they never take your hireling money or cargo.
+- With AzuCraftyBoxes, **board upgrades take their materials from nearby chests** too (your inventory first, then the chests CraftyBoxes lets you pull from within its own range of the board). The Upgrade tab counts them ("Requires (counting nearby chests)"). Turn it off for yourself with `UpgradeFromNearbyChests` in the *Hiring* section of the cfg.
 - With AzuAutoStore, stewards never collect bars: Azu stores them into a chest that already holds that bar. Seed one bar into a chest.
 
 ## Balance log (for server owners)

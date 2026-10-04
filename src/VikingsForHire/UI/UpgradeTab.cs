@@ -19,7 +19,7 @@ namespace VikingsForHire.UI
         {
             int level = board.Level;
             Inventory? inv = Player.m_localPlayer?.GetInventory();
-            string have = inv == null ? "" : string.Join(",", BoardUpgrade.Requirements(level).Select(r => r.Have(inv)));
+            string have = inv == null ? "" : string.Join(",", BoardUpgrade.Requirements(level).Select(r => r.Have(inv, board)));
             return $"{level}|{DataStore.Hash}|{have}|{BoardUpgrade.InProgress}";
         }
 
@@ -39,13 +39,13 @@ namespace VikingsForHire.UI
             PanelUi.Text(root, Localization.instance.Localize("$vfh_upgrade_to", level.ToString(), next.ToString()), 0f, -150f, 560f, 24, bold: true);
             float y = Benefits(root, rules, level, next, -195f);
 
-            PanelUi.Text(root, "$vfh_upgrade_requires", 0f, y - 10f, 560f, 20, bold: true);
+            PanelUi.Text(root, Compat.CraftyBoxesCompat.Active ? "$vfh_upgrade_requires_nearby" : "$vfh_upgrade_requires", 0f, y - 10f, 560f, 20, bold: true);
             y -= 50f;
             Inventory? inv = Player.m_localPlayer?.GetInventory();
             List<UpgradeRequirement> reqs = BoardUpgrade.Requirements(level);
             foreach (UpgradeRequirement r in reqs)
             {
-                int have = inv != null ? r.Have(inv) : 0;
+                int have = inv != null ? r.Have(inv, board) : 0;
                 PanelUi.Icon(root, r.Item.m_itemData.GetIcon(), -200f, y, 32f);
                 PanelUi.Text(root, r.Item.m_itemData.m_shared.m_name, -40f, y, 260f, 18, TextAnchor.MiddleLeft);
                 PanelUi.Text(root, $"{have}/{r.Need}", 190f, y, 120f, 18, TextAnchor.MiddleRight, have >= r.Need ? PanelUi.Good : PanelUi.Bad);
@@ -53,7 +53,7 @@ namespace VikingsForHire.UI
             }
 
             PanelUi.Text(root, "$vfh_upgrade_nonrefundable", 0f, y - 6f, 600f, 14, color: PanelUi.Dim);
-            bool canAfford = inv != null && BoardUpgrade.CanAfford(inv, reqs);
+            bool canAfford = inv != null && BoardUpgrade.CanAfford(inv, board, reqs);
             Button button = PanelUi.Button(root, BoardUpgrade.InProgress ? "$vfh_upgrade_waiting" : "$vfh_upgrade_button",
                 0f, -455f, 220f, 44f, () => BoardUpgrade.TryUpgrade(board));
             button.interactable = canAfford && !BoardUpgrade.InProgress;

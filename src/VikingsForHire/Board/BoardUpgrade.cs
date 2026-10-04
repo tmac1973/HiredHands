@@ -24,6 +24,9 @@ namespace VikingsForHire.Board
 
         public string SharedName => Item.m_itemData.m_shared.m_name;
         public int Have(Inventory inv) => inv.CountItems(SharedName);
+
+        /// <summary>The inventory plus, with AzuCraftyBoxes, the chests near the board it may pull from.</summary>
+        public int Have(Inventory inv, Component board) => Have(inv) + Compat.CraftyBoxesCompat.Count(board, SharedName, Prefab);
     }
 
     /// <summary>
@@ -75,7 +78,7 @@ namespace VikingsForHire.Board
             return list;
         }
 
-        public static bool CanAfford(Inventory inv, List<UpgradeRequirement> reqs) => reqs.All(r => r.Have(inv) >= r.Need);
+        public static bool CanAfford(Inventory inv, Component board, List<UpgradeRequirement> reqs) => reqs.All(r => r.Have(inv, board) >= r.Need);
 
         /// <summary>Called on every client in HiringBoard.Awake.</summary>
         public static void RegisterRpcs(HiringBoard board, ZNetView nview)
@@ -104,22 +107,29 @@ namespace VikingsForHire.Board
                 return Finish("max");
             List<UpgradeRequirement> reqs = Requirements(level);
             Inventory inv = player.GetInventory();
-            if (!CanAfford(inv, reqs))
+            if (!CanAfford(inv, board, reqs))
                 return Finish("missing");
 
             var pending = new Pending
             {
                 Id = _nextId++, Board = board.Zdo.m_uid, BoardId = board.Id, FromLevel = level, SentAt = Time.realtimeSinceStartup,
             };
+            var fromChests = new List<string>();
             foreach (UpgradeRequirement r in reqs)
             {
-                inv.RemoveItem(r.SharedName, r.Need);
-                pending.Paid.Add((r.Item.gameObject, r.Need));
+                // The inventory first, the rest from nearby chests (AzuCraftyBoxes). A refund always goes to the player.
+                int own = Mathf.Min(r.Need, r.Have(inv));
+                if (own > 0)
+                    inv.RemoveItem(r.SharedName, own);
+                int chests = own < r.Need ? Compat.CraftyBoxesCompat.Take(board, r.SharedName, r.Prefab, r.Need - own) : 0;
+                if (chests > 0)
+                    fromChests.Add($"{r.Prefab}x{chests}");
+                pending.Paid.Add((r.Item.gameObject, own + chests));
             }
             _pending = pending;
             LastResult = "sent";
             VfhLog.I(LogCat.Board, "upgrade.requested", ("board", board.Id), ("from", level), ("id", pending.Id),
-                ("paid", string.Join(" ", reqs.Select(r => $"{r.Prefab}x{r.Need}"))));
+                ("paid", string.Join(" ", reqs.Select(r => $"{r.Prefab}x{r.Need}"))), ("from_chests", string.Join(" ", fromChests)));
 
             // When this machine owns the board (single-player, host) the owner's handler and its reply run inside this
             // call, so everything above must already be in place, and nothing after it may overwrite the outcome.
