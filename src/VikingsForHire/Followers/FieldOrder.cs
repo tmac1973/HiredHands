@@ -37,11 +37,19 @@ namespace VikingsForHire.Followers
             Kind = OrderKind.Harvest, Target = target, Position = target.transform.position, Until = Time.time + Lifetime, Allowed = Remains(target),
         };
 
-        public bool Allows(Component c) => Allowed == null || c == Target || Allowed.Contains(Utils.GetPrefabName(c.gameObject));
+        public bool Allows(Component c) => Allowed == null || c == Target || Allowed.Contains(PrefabOf(c));
+
+        // The prefab of the world object a component belongs to. A broken copper deposit's MineRock5 sits on a child
+        // object ("___MineRock5 m_meshFilter"), so the component's own object name doesn't say what it is.
+        private static string PrefabOf(Component c)
+        {
+            ZNetView? view = c.GetComponentInParent<ZNetView>();
+            return Utils.GetPrefabName(view != null ? view.gameObject : c.gameObject);
+        }
 
         private static HashSet<string> Remains(Component target)
         {
-            var names = new HashSet<string> { Utils.GetPrefabName(target.gameObject) };
+            var names = new HashSet<string> { PrefabOf(target) };
             switch (target)
             {
                 case TreeBase tree:
