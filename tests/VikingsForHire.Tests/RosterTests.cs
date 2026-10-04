@@ -167,6 +167,38 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void RenameChangesTheContractName()
+        {
+            Roster r = WithActive("a");
+            Assert.Equal(OpOutcome.Ok, r.Rename("ha", "Bjorn the Bold"));
+            Assert.Equal("Bjorn the Bold", r.ByHid("ha")!.Name);
+            Assert.Equal(OpOutcome.BadValue, r.Rename("ha", ""));
+            Assert.Equal(OpOutcome.NotFound, r.Rename("nobody", "X"));
+        }
+
+        [Theory]
+        [InlineData("  Bjorn  ", "Bjorn")]
+        [InlineData("Bjorn   the\tBold", "Bjorn the Bold")]
+        [InlineData("<color=red>Red</color>", "color=redRed/color")]
+        [InlineData("   ", "")]
+        [InlineData(null, "")]
+        [InlineData("Abcdefghijklmnopqrstuvwxyz", "Abcdefghijklmnopqrstuvwx")]
+        [InlineData("Twentythree characters x", "Twentythree characters x")]
+        public void NamesAreCleaned(string? raw, string expected) =>
+            Assert.Equal(expected, HirelingNames.Clean(raw));
+
+        [Fact]
+        public void RenameOpRoundTrips()
+        {
+            var op = new HirelingOp { Name = "Astrid" };
+            var w = new W();
+            op.Write(w);
+            HirelingOp back = HirelingOp.Read(new R(w.Stream.ToArray()));
+            Assert.Equal("Astrid", back.Name);
+            Assert.Null(back.Mode);
+        }
+
+        [Fact]
         public void OpsRoundTrip()
         {
             var op = new RosterOp { Type = RosterOpType.Post, ContractId = "c", Hid = "h", Name = "Sigrun", Job = JobType.Miner, Level = 3, Radius = 25, Stance = Stance.Defend, Snapshot = new byte[] { 9 } };

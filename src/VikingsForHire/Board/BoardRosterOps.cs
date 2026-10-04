@@ -116,6 +116,17 @@ namespace VikingsForHire.Board
                     result = new OpResult(OpOutcome.Ok, "$vfh_op_edited");
                     break;
                 }
+                case RosterOpType.Rename:
+                {
+                    string name = HirelingNames.Clean(op.Name);
+                    OpOutcome o = roster.Rename(op.Hid, name);
+                    if (o != OpOutcome.Ok)
+                        return Done(zdo, null, boardId, op, new OpResult(o, "$vfh_op_failed"));
+                    MutationService.SubmitHireling(op.Hid, new HirelingOp { Name = name });
+                    VfhLog.I(LogCat.Roster, "contract.renamed", ("board", boardId), ("hid", op.Hid), ("name", name));
+                    result = new OpResult(OpOutcome.Ok);
+                    break;
+                }
                 case RosterOpType.Promote:
                 {
                     ContractEntry? e = roster.ByHid(op.Hid);

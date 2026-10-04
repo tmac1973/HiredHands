@@ -293,6 +293,9 @@ namespace VikingsForHire.Hirelings
             if (Time.time < _nextPoll || Zdo == null)
                 return;
             _nextPoll = Time.time + PollSeconds;
+            // A rename reaches everyone through the ZDO; the health bar and hover read Character.m_name.
+            if (DisplayName.Length > 0 && _humanoid.m_name != DisplayName)
+                _humanoid.m_name = DisplayName;
             VfhLog.Guard(LogCat.Hireling, "hireling.tick_failed", () =>
             {
                 if (Job != _gearJob || Level != _gearLevel)

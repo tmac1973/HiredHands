@@ -62,6 +62,40 @@ namespace VikingsForHire.Core
         }
     }
 
+    /// <summary>What a player may name a hireling.</summary>
+    public static class HirelingNames
+    {
+        public const int MaxLength = 24;
+
+        /// <summary>
+        /// Trimmed, inner whitespace collapsed, no markup brackets (names show in rich-text UI), at most MaxLength
+        /// characters. Empty when nothing usable is left.
+        /// </summary>
+        public static string Clean(string? raw)
+        {
+            if (raw == null)
+                return "";
+            var sb = new System.Text.StringBuilder();
+            bool space = false;
+            foreach (char c in raw.Trim())
+            {
+                if (char.IsWhiteSpace(c))
+                {
+                    space = true;
+                    continue;
+                }
+                if (c == '<' || c == '>' || char.IsControl(c))
+                    continue;
+                if (space && sb.Length > 0)
+                    sb.Append(' ');
+                space = false;
+                sb.Append(c);
+            }
+            string name = sb.ToString();
+            return name.Length > MaxLength ? name.Substring(0, MaxLength).TrimEnd() : name;
+        }
+    }
+
     public sealed class UpkeepResult
     {
         public List<string> Paid { get; } = new();
@@ -126,6 +160,18 @@ namespace VikingsForHire.Core
                 return OpOutcome.BadValue;
             e.Radius = radius;
             e.Stance = stance;
+            return OpOutcome.Ok;
+        }
+
+        /// <summary>Gives a contract's hireling a new name (already cleaned with <see cref="HirelingNames.Clean"/>).</summary>
+        public OpOutcome Rename(string hid, string name)
+        {
+            ContractEntry? e = ByHid(hid);
+            if (e == null)
+                return OpOutcome.NotFound;
+            if (name.Length == 0)
+                return OpOutcome.BadValue;
+            e.Name = name;
             return OpOutcome.Ok;
         }
 

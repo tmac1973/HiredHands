@@ -28,6 +28,7 @@ namespace VikingsForHire.Hirelings
                 zdo.Set(HirelingZdo.Posted, true);
             }
             if (op.ClearPost == true) zdo.Set(HirelingZdo.Posted, false);
+            if (op.Name != null) zdo.Set(HirelingZdo.Name, op.Name);
             VfhLog.D(LogCat.Hireling, "hireling.fields", ("hid", zdo.GetString(HirelingZdo.Hid)), ("op", op.ToString()));
             return new OpResult(OpOutcome.Ok);
         }

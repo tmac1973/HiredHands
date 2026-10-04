@@ -15,7 +15,8 @@ namespace VikingsForHire.UI
     /// <summary>
     /// Shift+E on a hireling: its orders. Followers: follow mode (Follow / Stay / Gather Here). Everyone you may give
     /// orders to: stance (saved on its contract). Release a follower at home, or clear a posted guard's post. With
-    /// "Apply to all my followers nearby" a change goes to every follower of yours within 30 m.
+    /// "Apply to all my followers nearby" a change goes to every follower of yours within 30 m. Rename opens the vanilla
+    /// text box.
     /// </summary>
     internal sealed class HirelingPanel : MonoBehaviour
     {
@@ -95,7 +96,7 @@ namespace VikingsForHire.UI
             if (Time.unscaledTime < _nextRefresh)
                 return;
             _nextRefresh = Time.unscaledTime + 0.3f;
-            string signature = $"{h.Mode}|{h.FollowMode}|{h.Stance}|{h.HasPost}|{_all}";
+            string signature = $"{h.Mode}|{h.FollowMode}|{h.Stance}|{h.HasPost}|{_all}|{h.DisplayName}";
             if (signature == _shown)
                 return;
             _shown = signature;
@@ -107,7 +108,8 @@ namespace VikingsForHire.UI
             PanelUi.Clear(_content);
             Transform t = _content;
             bool follower = h.Mode == HirelingMode.Following;
-            PanelUi.Text(t, $"{h.DisplayName} — $vfh_job_{h.Job.ToString().ToLowerInvariant()} $vfh_level {h.Level}", 0f, -45f, 440f, 22, bold: true);
+            PanelUi.Text(t, $"{h.DisplayName} — $vfh_job_{h.Job.ToString().ToLowerInvariant()} $vfh_level {h.Level}", -40f, -45f, 360f, 22, bold: true);
+            PanelUi.Button(t, "$vfh_orders_rename", 175f, -45f, 90f, 30f, () => Rename(h));
             float y = -100f;
 
             if (follower)
@@ -188,6 +190,42 @@ namespace VikingsForHire.UI
                     continue;
                 MutationService.SubmitBoard(f.BoardId, new RosterOp { Type = RosterOpType.Edit, Hid = f.Hid, Radius = f.Radius, Stance = stance });
                 VfhLog.I(LogCat.Follow, "follow.stance", ("hid", f.Hid), ("stance", stance), ("via", "panel"));
+            }
+        }
+
+        // The vanilla text box (as for signs): the name goes on the contract, which renames the hireling too, so it
+        // keeps the name when it comes back after dying. A hireling without a board is renamed directly.
+        private void Rename(Hireling h)
+        {
+            Close("rename");
+            TextInput.instance.RequestText(new RenameReceiver(h), "$vfh_rename_topic", HirelingNames.MaxLength);
+        }
+
+        private sealed class RenameReceiver : TextReceiver
+        {
+            private readonly Hireling _h;
+            private readonly string _hid;
+            private readonly string _boardId;
+
+            public RenameReceiver(Hireling h)
+            {
+                _h = h;
+                _hid = h.Hid;
+                _boardId = h.BoardId;
+            }
+
+            public string GetText() => _h != null ? _h.DisplayName : "";
+
+            public void SetText(string text)
+            {
+                string name = HirelingNames.Clean(text);
+                if (name.Length == 0)
+                    return;
+                if (_boardId.Length > 0)
+                    MutationService.SubmitBoard(_boardId, new RosterOp { Type = RosterOpType.Rename, Hid = _hid, Name = name });
+                else
+                    MutationService.SubmitHireling(_hid, new HirelingOp { Name = name });
+                VfhLog.I(LogCat.UI, "hireling.rename", ("hid", _hid), ("name", name));
             }
         }
 

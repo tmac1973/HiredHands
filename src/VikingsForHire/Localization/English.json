@@ -32,6 +32,8 @@
   "vfh_post_guards_only": "Only guards can be posted",
   "vfh_post_outside": "A post has to be inside its board's area",
   "vfh_order_recall": "$1 followers: follow me",
+  "vfh_orders_rename": "Rename",
+  "vfh_rename_topic": "Name this hireling",
   "vfh_ship_aboard": "Aboard: $1",
   "vfh_ship_ashore": "$1 followers came ashore with you",
   "vfh_ship_passengers": "Passengers: $1",
