@@ -15,7 +15,8 @@ namespace VikingsForHire.Followers
     /// The Command Stone in hand. Left click acts on what you're looking at:
     ///   a board's hireling → recruit it; your follower at home → post it here (guards) or back to work (workers);
     ///   your follower in the field → toggle Follow / Stay; a tree or log → your woodcutters harvest it; a rock →
-    ///   your miners mine it; an enemy → your guards attack it; the ground → your followers move there and hold.
+    ///   your miners mine it; an enemy → your guards attack it; the ground → your followers move there and hold (guards
+    ///   at home are posted there instead).
     /// Right click: on your follower or a posted guard → release it (back to work / clear the post); on nothing →
     /// recall every follower within 50 m to follow you. Both act once per press.
     /// </summary>
@@ -170,7 +171,7 @@ namespace VikingsForHire.Followers
             else if (enemy != null && enemy != me && Hireling.Of(enemy) == null && BaseAI.IsEnemy(me, enemy))
                 Attack(near, enemy);
             else
-                MoveHold(near, hit.point);
+                MoveHold(me, near, hit.point);
         }
 
         private static void Harvest(List<Hireling> near, JobType job, Component target, string done, string none)
@@ -203,17 +204,28 @@ namespace VikingsForHire.Followers
             Say(n == 0 ? "$vfh_order_no_guard" : Localization.instance.Localize("$vfh_order_attack", n.ToString()));
         }
 
-        // Move there and hold: each follower gets its own slot on a 2 m ring round the point, then stays.
-        private static void MoveHold(List<Hireling> near, Vector3 point)
+        // Move there and hold: each follower gets its own slot on a 2 m ring round the point, then stays. At home a
+        // guard is posted at its slot instead (facing the way you face): pointing a guard at a spot in your base means
+        // "guard this", and a plain hold there kept it on the stone as a follower.
+        private static void MoveHold(Player me, List<Hireling> near, Vector3 point)
         {
+            int posted = 0;
             for (int i = 0; i < near.Count; i++)
             {
+                Hireling f = near[i];
                 Vector3 slot = near.Count == 1 ? point : point + Quaternion.Euler(0f, 360f * i / near.Count, 0f) * Vector3.forward * 2f;
-                near[i].Ai.Order = null;
-                MutationService.SubmitHireling(near[i].Hid, new HirelingOp { FollowMode = FollowMode.Stay, StayPos = (slot.x, slot.y, slot.z) });
+                f.Ai.Order = null;
+                if (f.Job.IsGuard() && Utils.DistanceXZ(slot, f.Home) <= f.Radius)
+                {
+                    FollowerServer.Send(FollowerServer.Kind.Post, f.Hid, Quality, slot, me.transform.eulerAngles.y);
+                    posted++;
+                    continue;
+                }
+                MutationService.SubmitHireling(f.Hid, new HirelingOp { FollowMode = FollowMode.Stay, StayPos = (slot.x, slot.y, slot.z) });
             }
-            VfhLog.I(LogCat.Orders, "order.move", ("point", point), ("followers", near.Count));
-            Say(Localization.instance.Localize("$vfh_order_move", near.Count.ToString()));
+            VfhLog.I(LogCat.Orders, "order.move", ("point", point), ("followers", near.Count), ("posted", posted));
+            if (posted < near.Count)
+                Say(Localization.instance.Localize("$vfh_order_move", (near.Count - posted).ToString()));
         }
 
         // Away from home, aiming at your follower switches it between following you and holding its spot.

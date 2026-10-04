@@ -94,3 +94,4 @@ Other mods often use G and H, so there are no new hotkeys (`CycleFollowModeKey` 
 - The follower HUD came after the first round of play: `FollowerHud` shows `followers n/cap` (count from the server via `VFH_FollowerCount`) and each nearby follower's mode, health and (gatherers) cargo while the stone is in hand.
 - Not built in this phase:
   - **The local "ping" marker at the order target:** a centre message says what was ordered instead.
+- A ground click at home posts guard followers at that spot (facing your way) instead of holding them there, so they leave the stone's count. Workers and anything outside home still move and hold. Posted guards watch all round, and archers only shoot when the line from the bow to the target is clear.
