@@ -18,6 +18,14 @@ namespace VikingsForHire.Followers
         private const float StaySlack = 3f;
 
         private string _shown = "";
+        // Hold spot handling: walk all the way to a new spot (height included, so it climbs the last stairs), and only
+        // once there use the slack, so a nudge in a fight doesn't send it shuffling back and forth.
+        private Vector3 _holdSpot = new(float.NaN, 0f, 0f);
+        private bool _arrived;
+        private float _bestHoldDist = float.MaxValue;
+        private float _holdProgressAt;
+        private const float ArriveDistance = 0.6f;
+        private const float HoldStuckSeconds = 8f;
         private bool _toldFull;
 
         public string Name => "Follow";
@@ -62,11 +70,7 @@ namespace VikingsForHire.Followers
             if (h.FollowMode != FollowMode.Follow)
             {
                 Show(h, h.CargoFull && h.FollowMode == FollowMode.GatherHere ? "$vfh_status_cargo_full" : "$vfh_status_staying");
-                Vector3 spot = h.StayPos;
-                if (Utils.DistanceXZ(ai.transform.position, spot) > StaySlack)
-                    ai.WalkTo(dt, spot, 1f, run: false);
-                else
-                    ai.Halt();
+                Hold(ai, h.StayPos, dt);
                 return;
             }
 
@@ -87,6 +91,51 @@ namespace VikingsForHire.Followers
                 ai.Halt();
                 ai.Face(owner.GetHeadPoint());
             }
+        }
+
+        private void Hold(HirelingAI ai, Vector3 spot, float dt)
+        {
+            if ((spot - _holdSpot).sqrMagnitude > 0.01f)
+            {
+                _holdSpot = spot;
+                _arrived = false;
+                _bestHoldDist = float.MaxValue;
+                _holdProgressAt = Time.time;
+            }
+            float dist = Vector3.Distance(ai.transform.position, spot);
+            if (!_arrived)
+            {
+                if (dist <= ArriveDistance)
+                {
+                    _arrived = true;
+                }
+                else
+                {
+                    if (dist < _bestHoldDist - 0.2f)
+                    {
+                        _bestHoldDist = dist;
+                        _holdProgressAt = Time.time;
+                    }
+                    if (Time.time - _holdProgressAt > HoldStuckSeconds)
+                    {
+                        _arrived = true; // as close as it can get: hold here
+                        VfhLog.D(LogCat.Follow, "follow.hold_short", ("hid", ai.Hireling.Hid), ("missedBy", dist));
+                    }
+                    else
+                    {
+                        ai.WalkTo(dt, spot, ArriveDistance * 0.5f, run: dist > RunBeyond);
+                        return;
+                    }
+                }
+            }
+            if (Utils.DistanceXZ(ai.transform.position, spot) > StaySlack)
+            {
+                _arrived = false; // pushed off it: walk back all the way
+                _holdProgressAt = Time.time;
+                _bestHoldDist = float.MaxValue;
+                return;
+            }
+            ai.Halt();
         }
 
         // Tell the owner once when a parked gatherer fills up.
