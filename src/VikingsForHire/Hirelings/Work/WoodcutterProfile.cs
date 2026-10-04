@@ -165,6 +165,8 @@ namespace VikingsForHire.Hirelings.Work
 
         public float WorkReach => 3f;
 
+        public bool GiveUpOnPart(Component target, Collider part) => false;
+
         public Collider? Aim(Component target, Vector3 from, out Vector3 point)
         {
             if (target is TreeLog)

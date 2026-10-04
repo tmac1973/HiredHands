@@ -73,7 +73,7 @@ namespace VikingsForHire.Hirelings.Work
         {
             fellDir = null;
             reason = "";
-            if (!Areas(target).Any(Workable))
+            if (!Areas(target).Any(c => Workable(c) && !IsBad(c)))
             {
                 reason = "only buried or out-of-reach chunks left";
                 return false;
@@ -99,11 +99,32 @@ namespace VikingsForHire.Hirelings.Work
         // a miner can't get within a pickaxe's length. A long reach beats leaving the ore behind.
         public float WorkReach => 4.5f;
 
+        // Chunks of a deposit this miner couldn't reach or break, until when. A deposit is one target made of many
+        // chunks; giving up on the whole deposit for one buried chunk left plenty of surface copper unmined.
+        private readonly Dictionary<Collider, float> _badParts = new();
+        private const float BadPartSeconds = 120f;
+
+        public bool GiveUpOnPart(Component target, Collider part)
+        {
+            _badParts[part] = Time.time + BadPartSeconds;
+            return Areas(target).Any(c => Workable(c) && !IsBad(c));
+        }
+
+        private bool IsBad(Collider c)
+        {
+            if (!_badParts.TryGetValue(c, out float until))
+                return false;
+            if (Time.time < until)
+                return true;
+            _badParts.Remove(c);
+            return false;
+        }
+
         public Collider? Aim(Component target, Vector3 from, out Vector3 point)
         {
             Collider? best = null;
             float bestSq = float.MaxValue;
-            foreach (Collider c in Areas(target).Where(Workable))
+            foreach (Collider c in Areas(target).Where(c => Workable(c) && !IsBad(c)))
             {
                 float sq = (c.bounds.ClosestPoint(from) - from).sqrMagnitude;
                 if (sq < bestSq)

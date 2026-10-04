@@ -67,6 +67,8 @@ namespace VikingsForHire.Hirelings.Work
 
         public GatherBehaviour(IGatherProfile profile) => _profile = profile;
 
+        private Collider? _aimPart;
+
         public string Name => "Gather";
         public int Priority => 200;
 
@@ -117,7 +119,8 @@ namespace VikingsForHire.Hirelings.Work
             }
 
             h.SetActivity(_profile.Status);
-            if (_profile.Aim(_target, ai.transform.position, out Vector3 at) == null)
+            _aimPart = _profile.Aim(_target, ai.transform.position, out Vector3 at);
+            if (_aimPart == null)
             {
                 VfhLog.T(LogCat.Work, "work.target_done", ("hid", h.Hid), ("reason", "nothing left to hit"));
                 Reservations.Release(_target, h.Hid);
@@ -149,6 +152,14 @@ namespace VikingsForHire.Hirelings.Work
                 {
                     inPlace = true;
                     VfhLog.T(LogCat.Work, "work.from_here", ("hid", h.Hid), ("target", _target.name), ("toAim", toAim));
+                }
+                else if (Time.time - _approachStarted > ApproachGiveUp && _aimPart != null && _profile.GiveUpOnPart(_target, _aimPart))
+                {
+                    // Just this chunk: the rest of the deposit is still there to work.
+                    VfhLog.D(LogCat.Work, "work.part_unreachable", ("hid", h.Hid), ("target", _target.name), ("part", _aimPart.name), ("toAim", toAim));
+                    _approachStarted = Time.time;
+                    _approachBest = float.MaxValue;
+                    return;
                 }
                 else if (Time.time - _approachStarted > ApproachGiveUp)
                 {
@@ -203,6 +214,13 @@ namespace VikingsForHire.Hirelings.Work
             }
             _strikesOnIt = col == _lastStruck ? _strikesOnIt + 1 : 1;
             _lastStruck = col;
+            if (_strikesOnIt > MaxStrikesOnOnePart && _profile.GiveUpOnPart(target, col))
+            {
+                VfhLog.D(LogCat.Work, "work.part_not_breaking", ("hid", h.Hid), ("target", target.name), ("part", col.name), ("strikes", _strikesOnIt));
+                _lastStruck = null;
+                _strikesOnIt = 0;
+                return;
+            }
             if (_strikesOnIt > MaxStrikesOnOnePart)
             {
                 VfhLog.I(LogCat.Work, "work.hits_not_landing", ("hid", h.Hid), ("target", target.name), ("part", col.name),

@@ -44,6 +44,12 @@ namespace VikingsForHire.Hirelings.Work
         /// </summary>
         float WorkReach { get; }
 
+        /// <summary>
+        /// One part of the target (a chunk of a deposit) can't be reached or won't break: leave that part alone for a
+        /// while. True when the target still has other parts to work, so only the part is given up, not the target.
+        /// </summary>
+        bool GiveUpOnPart(Component target, Collider part);
+
         /// <summary>Damage for one swing of the hireling's tool (chop or pickaxe).</summary>
         HitData.DamageTypes SwingDamage(HitData.DamageTypes toolDamage, float gatherMult);
 
