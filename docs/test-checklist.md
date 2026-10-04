@@ -133,6 +133,7 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-POST-2 Archer on a tower | SP | — | Lead an archer up the stairs of a tower inside your board's area and left click it there | It stays on the tower, shoots from there, and only steps off for something within 6 m |
 | VFH-PORTAL-1 Portal | SP, D | `vfh_t_portal1` | Open ground, flat 60 m ahead | `pass=true`; the woodcutter comes through with its wood; with copper ore it stays behind in Stay |
 | VFH-TRAVEL-2 Ship by hand | SP, D | — | Followers near a Karve or Longship; take the helm, sail, beach, step off | They vanish aboard ("Aboard: …", the helm hover says "Passengers: n", HUD says Aboard), and step off beside you on land; break the ship at sea with passengers: they appear in the water there and swim after you |
+| VFH-TRAVEL-4 Two crews | D | — | Two players, each with followers, on one ship: A takes the helm, B stands on deck; sail off; A lands first, B lands later somewhere else | Both players' followers board (B's once the ship is moving); hover shows everyone as passengers; each player's followers step off only when their own player is ashore |
 | VFH-TRAVEL-3 Dungeon by hand | SP, D | — | Followers (one carrying ore) at a Burial Chamber; go in and out | All come in and out with you, ore included; a second player sees them vanish and reappear, never doubled |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
