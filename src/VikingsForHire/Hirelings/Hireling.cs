@@ -272,8 +272,28 @@ namespace VikingsForHire.Hirelings
                 VfhLog.I(LogCat.Hireling, "hireling.died", ("hid", Hid), ("board", BoardId), ("name", DisplayName), ("job", Job), ("level", Level), ("cargoStacks", dropped),
                     ("lastHitBy", LastHitBy), ("lastHitDamage", LastHitDamage));
                 if (BoardId.Length > 0 && Mode != HirelingMode.Leaving)
+                {
                     Net.MutationService.SubmitBoard(BoardId, new RosterOp { Type = RosterOpType.MarkDied, Hid = Hid, Name = DisplayName });
+                    AnnounceDeath();
+                }
             }, ("hid", Hid));
+        }
+
+        // Said here, on the machine simulating the hireling (where it died), not by the board: the board's change may be
+        // applied on a dedicated server with nobody to show it to, and a follower dies far from its board. Followers run
+        // on their owner's machine, so the owner always hears; at the base, whoever is within 50 m does.
+        private void AnnounceDeath()
+        {
+            Player me = Player.m_localPlayer;
+            if (me == null)
+                return;
+            bool mine = Mode == HirelingMode.Following && OwnerId == me.GetPlayerID();
+            if (!mine && Vector3.Distance(me.transform.position, transform.position) > 50f)
+                return;
+            string text = $"{DisplayName} {(Config.VfhConfig.PermadeathEnabled.Value ? "$vfh_msg_died" : "$vfh_msg_died_respawn")}";
+            me.Message(MessageHud.MessageType.Center, Localization.instance.Localize(text));
+            if (mine)
+                me.Message(MessageHud.MessageType.TopLeft, Localization.instance.Localize(text));
         }
 
         /// <summary>

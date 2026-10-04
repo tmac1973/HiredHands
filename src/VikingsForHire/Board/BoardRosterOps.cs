@@ -152,7 +152,6 @@ namespace VikingsForHire.Board
                     if (o != OpOutcome.Ok)
                         return Done(zdo, null, boardId, op, new OpResult(o));
                     VfhLog.I(LogCat.Roster, "contract.died", ("board", boardId), ("hid", op.Hid), ("name", name), ("permadeath", permadeath));
-                    TellNearby(zdo.GetPosition(), permadeath ? $"{name} $vfh_msg_died" : $"{name} $vfh_msg_died_respawn");
                     result = new OpResult(OpOutcome.Ok);
                     break;
                 }
@@ -176,14 +175,6 @@ namespace VikingsForHire.Board
             {
                 Mode = HirelingMode.Leaving, LeavingSince = (long)ZNet.instance.GetTimeSeconds(), Status = status,
             });
-
-        public static void TellNearby(Vector3 pos, string message)
-        {
-            var players = new List<Player>();
-            Player.GetPlayersInRange(pos, 50f, players);
-            foreach (Player p in players)
-                p.Message(MessageHud.MessageType.Center, message);
-        }
 
         private static OpResult Done(ZDO zdo, Roster? roster, string boardId, RosterOp op, OpResult result)
         {
