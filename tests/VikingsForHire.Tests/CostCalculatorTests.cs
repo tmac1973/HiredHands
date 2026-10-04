@@ -23,8 +23,8 @@ namespace VikingsForHire.Tests
         {
             // L2 guard: 250 * 1.3 = 325 food, 50 * 1.3 = 65 coins.
             Assert.Equal(new Cost(325, 65), Calc().HireCost(JobType.GuardMelee, 2));
-            // L3 miner upkeep: 90 * 1.1 = 99, 10 * 1.1 = 11.
-            Assert.Equal(new Cost(99, 11), Calc().DailyUpkeep(JobType.Miner, 3));
+            // L3 miner upkeep: 90 * 1.1 = 99 food, and no coins (upkeep is food only by default).
+            Assert.Equal(new Cost(99, 0), Calc().DailyUpkeep(JobType.Miner, 3));
         }
 
         [Fact]

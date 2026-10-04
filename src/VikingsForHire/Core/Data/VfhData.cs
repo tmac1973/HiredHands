@@ -67,6 +67,7 @@ namespace VikingsForHire.Core.Data
         public int HireFood { get; set; }
         public int HireCoins { get; set; }
         public int UpkeepFood { get; set; }
+        [YamlMember(Description = "Coins a day. 0 by default: coins are a one-time cost (hire, promotion, respawn), upkeep is food.")]
         public int UpkeepCoins { get; set; }
     }
 
