@@ -38,6 +38,12 @@ namespace VikingsForHire.Hirelings.Work
         /// <summary>How close to stand while working on it.</summary>
         float StandOff(Component target);
 
+        /// <summary>
+        /// How far from the aim point it may still be worked when it can't get any closer (the rest of a rock, or the
+        /// ground, in the way). Hits are applied directly, so this is about how it looks, not whether the hit lands.
+        /// </summary>
+        float WorkReach { get; }
+
         /// <summary>Damage for one swing of the hireling's tool (chop or pickaxe).</summary>
         HitData.DamageTypes SwingDamage(HitData.DamageTypes toolDamage, float gatherMult);
 

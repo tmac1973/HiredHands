@@ -95,6 +95,10 @@ namespace VikingsForHire.Hirelings.Work
 
         public float ExtraReach(Component target) => 0f;
 
+        // Copper deposits are big and lumpy: the last chunks often sit in a hollow or under an overhang of the rest, where
+        // a miner can't get within a pickaxe's length. A long reach beats leaving the ore behind.
+        public float WorkReach => 4.5f;
+
         public Collider? Aim(Component target, Vector3 from, out Vector3 point)
         {
             Collider? best = null;
