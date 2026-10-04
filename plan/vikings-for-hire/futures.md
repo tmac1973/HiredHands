@@ -87,3 +87,14 @@ A per-contract setting for how well a hireling is fed: more food points per day 
 - **Running short:** if the board can't pay the chosen plan, drop to the best plan it can pay that day (with a message and a roster note), and only count the day unpaid when even Normal can't be paid. A hireling never leaves because Gourmet ran out.
 - **Show it:** hover and roster show the plan (and the buff), and the HUD follower lines could show it for followers, since that's where the extra health matters most.
 - **Balance check:** compare a level 1 hireling on Gourmet with a level 2 on Normal. The meal plan shouldn't make levelling pointless, so the buff should stay well under the gap between two levels (about +50% health per level today).
+
+## Low funds warning
+Tell players before a board runs dry, not after hirelings start going unpaid (today the first sign is "unpaid (1/2)" on a hireling, a day before it quits).
+- **How long the funds last:** the board already knows its daily upkeep (the sum over its active contracts) and its funds, so it can work out "days left", separately for food points and for coins, since either can run out first.
+- **Where it shows:**
+  - The board's hover: "Funds: food for 3 days, coins for 1 day", in orange below a threshold and red at the last day.
+  - The Manage panel (Roster or a Funds line at the top), with the same numbers and the daily cost.
+  - A message when it crosses the threshold, once per in-game day at most: to players near the board, and to the players who posted its contracts wherever they are (they may be out exploring with followers). For example: "The hiring board at Home has food for 1 more day."
+- **Settings:** `LowFundsWarnDays` (default 2) for when the warning starts, and an on/off switch for the messages (the hover and panel always show the days left).
+- **Multiplayer:** the server runs upkeep for unloaded boards, so the check sits beside the upkeep code and the message goes out the way follower messages do (`FollowerServer.Tell`). Which player to tell comes from each contract's poster, which would need recording on the contract (it isn't stored today).
+- **Nice to have:** a map pin or a marker on the board while it's low, and a "fill from my inventory" button in the Funds panel that tops it up with your cheapest food.
