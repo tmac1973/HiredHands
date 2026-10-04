@@ -1,4 +1,4 @@
-# Vikings for Hire — Future ideas
+# Hired Hands — Future ideas
 
 Ideas for after the 16-phase plan. None of these are scheduled. Each needs its own planning pass before it's built.
 
@@ -54,6 +54,7 @@ Support roles unlocked at higher board levels, since magic belongs to the later 
 - **Wizard:** a ranged magic guard using the Mistlands staves (fire/ice/lightning) as its gear, with eitr standing in for ammo in the same way archers have endless arrows. Strong against groups but fragile up close.
 - Both need gear and animations that suit NPCs; staves are player items like bows, so the same "fully drawn" trick may be needed.
 - Gate them by board level (e.g. healer from L5, wizard from L7) and price them high.
+- I use therzie mods quite often which includes earlier magic options and at least one healing option I think.. we could offer healers/wizards only if the therzie magic mod is installed and use it's assets/spells along with the vanilla ones to offer earlier level hirelings. Maybe still offer late game wizards without the therzie mod too. Healers would be really cool!
 
 ## Scout
 A hireling sent out to find things and report back, instead of the player wandering the map.
@@ -63,14 +64,16 @@ A hireling sent out to find things and report back, instead of the player wander
 - **Risk and level:** it can be hurt or killed on the way (a chance based on biome danger vs. its level), so higher levels scout further and more dangerous biomes and survive more often. Its fee and upkeep would reflect that.
 - **Multiplayer:** whose map gets the pins (the player who sent it, or everyone sharing the board).
 - **Balance:** long cooldowns and costs so it doesn't replace exploring, and no finding things a player couldn't (e.g. respect the vanilla "location must be discovered" rules for things like the trader, or only reveal coarse areas).
-
+- Not sure how this would work given the server doesn't process areas that don't have a player in it. would have to look into that. 
+- 
 ## Guard posts (stand watch instead of patrolling)
 Let guards and archers hold a chosen spot instead of walking the work radius.
 - **Setting the spot:** a small "guard post" build piece (or a marker placed from the board) that a guard is assigned to in the Roster tab; or, with the Command Stone, aim at a spot and order "stand watch here".
 - **Behaviour:** stand at the post facing outward (or the way the post faces), engage by stance as usual, then walk back to the post after a fight. Archers would suit walls and towers: a post on a rampart gives them height and cover.
 - **Options per guard:** Patrol (current behaviour) or Watch post, chosen in the Roster tab.
 - **Several posts per board** so a wall can be manned at the gate and the corners.
-
+- we already put something like this in place....
+- 
 ## Meal plans (pay more food for stronger hirelings)
 A per-contract setting for how well a hireling is fed: more food points per day buys a modest buff, the way better food buffs the player.
 - **Three plans:** Normal meal (today's upkeep, no buff), Hearty meal, Gourmet meal. Chosen per contract (Contracts/Roster tab, and the Shift+E panel), with an "apply to all" option like stances.

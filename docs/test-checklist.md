@@ -229,3 +229,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-04 | 9077d08 | VFH-RETREAT-2 | D | Pass | Middle click pulled followers out of a fight and they ran with the player |
 | 2026-10-04 | 3055b7e | VFH-CATCHUP-1 | D | Pass | Follower stranded 50 m behind out of view teleported to just behind the player within about 1 s |
 | 2026-10-04 | 08f3860 | VFH-LAG-1 | D | Pass | Woodcutter, ~300 m sprint with god mode and run skill 100: 1 teleport (was 9 before the chase fix); judged by teleports, the lag check was dropped |
+| 2026-10-04 | 2af8c96 | VFH-PORTAL-1 | D | Pass | Woodcutter came through the portal with its wood; carrying copper ore it stayed behind in Stay with the message |
