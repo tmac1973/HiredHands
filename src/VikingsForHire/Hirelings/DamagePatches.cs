@@ -65,6 +65,7 @@ namespace VikingsForHire.Hirelings
 
                     float mult = DamageMultiplier(from!);
                     hit.m_damage.Modify(mult);
+                    Telemetry.BalanceFights.Dealt(from!, __instance, hit.GetTotalDamage());
                     VfhLog.T(LogCat.Combat, "hireling.attack", ("hid", from!.Hid), ("target", __instance.m_name), ("mult", mult),
                         ("damage", hit.GetTotalDamage()));
                     return true;

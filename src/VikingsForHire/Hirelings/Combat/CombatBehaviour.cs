@@ -50,6 +50,7 @@ namespace VikingsForHire.Hirelings.Combat
             if (pick == null || (pick == _ignored && Time.time < _ignoredUntil))
                 return false;
             _target = pick;
+            Telemetry.BalanceFights.Start(ai.Hireling, pick);
             _lastAction = Time.time;
             _engagedAt = Time.time;
             VfhLog.D(LogCat.Combat, "combat.engage", ("hid", ai.Hireling.Hid), ("target", pick.m_name), ("stance", ai.Stance),
@@ -271,6 +272,7 @@ namespace VikingsForHire.Hirelings.Combat
             if (_target != null)
             {
                 VfhLog.D(LogCat.Combat, "combat.disengage", ("hid", ai.Hireling.Hid), ("target", _target.m_name), ("reason", reason));
+                Telemetry.BalanceFights.End(ai.Hireling, reason);
                 if (reason == "quiet or leashed" && ThreatScanner.Alive(_target))
                 {
                     _ignored = _target;

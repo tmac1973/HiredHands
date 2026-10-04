@@ -152,6 +152,7 @@ namespace VikingsForHire.Hirelings
                 Threats.OnDamaged(attacker);
                 _combat.OnHit();
                 RetreatHit();
+                Telemetry.BalanceFights.Taken(Hireling, damage);
                 VfhLog.D(LogCat.Combat, "hireling.damaged", ("hid", Hireling.Hid), ("by", attacker != null ? attacker.m_name : "none"), ("damage", damage),
                     ("health", Hireling.Humanoid.GetHealth()));
             };

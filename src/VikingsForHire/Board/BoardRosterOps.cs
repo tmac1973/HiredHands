@@ -75,6 +75,8 @@ namespace VikingsForHire.Board
                         Paid = paid,
                     };
                     roster.Post(entry, int.MaxValue);
+                    Telemetry.BalanceLog.Record("hire", ("board", boardId.Length > 4 ? boardId.Substring(0, 4) : boardId), ("boardLvl", boardLevel),
+                        ("job", entry.Job), ("lvl", entry.Level), ("paid", paid), ("free", op.Free));
                     VfhLog.I(LogCat.Roster, "contract.posted", ("board", boardId), ("contract", entry.ContractId), ("hid", entry.Hid), ("name", entry.Name),
                         ("job", entry.Job), ("level", entry.Level), ("radius", entry.Radius), ("paid", paid), ("arriveIn", entry.ArriveAt - now), ("free", op.Free));
                     result = new OpResult(OpOutcome.Ok, $"{entry.Name} ($vfh_job_{entry.Job.ToString().ToLowerInvariant()}) $vfh_op_posted");

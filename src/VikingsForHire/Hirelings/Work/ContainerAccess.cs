@@ -54,6 +54,9 @@ namespace VikingsForHire.Hirelings.Work
                 if (tagged.Length > 0)
                     DepositedByTag[tagged + "|" + prefab] = Deposited(tagged, prefab) + moved;
             }
+            if (moved > 0 && Telemetry.BalanceLog.On && Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == hid) is Hireling who)
+                Telemetry.BalanceLog.Record("deliver", ("hid", Telemetry.BalanceFights.Short(hid)), ("job", who.Job), ("lvl", who.Level),
+                    ("item", prefab), ("n", moved), ("biome", Telemetry.BalanceFights.Biome(who.transform.position)));
             VfhLog.I(LogCat.Deliver, "deliver.deposit", ("hid", hid), ("chest", Utils.GetPrefabName(chest.m_rootObjectOverride != null ? chest.m_rootObjectOverride.gameObject : chest.gameObject)),
                 ("pos", chest.transform.position), ("tag", chest.m_nview != null && chest.m_nview.GetZDO() != null ? chest.m_nview.GetZDO().GetString("vfh_tag") : ""), ("item", prefab), ("asked", amount), ("moved", moved));
             return moved;

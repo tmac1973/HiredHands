@@ -394,6 +394,7 @@ namespace VikingsForHire.Hirelings
             VfhLog.Guard(LogCat.Hireling, "hireling.death_failed", () =>
             {
                 int dropped = CargoInventory != null ? Work.DropPile.DropAll(CargoInventory, transform.position + Vector3.up * 0.5f, "died", Hid) : 0;
+                Telemetry.BalanceFights.Died(this, LastHitBy, LastHitDamage);
                 VfhLog.I(LogCat.Hireling, "hireling.died", ("hid", Hid), ("board", BoardId), ("name", DisplayName), ("job", Job), ("level", Level), ("cargoStacks", dropped),
                     ("lastHitBy", LastHitBy), ("lastHitDamage", LastHitDamage));
                 if (BoardId.Length > 0 && Mode != HirelingMode.Leaving)

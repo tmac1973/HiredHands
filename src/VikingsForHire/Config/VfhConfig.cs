@@ -62,6 +62,8 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> OrphanStayDistance = null!;
         public static ConfigEntry<float> OrphanStaySeconds = null!;
         public static ConfigEntry<float> OrphanOfflineSeconds = null!;
+        public static ConfigEntry<bool> BalanceLog = null!;
+        public static ConfigEntry<int> BalanceLogMaxMB = null!;
         public static ConfigEntry<float> ReturnSecondsPer100m = null!;
         public static ConfigEntry<float> ReturnMinSeconds = null!;
         public static ConfigEntry<float> ReturnMaxSeconds = null!;
@@ -142,6 +144,9 @@ namespace VikingsForHire.Config
             ReturnMinSeconds = Synced(f, "ReturnMinSeconds", 60f, "Shortest return-home trip.");
             ReturnMaxSeconds = Synced(f, "ReturnMaxSeconds", 1200f, "Longest return-home trip.");
             StoneBoardSearchRadius = Synced(f, "StoneBoardSearchRadius", 30f, "Radius (m) around the workbench searched for a hiring board when crafting a Command Stone.");
+
+            BalanceLog = Synced("9 - Balance log", "BalanceLog", false, "Record how hirelings fight and work (each fight, death, delivery and upkeep day) to BepInEx/HiredHands/balance/*.jsonl on the server, for tuning the mod. Off by default. Set it on the server: every player's game then sends its summaries there once a minute.");
+            BalanceLogMaxMB = _file.Bind("9 - Balance log", "BalanceLogMaxMB", 20, "Server: total size (MB) of the balance log files kept; the oldest days are deleted beyond it.");
 
             MeleeAttackCooldown = Synced("8 - Combat", "MeleeAttackCooldown", 1.2f, "Seconds between a hireling's melee swings.");
             RangedAttackCooldown = Synced("8 - Combat", "RangedAttackCooldown", 2.5f, "Seconds between an archer's shots (at least the bow's draw time plus a beat).");
