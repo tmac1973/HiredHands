@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.2 (unreleased)
+## 0.2.2
 
 - **Posts for gatherers.** A woodcutter or miner with "Works at home" off can be posted on a spot at home like a guard (with the stone: click it, or the ground, at home while it's following you), so it stands there instead of wandering about the base and getting in the way. Gatherers that do work at home go back to their post when they run out of work. Clear a post with a right click or the Shift+E panel.
 - **Followers sneak when you do.** Crouch and your followers within 15 m crouch too: they move at crouch speed, make no footstep noise and are harder for monsters to see. A follower further behind runs to catch up first; a fight or a retreat stands them up.
