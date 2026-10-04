@@ -179,7 +179,9 @@ namespace VikingsForHire.Followers
                 foreach (float range in new[] { 5f, 4f, 3f })
                 {
                     Vector3 probe = origin + dir * range;
-                    if (!Physics.Raycast(probe + Vector3.up * 4f, Vector3.down, out RaycastHit ground, 8f, GroundMask))
+                    // From chest height down, not from high above: indoors (dungeons, houses) a ray from above lands on the
+                    // ceiling or the roof.
+                    if (!Physics.Raycast(probe + Vector3.up * 1.5f, Vector3.down, out RaycastHit ground, 4.5f, GroundMask))
                         continue;
                     Vector3 spot = ground.point + Vector3.up * 0.1f;
                     if (Mathf.Abs(spot.y - origin.y) > 2.5f || ZoneSystem.instance != null && spot.y < ZoneSystem.instance.m_waterLevel - 0.3f)

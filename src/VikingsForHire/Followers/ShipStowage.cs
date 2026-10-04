@@ -84,7 +84,7 @@ namespace VikingsForHire.Followers
                 Hireling f = stowed[i];
                 string ship = f.StowedOn;
                 f.Zdo!.Set(HirelingZdo.Stowed, "");
-                Vector3 spot = FollowCatchUp.SpotNear(me, outOfSight: false, slot: i) ?? me.transform.position - me.transform.forward * 2f;
+                Vector3 spot = FollowCatchUp.SpotNear(me, outOfSight: false, slot: i) ?? me.transform.position;
                 FollowCatchUp.Place(f.Ai, spot, me.transform.position);
                 if (f.FollowMode != FollowMode.Follow)
                     MutationService.SubmitHireling(f.Hid, new HirelingOp { FollowMode = FollowMode.Follow });

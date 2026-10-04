@@ -110,7 +110,7 @@ namespace VikingsForHire.Followers
                 if (h != null && h.IsOwner)
                 {
                     h.Ai.TravelPin = null;
-                    Vector3 spot = FollowCatchUp.SpotNear(me, outOfSight: false, slot: i) ?? me.transform.position - me.transform.forward * 2f;
+                    Vector3 spot = FollowCatchUp.SpotNear(me, outOfSight: false, slot: i) ?? me.transform.position;
                     FollowCatchUp.Place(h.Ai, spot, me.transform.position);
                     Travelers.RemoveAt(i);
                     VfhLog.I(LogCat.Follow, "follow.travel_end", ("hid", t.Hid), ("pos", spot));

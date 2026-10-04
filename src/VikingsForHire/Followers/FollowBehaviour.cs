@@ -94,7 +94,7 @@ namespace VikingsForHire.Followers
                 return;
             }
             Show(h, retreat ? "$vfh_status_retreating" : "$vfh_status_following");
-            float dist = Utils.DistanceXZ(ai.transform.position, owner.transform.position);
+            float dist = OwnerDistance(ai.transform.position, owner.transform.position);
             if (_catchUp.Tick(ai, owner, dist, dt))
                 return;
             if (dist > FollowDistance)
@@ -105,6 +105,11 @@ namespace VikingsForHire.Followers
                 ai.Face(owner.GetHeadPoint());
             }
         }
+
+        // Along the ground, unless far apart in height: a dungeon's inside is 5000 m above its entrance, and a follower
+        // left in there measured along the ground thought it was right next to its owner outside.
+        private static float OwnerDistance(Vector3 me, Vector3 owner) =>
+            Mathf.Abs(me.y - owner.y) > 10f ? Vector3.Distance(me, owner) : Utils.DistanceXZ(me, owner);
 
         private void Hold(HirelingAI ai, Vector3 spot, float dt)
         {

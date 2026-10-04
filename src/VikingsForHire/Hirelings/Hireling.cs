@@ -161,22 +161,24 @@ namespace VikingsForHire.Hirelings
         {
             if (!Job.IsGuard())
                 return;
-            ItemDrop.ItemData? right = _humanoid.GetRightItem();
-            bool ok = Job == JobType.GuardRanged
-                ? _sidearmOut ? right != null : right != null && right.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Bow
-                : right != null;
+            // The weapon the game would use: right hand, else a bow in the left hand (bows are held left).
+            ItemDrop.ItemData? current = _humanoid.GetCurrentWeapon();
+            bool unarmed = current == null || _humanoid.m_unarmedWeapon != null && current == _humanoid.m_unarmedWeapon.m_itemData;
+            bool ok = Job == JobType.GuardRanged && !_sidearmOut
+                ? !unarmed && current!.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Bow
+                : !unarmed;
             if (ok)
                 return;
             ItemDrop.ItemData? weapon = Job == JobType.GuardRanged && !_sidearmOut
                 ? _humanoid.GetInventory().GetAllItems().FirstOrDefault(i => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Bow)
                 : _humanoid.GetInventory().GetAllItems().FirstOrDefault(i => i.IsWeapon() && i.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Bow);
             string before = GearApplier.Describe(_humanoid);
-            if (weapon != null)
-                _humanoid.EquipItem(weapon, false);
-            else
+            bool equipped = weapon != null && _humanoid.EquipItem(weapon, false);
+            if (!equipped)
                 GearApplier.Regear(_humanoid, Job, Level);
-            VfhLog.W(LogCat.Combat, "weapon.restored", ("hid", Hid), ("had", GearApplier.Name(right)), ("gearBefore", before),
-                ("now", GearApplier.Describe(_humanoid)), ("sidearmOut", _sidearmOut), ("stowed", IsStowed), ("how", weapon != null ? "re-equipped" : "regeared"));
+            VfhLog.W(LogCat.Combat, "weapon.restored", ("hid", Hid), ("had", unarmed ? "nothing" : GearApplier.Name(current)), ("gearBefore", before),
+                ("now", GearApplier.Describe(_humanoid)), ("sidearmOut", _sidearmOut), ("weaponDurability", weapon?.m_durability ?? -1f),
+                ("how", equipped ? "re-equipped" : "regeared"));
         }
 
         public float Radius => Zdo?.GetFloat(HirelingZdo.Radius, 20f) ?? 20f;
