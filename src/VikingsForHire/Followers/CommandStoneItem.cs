@@ -25,6 +25,7 @@ namespace VikingsForHire.Followers
         public const string PrefabName = "VFH_CommandStone";
         private const string BasePrefab = "Club";     // a one-handed item with a hand attachment and animations
         private const string LookPrefab = "Crystal";  // whose mesh and icon it borrows
+        private const float StoneScale = 0.35f;       // relative to the club part it replaces
 
         private static CustomItem? _item;
         private static readonly HashSet<Piece.Requirement> OurRequirements = new();
@@ -87,8 +88,16 @@ namespace VikingsForHire.Followers
             MeshRenderer? srcRenderer = srcMesh != null ? srcMesh.GetComponent<MeshRenderer>() : null;
             if (srcMesh == null || srcRenderer == null)
                 return;
+            VfhLog.I(LogCat.Follow, "stone.look", ("crystalMesh", srcMesh.sharedMesh.bounds.size),
+                ("clubParts", string.Join(";", prefab.GetComponentsInChildren<MeshFilter>(true).Select(m => $"{m.name}:{(m.sharedMesh != null ? m.sharedMesh.bounds.size.ToString() : "none")}@{m.transform.localScale}"))));
+            float newSize = Mathf.Max(srcMesh.sharedMesh.bounds.size.x, srcMesh.sharedMesh.bounds.size.y, srcMesh.sharedMesh.bounds.size.z);
             foreach (MeshFilter mf in prefab.GetComponentsInChildren<MeshFilter>(true))
             {
+                // Keep each part the size of the club part it replaces (the crystal's mesh is built far larger),
+                // shrunk a little: it's a hand-held stone, not a club head.
+                float oldSize = mf.sharedMesh != null ? Mathf.Max(mf.sharedMesh.bounds.size.x, mf.sharedMesh.bounds.size.y, mf.sharedMesh.bounds.size.z) : 0f;
+                if (oldSize > 0f && newSize > 0f)
+                    mf.transform.localScale *= oldSize / newSize * StoneScale;
                 mf.sharedMesh = srcMesh.sharedMesh;
                 if (mf.GetComponent<MeshRenderer>() is MeshRenderer mr)
                     mr.sharedMaterials = srcRenderer.sharedMaterials;
