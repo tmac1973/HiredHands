@@ -49,10 +49,40 @@ namespace VikingsForHire.Followers
             return Begin(zdo, why);
         }
 
+        /// <summary>Whether a follower must leave this behind when heading home (ReturnHomeWithNonTeleportable off).</summary>
+        public static bool LeavesBehind(ItemDrop.ItemData item) =>
+            !VfhConfig.ReturnHomeWithNonTeleportable.Value && !item.m_shared.m_teleportable &&
+            !(ZoneSystem.instance != null && ZoneSystem.instance.GetGlobalKey(GlobalKeys.TeleportAll));
+
+        // Drop what it may not take home, where it stands, from its cargo: the loaded hireling's own, or (nobody
+        // simulating it) a copy read from and written back to its ZDO.
+        private static int DropContraband(ZDO zdo, Vector3 at, string hid)
+        {
+            if (VfhConfig.ReturnHomeWithNonTeleportable.Value)
+                return 0;
+            Hireling? h = Hireling.Loaded.FirstOrDefault(x => x != null && x.Zdo == zdo);
+            if (h?.CargoInventory != null)
+                return Hirelings.Work.DropPile.DropAll(h.CargoInventory, at, "heading home", hid, LeavesBehind);
+            byte[]? data = zdo.GetByteArray(ZDOVars.s_items);
+            if (data == null || data.Length == 0)
+                return 0;
+            var inv = new Inventory("cargo", null, HirelingPrefab.CargoWidth, HirelingPrefab.CargoHeight);
+            inv.Load(new ZPackage(data));
+            int n = Hirelings.Work.DropPile.DropAll(inv, at, "heading home", hid, LeavesBehind);
+            if (n > 0)
+            {
+                var pkg = new ZPackage();
+                inv.Save(pkg);
+                zdo.Set(ZDOVars.s_items, pkg.GetArray());
+            }
+            return n;
+        }
+
         /// <summary>Start the trip home on the ZDO (on the machine that owns it, or the server when nobody does).</summary>
         public static float Begin(ZDO zdo, string why)
         {
             Vector3 from = zdo.GetPosition();
+            int dropped = DropContraband(zdo, from + Vector3.up * 0.5f, zdo.GetString(HirelingZdo.Hid));
             Vector3 home = zdo.GetVec3(HirelingZdo.Home, from);
             float distance = Utils.DistanceXZ(from, home);
             float seconds = OrphanRules.ReturnSeconds(distance, VfhConfig.Get(VfhConfig.ReturnSecondsPer100m),
@@ -76,7 +106,7 @@ namespace VikingsForHire.Followers
             // Last: whoever simulated it lets go (it's nobody's follower now); a client near the board picks it up.
             zdo.SetOwner(0L);
             VfhLog.I(LogCat.Follow, "follow.returning", ("hid", zdo.GetString(HirelingZdo.Hid)), ("why", why), ("from", from),
-                ("distance", distance), ("seconds", seconds));
+                ("distance", distance), ("seconds", seconds), ("leftBehind", dropped));
             return seconds;
         }
 

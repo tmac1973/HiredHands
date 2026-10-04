@@ -63,6 +63,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> OrphanStayDistance = null!;
         public static ConfigEntry<float> OrphanStaySeconds = null!;
         public static ConfigEntry<float> OrphanOfflineSeconds = null!;
+        public static ConfigEntry<bool> ReturnHomeWithNonTeleportable = null!;
         public static ConfigEntry<bool> BalanceLog = null!;
         public static ConfigEntry<int> BalanceLogMaxMB = null!;
         public static ConfigEntry<float> ReturnSecondsPer100m = null!;
@@ -142,6 +143,7 @@ namespace VikingsForHire.Config
             OrphanStayDistance = Synced(f, "OrphanStayDistance", 150f, "A staying follower whose owner is farther than this (m) for OrphanStaySeconds heads home.");
             OrphanStaySeconds = Synced(f, "OrphanStaySeconds", 120f, "See OrphanStayDistance.");
             OrphanOfflineSeconds = Synced(f, "OrphanOfflineSeconds", 300f, "Followers out in the field whose owner has been offline this long (s) head home. Long enough to ride out a reconnect or a server restart.");
+            ReturnHomeWithNonTeleportable = Synced(f, "ReturnHomeWithNonTeleportable", true, "A follower heading home (sent home, lost, or its owner gone) brings everything it carries. Off: it first drops whatever a portal wouldn't take (ore, metal…) where it stands, so going home isn't a free ore portal; the Send home button warns you.");
             ReturnSecondsPer100m = Synced(f, "ReturnSecondsPer100m", 25f, "Return-home trip time per 100 m of distance.");
             ReturnMinSeconds = Synced(f, "ReturnMinSeconds", 60f, "Shortest return-home trip.");
             ReturnMaxSeconds = Synced(f, "ReturnMaxSeconds", 1200f, "Longest return-home trip.");

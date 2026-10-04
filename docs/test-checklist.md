@@ -144,6 +144,7 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-GATHER-2 What to gather | SP, D | — | Shift+E on a miner at a copper deposit next to plain rocks: switch Stone off; on a woodcutter among beech and birch: switch Wood off | The miner mines only the copper and leaves the stone it drops on the ground; the woodcutter fells only the birches; a stone order on a switched-off tree or rock is still done |
 | VFH-GATHER-3 Work at home off | SP, D | — | Shift+E on a working woodcutter at home: "Works at home: off" | It stops chopping in the base and idles; recruited, it still gathers in the field (Gather Here, orders) and delivers at home; the setting survives a respawn |
 | VFH-NOISE-1 Gathering is loud | SP, D | `vfh_t_noise1` | Open ground; stand still at the board | `pass=true`: a greydwarf placed 45 m from the chopping woodcutter (beyond its sight) hears it, comes over and hits it |
+| VFH-HOME-3 Ore stays behind | SP, D | — | Server config ReturnHomeWithNonTeleportable = false; a follower in the field carrying copper ore and wood; Shift+E | The button reads "Send home (leaves cargo here)" and names the ore; sent home, it drops the ore in a pile where it stood and brings only the wood home. Also: a guard carrying ore is stopped at a portal like a miner |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.

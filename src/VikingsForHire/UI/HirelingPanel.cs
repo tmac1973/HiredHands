@@ -169,8 +169,12 @@ namespace VikingsForHire.UI
                     PanelUi.Button(t, "$vfh_orders_release", 0f, y, 240f, 38f, () => Act(FollowerServer.Kind.Release));
                 else
                 {
-                    PanelUi.Button(t, "$vfh_orders_send_home", 0f, y, 240f, 38f, () => Act(FollowerServer.Kind.SendHome));
-                    PanelUi.Text(t, "$vfh_orders_send_home_hint", 0f, y - 35f, 440f, 15, color: PanelUi.Dim);
+                    // With ReturnHomeWithNonTeleportable off it leaves ore and the like behind: say so on the button.
+                    List<string> left = h.CargoInventory?.GetAllItems().Where(Followers.HomeReturn.LeavesBehind)
+                        .Select(i => Localization.instance.Localize(i.m_shared.m_name)).Distinct().ToList() ?? new List<string>();
+                    PanelUi.Button(t, left.Count > 0 ? "$vfh_orders_send_home_drop" : "$vfh_orders_send_home", 0f, y, 300f, 38f, () => Act(FollowerServer.Kind.SendHome));
+                    PanelUi.Text(t, left.Count > 0 ? Localization.instance.Localize("$vfh_orders_send_home_drop_hint", string.Join(", ", left))
+                        : "$vfh_orders_send_home_hint", 0f, y - 35f, 440f, 15, color: left.Count > 0 ? GUIManager.Instance.ValheimOrange : PanelUi.Dim);
                 }
             }
             else if (h.HasPost)
