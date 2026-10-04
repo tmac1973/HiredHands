@@ -81,6 +81,7 @@ namespace VikingsForHire
             VfhLog.Guard(LogCat.Roster, "server.tick_failed", Net.BoardServer.Tick);
             VfhLog.Guard(LogCat.Follow, "follow.tick_failed", Net.FollowerServer.Tick);
             Followers.StoneInput.Tick();
+            VfhLog.Guard(LogCat.UI, "hud.tick_failed", Followers.FollowerHud.Tick);
         }
 
         private void OnDestroy() => VfhLog.Shutdown();

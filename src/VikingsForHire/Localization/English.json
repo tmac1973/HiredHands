@@ -40,6 +40,7 @@
   "vfh_order_no_guard": "No guards with you",
   "vfh_order_move": "$1 followers: hold there",
   "vfh_roster_posted": "Posted",
+  "vfh_hud_header": "Command Stone (quality $1): followers $2/$3",
   "vfh_not_your_follower": "That's someone else's follower",
   "vfh_orders": "Orders",
   "vfh_orders_mode": "Follow mode",

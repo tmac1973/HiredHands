@@ -33,9 +33,44 @@ namespace VikingsForHire.Net
 
         private const float OwnershipSeconds = 5f;
         private static CustomRPC _rpc = null!;
+        private static CustomRPC _countRpc = null!;
+
+        /// <summary>Client: the server's last answer to "how many followers do I have", for the follower HUD.</summary>
+        public static int LastCount { get; private set; }
         private static float _nextOwnership;
 
-        public static void Register() => _rpc = NetworkManager.Instance.AddRPC("VFH_FollowerOp", OnServer, OnClient);
+        public static void Register()
+        {
+            _rpc = NetworkManager.Instance.AddRPC("VFH_FollowerOp", OnServer, OnClient);
+            _countRpc = NetworkManager.Instance.AddRPC("VFH_FollowerCount", OnCountServer, OnCountClient);
+        }
+
+        /// <summary>Client: ask the server for this player's follower count (answer lands in LastCount).</summary>
+        public static void RequestCount()
+        {
+            if (ZNet.instance == null || Player.m_localPlayer == null)
+                return;
+            if (ZNet.instance.IsServer())
+            {
+                LastCount = FollowersOf(Player.m_localPlayer.GetPlayerID()).Count;
+                return;
+            }
+            _countRpc.SendPackage(ZRoutedRpc.instance.GetServerPeerID(), new ZPackage());
+        }
+
+        private static IEnumerator OnCountServer(long sender, ZPackage pkg)
+        {
+            var reply = new ZPackage();
+            reply.Write(FollowersOf(PlayerIdOf(sender)).Count);
+            _countRpc.SendPackage(sender, reply);
+            yield break;
+        }
+
+        private static IEnumerator OnCountClient(long sender, ZPackage pkg)
+        {
+            LastCount = pkg.ReadInt();
+            yield break;
+        }
 
         /// <summary>Client: ask the server. <paramref name="quality"/> is the equipped stone's quality.</summary>
         public static void Send(Kind kind, string hid, int quality) => Send(kind, hid, quality, Vector3.zero, 0f);

@@ -91,6 +91,6 @@ Other mods often use G and H, so there are no new hotkeys (`CycleFollowModeKey` 
   - `PostBehaviour` (priority 101) replaces patrol; `PostLeashRadius` (20 m) is the leash.
   - Posted archers don't reposition: they shoot from the post.
 - Right click is read from the Block button in `StoneInput.Tick` (called from `Plugin.Update`); left click from `Humanoid.StartAttack`.
+- The follower HUD came after the first round of play: `FollowerHud` shows `followers n/cap` (count from the server via `VFH_FollowerCount`) and each nearby follower's mode, health and (gatherers) cargo while the stone is in hand.
 - Not built in this phase:
-  - **The follower HUD list:** hover text now shows mode, stance and post, and the Shift+E panel covers the rest. It can be added later if it's missed.
   - **The local "ping" marker at the order target:** a centre message says what was ordered instead.
