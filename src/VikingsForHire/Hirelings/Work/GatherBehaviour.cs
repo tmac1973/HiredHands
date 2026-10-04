@@ -32,6 +32,11 @@ namespace VikingsForHire.Hirelings.Work
         private float _approachStarted;
         private ItemDrop? _pickup;
         private Vector3? _fellDir;
+        private Collider? _lastStruck;
+        private int _strikesOnIt;
+
+        // A chunk or tree takes a handful of hits; this many on the same collider means our hits aren't landing.
+        private const int MaxStrikesOnOnePart = 25;
 
         public GatherBehaviour(IGatherProfile profile) => _profile = profile;
 
@@ -140,10 +145,27 @@ namespace VikingsForHire.Hirelings.Work
             };
             // Bounds, not Collider.ClosestPoint: that only works on convex colliders and warns on rock meshes.
             Collider? col = _profile.Aim(target, h.transform.position, out Vector3 aim);
+            if (col == null)
+            {
+                VfhLog.D(LogCat.Work, "work.strike_nothing", ("hid", h.Hid), ("target", target.name));
+                return;
+            }
+            _strikesOnIt = col == _lastStruck ? _strikesOnIt + 1 : 1;
+            _lastStruck = col;
+            if (_strikesOnIt > MaxStrikesOnOnePart)
+            {
+                VfhLog.I(LogCat.Work, "work.hits_not_landing", ("hid", h.Hid), ("target", target.name), ("part", col.name),
+                    ("strikes", _strikesOnIt), ("pos", target.transform.position), ("skipFor", UnreachableSkip));
+                Reservations.Skip(target, UnreachableSkip);
+                Reservations.Release(target, h.Hid);
+                _target = null;
+                _lastStruck = null;
+                return;
+            }
             hit.m_hitCollider = col;
-            hit.m_point = col != null ? col.bounds.ClosestPoint(h.transform.position + Vector3.up) : aim + Vector3.up;
+            hit.m_point = col.bounds.ClosestPoint(h.transform.position + Vector3.up);
             hit.SetAttacker(h.Humanoid);
-            _anchor = col != null ? hit.m_point : target.transform.position; // where the drops land (a rock's chunk, not its centre)
+            _anchor = hit.m_point; // where the drops land (a rock's chunk, not its centre)
             HarvestPatches.Direct = true;
             try
             {
@@ -153,7 +175,8 @@ namespace VikingsForHire.Hirelings.Work
             {
                 HarvestPatches.Direct = false;
             }
-            VfhLog.T(LogCat.Work, "work.strike", ("hid", h.Hid), ("target", target.name), ("chop", hit.m_damage.m_chop), ("pickaxe", hit.m_damage.m_pickaxe), ("tier", hit.m_toolTier));
+            VfhLog.T(LogCat.Work, "work.strike", ("hid", h.Hid), ("target", target.name), ("part", col.name), ("n", _strikesOnIt),
+                ("chop", hit.m_damage.m_chop), ("pickaxe", hit.m_damage.m_pickaxe), ("tier", hit.m_toolTier));
         }
 
         private bool FindTarget(Hireling h, Vector3 near, out string why)
