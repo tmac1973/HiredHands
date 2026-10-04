@@ -25,8 +25,9 @@ namespace VikingsForHire.Tests
         public void TheWoodReserveReachesOlderFiles()
         {
             string full = DataYaml.Serialize(DefaultData.Create());
-            int start = full.IndexOf("    keepInStorage:");
-            Assert.True(start > 0, "default file should list keepInStorage");
+            int smelter = full.IndexOf("  Smelter:");
+            int start = full.IndexOf("    keepInStorage:", smelter);
+            Assert.True(smelter > 0 && start > smelter, "default file should list the smelter's keepInStorage");
             int end = full.IndexOf("\n", full.IndexOf("Wood: 50", start));
             string yaml = full.Remove(start, end - start + 1);
             VfhData data = DataYaml.Deserialize(yaml, out var filled);
