@@ -132,6 +132,7 @@ namespace VikingsForHire.Board
             Inventory? inv = Inventory;
             Cost funds = inv != null ? BoardStorage.Totals(inv) : Cost.Zero;
             sb.Append("\n$vfh_board_funds ").Append(funds.FoodPoints).Append(" $vfh_food_points · ").Append(funds.Coins).Append(" $vfh_coins");
+            sb.Append(LowFunds.HoverLines(this, funds));
             sb.Append("\n[<color=yellow><b>$KEY_Use</b></color>] $vfh_board_open_storage");
             sb.Append("\n[<color=yellow><b>$KEY_AltPlace + $KEY_Use</b></color>] $vfh_board_manage");
             return Localization.instance.Localize(sb.ToString());

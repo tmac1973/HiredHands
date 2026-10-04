@@ -17,7 +17,7 @@ Works in single-player and on dedicated servers. Every client and the server nee
 2. **Build the Hiring Board** with the hammer (Wood 45, Stone 20, Deer hide 10, Leather scraps 10, Resin 10).
 3. **Stock it.** Use the board's *Funds (food & coins)* to put in cooked food and coins. Only food and coins fit. Food is counted in *food points* (a food's health + stamina + eitr), and the cheapest food is used first so your best food is left alone.
 4. **Post a contract** under *Manage → Contracts*: choose the job, the level, the work radius and, for guards, a stance. The hire fee is taken from the board's funds, and a viking walks in a few minutes later.
-5. **Upkeep** is paid from the board every in-game day. If the board can't pay for 2 days, that hireling quits. Dead hirelings come back after a cooldown for half their hire fee (permadeath can be turned on instead).
+5. **Upkeep** is paid from the board every in-game day (only while the base is loaded: days away are free). The board's hover shows the daily cost and how long the funds last, and warns you (and pins the board on the map for its builder) when they're running low. If the board can't pay for 2 days, that hireling quits. Dead hirelings come back after a cooldown for half their hire fee (permadeath can be turned on instead).
 
 Hover a hireling to see its name, job, level, health, what it's doing and its cargo. You can open its cargo like a chest. A hireling carries about what you can: 300 weight at level 1, 25 more per level, as well as being limited by its cargo slots.
 

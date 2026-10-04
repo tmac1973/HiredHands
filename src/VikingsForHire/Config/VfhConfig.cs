@@ -65,6 +65,9 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> OrphanOfflineSeconds = null!;
         public static ConfigEntry<bool> ReturnHomeWithNonTeleportable = null!;
         public static ConfigEntry<bool> BalanceLog = null!;
+        public static ConfigEntry<int> LowFundsWarnDays = null!;
+        public static ConfigEntry<bool> LowFundsMessages = null!;
+        public static ConfigEntry<bool> LowFundsMapPins = null!;
         public static ConfigEntry<int> BalanceLogMaxMB = null!;
         public static ConfigEntry<float> ReturnSecondsPer100m = null!;
         public static ConfigEntry<float> ReturnMinSeconds = null!;
@@ -110,6 +113,9 @@ namespace VikingsForHire.Config
             MinDistanceBetweenBoards = Synced(b, "MinDistanceBetweenBoards", 100f, "Minimum distance (m) between hiring boards.");
             MaxBoardsPerWorld = Synced(b, "MaxBoardsPerWorld", 0, "Hiring boards allowed per world (0 = unlimited).");
 
+            LowFundsWarnDays = Synced(h, "LowFundsWarnDays", 2, "A board whose food or coins last this many days or fewer is low: its hover turns orange (red on the last day), players at the base are told once a day, and its builder gets a map pin. 0 turns the warnings off (the hover still shows the days).");
+            LowFundsMessages = Synced(h, "LowFundsMessages", true, "Tell the players at a base, once a day, when its hiring board is running low.");
+            LowFundsMapPins = _file.Bind(h, "LowFundsMapPins", true, "Your own setting: show a map pin on hiring boards you built while they're running low.");
             ArrivalDelayMinSeconds = Synced(h, "ArrivalDelayMinSeconds", 90f, "Shortest wait before a hired viking arrives.");
             ArrivalDelayMaxSeconds = Synced(h, "ArrivalDelayMaxSeconds", 240f, "Longest wait before a hired viking arrives.");
             ArrivalSpawnDistance = Synced(h, "ArrivalSpawnDistance", 35f, "How far from the board (m) arriving vikings appear.");

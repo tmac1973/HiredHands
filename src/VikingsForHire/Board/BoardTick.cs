@@ -75,6 +75,7 @@ namespace VikingsForHire.Board
                 ("active", roster.Active), ("paid", result.Paid.Count), ("unpaid", result.Unpaid.Count), ("leaving", result.NowLeaving.Count),
                 ("jobs", string.Join(",", roster.Entries.Where(e => e.State == ContractState.Active).Select(e => $"{e.Job}:{e.Level}"))),
                 ("fundsLeft", wallet.Funds.ToString()));
+            LowFunds.AfterUpkeep(board, roster, wallet.Funds);
             VfhLog.I(LogCat.Payment, "upkeep.day", ("board", board.Id), ("day", today), ("missedDays", today - last - 1), ("paid", result.Paid.Count),
                 ("unpaid", result.Unpaid.Count), ("leaving", result.NowLeaving.Count), ("fundsLeft", wallet.Funds.ToString()));
             return true;

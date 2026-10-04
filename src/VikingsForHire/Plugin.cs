@@ -49,6 +49,7 @@ namespace VikingsForHire
             Followers.CommandStoneItem.Register();
             Net.FollowerServer.Register();
             Telemetry.BalanceLog.Register();
+            Board.LowFunds.Register();
             BoardRegistry.Register();
             Net.MutationService.Register();
             Net.BoardServer.Register();
@@ -89,6 +90,7 @@ namespace VikingsForHire
             VfhLog.Guard(LogCat.Follow, "travel.tick_failed", Followers.TeleportTravel.Tick);
             VfhLog.Guard(LogCat.Follow, "ship.tick_failed", Followers.ShipStowage.Tick);
             VfhLog.Guard(LogCat.UI, "hud.tick_failed", Followers.FollowerHud.Tick);
+            VfhLog.Guard(LogCat.Board, "funds.tick_failed", Board.LowFunds.Tick);
         }
 
         private void OnDestroy() => VfhLog.Shutdown();

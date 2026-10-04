@@ -24,7 +24,7 @@ A farmer role is a priority once the basics work, but how it should behave isn't
 - **Level gating:** higher levels could handle later crops (Barley and Flax are Plains crops), farm a bigger field, or tend more plants per trip.
 - **Animals:** out of scope at first (tending chickens or lox could be its own later role).
 
-## Steward (the Smelter, renamed and widened)
+## Steward (the Smelter, renamed and widened; the rename is done in 0.2.1)
 The Smelter becomes the **Steward**: the hireling that keeps the base running.
 - **Keeps stations fed** (what the Smelter does today): smelters, kilns, blast furnaces, eitr refineries, with the same reserves and chest rules.
 - **Repairs** (see Repairs below for the rules): damaged pieces near a workbench or forge of the right type, worst first, after fights rather than during them.
@@ -65,7 +65,7 @@ One hireling job (or a perk of a higher-level job) repairs damaged building piec
 ## Forager
 Picks berries, mushrooms, thistle and the like in the work radius.
 
-## Cargo weight limit
+## Cargo weight limit (done in 0.2.1: 300 + 25 per level)
 Hirelings are currently limited only by usable cargo slots (8 at level 1 up to 32 at level 8), whatever the items weigh. Dense items like metal bars are therefore cheap to haul compared with what a player can carry.
 - A per-level weight cap in the hireling level table (e.g. `cargoWeight`), checked by the cargo gate alongside slots, with 0 meaning no limit so it can stay off by default.
 - What happens at the limit: a gatherer stops picking up and goes to deliver; a follower refuses items you try to hand it, with a message.
@@ -118,7 +118,7 @@ A per-contract setting for how well a hireling is fed: more food points per day 
 - **Show it:** hover and roster show the plan (and the buff), and the HUD follower lines could show it for followers, since that's where the extra health matters most.
 - **Balance check:** compare a level 1 hireling on Gourmet with a level 2 on Normal. The meal plan shouldn't make levelling pointless, so the buff should stay well under the gap between two levels (about +50% health per level today).
 
-## Low funds warning
+## Low funds warning (done in 0.2.1: hover, daily message, builder's map pin)
 Tell players before a board runs dry, not after hirelings start going unpaid (today the first sign is "unpaid (1/2)" on a hireling, a day before it quits).
 - **How long the funds last:** the board already knows its daily upkeep (the sum over its active contracts) and its funds, so it can work out "days left", separately for food points and for coins, since either can run out first.
 - **Where it shows:**
