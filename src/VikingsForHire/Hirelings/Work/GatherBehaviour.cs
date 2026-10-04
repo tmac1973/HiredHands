@@ -111,7 +111,7 @@ namespace VikingsForHire.Hirelings.Work
                 : toMe.sqrMagnitude > 0.01f ? at + toMe.normalized * stand : at;
             float dist = Utils.DistanceXZ(ai.transform.position, spot);
             // A tree being felled one way must be hit from its spot; anything else may be worked from any side.
-            bool inPlace = _fellDir != null ? dist <= 1.1f : dist <= 1.1f || Utils.DistanceXZ(ai.transform.position, at) <= stand + 0.6f;
+            bool inPlace = _fellDir != null ? dist <= 1.1f : dist <= 0.8f || Utils.DistanceXZ(ai.transform.position, at) <= stand + 0.4f;
             if (!inPlace)
             {
                 if (dist < _approachBest - 0.5f)
@@ -180,7 +180,7 @@ namespace VikingsForHire.Hirelings.Work
                 return;
             }
             hit.m_hitCollider = col;
-            hit.m_point = col.bounds.ClosestPoint(h.transform.position + Vector3.up);
+            hit.m_point = aim; // the profile's aim point: the surface for rocks, the trunk for trees
             hit.SetAttacker(h.Humanoid);
             _anchor = hit.m_point; // where the drops land (a rock's chunk, not its centre)
             HarvestPatches.Direct = true;

@@ -107,11 +107,24 @@ namespace VikingsForHire.Hirelings.Work
                     best = c;
                 }
             }
-            point = best != null ? best.bounds.ClosestPoint(from) : target.transform.position;
+            point = best != null ? Surface(best, from) : target.transform.position;
             return best;
         }
 
-        public float StandOff(Component target) => 1.8f;
+        /// <summary>
+        /// The point on the chunk's actual surface facing <paramref name="from"/>: a ray from chest height towards the
+        /// chunk's centre. Its bounding box can stick out a metre or more past the visible rock, which made miners
+        /// swing at thin air and still break the ore. Falls back to the box when the ray misses.
+        /// </summary>
+        public static Vector3 Surface(Collider c, Vector3 from)
+        {
+            Vector3 eye = from + Vector3.up * 1.2f;
+            Vector3 centre = c.bounds.center;
+            var ray = new Ray(eye, (centre - eye).normalized);
+            return c.Raycast(ray, out RaycastHit hit, Vector3.Distance(eye, centre) + 1f) ? hit.point : c.bounds.ClosestPoint(from);
+        }
+
+        public float StandOff(Component target) => 1.1f;
 
         public HitData.DamageTypes SwingDamage(HitData.DamageTypes tool, float gatherMult) =>
             new() { m_pickaxe = Mathf.Max(1f, tool.m_pickaxe) * gatherMult };
