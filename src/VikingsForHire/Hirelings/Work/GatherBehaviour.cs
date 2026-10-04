@@ -236,6 +236,15 @@ namespace VikingsForHire.Hirelings.Work
             }
             // Still under the dirt: this swing digs (the pickaxe's own hit on the ground does that, out in the field);
             // the chunk is hit once it's exposed. The strike count above gives up on a chunk that never comes free.
+            // Harvesting is loud: vanilla gives the noise of each hit to the nearest player within 10 m, so a hireling
+            // working on its own made none and monsters never came. Each strike makes the same noise on the hireling.
+            if (Config.VfhConfig.GatheringMakesNoise.Value)
+                h.Humanoid.AddNoise(target switch
+            {
+                TreeLog log => log.m_hitNoise,
+                Destructible d => d.m_hitNoise,
+                _ => 100f,
+            });
             if (_profile.NeedsDigging(col))
             {
                 VfhLog.T(LogCat.Work, "work.dig", ("hid", h.Hid), ("target", target.name), ("part", col.name), ("n", _strikesOnIt), ("at", aim));

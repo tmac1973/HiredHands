@@ -45,6 +45,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<bool> HirelingsOpenDoors = null!;
         public static ConfigEntry<float> TreeFallCorridorHalfWidth = null!;
         public static ConfigEntry<bool> MinerProtectsTerrain = null!;
+        public static ConfigEntry<bool> GatheringMakesNoise = null!;
         public static ConfigEntry<float> MinerFieldDigClearance = null!;
         public static ConfigEntry<float> MinerSafetyDistanceFromPieces = null!;
         public static ConfigEntry<float> SmelterRefillThreshold = null!;
@@ -121,6 +122,7 @@ namespace VikingsForHire.Config
             TreeSafetyDistanceFromPieces = Synced(w, "TreeSafetyDistanceFromPieces", 6f, "Woodcutters skip trees with a player-built piece this close to the trunk (m).");
             TreeFallCorridorHalfWidth = Synced(w, "TreeFallCorridorHalfWidth", 4f, "Woodcutters fell a tree only in a direction where no player-built piece lies within the tree's height and this far either side of the fall line (m). If no direction is clear, the tree is left standing.");
             MinerProtectsTerrain = Synced(w, "MinerProtectsTerrain", true, "Hireling pickaxe swings never dig the ground near your buildings or inside their board's work area. Out in the field they dig like a player would, to get at ore sitting low in the ground. Turning this off lets miners dig anywhere, including in your base.");
+            GatheringMakesNoise = Synced(w, "GatheringMakesNoise", true, "Chopping and mining hirelings make the same noise a player would, so nearby monsters hear them and come. Off: they work in silence (much safer, and much easier).");
             MinerFieldDigClearance = Synced(w, "MinerFieldDigClearance", 20f, "With MinerProtectsTerrain on, a miner may dig only where no player-built piece is within this distance (m).");
             MinerSafetyDistanceFromPieces = Synced(w, "MinerSafetyDistanceFromPieces", 3f, "Miners skip rocks with a player-built piece within this distance (m) of the rock's edge, since the rock may be holding the build up.");
             SmelterRefillThreshold = Synced(w, "SmelterRefillThreshold", 0.5f, "Smelters refill a station when its ore or fuel is below this fraction of max.");

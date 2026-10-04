@@ -174,24 +174,26 @@ namespace VikingsForHire.Hirelings
         }
 
         /// <summary>
-        /// Owner: a guard always has its weapon in hand (the bow for an archer, unless the club is out). If it's ever
-        /// found empty-handed or holding the wrong thing, the weapon goes back in its hand and what was there is logged.
+        /// Owner: a hireling always has its weapon or tool in hand (the bow for an archer unless the club is out; the axe
+        /// or pickaxe for a gatherer). If it's ever found empty-handed (the item can show in its hand while the game
+        /// counts the hand as empty: punching, and gatherer strikes at bare-hand tier that never break ore), the item
+        /// goes back in its hand and what was there is logged.
         /// </summary>
         private void EnsureArmed()
         {
-            if (!Job.IsGuard())
-                return;
             // The weapon the game would use: right hand, else a bow in the left hand (bows are held left).
             ItemDrop.ItemData? current = _humanoid.GetCurrentWeapon();
             bool unarmed = current == null || _humanoid.m_unarmedWeapon != null && current == _humanoid.m_unarmedWeapon.m_itemData;
             bool ok = Job == JobType.GuardRanged && !_sidearmOut
                 ? !unarmed && current!.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Bow
                 : !unarmed;
-            if (ok)
+            if (ok || _humanoid.InAttack())
                 return;
             ItemDrop.ItemData? weapon = Job == JobType.GuardRanged && !_sidearmOut
                 ? _humanoid.GetInventory().GetAllItems().FirstOrDefault(i => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Bow)
                 : _humanoid.GetInventory().GetAllItems().FirstOrDefault(i => i.IsWeapon() && i.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Bow);
+            if (weapon == null && !Job.IsGuard())
+                return; // a job without a tool (smelters) is fine empty-handed
             string before = GearApplier.Describe(_humanoid);
             bool equipped = weapon != null && _humanoid.EquipItem(weapon, false);
             if (!equipped)
