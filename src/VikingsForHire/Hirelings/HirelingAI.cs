@@ -21,6 +21,9 @@ namespace VikingsForHire.Hirelings
         private bool _heldForCargo;
         private CombatBehaviour _combat = null!;
         private float _regenTimer;
+        private float _baseRunSpeed = -1f;
+        private float _runBoost;
+        private float _runBoostUntil;
 
         public ThreatScanner Threats { get; private set; } = null!;
         public Stance Stance => (Stance)(Hireling.Zdo?.GetInt(HirelingZdo.Stance) ?? 0);
@@ -152,6 +155,7 @@ namespace VikingsForHire.Hirelings
             if (m_randomMoveUpdateTimer > 0f)
                 m_randomMoveUpdateTimer -= dt;
             m_timeSinceHurt += dt;
+            ApplyRunBoost();
             UpdateRegeneration(dt);
             Regenerate(dt);
             Threats.Tick(VfhConfig.ThreatScanIntervalSeconds.Value);
@@ -241,10 +245,28 @@ namespace VikingsForHire.Hirelings
 
         public void Halt() => StopMoving();
 
+        /// <summary>Walk straight at a point, steering round what's in the way (no pathfinding): unstick detours.</summary>
+        public void MoveAround(float dt, Vector3 point) => MoveAndAvoid(dt, point, 0.5f, true);
+
         public void Face(Vector3 point) => LookAt(point);
 
         /// <summary>Swing/shoot the current weapon at the target if its attack interval allows (vanilla MonsterAI.DoAttack).</summary>
         public bool Attack(Character target) => DoAttack(target, false);
+
+        /// <summary>A follower falling behind its owner sprints faster for a moment (renewed every tick while it's behind).</summary>
+        public void BoostRun(float bonus, float seconds = 0.5f)
+        {
+            _runBoost = bonus;
+            _runBoostUntil = Time.time + seconds;
+        }
+
+        private void ApplyRunBoost()
+        {
+            Humanoid hum = Hireling.Humanoid;
+            if (_baseRunSpeed < 0f)
+                _baseRunSpeed = hum.m_runSpeed;
+            hum.m_runSpeed = Time.time < _runBoostUntil ? _baseRunSpeed * (1f + _runBoost) : _baseRunSpeed;
+        }
 
         /// <summary>1% of max health every 2 s once nothing has hurt them for 10 s.</summary>
         private void Regenerate(float dt)

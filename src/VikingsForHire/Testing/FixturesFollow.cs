@@ -27,12 +27,17 @@ namespace VikingsForHire.Testing
             Fixtures.Add("park_posted", "<GatherHere|Stay|Follow> <right|back|front|left> <distance> - set your follower's follow mode, parked at that spot next to the board", Park);
             Fixtures.Add("order_harvest", "<tag> - give the follower from your last contract a stone order to harvest a tagged tree or rock", HarvestTagged);
             Fixtures.Add("order_harvest_nearest", "- give your followers a stone order to harvest the nearest tree or rock to the board", HarvestNearest);
+            Fixtures.Add("strand_posted", "<distance> - put your follower from your last contract that far behind the camera, out of your view (to test catching up)", Strand);
+            Fixtures.Add("follow_stats_reset", "- start counting follower lag and catch-up teleports afresh", _ => ResetStats());
             Fixtures.Add("release_all", "- ask the server to send every follower that's home back to work", _ => Op(FollowerServer.Kind.ReleaseAll, ""));
 
             TestHarness.RegisterCheck("followers", "- how many followers you have (server's count)",
                 args => FollowerServer.FollowersOf(long.Parse(args.ElementAtOrDefault(0) ?? "0", CultureInfo.InvariantCulture)).Count.ToString(),
                 serverSide: true,
                 prepareArgs: _ => new[] { (Player.m_localPlayer != null ? Player.m_localPlayer.GetPlayerID() : 0L).ToString(CultureInfo.InvariantCulture) });
+            TestHarness.RegisterCheck("follow_max_lag", "- the furthest (m) any follower has been behind you since follow_stats_reset",
+                _ => FollowCatchUp.MaxLag.ToString("0.0", CultureInfo.InvariantCulture));
+            TestHarness.RegisterCheck("follow_teleports", "- catch-up teleports since follow_stats_reset", _ => FollowCatchUp.Teleports.ToString());
             TestHarness.RegisterCheck("craftable", "<quality> - whether you could make that Command Stone quality at the nearest workbench right now", args =>
             {
                 int q = int.Parse(args.ElementAtOrDefault(0) ?? "1", CultureInfo.InvariantCulture);
@@ -115,6 +120,38 @@ namespace VikingsForHire.Testing
             h.Ai.Order = new FieldOrder { Kind = FieldOrder.OrderKind.Harvest, Target = target, Position = target.transform.position, Until = Time.time + FieldOrder.Lifetime };
             h.Ai.Gather.Force(h.Ai, target);
             VfhLog.I(LogCat.Test, "fixture.order_harvest", ("hid", h.Hid), ("target", target.name), ("dist", Vector3.Distance(target.transform.position, at)));
+            yield return null;
+        }
+
+        private static IEnumerator ResetStats()
+        {
+            FollowCatchUp.ResetStats();
+            VfhLog.I(LogCat.Test, "fixture.follow_stats_reset");
+            yield return null;
+        }
+
+        private static IEnumerator Strand(string[] args)
+        {
+            float dist = float.Parse(args.ElementAtOrDefault(0) ?? "50", CultureInfo.InvariantCulture);
+            Hireling h = Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == Posted()) ?? throw new InvalidOperationException("posted hireling not here");
+            // Followers are simulated by their owner; the server hands the follower over within a few seconds.
+            ZNetView nview = h.GetComponent<ZNetView>();
+            for (float waited = 0f; !nview.IsOwner() && waited < 10f; waited += 0.5f)
+                yield return new WaitForSeconds(0.5f);
+            if (!nview.IsOwner())
+                throw new InvalidOperationException("the follower isn't simulated here");
+            Transform cam = GameCamera.instance.transform;
+            Vector3 back = -Vector3.ProjectOnPlane(cam.forward, Vector3.up).normalized;
+            Vector3 p = Player.m_localPlayer.transform.position + back * dist;
+            p.y = ZoneSystem.instance.GetGroundHeight(p) + 0.1f;
+            h.transform.position = p;
+            if (h.GetComponent<Rigidbody>() is Rigidbody body)
+            {
+                body.position = p;
+                body.linearVelocity = Vector3.zero;
+            }
+            h.Zdo?.SetPosition(p);
+            VfhLog.I(LogCat.Test, "fixture.strand", ("hid", h.Hid), ("pos", p), ("dist", dist));
             yield return null;
         }
 

@@ -7,7 +7,8 @@ using UnityEngine;
 namespace VikingsForHire.Followers
 {
     /// <summary>
-    /// A recruited hireling with its owner. Follow: keep within a few metres, running to catch up when far behind.
+    /// A recruited hireling with its owner. Follow: keep within a few metres, sprinting when the owner sprints or it's
+    /// behind, faster still when well behind, and unsticking or teleporting out of sight if it can't keep up (FollowCatchUp).
     /// Stay: hold the stored position, walking back if pushed off it. (Gather Nearby comes with field orders.) Combat
     /// and fleeing still take over by priority; their leash is the owner (or the stay spot) while following.
     /// </summary>
@@ -15,6 +16,7 @@ namespace VikingsForHire.Followers
     {
         private const float FollowDistance = 3f;
         private const float RunBeyond = 10f;
+        private const float FollowRunBeyond = 5f;
         private const float StaySlack = 3f;
 
         private string _shown = "";
@@ -27,6 +29,7 @@ namespace VikingsForHire.Followers
         private const float ArriveDistance = 0.6f;
         private const float HoldStuckSeconds = 8f;
         private bool _toldFull;
+        private readonly FollowCatchUp _catchUp = new();
 
         public string Name => "Follow";
         public int Priority => 400;
@@ -84,8 +87,10 @@ namespace VikingsForHire.Followers
             }
             Show(h, "$vfh_status_following");
             float dist = Utils.DistanceXZ(ai.transform.position, owner.transform.position);
+            if (_catchUp.Tick(ai, owner, dist, dt))
+                return;
             if (dist > FollowDistance)
-                ai.WalkTo(dt, owner.transform.position, FollowDistance * 0.8f, run: dist > RunBeyond);
+                ai.WalkTo(dt, owner.transform.position, FollowDistance * 0.8f, run: owner.IsRunning() || dist > FollowRunBeyond);
             else
             {
                 ai.Halt();

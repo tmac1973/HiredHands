@@ -71,6 +71,9 @@ namespace VikingsForHire.Config
 
         // 6 - Controls (local). The board panel is Shift+E: Valheim's alt-interact, so it follows the game's own bindings.
         public static ConfigEntry<float> PostLeashRadius = null!;
+        public static ConfigEntry<float> FollowerCatchUpSpeedBonus = null!;
+        public static ConfigEntry<float> FollowerCatchUpTeleportDistance = null!;
+        public static ConfigEntry<float> FollowerStuckTeleportSeconds = null!;
 
         // 7 - Debug (local)
         public static ConfigEntry<bool> LogToFile = null!;
@@ -122,6 +125,9 @@ namespace VikingsForHire.Config
             PortalFollowRadius = Synced(f, "PortalFollowRadius", 20f, "Followers within this distance (m) go through a portal with you.");
             AllowNonTeleportableThroughPortals = Synced(f, "AllowNonTeleportableThroughPortals", false, "Followers may carry ore and metals through portals.");
             GatherNearbyRadius = Synced(f, "GatherNearbyRadius", 15f, "Radius (m) around you that Gather Nearby followers work in.");
+            FollowerCatchUpSpeedBonus = Synced(f, "FollowerCatchUpSpeedBonus", 0.25f, "Extra sprint speed (0.25 = +25%) for a follower more than 15 m behind you, so it closes the gap even when you sprint with run skill and gear.");
+            FollowerCatchUpTeleportDistance = Synced(f, "FollowerCatchUpTeleportDistance", 40f, "A following follower this far behind you (m), or stuck, appears on the ground just behind you, but only while you can't see it (off screen or out of sight). 0 turns catch-up teleports off.");
+            FollowerStuckTeleportSeconds = Synced(f, "FollowerStuckTeleportSeconds", 5f, "Seconds a following follower can be stuck (not getting anywhere while it should be moving) before it's allowed to catch up by teleport.");
             ShipStowRadius = Synced(f, "ShipStowRadius", 20f, "Followers within this distance (m) board as passengers when you take the helm.");
             OrphanDistance = Synced(f, "OrphanDistance", 60f, "A following follower farther than this (m) for OrphanDistanceSeconds heads home.");
             OrphanDistanceSeconds = Synced(f, "OrphanDistanceSeconds", 30f, "See OrphanDistance.");
