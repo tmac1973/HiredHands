@@ -214,14 +214,12 @@ namespace VikingsForHire.Core
             return OpOutcome.Ok;
         }
 
-        /// <summary>Sets (or with null clears) a guard's post. Only guards can be posted.</summary>
+        /// <summary>Sets (or with null clears) a hireling's post: where a guard stands guard, or a worker waits.</summary>
         public OpOutcome SetPost(string hid, GuardPost? post)
         {
             ContractEntry? e = ByHid(hid);
             if (e == null)
                 return OpOutcome.NotFound;
-            if (post != null && !e.Job.IsGuard())
-                return OpOutcome.BadValue;
             e.Post = post;
             return OpOutcome.Ok;
         }

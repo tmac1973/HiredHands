@@ -217,15 +217,13 @@ namespace VikingsForHire.Net
             return Localization.instance.Localize("$vfh_follow_released", zdo.GetString(HirelingZdo.Name));
         }
 
-        // A guard follower at home becomes a posted guard: it stops being a follower (freeing the stone slot) and
-        // guards the spot for good; the post is kept on its contract.
+        // A follower at home posted on a spot: it stops being a follower (freeing the stone slot) and goes back to its
+        // contract, standing there (guarding, or waiting when it has no work); the post is kept on its contract.
         private static string Post(long pid, string hid, Vector3 pos, float yaw)
         {
             ZDO? zdo = WorldIndex.Hireling(hid);
             if (zdo == null || zdo.GetLong(HirelingZdo.Owner) != pid)
                 return "$vfh_follow_not_yours";
-            if (!((JobType)zdo.GetInt(HirelingZdo.Job)).IsGuard())
-                return "$vfh_post_guards_only";
             // The post itself must be inside the board's area (that's where it'll stand), not the guard right now.
             Vector3 home = zdo.GetVec3(HirelingZdo.Home, pos);
             if (Utils.DistanceXZ(pos, home) > zdo.GetFloat(HirelingZdo.Radius, 20f))

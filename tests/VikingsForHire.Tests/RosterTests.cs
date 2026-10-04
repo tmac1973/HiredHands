@@ -175,19 +175,22 @@ namespace VikingsForHire.Tests
             Assert.Equal(expected, GatherRules.Primary(drops, list == "W" ? Wood : Rock));
 
         [Fact]
-        public void PostsRoundTripAndOnlyGuardsGetThem()
+        public void PostsRoundTripForAnyJob()
         {
-            var r = WithActive("a");
+            var r = WithActive("a", "b");
             r.Post(Entry("g", JobType.GuardRanged, 3), 9);
             r.Activate("g", "hg");
-            Assert.Equal(OpOutcome.BadValue, r.SetPost("ha", new GuardPost { X = 1 }));
+            // A worker can be posted too (it waits there when it has no work).
+            Assert.Equal(OpOutcome.Ok, r.SetPost("ha", new GuardPost { X = 1 }));
             Assert.Equal(OpOutcome.Ok, r.SetPost("hg", new GuardPost { X = 1.5f, Y = 2f, Z = -3f, Yaw = 90f }));
+            Assert.Equal(OpOutcome.NotFound, r.SetPost("nobody", new GuardPost()));
             var w = new W();
             r.Write(w);
             Roster back = Roster.Read(new R(w.Stream.ToArray()));
             Assert.Equivalent(r.Entries, back.Entries);
             Assert.Equal(90f, back.ByHid("hg")!.Post!.Yaw);
-            Assert.Null(back.ByHid("ha")!.Post);
+            Assert.Equal(1f, back.ByHid("ha")!.Post!.X);
+            Assert.Null(back.ByHid("hb")!.Post);
             Assert.Equal(OpOutcome.Ok, back.SetPost("hg", null));
             Assert.Null(back.ByHid("hg")!.Post);
         }

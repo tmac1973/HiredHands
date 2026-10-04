@@ -13,7 +13,8 @@ namespace VikingsForHire.Followers
 {
     /// <summary>
     /// The Command Stone in hand. Left click acts on what you're looking at:
-    ///   a board's hireling → recruit it; your follower at home → post it here (guards) or back to work (workers);
+    ///   a board's hireling → recruit it; your follower at home → post it here (guards, and gatherers with "Works at
+    ///   home" off) or back to work (other workers);
     ///   your follower in the field → toggle Follow / Stay; a tree or log → your woodcutters harvest it; a rock →
     ///   your miners mine it; an enemy → your guards attack it; the ground → your followers move there and hold (guards
     ///   at home are posted there instead).
@@ -96,7 +97,7 @@ namespace VikingsForHire.Followers
                 {
                     if (AtHome(h))
                     {
-                        if (h.Job.IsGuard())
+                        if (Postable(h))
                             FollowerServer.Send(FollowerServer.Kind.Post, h.Hid, Quality, h.transform.position, me.transform.eulerAngles.y);
                         else
                             FollowerServer.Send(FollowerServer.Kind.Release, h.Hid, Quality);
@@ -241,7 +242,7 @@ namespace VikingsForHire.Followers
                 Hireling f = near[i];
                 Vector3 slot = near.Count == 1 ? point : point + Quaternion.Euler(0f, 360f * i / near.Count, 0f) * Vector3.forward * 2f;
                 f.Ai.Order = null;
-                if (f.Job.IsGuard() && Utils.DistanceXZ(slot, f.Home) <= f.Radius)
+                if (Postable(f) && Utils.DistanceXZ(slot, f.Home) <= f.Radius)
                 {
                     FollowerServer.Send(FollowerServer.Kind.Post, f.Hid, Quality, slot, me.transform.eulerAngles.y);
                     posted++;
@@ -271,6 +272,10 @@ namespace VikingsForHire.Followers
         public static IEnumerable<Hireling> MyFollowers(Player me, float range) =>
             Hireling.Loaded.Where(f => f != null && f.Mode == HirelingMode.Following && f.OwnerId == me.GetPlayerID() && !f.IsStowed &&
                                        Vector3.Distance(f.transform.position, me.transform.position) <= range);
+
+        // Clicked into place at home: guards are posted; so are gatherers with "Works at home" off, which would otherwise
+        // wander about the base with nothing to do. Other workers go back to work.
+        private static bool Postable(Hireling h) => h.Job.IsGuard() || !h.WorksAtHome;
 
         private static bool AtHome(Hireling h) => Utils.DistanceXZ(h.transform.position, h.Home) <= h.Radius;
 

@@ -6,8 +6,9 @@ using UnityEngine;
 namespace VikingsForHire.Hirelings.Combat
 {
     /// <summary>
-    /// A posted guard (phase 13) stands guard at its post facing the way it was posted, instead of patrolling. Combat
-    /// still takes over by stance; its leash is the post, and afterwards it walks back here.
+    /// A posted hireling stands at its post facing the way it was posted: a guard instead of patrolling (combat still
+    /// takes over by stance; its leash is the post, and afterwards it walks back here), a worker instead of idling about
+    /// whenever it has no work.
     /// </summary>
     internal sealed class PostBehaviour : IHirelingBehaviour
     {
@@ -21,8 +22,10 @@ namespace VikingsForHire.Hirelings.Combat
         public string Name => "Post";
         public int Priority => 101; // just above patrol, which a posted guard doesn't do
 
+        // Any posted hireling working at home: guards stand guard there; a gatherer stands there whenever it isn't
+        // gathering or delivering (its work outranks this), e.g. with "Works at home" off, instead of wandering about.
         public bool Wants(HirelingAI ai) =>
-            ai.Hireling.Job.IsGuard() && ai.Hireling.Mode == HirelingMode.Working && ai.Hireling.HasPost;
+            ai.Hireling.Mode == HirelingMode.Working && ai.Hireling.HasPost;
 
         public void Tick(HirelingAI ai, float dt)
         {

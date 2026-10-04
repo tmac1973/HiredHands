@@ -74,11 +74,11 @@ With the stone in hand (the list of your followers shows on the left of the scre
 | Input | On | Does |
 |---|---|---|
 | Left click | A board's hireling | Recruit it (needs the ward, if any) |
-| Left click | Your follower at home | A guard is posted on that spot; a worker goes back to work |
+| Left click | Your follower at home | A guard (or a gatherer with "Works at home" off) is posted on that spot; any other worker goes back to work |
 | Left click | Your follower in the field | Follow ↔ Stay |
 | Left click | A tree or log / a rock | Your woodcutters / miners harvest it (and what it leaves behind), then follow again |
 | Left click | An enemy | Your guards attack it |
-| Left click | The ground | Your followers go there and hold; at home, guards are posted there |
+| Left click | The ground | Your followers go there and hold; at home, guards (and gatherers with "Works at home" off) are posted there |
 | Right click | Your follower at home / a posted guard | Back to work / clear the post |
 | Right click | Anything else | Recall: everyone within 50 m follows you |
 | Middle click | Anywhere | **Retreat**: everyone drops the fight and runs with you, ignoring enemies, until 20 s pass without a hit |
@@ -91,7 +91,7 @@ With the stone in hand (the list of your followers shows on the left of the scre
 - **Portals and dungeons**: followers within 20 m go through with you. One carrying what the portal won't take (ore, metal) stays behind in Stay, as you would (`AllowNonTeleportableThroughPortals`). The world modifier that lets portals take everything applies to them too.
 - **Ships**: take the helm (or stand on a ship that's under way) and your followers nearby board as passengers; they step off beside you when you're ashore. If the ship sinks they're left in the water to swim after you.
 - **Going home**: *Send home* in the Shift+E panel walks a follower back to its board on a timer (25 s per 100 m, 1 to 20 minutes) with its cargo; it delivers it and goes back to work. A follower left far behind, left in Stay while you're far away, or whose owner has been offline for 5 minutes goes home the same way. With `ReturnHomeWithNonTeleportable` off, it first drops what a portal wouldn't take, so going home isn't a free ore portal.
-- **Posts**: a guard can stand watch on a spot at home (a tower, a gate). It watches all round, fights by its stance and walks back to its post. Archers hold fire when the shot is blocked.
+- **Posts**: a guard can stand watch on a spot at home (a tower, a gate). It watches all round, fights by its stance and walks back to its post. Archers hold fire when the shot is blocked. A gatherer with "Works at home" off can be posted the same way, so it waits on that spot instead of wandering about the base.
 
 ## Board levels
 
