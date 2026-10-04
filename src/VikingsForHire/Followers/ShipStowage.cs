@@ -101,6 +101,13 @@ namespace VikingsForHire.Followers
         public static Vector3? CarryPoint(Hireling h)
         {
             string id = h.StowedOn;
+            // Only followers ride: one sent back to work meanwhile (its owner logged out at a ship docked at home) steps off.
+            if (h.Mode != HirelingMode.Following)
+            {
+                h.Zdo?.Set(HirelingZdo.Stowed, "");
+                VfhLog.I(LogCat.Follow, "follow.unstowed", ("hid", h.Hid), ("ship", id), ("why", "no longer a follower"));
+                return null;
+            }
             GameObject? ship = Parse(id) is ZDOID zdoid ? ZNetScene.instance?.FindInstance(zdoid) : null;
             if (ship != null)
             {
