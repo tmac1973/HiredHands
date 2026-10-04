@@ -138,3 +138,13 @@ Today a hireling's cargo falls to the ground where it dies, as loose items that 
 - **Empty is deleted:** like a player's, the tombstone goes away once it's emptied, and the pin with it.
 - **Setting:** `HirelingTombstones` (default on); off keeps today's loose pile.
 - **Watch out for:** the tombstone's own "pick up all" and its "you died" status effect, which mustn't touch the player who opens it. Test both, and test that AzuAutoStore and AzuCraftyBoxes don't pull from it (as they don't from cargo today).
+
+## Moving a board without losing its level
+Today deconstructing a hiring board gives back only its build cost (vanilla piece rules), so the boss trophies and materials spent upgrading it are lost, and moving a base means killing every boss again. Two ways to fix it; the second is preferred.
+- **Refund the upgrades:** on deconstruction, drop everything spent on the levels it reached (trophies and materials, from the board's upgrade history; record what was actually paid per upgrade on the board's ZDO, since the data file's costs can change later). Simple, but it hands back trophies that could then be spent again, and you'd have to carry a pile of materials to the new base and pay them all over again.
+- **A charter item (preferred):** deconstructing a board of level 2 or more drops a **Hiring Charter** (a small teleportable item) that remembers the board's level, and its contracts if we want to keep them. Placing a new board while carrying the charter gives it that level straight away and uses up the charter. Nothing can be spent twice, nothing heavy to carry, and it fits "moving the business".
+  - The charter's level lives in the item's custom data (like other items' quality/crafter data), shown in its tooltip ("Hiring Charter: level 4").
+  - Contracts: either they end when the board comes down (as now: hirelings drop their cargo and leave) and the charter carries only the level, or the charter also carries the roster and the hirelings walk to the new board (bigger: they'd need to travel, or arrive like new hires). Start with level only.
+  - Multiplayer: a charter can be traded like any item; that's fine, it's one level for one board.
+  - The "remove this board?" confirmation should say what will happen ("You'll get a Hiring Charter (level 4) to place a new board").
+- **Either way:** respect the existing "board destroyed" rules (contracts end, cargo drops, funds drop like a chest's), and don't refund anything when the board is destroyed by monsters or damage, only when the player deconstructs it.
