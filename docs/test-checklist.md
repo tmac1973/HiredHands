@@ -184,3 +184,5 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-03 | 0922b32 | VFH-WORK-3 | D | Pass | Miner hit from a bit too far (bounds, not surface): fixed after |
 | 2026-10-03 | 0922b32 | VFH-DLV-1 | D | Pass | |
 | 2026-10-03 | 0922b32 | VFH-TIER-1 | D | Pass | |
+| 2026-10-03 | 00f518b | VFH-HIRE-1 | D | Pass | Hireling and cargo survived a server restart |
+| 2026-10-03 | 00f518b | SCAFFOLD-2 | D | Pass | Joining without the mod is refused |
