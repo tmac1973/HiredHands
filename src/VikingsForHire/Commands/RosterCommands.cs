@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Jotunn.Managers;
 using VikingsForHire.Board;
+using VikingsForHire.Config;
 using VikingsForHire.Core;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
@@ -25,7 +26,7 @@ namespace VikingsForHire.Commands
                         VfhCommand.Print("Usage: vfh_spawn_contract <job> <level>");
                         return;
                     }
-                    BoardContracts.Post(board, job, level, 20f, StanceRules.Default(job), free: true);
+                    BoardContracts.Post(board, job, level, new LevelRules(DataStore.Current).MaxWorkRadius(board.Level, job), StanceRules.Default(job), free: true);
                 }, jobs));
             CommandManager.Instance.AddConsoleCommand(new VfhCommand("vfh_dismiss_contract", "<hid-prefix> - dismiss a hireling you hired, from anywhere",
                 true, args =>

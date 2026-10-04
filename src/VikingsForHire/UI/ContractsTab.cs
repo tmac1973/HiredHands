@@ -17,6 +17,8 @@ namespace VikingsForHire.UI
         private int _job;
         private int _level = 1;
         private float _radius = 20f;
+        // The job/board level the radius was last defaulted for: a new job (or an upgraded board) starts at its maximum.
+        private string _radiusDefaultedFor = "";
         private int _stance = -1;
 
         public string Title => "$vfh_tab_contracts";
@@ -71,7 +73,14 @@ namespace VikingsForHire.UI
         {
             var rules = new LevelRules(DataStore.Current);
             _level = Mathf.Clamp(_level, 1, rules.MaxHirelingLevel(board.Level));
-            _radius = Mathf.Clamp(_radius, LevelRules.MinWorkRadius, rules.MaxWorkRadius(board.Level, Jobs[_job]));
+            float max = rules.MaxWorkRadius(board.Level, Jobs[_job]);
+            string key = $"{Jobs[_job]}|{board.Level}";
+            if (key != _radiusDefaultedFor)
+            {
+                _radiusDefaultedFor = key;
+                _radius = max;
+            }
+            _radius = Mathf.Clamp(_radius, LevelRules.MinWorkRadius, max);
             int stances = StanceRules.Allowed(Jobs[_job]).Count;
             if (_stance < 0 || _stance >= stances)
                 _stance = IndexOf(StanceRules.Allowed(Jobs[_job]), StanceRules.Default(Jobs[_job]));

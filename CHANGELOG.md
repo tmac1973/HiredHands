@@ -4,6 +4,7 @@
 
 An early 0.1.1 build was briefly published; 0.1.2 is the full set of changes below.
 
+- A new contract's work radius starts at the most the job allows on that board (it was always 20 m), and still goes down in 5 m steps.
 - Hirelings ignore harmless wildlife (deer, hares and other passive animals) instead of chasing them; anything that attacks is still fought.
 - **Woodcutters chop fallen logs.** Logs weren't found by their search at all, so they cut trees and stumps and left the logs (most of the wood) lying. They now find every log in range and work it from the nearest point of its surface.
 - **Hireling armor now works.** Vanilla only applies body armor to players, so hirelings took every hit unarmored. They now get the real armor of the set they wear (bronze at level 3, iron at level 4…) plus a small per-level `armorBonus`; the old `armor` value in the data file is no longer used.
