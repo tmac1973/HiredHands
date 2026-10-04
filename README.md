@@ -1,4 +1,4 @@
-# Vikings for Hire
+# Hired Hands
 
 Build a **Hiring Board** at your base and post contracts to hire wandering vikings. They chop wood, mine, keep your smelters and kilns fed, and guard your base. Pay them in food, and in coins once they're more skilled. Upgrade the board with boss trophies to hire better vikings and more of them.
 
@@ -59,8 +59,8 @@ A board hires up to its own level. Higher-level hirelings have more health and a
 
 Two files in `BepInEx/config`, both synced from the server and only editable there in multiplayer:
 
-- **`Spronglehump.VikingsForHire.cfg`**: rules and behaviour, in sections *General* (raw food, permadeath, respawn), *Base* (what counts as a base, board spacing), *Hiring* (arrival delay, unpaid days), *Work* (tree and rock safety distances, terrain protection, smelter refill threshold, chest minimums), *Combat* and *Debug*.
-- **`Spronglehump.VikingsForHire.yml`**: the data tables: board levels and their upgrade costs, hireling levels (health, armour, gear, cargo, prices), per-job settings (cost multiplier, pickup list, gear by level, minimum board level, work-radius multiplier, smelter stations), raw foods, names. Edits are picked up live. An invalid file is rejected with a log message and the defaults are used.
+- **`Spronglehump.HiredHands.cfg`**: rules and behaviour, in sections *General* (raw food, permadeath, respawn), *Base* (what counts as a base, board spacing), *Hiring* (arrival delay, unpaid days), *Work* (tree and rock safety distances, terrain protection, smelter refill threshold, chest minimums), *Combat* and *Debug*.
+- **`Spronglehump.HiredHands.yml`**: the data tables: board levels and their upgrade costs, hireling levels (health, armour, gear, cargo, prices), per-job settings (cost multiplier, pickup list, gear by level, minimum board level, work-radius multiplier, smelter stations), raw foods, names. Edits are picked up live. An invalid file is rejected with a log message and the defaults are used.
 
 ```yaml
 jobs:
@@ -77,7 +77,7 @@ jobs:
 
 ## Bug reports
 
-Logs go to `BepInEx/LogOutput.log` and `BepInEx/VikingsForHire.log`, one line per event (`[VFH] … evt=…`). `vfh_debug All on` turns on detailed logging; `vfh_log_mark <text>` adds a marker; `vfh_dump_state` logs every board and hireling. None of these need cheats.
+Logs go to `BepInEx/LogOutput.log` and `BepInEx/HiredHands.log`, one line per event (`[VFH] … evt=…`). `vfh_debug All on` turns on detailed logging; `vfh_log_mark <text>` adds a marker; `vfh_dump_state` logs every board and hireling. None of these need cheats.
 
 ## Coming next
 

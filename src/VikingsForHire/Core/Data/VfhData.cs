@@ -3,7 +3,7 @@ using YamlDotNet.Serialization;
 
 namespace VikingsForHire.Core.Data
 {
-    /// <summary>Root of Spronglehump.VikingsForHire.yml. Plain data only: no Unity types.</summary>
+    /// <summary>Root of Spronglehump.HiredHands.yml. Plain data only: no Unity types.</summary>
     public class VfhData
     {
         [YamlMember(Description = "Hiring board levels 1-8. Level 1 cost is the build cost (needs a Workbench); levels 2-8 are upgrade costs.")]

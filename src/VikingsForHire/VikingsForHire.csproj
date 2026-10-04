@@ -4,7 +4,7 @@
     <TargetFramework>net472</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <AssemblyName>VikingsForHire</AssemblyName>
+    <AssemblyName>HiredHands</AssemblyName>
     <RootNamespace>VikingsForHire</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -54,9 +54,9 @@
       <DeployFiles Include="$(TargetPath)" />
       <DeployFiles Include="$(TargetDir)$(TargetName).pdb" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
     </ItemGroup>
-    <Copy SourceFiles="@(DeployFiles)" DestinationFolder="$(PluginsDir)/Spronglehump-VikingsForHire" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DeployFiles)" DestinationFolder="$(PluginsDir)/Spronglehump-HiredHands" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(RepoRoot)test/alias_vfh.yaml" DestinationFolder="$(GaleProfileDir)/BepInEx/config" SkipUnchangedFiles="true" />
-    <Message Importance="high" Text="VikingsForHire deployed to $(PluginsDir)/Spronglehump-VikingsForHire (+ alias_vfh.yaml)" />
+    <Message Importance="high" Text="HiredHands deployed to $(PluginsDir)/Spronglehump-HiredHands (+ alias_vfh.yaml)" />
   </Target>
 
   <!-- Thunderstore/Hexium zip: dotnet build -c Release -t:Package -->
@@ -65,7 +65,7 @@
       <ManifestVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(RepoRoot)package/manifest.json')), '"version_number"\s*:\s*"([^"]+)"').Groups[1].Value)</ManifestVersion>
       <PluginVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)Plugin.cs')), 'Version\s*=\s*"([^"]+)"').Groups[1].Value)</PluginVersion>
       <PackageStage>$(MSBuildThisFileDirectory)obj/package/</PackageStage>
-      <PackageZip>$(RepoRoot)dist/Spronglehump-VikingsForHire-$(Version).zip</PackageZip>
+      <PackageZip>$(RepoRoot)dist/Spronglehump-HiredHands-$(Version).zip</PackageZip>
     </PropertyGroup>
     <Error Condition="'$(ManifestVersion)' != '$(Version)' Or '$(PluginVersion)' != '$(Version)'"
            Text="Version mismatch: csproj $(Version), manifest.json $(ManifestVersion), Plugin.Version $(PluginVersion)" />

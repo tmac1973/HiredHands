@@ -57,7 +57,7 @@ namespace VikingsForHire.Commands
             {
                 string text = args.Length == 0 ? "mark" : string.Join(" ", args);
                 VfhLog.I(LogCat.Core, "mark", ("text", text));
-                VfhCommand.Print($"VikingsForHire: marked '{text}'");
+                VfhCommand.Print($"HiredHands: marked '{text}'");
             }));
             Add(new VfhCommand("vfh_dump_data", "- print the data tables in effect (server's when connected)", false, _ => DumpData()));
             Add(new VfhCommand("vfh_perf", "- hireling AI cost on this machine (rolling 10 s average)", false, _ =>
@@ -109,13 +109,13 @@ namespace VikingsForHire.Commands
             VfhConfig.DebugCategories.Value = LogFilter.FormatCategories(debug);
             VfhConfig.TraceCategories.Value = LogFilter.FormatCategories(trace);
             VfhLog.I(LogCat.Core, "debug.categories", ("debug", VfhConfig.DebugCategories.Value), ("trace", VfhConfig.TraceCategories.Value));
-            VfhCommand.Print($"VikingsForHire debug: [{VfhConfig.DebugCategories.Value}] trace: [{VfhConfig.TraceCategories.Value}]");
+            VfhCommand.Print($"HiredHands debug: [{VfhConfig.DebugCategories.Value}] trace: [{VfhConfig.TraceCategories.Value}]");
         }
 
         private static void DumpData()
         {
             VfhData d = DataStore.Current;
-            var lines = new List<string> { $"VikingsForHire data: source={DataStore.Source} hash={DataStore.Hash} reloads={DataStore.Reloads}" };
+            var lines = new List<string> { $"HiredHands data: source={DataStore.Source} hash={DataStore.Hash} reloads={DataStore.Reloads}" };
             foreach (BoardLevelData b in d.BoardLevels)
                 lines.Add($"  board L{b.Level}: cap {b.HirelingCap}, radius {b.MaxWorkRadius}m, cost {Cost(b.Cost)}");
             foreach (HirelingLevelData h in d.HirelingLevels)
@@ -140,7 +140,7 @@ namespace VikingsForHire.Commands
                 VfhLog.Guard(LogCat.Core, "dump.section_failed", section);
             if (DumpStateSections.Count == 0)
                 VfhLog.I(LogCat.Core, "dump.state", ("note", "no boards or hirelings yet in this build"));
-            VfhCommand.Print("VikingsForHire: state written to the log");
+            VfhCommand.Print("HiredHands: state written to the log");
         }
 
         private static string Cost(Dictionary<string, int> cost) => string.Join(" ", cost.Select(c => $"{c.Key}x{c.Value}"));

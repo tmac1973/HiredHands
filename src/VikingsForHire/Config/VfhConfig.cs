@@ -8,7 +8,7 @@ using VikingsForHire.Diagnostics;
 namespace VikingsForHire.Config
 {
     /// <summary>
-    /// Spronglehump.VikingsForHire.cfg. Gameplay keys are admin-only: Jotunn syncs them from the server and locks them for
+    /// Spronglehump.HiredHands.cfg. Gameplay keys are admin-only: Jotunn syncs them from the server and locks them for
     /// non-admins. Debug and control keys are local to each machine. Read overridable values through <see cref="Get"/>
     /// so the test harness's fast_timers mode applies.
     /// </summary>
@@ -135,10 +135,10 @@ namespace VikingsForHire.Config
             CycleFollowModeKey = config.Bind("6 - Controls", "CycleFollowModeKey", new KeyboardShortcut(UnityEngine.KeyCode.G), "With the Command Stone equipped: cycle Follow / Stay / Gather Nearby.");
             CycleStanceKey = config.Bind("6 - Controls", "CycleStanceKey", new KeyboardShortcut(UnityEngine.KeyCode.H), "With the Command Stone equipped: cycle followers' combat stance.");
 
-            LogToFile = config.Bind("7 - Debug", "LogToFile", true, "Also write log lines to BepInEx/VikingsForHire.log.");
+            LogToFile = config.Bind("7 - Debug", "LogToFile", true, "Also write log lines to BepInEx/HiredHands.log.");
             DebugCategories = config.Bind("7 - Debug", "DebugCategories", "", $"Categories logging at Debug, comma separated, or All. Categories: {string.Join(", ", System.Enum.GetNames(typeof(LogCat)))}.");
             TraceCategories = config.Bind("7 - Debug", "TraceCategories", "", "Categories logging at Trace (very verbose; implies Debug).");
-            LogFileMaxMB = config.Bind("7 - Debug", "LogFileMaxMB", 10, "VikingsForHire.log size before rotating (3 backups kept).");
+            LogFileMaxMB = config.Bind("7 - Debug", "LogFileMaxMB", 10, "HiredHands.log size before rotating (3 backups kept).");
 
             ApplyLogSettings();
             DebugCategories.SettingChanged += (_, _) => ApplyLogSettings();

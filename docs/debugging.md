@@ -1,14 +1,14 @@
-# Debugging VikingsForHire
+# Debugging Hired Hands
 
 ## Where the logs are
 
 | Mode | Files |
 |---|---|
-| Single-player / client | `~/.local/share/com.kesomannen.gale/valheim/profiles/vikingsforhire-dev/BepInEx/VikingsForHire.log` and `.../BepInEx/LogOutput.log` |
-| Dedicated server | `/games/SteamLibrary/steamapps/common/Valheim dedicated server/BepInEx/VikingsForHire.log` and `.../BepInEx/LogOutput.log` |
+| Single-player / client | `~/.local/share/com.kesomannen.gale/valheim/profiles/vikingsforhire-dev/BepInEx/HiredHands.log` and `.../BepInEx/LogOutput.log` |
+| Dedicated server | `/games/SteamLibrary/steamapps/common/Valheim dedicated server/BepInEx/HiredHands.log` and `.../BepInEx/LogOutput.log` |
 
-`VikingsForHire.log` holds only this mod's lines and is appended to across sessions. It rotates at
-`LogFileMaxMB` (default 10 MB) to `VikingsForHire.1.log` … `.3.log`. The same lines also appear in `LogOutput.log`.
+`HiredHands.log` holds only this mod's lines and is appended to across sessions. It rotates at
+`LogFileMaxMB` (default 10 MB) to `HiredHands.1.log` … `.3.log`. The same lines also appear in `LogOutput.log`.
 
 ## Reporting a bug
 
@@ -53,7 +53,7 @@ Error, Warning and Info always log. Debug and Trace are per category:
 ## Grepping
 
 ```bash
-grep 'lvl=E' VikingsForHire.log
-grep 'evt=test.result' VikingsForHire.log
-grep -A50 'text="before chest bug"' VikingsForHire.log
+grep 'lvl=E' HiredHands.log
+grep 'evt=test.result' HiredHands.log
+grep -A50 'text="before chest bug"' HiredHands.log
 ```

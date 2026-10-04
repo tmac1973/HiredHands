@@ -14,7 +14,7 @@ using UnityEngine;
 namespace VikingsForHire.Config
 {
     /// <summary>
-    /// Owns Spronglehump.VikingsForHire.yml: writes defaults on first run, validates, hot-reloads on the server or in
+    /// Owns Spronglehump.HiredHands.yml: writes defaults on first run, validates, hot-reloads on the server or in
     /// single-player, and pushes the server's tables to clients (on join and after every reload).
     /// </summary>
     internal static class DataStore
@@ -39,7 +39,7 @@ namespace VikingsForHire.Config
 
         public static void Init()
         {
-            FilePath = Path.Combine(Paths.ConfigPath, "Spronglehump.VikingsForHire.yml");
+            FilePath = Path.Combine(Paths.ConfigPath, "Spronglehump.HiredHands.yml");
             LoadLocal("startup");
 
             _syncRpc = NetworkManager.Instance.AddRPC("VFH_DataSync", OnServerReceive, OnClientReceive);

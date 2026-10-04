@@ -13,7 +13,7 @@ namespace VikingsForHire.Compat
     /// Keeps AzuAutoStore, AzuCraftyBoxes (and PullMats, which finds chests through CraftyBoxes) and PetPantry away from our
     /// containers. Both mods keep a list of every Container, filled through Boxes.AddContainer; refusing ours there keeps
     /// them out of every store, pull and craft. CanItemBeStored/CanItemBePulled are patched as a second line of defence.
-    /// Everything is found by reflection: a changed or missing mod logs a warning and never stops VikingsForHire loading.
+    /// Everything is found by reflection: a changed or missing mod logs a warning and never stops Hired Hands loading.
     /// </summary>
     internal static class CompatPatcher
     {

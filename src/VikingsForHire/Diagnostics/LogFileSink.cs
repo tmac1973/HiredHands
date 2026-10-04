@@ -4,7 +4,7 @@ using System.Text;
 
 namespace VikingsForHire.Diagnostics
 {
-    /// <summary>Appends to BepInEx/VikingsForHire.log, rotating to VikingsForHire.1.log … .3.log at the size limit.</summary>
+    /// <summary>Appends to BepInEx/HiredHands.log, rotating to HiredHands.1.log … .3.log at the size limit.</summary>
     internal sealed class LogFileSink : IDisposable
     {
         private const int Backups = 3;

@@ -69,9 +69,9 @@ namespace VikingsForHire.Diagnostics
         {
             Roll();
             if (_lastFrames == 0 || !_last.TryGetValue("ai", out Bucket ai))
-                return "VikingsForHire perf: no hireling AI ran on this machine in the last 10 s window (hirelings are ticked by their owner).";
+                return "HiredHands perf: no hireling AI ran on this machine in the last 10 s window (hirelings are ticked by their owner).";
             var sb = new StringBuilder();
-            sb.Append($"VikingsForHire perf (last {_lastWindowSeconds:0}s, {_lastFrames} frames with AI): ")
+            sb.Append($"HiredHands perf (last {_lastWindowSeconds:0}s, {_lastFrames} frames with AI): ")
               .Append($"AI {ai.Ms / _lastFrames:0.000} ms/frame avg, {_lastMaxFrameMs:0.00} ms worst frame, {ai.Calls / (double)_lastFrames:0.0} hirelings/frame");
             foreach (var kv in _last.Where(k => k.Key != "ai").OrderByDescending(k => k.Value.Ms))
                 sb.Append($"\n  {kv.Key}: {kv.Value.Ms / _lastFrames:0.000} ms/frame ({kv.Value.Calls} calls)");

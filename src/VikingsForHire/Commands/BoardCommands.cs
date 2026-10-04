@@ -24,13 +24,13 @@ namespace VikingsForHire.Commands
         {
             if (Player.m_localPlayer == null)
             {
-                VfhCommand.Print("VikingsForHire: no player");
+                VfhCommand.Print("HiredHands: no player");
                 return;
             }
             HiringBoard? board = HiringBoard.Nearest(Player.m_localPlayer.transform.position, InfoRange);
             if (board == null || board.Zdo == null)
             {
-                VfhCommand.Print("VikingsForHire: no hiring board within 50m");
+                VfhCommand.Print("HiredHands: no hiring board within 50m");
                 return;
             }
             Cost funds = board.Inventory != null ? BoardStorage.Totals(board.Inventory) : Cost.Zero;
@@ -49,7 +49,7 @@ namespace VikingsForHire.Commands
                 return;
             }
             BoardUpgrade.RequestSetLevel(board, level);
-            VfhCommand.Print($"VikingsForHire: asked board {board.Id} to go to level {level}");
+            VfhCommand.Print($"HiredHands: asked board {board.Id} to go to level {level}");
         }
 
         private static void DumpBoards()

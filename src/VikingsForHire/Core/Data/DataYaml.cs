@@ -10,9 +10,9 @@ namespace VikingsForHire.Core.Data
     public static class DataYaml
     {
         private const string Header =
-            "# VikingsForHire data tables. Edit and save: the server (or single-player game) reloads within a second\n" +
+            "# HiredHands data tables. Edit and save: the server (or single-player game) reloads within a second\n" +
             "# and sends the new values to connected clients. Item names are prefab names (e.g. Wood, TrophyEikthyr).\n" +
-            "# A file that fails validation is ignored and the built-in defaults are used; check BepInEx/VikingsForHire.log.\n";
+            "# A file that fails validation is ignored and the built-in defaults are used; check BepInEx/HiredHands.log.\n";
 
         private static readonly ISerializer Serializer = new SerializerBuilder()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)

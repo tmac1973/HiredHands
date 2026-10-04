@@ -27,10 +27,10 @@ namespace VikingsForHire.Commands
                 {
                     Hireling h = NearestOrThrow();
                     Plugin.Instance.StartCoroutine(SnapshotTest.Run(h));
-                    VfhCommand.Print($"VikingsForHire: snapshot test running on {h.DisplayName}, see the log (evt=snapshot.roundtrip)");
+                    VfhCommand.Print($"HiredHands: snapshot test running on {h.DisplayName}, see the log (evt=snapshot.roundtrip)");
                 }));
             CommandManager.Instance.AddConsoleCommand(new VfhCommand("vfh_kill_hirelings", "[radius=50] - kill hirelings near you", true, args =>
-                VfhCommand.Print($"VikingsForHire: killed {Kill(args.Length > 0 && float.TryParse(args[0], out float r) ? r : 50f)} hirelings")));
+                VfhCommand.Print($"HiredHands: killed {Kill(args.Length > 0 && float.TryParse(args[0], out float r) ? r : 50f)} hirelings")));
             DebugCommands.DumpStateSections.Add(Dump);
         }
 
@@ -53,7 +53,7 @@ namespace VikingsForHire.Commands
                 HirelingFactory.Spawn(record, point + offset, Quaternion.LookRotation(-player.transform.forward), "vfh_spawn");
                 LastSpawned.Add(record.Hid);
             }
-            VfhCommand.Print($"VikingsForHire: spawned {count} {job} L{level}{(board != null ? $" for board {board.Id}" : " (no board nearby)")}");
+            VfhCommand.Print($"HiredHands: spawned {count} {job} L{level}{(board != null ? $" for board {board.Id}" : " (no board nearby)")}");
             return count;
         }
 

@@ -121,7 +121,7 @@ namespace VikingsForHire.Testing
             Add("vfh_test_reset", "- clear stored test results", _ =>
             {
                 Results.Clear();
-                VfhCommand.Print("VikingsForHire: test results cleared");
+                VfhCommand.Print("HiredHands: test results cleared");
             });
             Add("vfh_checks", "- list the registered vfh_assert checks", _ =>
             {
@@ -392,7 +392,7 @@ namespace VikingsForHire.Testing
             string path = System.IO.Path.Combine(BepInEx.Paths.ConfigPath, "alias_vfh.yaml");
             if (!System.IO.File.Exists(path))
             {
-                VfhCommand.Print("VikingsForHire: no " + path);
+                VfhCommand.Print("HiredHands: no " + path);
                 return;
             }
             var macros = new Dictionary<string, string>();
@@ -407,7 +407,7 @@ namespace VikingsForHire.Testing
                 string name = arg.StartsWith("vfh_t_") ? arg : "vfh_t_" + arg;
                 if (!macros.TryGetValue(name, out string body))
                 {
-                    VfhCommand.Print("VikingsForHire: no macro " + name);
+                    VfhCommand.Print("HiredHands: no macro " + name);
                     continue;
                 }
                 foreach (string cmd in body.Split(';').Select(c => c.Trim()).Where(c => c.Length > 0))
@@ -428,13 +428,13 @@ namespace VikingsForHire.Testing
         {
             if (Results.Count == 0)
             {
-                VfhCommand.Print("VikingsForHire: no test results yet");
+                VfhCommand.Print("HiredHands: no test results yet");
                 return;
             }
             foreach (Result r in Results)
                 VfhCommand.Print($"  {(r.Pass ? "PASS" : "FAIL")} {r.Row} ({r.Checks} checks, {r.Failed} failed)");
             int passed = Results.Count(r => r.Pass);
-            VfhCommand.Print($"VikingsForHire: {passed}/{Results.Count} passed");
+            VfhCommand.Print($"HiredHands: {passed}/{Results.Count} passed");
             VfhLog.I(LogCat.Test, "test.summary", ("passed", passed), ("total", Results.Count),
                 ("failedRows", string.Join(",", Results.Where(r => !r.Pass).Select(r => r.Row))));
         }

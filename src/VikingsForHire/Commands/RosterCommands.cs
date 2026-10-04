@@ -52,7 +52,7 @@ namespace VikingsForHire.Commands
                     foreach (ZDO z in hirelings)
                         VfhLog.I(LogCat.Roster, "dump.index_hireling", ("hid", z.GetString(HirelingZdo.Hid)), ("board", z.GetString(HirelingZdo.BoardId)),
                             ("mode", (HirelingMode)z.GetInt(HirelingZdo.Mode)), ("owner", z.GetOwner()), ("pos", z.GetPosition()));
-                    VfhCommand.Print($"VikingsForHire: {WorldIndex.BoardCount} boards, {hirelings.Count} hirelings (details in the log)");
+                    VfhCommand.Print($"HiredHands: {WorldIndex.BoardCount} boards, {hirelings.Count} hirelings (details in the log)");
                 }));
             DebugCommands.DumpStateSections.Add(DumpRosters);
         }

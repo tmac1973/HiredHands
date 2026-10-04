@@ -3,7 +3,7 @@
 #
 # Usage: scripts/run-dedicated-server.sh [--no-vfh] [--vfh-dll <path>]
 #   --no-vfh          run the server without VikingsForHire (removes any copy left from earlier runs)
-#   --vfh-dll <path>  run the server with this VikingsForHire.dll instead of the profile's copy
+#   --vfh-dll <path>  run the server with this HiredHands.dll instead of the profile's copy
 #
 # Env overrides: SERVER_DIR, PROFILE, SAVE_DIR
 set -euo pipefail
@@ -35,7 +35,7 @@ rsync -a "$PROFILE/doorstop_config.ini" "$SERVER_DIR/"
 
 plugin_args=(-a --delete)
 if [[ $no_vfh -eq 1 ]]; then
-    plugin_args+=(--exclude Spronglehump-VikingsForHire --delete-excluded)
+    plugin_args+=(--exclude Spronglehump-HiredHands --delete-excluded)
 fi
 rsync "${plugin_args[@]}" "$PROFILE/BepInEx/plugins/" "$SERVER_DIR/BepInEx/plugins/"
 
@@ -46,7 +46,7 @@ rsync -a --ignore-existing "$PROFILE/BepInEx/config/" "$SERVER_DIR/BepInEx/confi
 cp "$REPO_DIR/test/alias_vfh.yaml" "$SERVER_DIR/BepInEx/config/alias_vfh.yaml"
 
 if [[ -n "$vfh_dll" && $no_vfh -eq 0 ]]; then
-    cp "$vfh_dll" "$SERVER_DIR/BepInEx/plugins/Spronglehump-VikingsForHire/VikingsForHire.dll"
+    cp "$vfh_dll" "$SERVER_DIR/BepInEx/plugins/Spronglehump-HiredHands/HiredHands.dll"
 fi
 
 echo "VikingsForHire on server: $([[ $no_vfh -eq 1 ]] && echo no || echo "yes${vfh_dll:+ ($vfh_dll)}")"

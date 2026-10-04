@@ -23,8 +23,8 @@ namespace VikingsForHire
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Minor)]
     public class Plugin : BaseUnityPlugin
     {
-        public const string Guid = "Spronglehump.VikingsForHire";
-        public const string Name = "VikingsForHire";
+        public const string Guid = "Spronglehump.HiredHands";
+        public const string Name = "HiredHands";
         public const string Version = "0.1.0";
 
         internal static ManualLogSource Log = null!;

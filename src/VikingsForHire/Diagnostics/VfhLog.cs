@@ -13,7 +13,7 @@ namespace VikingsForHire.Diagnostics
 {
     /// <summary>
     /// The one logging entry point. Every line is <c>[VFH] t=… f=… role=… lvl=… cat=… evt=… key=value…</c>, written to
-    /// the BepInEx log and to BepInEx/VikingsForHire.log. Error/Warning/Info always log; Debug/Trace per category.
+    /// the BepInEx log and to BepInEx/HiredHands.log. Error/Warning/Info always log; Debug/Trace per category.
     /// </summary>
     internal static class VfhLog
     {
@@ -69,11 +69,11 @@ namespace VikingsForHire.Diagnostics
             }
             try
             {
-                _file = new LogFileSink(Path.Combine(Paths.BepInExRootPath, "VikingsForHire.log"), maxMegabytes);
+                _file = new LogFileSink(Path.Combine(Paths.BepInExRootPath, "HiredHands.log"), maxMegabytes);
             }
             catch (Exception ex)
             {
-                _source.LogWarning($"[VFH] could not open VikingsForHire.log, logging to LogOutput.log only: {ex.Message}");
+                _source.LogWarning($"[VFH] could not open HiredHands.log, logging to LogOutput.log only: {ex.Message}");
             }
         }
 
