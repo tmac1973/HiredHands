@@ -22,6 +22,7 @@ namespace VikingsForHire.Testing
             Fixtures.Add("trees", "<prefab> <n> <distance> - plant trees in a ring that far from the nearest board", Trees);
             Fixtures.Add("tree_near_wall", "<distance=22> - a wall and a beech 4 m from it (tagged near_wall), that far from the board", TreeNearWall);
             Fixtures.Add("chest", "<tag> [item count]… - a wooden chest beside the board holding those items", Chest);
+            Fixtures.Add("room", "<tag> [item count]… - a closed 6x6 m room 12 m to the board's right with a door facing the board (tagged <tag>_door) and a chest inside (tagged <tag>)", Room);
             Fixtures.Add("deliver_now", "- tell the hireling from your last contract to deliver what it carries now", DeliverNow);
             Fixtures.Add("fill_chest", "<tag> <item> - fill every free slot of a tagged chest with full stacks", FillChest);
 
@@ -42,6 +43,11 @@ namespace VikingsForHire.Testing
                                                        Vector3.Distance(d.transform.position, pile) < 4f).Sum(d => d.m_itemData.m_stack).ToString();
             });
             TestHarness.RegisterCheck("object_alive", "<tag> - whether a tagged object still exists", args => FindTagged(args.ElementAtOrDefault(0) ?? "") != null ? "true" : "false");
+            TestHarness.RegisterCheck("door_open", "<tag> - whether a tagged door is open", args =>
+            {
+                GameObject door = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged door");
+                return door.GetComponent<ZNetView>().GetZDO().GetInt(ZDOVars.s_state) != 0 ? "true" : "false";
+            });
             TestHarness.RegisterCheck("reservations_unique", "- no harvest target is claimed by two hirelings", _ => Reservations.AllUnique() ? "true" : "false");
         }
 
@@ -138,6 +144,51 @@ namespace VikingsForHire.Testing
                 i.m_stack = max;
             inv.Changed();
             yield return null;
+        }
+
+        private static IEnumerator Room(string[] args)
+        {
+            string tag = args.ElementAtOrDefault(0) ?? "R";
+            HiringBoard board = Board();
+            Vector3 n = -board.transform.right; // from the room towards the board
+            Vector3 t = board.transform.forward;
+            Vector3 c = board.transform.position + board.transform.right * 12f;
+            // Three 2 m walls per side; the middle of the side facing the board is the door.
+            var parts = new System.Collections.Generic.List<(string Prefab, Vector3 Pos, Vector3 Facing, string Tag)>();
+            for (int i = -1; i <= 1; i++)
+            {
+                parts.Add((i == 0 ? "wood_door" : "woodwall", c + n * 3f + t * (2f * i), n, i == 0 ? tag + "_door" : ""));
+                parts.Add(("woodwall", c - n * 3f + t * (2f * i), n, ""));
+                parts.Add(("woodwall", c + t * 3f + n * (2f * i), t, ""));
+                parts.Add(("woodwall", c - t * 3f + n * (2f * i), t, ""));
+            }
+            foreach (var p in parts)
+            {
+                GameObject go = Spawn(p.Prefab, p.Pos, p.Tag);
+                go.transform.rotation = Quaternion.LookRotation(p.Facing);
+                OwnBuilt(go);
+                if (go.GetComponent<WearNTear>() is WearNTear wnt)
+                    wnt.m_noSupportWear = false; // test walls on uneven ground mustn't collapse
+            }
+            GameObject chest = Spawn("piece_chest_wood", c, tag);
+            OwnBuilt(chest);
+            yield return null;
+            Inventory inv = chest.GetComponent<Container>().GetInventory();
+            for (int i = 1; i + 1 < args.Length; i += 2)
+                inv.AddItem(ObjectDB.instance.GetItemPrefab(args[i]), int.Parse(args[i + 1], CultureInfo.InvariantCulture));
+            bool azu = Compat.AzuAutoStoreCompat.Register(chest.GetComponent<Container>());
+            VfhLog.I(LogCat.Test, "fixture.room", ("tag", tag), ("center", c), ("items", string.Join(" ", args.Skip(1))), ("azu", azu));
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        private static void OwnBuilt(GameObject go)
+        {
+            Piece piece = go.GetComponent<Piece>();
+            if (piece != null && Player.m_localPlayer != null)
+            {
+                piece.m_creator = Player.m_localPlayer.GetPlayerID();
+                go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_creator, piece.m_creator);
+            }
         }
 
         private static IEnumerator DeliverNow(string[] args)

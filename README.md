@@ -35,8 +35,7 @@ Woodcutters and miners work twice the board's radius. Everyone defends themselve
 
 **Deliveries.** Gatherers deliver each item type only to a chest that **already holds** that item (they never mix items into other chests), nearest first. Whatever doesn't fit is left in front of the board. Put one of an item in a chest to make it the home for that item.
 
-**Known limitations**
-- Hirelings can't open doors yet: keep the chests and stations they use reachable without one (planned for 0.1.1).
+**Doors.** Hirelings open doors in their way and close them behind themselves (never in a player's face). They only use doors the board's owner may use under wards, never locked doors, and don't wander through doors when idle. `HirelingsOpenDoors` turns this off.
 
 **Workers only work while their area is loaded**, i.e. while a player is nearby, as with everything else in Valheim.
 

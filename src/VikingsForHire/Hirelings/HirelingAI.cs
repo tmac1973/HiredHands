@@ -101,6 +101,7 @@ namespace VikingsForHire.Hirelings
         {
             if (Hireling == null || !m_nview.IsValid() || !m_nview.IsOwner())
                 return false;
+            _doors.CloseBehind(false);
             if (m_randomMoveUpdateTimer > 0f)
                 m_randomMoveUpdateTimer -= dt;
             m_timeSinceHurt += dt;
@@ -152,6 +153,8 @@ namespace VikingsForHire.Hirelings
         }
 
         private float _noPathLogAt;
+        private DoorHelper? _doorHelper;
+        private DoorHelper _doors => _doorHelper ??= new DoorHelper(this);
 
         /// <summary>
         /// Pathfinds to a point. When the pathfinder has no route (vanilla then just stops: e.g. the hireling is wedged
@@ -159,6 +162,16 @@ namespace VikingsForHire.Hirelings
         /// </summary>
         public bool WalkTo(float dt, Vector3 point, float stopDistance, bool run)
         {
+            // Doors: open what's ahead, and if there's no route at all, go via a door that leads towards the goal.
+            _doors.Tick(point);
+            // Ask the pathfinder about the goal itself (cached by BaseAI): an earlier result may be for another target.
+            bool near = Utils.DistanceXZ(transform.position, point) <= stopDistance + 1f;
+            Vector3? via = _doors.Detour(point, near || _doors.HasDetour || PathReaches(point, Mathf.Max(stopDistance, 1f) + 1.5f));
+            if (via is Vector3 door && Utils.DistanceXZ(transform.position, door) > 0.6f)
+            {
+                MoveTo(dt, door, 0.4f, run);
+                return false;
+            }
             bool arrived = MoveTo(dt, point, stopDistance, run);
             if (!arrived || FoundPath() || Utils.DistanceXZ(point, transform.position) <= Mathf.Max(stopDistance, run ? 1f : 0.5f))
                 return arrived;
@@ -169,6 +182,10 @@ namespace VikingsForHire.Hirelings
             }
             return MoveAndAvoid(dt, point, stopDistance, run);
         }
+
+        // The pathfinder also returns partial routes (as close as it can get); only a route ending near the goal counts.
+        private bool PathReaches(Vector3 point, float within) =>
+            FindPath(point) && m_path.Count > 0 && Utils.DistanceXZ(m_path[m_path.Count - 1], point) <= within;
 
         /// <summary>Whether the pathfinder has a full route from here to the point.</summary>
         public bool CanReach(Vector3 point) => HavePath(point);

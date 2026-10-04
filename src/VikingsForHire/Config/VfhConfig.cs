@@ -42,6 +42,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> AiScanIntervalSeconds = null!;
         public static ConfigEntry<float> ThreatScanIntervalSeconds = null!;
         public static ConfigEntry<float> TreeSafetyDistanceFromPieces = null!;
+        public static ConfigEntry<bool> HirelingsOpenDoors = null!;
         public static ConfigEntry<float> TreeFallCorridorHalfWidth = null!;
         public static ConfigEntry<bool> MinerProtectsTerrain = null!;
         public static ConfigEntry<float> MinerSafetyDistanceFromPieces = null!;
@@ -109,6 +110,7 @@ namespace VikingsForHire.Config
 
             AiScanIntervalSeconds = Synced(w, "AiScanIntervalSeconds", 2f, "Seconds between a hireling's scans for work (trees, rocks, chests).");
             ThreatScanIntervalSeconds = Synced("8 - Combat", "ThreatScanIntervalSeconds", 0.5f, "Seconds between a hireling's looks around for enemies. Lower reacts faster; being hit always triggers an immediate look.");
+            HirelingsOpenDoors = Synced(w, "HirelingsOpenDoors", true, "Hirelings open doors in their way (only doors the board's owner may use under wards, never locked ones) and close them behind themselves.");
             TreeSafetyDistanceFromPieces = Synced(w, "TreeSafetyDistanceFromPieces", 6f, "Woodcutters skip trees with a player-built piece this close to the trunk (m).");
             TreeFallCorridorHalfWidth = Synced(w, "TreeFallCorridorHalfWidth", 4f, "Woodcutters fell a tree only in a direction where no player-built piece lies within the tree's height and this far either side of the fall line (m). If no direction is clear, the tree is left standing.");
             MinerProtectsTerrain = Synced(w, "MinerProtectsTerrain", true, "Hireling pickaxe swings never dig the ground. Turning this off lets miners leave holes, including in your base.");
