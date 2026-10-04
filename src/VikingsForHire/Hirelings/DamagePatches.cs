@@ -40,10 +40,12 @@ namespace VikingsForHire.Hirelings
                         // shared fight mustn't kill a worker, just as hirelings can't hurt tames.
                         if (attacker != null && attacker.IsTamed())
                             return Blocked("tame_on_hireling", target, attacker);
+                        // Vanilla only applies body armor to players; hirelings get the armor of what they wear.
+                        hit.ApplyArmor(target.Armor);
                         target.LastHitBy = attacker != null ? $"{Utils.GetPrefabName(attacker.gameObject)}{(attacker.IsTamed() ? "(tame)" : "")}" : "none";
                         target.LastHitDamage = hit.GetTotalDamage();
                         VfhLog.D(LogCat.Combat, "hireling.hit", ("hid", target.Hid), ("by", attacker != null ? attacker.m_name : "none"),
-                            ("damage", hit.GetTotalDamage()), ("armor", target.LevelData.Armor));
+                            ("damage", hit.GetTotalDamage()), ("armor", target.Armor));
                         return true;
                     }
 
@@ -79,7 +81,7 @@ namespace VikingsForHire.Hirelings
                 {
                     Hireling? h = Hireling.Of(__instance);
                     if (h != null)
-                        __result = h.LevelData.Armor;
+                        __result = h.Armor;
                 }
                 catch (Exception e)
                 {

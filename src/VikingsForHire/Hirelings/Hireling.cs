@@ -55,6 +55,21 @@ namespace VikingsForHire.Hirelings
         /// <summary>Smelter: when it started holding ore/fuel that no station needed (0 = not idle with leftovers).</summary>
         public float LeftoverSince { get; set; }
 
+        /// <summary>
+        /// Armor applied to incoming hits: the real armor of the worn set (as a player in that gear would have) plus the
+        /// level's bonus. Vanilla only applies body armor to players, so DamagePatches applies this itself.
+        /// </summary>
+        public float Armor
+        {
+            get
+            {
+                Humanoid h = _humanoid;
+                float gear = (h.m_chestItem?.GetArmor() ?? 0f) + (h.m_legItem?.GetArmor() ?? 0f) +
+                             (h.m_helmetItem?.GetArmor() ?? 0f) + (h.m_shoulderItem?.GetArmor() ?? 0f);
+                return gear + LevelData.ArmorBonus;
+            }
+        }
+
         /// <summary>The last thing that damaged this hireling, for the death log.</summary>
         public string LastHitBy { get; set; } = "";
         public float LastHitDamage { get; set; }
@@ -272,7 +287,7 @@ namespace VikingsForHire.Hirelings
             if (Mathf.Abs(_humanoid.GetMaxHealth() - max) > 0.01f)
             {
                 _humanoid.SetMaxHealth(max);
-                VfhLog.D(LogCat.Hireling, "hireling.stats", ("hid", Hid), ("level", Level), ("maxHealth", max), ("armor", LevelData.Armor));
+                VfhLog.D(LogCat.Hireling, "hireling.stats", ("hid", Hid), ("level", Level), ("maxHealth", max), ("armor", Armor));
             }
         }
 

@@ -140,7 +140,7 @@ namespace VikingsForHire.Core.Data
         private static HirelingLevelData Hireling(int level, float health, float armor, float guardMult, float gatherMult, int slots,
             int hireFood, int hireCoins, int upkeepFood, int upkeepCoins) => new()
         {
-            Level = level, Health = health, Armor = armor, GuardDamageMult = guardMult, GatherMult = gatherMult, CargoSlots = slots,
+            Level = level, Health = health, Armor = armor, ArmorBonus = level <= 1 ? 0 : level - 1, GuardDamageMult = guardMult, GatherMult = gatherMult, CargoSlots = slots,
             HireFood = hireFood, HireCoins = hireCoins, UpkeepFood = upkeepFood, UpkeepCoins = upkeepCoins,
         };
 

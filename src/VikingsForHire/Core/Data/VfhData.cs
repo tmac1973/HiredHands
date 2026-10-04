@@ -45,7 +45,12 @@ namespace VikingsForHire.Core.Data
     {
         public int Level { get; set; }
         public float Health { get; set; }
+
+        [YamlMember(Description = "Not used since 0.1.1 (kept so older files still load). Armor now comes from the worn set plus armorBonus.")]
         public float Armor { get; set; }
+
+        [YamlMember(Description = "Extra armor on top of the armor set the hireling wears (whose real armor values count, as for a player).")]
+        public float ArmorBonus { get; set; }
 
         [YamlMember(Description = "Damage multiplier for guards. Workers use this times their job's WorkerCombatFactor.")]
         public float GuardDamageMult { get; set; }
