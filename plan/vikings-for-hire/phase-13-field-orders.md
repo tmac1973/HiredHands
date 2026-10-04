@@ -95,3 +95,4 @@ Other mods often use G and H, so there are no new hotkeys (`CycleFollowModeKey` 
 - Not built in this phase:
   - **The local "ping" marker at the order target:** a centre message says what was ordered instead.
 - A ground click at home posts guard followers at that spot (facing your way) instead of holding them there, so they leave the stone's count. Workers and anything outside home still move and hold. Posted guards watch all round, and archers only shoot when the line from the bow to the target is clear.
+- A harvest order covers only the clicked tree or rock and what it leaves behind (its logs and their smaller logs, its stump, the pieces a rock breaks into). Saplings and other trees inside the 8 m area are skipped as "not part of the order".

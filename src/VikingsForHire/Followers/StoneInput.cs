@@ -181,10 +181,7 @@ namespace VikingsForHire.Followers
             {
                 if (!f.Ai.Gather!.CanHarvest(target, f))
                     continue;
-                f.Ai.Order = new FieldOrder
-                {
-                    Kind = FieldOrder.OrderKind.Harvest, Target = target, Position = target.transform.position, Until = Time.time + FieldOrder.Lifetime,
-                };
+                f.Ai.Order = FieldOrder.Harvest(target);
                 f.Ai.Gather.Force(f.Ai, target);
                 n++;
             }

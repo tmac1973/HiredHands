@@ -245,7 +245,8 @@ namespace VikingsForHire.Hirelings.Work
                 if (Utils.DistanceXZ(c.transform.position, _area.Center) > _area.Radius + _profile.ExtraReach(c))
                     continue;
                 candidates++;
-                string? skip = Reservations.IsSkipped(c) ? "skipped after a failed approach"
+                string? skip = h.Ai.Order is { } order && !order.Allows(c) ? "not part of the order"
+                    : Reservations.IsSkipped(c) ? "skipped after a failed approach"
                     : Reservations.IsReservedByOther(c, h.Hid) ? "claimed by another hireling"
                     : !_profile.IsValid(c, h, out string reason) ? reason
                     : !_profile.Plan(c, out _, out string unsafeReason) ? unsafeReason : null;
