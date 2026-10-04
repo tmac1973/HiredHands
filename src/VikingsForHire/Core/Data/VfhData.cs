@@ -92,6 +92,9 @@ namespace VikingsForHire.Core.Data
 
         [YamlMember(Description = "Smelter only: station prefab names this job keeps stocked.")]
         public List<string> Stations { get; set; } = new();
+
+        [YamlMember(Description = "Smelter only: item prefab -> how many to always leave in storage, counted across all the chests in the work radius (e.g. Wood: 50 so the kiln never burns your last building wood).")]
+        public Dictionary<string, int> KeepInStorage { get; set; } = new();
     }
 
     public class WeaponSetData

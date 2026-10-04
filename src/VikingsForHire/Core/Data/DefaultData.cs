@@ -69,6 +69,7 @@ namespace VikingsForHire.Core.Data
                     WorkerCombatFactor = 0.3f,
                     Gear = Mains("Club", "Club", "Club", "Club", "Club", "Club", "Club", "Club"),
                     Stations = List("smelter", "blastfurnace", "charcoal_kiln", "eitrrefinery"),
+                    KeepInStorage = new Dictionary<string, int> { ["Wood"] = 50 },
                 },
                 [JobType.GuardMelee] = new()
                 {

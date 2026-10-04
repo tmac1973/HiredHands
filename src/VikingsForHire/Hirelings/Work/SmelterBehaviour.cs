@@ -107,6 +107,16 @@ namespace VikingsForHire.Hirelings.Work
             foreach (Container c in chests)
                 foreach (var g in c.GetInventory().GetAllItems().Where(i => i.m_dropPrefab != null && wanted.Contains(i.m_dropPrefab.name)).GroupBy(i => i.m_dropPrefab.name))
                     stock[g.Key] = (stock.TryGetValue(g.Key, out int n) ? n : 0) + System.Math.Max(0, g.Sum(i => i.m_stack) - keepMin);
+            // Per-item reserves (jobs.Smelter.keepInStorage, e.g. Wood 50) count across all the chests: only what's
+            // above the reserve is available, so the plan never fetches below it.
+            Dictionary<string, int> reserve = DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out var smelterJob) ? smelterJob.KeepInStorage : new();
+            foreach (var keep in reserve)
+            {
+                if (!stock.ContainsKey(keep.Key))
+                    continue;
+                int total = chests.Sum(c => c.GetInventory().GetAllItems().Where(i => i.m_dropPrefab != null && i.m_dropPrefab.name == keep.Key).Sum(i => i.m_stack));
+                stock[keep.Key] = System.Math.Min(stock[keep.Key], System.Math.Max(0, total - keep.Value));
+            }
             Dictionary<string, int> carried = cargo.GetAllItems().Where(i => i.m_dropPrefab != null)
                 .GroupBy(i => i.m_dropPrefab.name).ToDictionary(g => g.Key, g => g.Sum(i => i.m_stack));
             int freeSlots = System.Math.Max(0, h.CargoSlots - cargo.NrOfItems());

@@ -2,6 +2,7 @@
 
 ## 0.1.1
 
+- Smelters leave a reserve of chosen items in storage, counted across all chests in their radius: `jobs.Smelter.keepInStorage` in the data file, default Wood 50, so the charcoal kiln doesn't burn all your wood.
 - Repairing a hiring board with the hammer no longer brings up the "remove this board?" dialog.
 - **Doors:** hirelings open doors in their way, head for a door when there's no other route, and close each door behind them (not while a player is in it). Only doors the board's owner may use under wards; never locked doors; idle wandering never goes through doors. `HirelingsOpenDoors` (Work) turns it off.
 - Investigating a frame-rate drop reported on a heavily modded server: `vfh_perf` now also reports the time spent in each of the mod's game hooks, a `perf.minute` line logs frame rate and hook cost every minute, and `vfh_patches off|on` removes and restores the hooks for an A/B comparison.

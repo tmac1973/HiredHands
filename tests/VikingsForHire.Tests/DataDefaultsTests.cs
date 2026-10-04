@@ -22,6 +22,19 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void TheWoodReserveReachesOlderFiles()
+        {
+            string full = DataYaml.Serialize(DefaultData.Create());
+            int start = full.IndexOf("    keepInStorage:");
+            Assert.True(start > 0, "default file should list keepInStorage");
+            int end = full.IndexOf("\n", full.IndexOf("Wood: 50", start));
+            string yaml = full.Remove(start, end - start + 1);
+            VfhData data = DataYaml.Deserialize(yaml, out var filled);
+            Assert.Equal(50, data.Jobs[JobType.Smelter].KeepInStorage["Wood"]);
+            Assert.Contains("jobs.Smelter.keepInStorage", filled);
+        }
+
+        [Fact]
         public void WhatTheFileSaysIsKept()
         {
             string yaml = DataYaml.Serialize(DefaultData.Create()).Replace("    minBoardLevel: 2\n", "    minBoardLevel: 4\n");

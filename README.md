@@ -27,7 +27,7 @@ Hover a hireling to see its name, job, level, health, what it's doing and its ca
 |---|---|---|
 | Woodcutter | Fells trees in its radius, clears the fallen logs and stumps, picks up wood, resin and seeds | Fells trees away from your buildings and leaves trees right next to them alone. Axe tier rises with level (stone, flint, bronze…), which decides what it can cut |
 | Miner | Mines copper, tin, rocks and boulders, ore before stone | Needs a level 2 board. Never digs the ground, leaves buried chunks and rocks touching your builds alone. Pickaxe tier rises with level |
-| Smelter | Keeps smelters, kilns, blast furnaces and eitr refineries in its radius stocked from your chests | Tops a station up when it's below half full. Never takes the last of an item from a chest. Without AzuAutoStore it also collects the bars |
+| Smelter | Keeps smelters, kilns, blast furnaces and eitr refineries in its radius stocked from your chests | Tops a station up when it's below half full. Never takes the last of an item from a chest, and leaves a reserve of chosen items in storage (`keepInStorage`, default 50 Wood). Without AzuAutoStore it also collects the bars |
 | Guard (melee) | Patrols the radius and fights | Stances: Passive, Defensive, Aggressive |
 | Guard (ranged) | Same, with a bow | |
 

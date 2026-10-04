@@ -114,6 +114,7 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-COMBAT-5 Quick engage | SP | `vfh_t_combat5` | Open ground (`vfh_debug Combat on` shows `combat.first_swing`) | `pass=true`; the guard swings within a second or two of noticing, and doesn't stand behind its shield |
 | VFH-COMBAT-6 Big target | SP | `vfh_t_combat6` | Open ground | `pass=true`; both guards reach the troll's edge and keep swinging |
 | VFH-TAME-1 Tames and hirelings | SP | — | A tame (a wolf, or a Defend Your Base guardian) and a guard hireling fighting the same enemy (`event army_eikthyr`, or spawn a troll near both) | Neither hurts the other (`damage.blocked reason=tame_on_hireling` / `hireling_on_tame` in a Combat trace log); the guard never turns on the tame |
+| VFH-SMELT-5 Wood reserve | SP | `vfh_t_keep2` | Open ground | `pass=true`; with 60 wood in storage the kiln gets only 10 and 50 stay |
 | VFH-WORK-6 Station owned by another client | D | — | Client B built and is near the smelter; client A's area owns the hireling | Loading still works, counts correct |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
