@@ -44,6 +44,9 @@ namespace VikingsForHire.Hirelings.Work
     internal sealed class DeliverBehaviour : IHirelingBehaviour
     {
         private const float Reach = 2.5f;
+        private const float GiveUpSeconds = 25f;
+        private const float UnreachableSeconds = 300f;
+        private readonly Dictionary<string, float> _unreachable = new();
         private const float ReplanSeconds = 3f;
 
         private readonly IDeliveryPolicy _policy;
@@ -86,6 +89,15 @@ namespace VikingsForHire.Hirelings.Work
             {
                 if (Vector3.Distance(ai.transform.position, chest.transform.position) > Reach)
                 {
+                    // Can't get to it (up stairs it can't climb, behind something): use other chests for a while.
+                    if (ai.StuckSeconds(chest.transform.position) > GiveUpSeconds)
+                    {
+                        _unreachable[step.ChestId] = Time.time + UnreachableSeconds;
+                        _plan = null;
+                        VfhLog.I(LogCat.Nav, "deliver.chest_unreachable", ("hid", h.Hid), ("chest", chest.transform.position),
+                            ("from", ai.transform.position), ("skipFor", UnreachableSeconds));
+                        return;
+                    }
                     ai.WalkTo(dt, chest.transform.position, Reach * 0.8f, run: false);
                     return;
                 }
@@ -99,7 +111,7 @@ namespace VikingsForHire.Hirelings.Work
             // Nothing fits in any chest: leave it in front of the board (or here if the board isn't loaded).
             HiringBoard? board = HiringBoard.Loaded.Find(b => b != null && b.Id == h.BoardId);
             Vector3 pile = board != null ? DropPile.Position(board) : ai.transform.position;
-            if (board != null && Vector3.Distance(ai.transform.position, pile) > Reach)
+            if (board != null && Vector3.Distance(ai.transform.position, pile) > Reach && ai.StuckSeconds(pile) < GiveUpSeconds)
             {
                 h.SetActivity("$vfh_status_dropping_at_board");
                 ai.WalkTo(dt, pile, Reach * 0.8f, run: false);
@@ -134,7 +146,8 @@ namespace VikingsForHire.Hirelings.Work
         {
             if (_plan == null || _plan.Steps.Count == 0)
                 return null;
-            return _plan.Steps.Where(s => _chests.TryGetValue(s.ChestId, out Container c) && c != null && !c.IsInUse())
+            return _plan.Steps.Where(s => _chests.TryGetValue(s.ChestId, out Container c) && c != null && !c.IsInUse() &&
+                                          !(_unreachable.TryGetValue(s.ChestId, out float until) && Time.time < until))
                 .OrderBy(s => Vector3.Distance(h.transform.position, _chests[s.ChestId].transform.position))
                 .Cast<DepositStep?>().FirstOrDefault();
         }

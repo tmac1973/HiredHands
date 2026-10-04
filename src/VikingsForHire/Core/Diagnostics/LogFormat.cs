@@ -18,7 +18,7 @@ namespace VikingsForHire.Core.Diagnostics
     public enum LogCat
     {
         Core, Data, Board, Placement, Roster, Payment, Hireling, AI, Combat, Work, Deliver, Smelter,
-        Follow, Orders, Travel, Orphan, Net, Compat, UI, Perf, Test,
+        Follow, Orders, Travel, Orphan, Net, Compat, UI, Perf, Test, Nav,
     }
 
     public static class LogFormat

@@ -255,6 +255,8 @@ namespace VikingsForHire.Hirelings
         /// </summary>
         public bool WalkTo(float dt, Vector3 point, float stopDistance, bool run)
         {
+            if (Vector3.Distance(point, transform.position) > stopDistance)
+                TrackProgress(point);
             // Doors: open what's ahead, and if there's no route at all, go via a door that leads towards the goal.
             _doors.Tick(point);
             // Going through a door it just opened: straight to the far side first.
@@ -265,6 +267,11 @@ namespace VikingsForHire.Hirelings
                 MoveTowards(dir.normalized, run);
                 return false;
             }
+            // Close on the map but on another floor (a chest upstairs, above the stairs we're on): vanilla's walking
+            // counts only the distance along the ground and would call this arrived, leaving the hireling under the
+            // floor for good. Keep going along the route until the height matches too.
+            if (Utils.DistanceXZ(point, transform.position) <= stopDistance && Mathf.Abs(point.y - transform.position.y) > 1.3f)
+                return Climb(dt, point, run);
             // Ask the pathfinder about the goal itself (cached by BaseAI): an earlier result may be for another target.
             bool near = Utils.DistanceXZ(transform.position, point) <= stopDistance + 1f;
             Vector3? via = _doors.Detour(point, near || _doors.HasDetour || PathReaches(point, Mathf.Max(stopDistance, 1f) + 1.5f));
@@ -314,6 +321,7 @@ namespace VikingsForHire.Hirelings
                 StopMoving();
                 return true;
             }
+            TrackProgress(point);
             bool route = PathReaches(point, Mathf.Max(stopDistance, 1f) + 3f);
             if (route != !ChasingDirect)
             {
@@ -343,6 +351,73 @@ namespace VikingsForHire.Hirelings
             }
             return MoveAndAvoid(dt, point, stopDistance, run);
         }
+
+        // Follow the route's waypoints ourselves (vanilla MoveTo stops by ground distance); straight on if there's none.
+        private bool Climb(float dt, Vector3 point, bool run)
+        {
+            if (FindPath(point) && m_path.Count > 0)
+            {
+                while (m_path.Count > 1 && Vector3.Distance(m_path[0], transform.position) < 0.7f)
+                    m_path.RemoveAt(0);
+                Vector3 dir = m_path[0] - transform.position;
+                dir.y = 0f;
+                if (dir.sqrMagnitude > 0.04f)
+                {
+                    MoveTowards(dir.normalized, run);
+                    return false;
+                }
+            }
+            MoveAndAvoid(dt, point, 0.3f, run);
+            return false;
+        }
+
+        // Progress towards where we're walking, for the stuck log and for behaviours that give up on a target.
+        private Vector3 _navTarget = new(float.NaN, 0f, 0f);
+        private float _navBest = float.MaxValue;
+        private float _navProgressAt;
+        private float _navLoggedAt = -999f;
+        private int _navJumps;
+        private const float NavStuckSeconds = 8f;
+
+        private void TrackProgress(Vector3 point)
+        {
+            if (!(Vector3.Distance(point, _navTarget) < 1.5f))
+            {
+                _navTarget = point;
+                _navBest = float.MaxValue;
+                _navProgressAt = Time.time;
+                _navJumps = 0;
+            }
+            float d = Vector3.Distance(transform.position, point);
+            if (d < _navBest - 0.5f)
+            {
+                _navBest = d;
+                _navProgressAt = Time.time;
+                return;
+            }
+            if (Time.time - _navProgressAt < NavStuckSeconds)
+                return;
+            // Stuck: log what the pathfinder had (always on, at most every 30 s per hireling) and try a jump or two.
+            if (Time.time - _navLoggedAt > 30f)
+            {
+                _navLoggedAt = Time.time;
+                Vector3 me = transform.position;
+                Vector3? end = m_path.Count > 0 ? m_path[m_path.Count - 1] : null;
+                VfhLog.I(LogCat.Nav, "nav.stuck", ("hid", Hireling.Hid), ("doing", CurrentBehaviour), ("pos", me), ("to", point),
+                    ("dist", d), ("dy", point.y - me.y), ("route", FoundPath()), ("waypoints", m_path.Count),
+                    ("next", m_path.Count > 0 ? m_path[0] : (Vector3?)null), ("routeEndsShortBy", end is Vector3 e ? Vector3.Distance(e, point) : -1f),
+                    ("onGround", Hireling.Humanoid.IsOnGround()), ("inWater", Hireling.Humanoid.InWater()), ("secs", Time.time - _navProgressAt));
+            }
+            if (_navJumps < 2 && Hireling.Humanoid.IsOnGround())
+            {
+                Hireling.Humanoid.Jump();
+                _navJumps++;
+            }
+        }
+
+        /// <summary>Seconds without getting closer to <paramref name="target"/> (0 if we're walking somewhere else).</summary>
+        public float StuckSeconds(Vector3 target) =>
+            Vector3.Distance(target, _navTarget) < 1.5f ? Time.time - _navProgressAt : 0f;
 
         private static readonly int WallMask = LayerMask.GetMask("piece", "Default", "static_solid");
 

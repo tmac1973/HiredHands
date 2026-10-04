@@ -2,6 +2,8 @@
 
 ## 0.2.3 (unreleased)
 
+- **Hirelings reach chests upstairs.** Walking counted only the distance along the ground, so a hireling could "arrive" on the stairs under a chest on the floor above and stay there for good, too far to put anything away. It now keeps climbing until the height matches too, and if it still can't get to a chest after 25 s it uses other chests (or the pile) for 5 minutes.
+- **Stuck hirelings are logged** (`nav.stuck`, always on, at most every 30 s per hireling): where it is and where it's going, the height gap, what the pathfinder offered and what it was doing; a stuck hireling also tries a jump or two. `deliver.chest_unreachable` says when it gives up on a chest.
 - **Followers use doorways.** A follower with a wall between it and you and no route (the game's walkable map lags behind a door you just opened) walks to the doorway, opens the door if it's closed, and goes straight through, instead of pushing against the wall beside the door until it jumped over it.
 - **A chop or mine order keeps the worker at the job.** It switches to Stay at that tree or rock, so it doesn't drop the job and follow you as soon as you walk on (or get sent home as left behind); it finishes and waits there for you. Orders last 10 minutes instead of 2, long enough for a big tree's logs or a whole deposit.
 - **Hirelings go through the doors they open.** A hireling with no route to its goal (for example inside a fence) heads for a door and opens it, but the game's walkable map only catches up with an open door a few seconds later, so it walked away again, the door closed behind it, and it came back to open it: over and over. It now walks straight through to the far side first, and the door isn't closed until it's through.
