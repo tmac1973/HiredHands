@@ -164,3 +164,11 @@ tagged, and `clear_area` removes it.
 | fixture `stations <prefab> [prefab]…` | Builds stations in a ring 8 m round the sides and back of the board |
 | check `station <prefab> <ore_ratio\|fuel_ratio\|queue\|fuel\|processed>` | Lowest value among those stations near the board |
 | check `azu_loaded` | Whether AzuAutoStore is installed |
+
+## 0.1.1
+
+| Check / fixture | |
+|---|---|
+| check `deposited <tag> <item>` | What hirelings themselves put into a tagged chest since login (AzuAutoStore pulling items from the ground into a chest doesn't count) |
+| fixture `room <tag> [item count]…` / check `door_open <tag>` | A closed room with a door (`<tag>_door`) and a chest (`<tag>`) inside; whether a tagged door is open |
+| fixture `tame_ally <prefab> <distance>` / checks `tame_alive`, `damage_blocked <reason>` | A tamed creature next to the last spawned hireling; whether it lives; how many hits were blocked for a reason |

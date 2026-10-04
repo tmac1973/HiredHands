@@ -12,6 +12,11 @@ namespace VikingsForHire.Hirelings.Work
     /// </summary>
     internal static class ContainerAccess
     {
+        private static readonly System.Collections.Generic.Dictionary<string, int> DepositedByTag = new();
+
+        /// <summary>How many of an item hirelings have put into the chest with this test tag since login (for tests).</summary>
+        public static int Deposited(string tag, string prefab) => DepositedByTag.TryGetValue(tag + "|" + prefab, out int n) ? n : 0;
+
         /// <summary>Moves up to <paramref name="amount"/> of a prefab from cargo into the chest; returns how many moved.</summary>
         public static int Deposit(Container chest, Inventory cargo, string prefab, int amount, string hid)
         {
@@ -43,7 +48,12 @@ namespace VikingsForHire.Hirelings.Work
             }
             int moved = move - left;
             if (moved > 0)
+            {
                 cargo.RemoveItem(template.m_shared.m_name, moved);
+                string tagged = view.GetZDO()?.GetString("vfh_tag") ?? "";
+                if (tagged.Length > 0)
+                    DepositedByTag[tagged + "|" + prefab] = Deposited(tagged, prefab) + moved;
+            }
             VfhLog.I(LogCat.Deliver, "deliver.deposit", ("hid", hid), ("chest", Utils.GetPrefabName(chest.m_rootObjectOverride != null ? chest.m_rootObjectOverride.gameObject : chest.gameObject)),
                 ("pos", chest.transform.position), ("tag", chest.m_nview != null && chest.m_nview.GetZDO() != null ? chest.m_nview.GetZDO().GetString("vfh_tag") : ""), ("item", prefab), ("asked", amount), ("moved", moved));
             return moved;

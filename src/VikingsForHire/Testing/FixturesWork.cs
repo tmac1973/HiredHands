@@ -43,6 +43,8 @@ namespace VikingsForHire.Testing
                                                        Vector3.Distance(d.transform.position, pile) < 4f).Sum(d => d.m_itemData.m_stack).ToString();
             });
             TestHarness.RegisterCheck("object_alive", "<tag> - whether a tagged object still exists", args => FindTagged(args.ElementAtOrDefault(0) ?? "") != null ? "true" : "false");
+            TestHarness.RegisterCheck("deposited", "<tag> <item> - how many of an item hirelings themselves put into a tagged chest since login", args =>
+                Hirelings.Work.ContainerAccess.Deposited(args.ElementAtOrDefault(0) ?? "", args.ElementAtOrDefault(1) ?? "").ToString());
             TestHarness.RegisterCheck("door_open", "<tag> - whether a tagged door is open", args =>
             {
                 GameObject door = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged door");
@@ -176,7 +178,8 @@ namespace VikingsForHire.Testing
             Inventory inv = chest.GetComponent<Container>().GetInventory();
             for (int i = 1; i + 1 < args.Length; i += 2)
                 AddStacks(inv, args[i], int.Parse(args[i + 1], CultureInfo.InvariantCulture));
-            bool azu = Compat.AzuAutoStoreCompat.Register(chest.GetComponent<Container>());
+            // Not registered with AzuAutoStore: it would fill the chest from the ground and fake a delivery.
+            bool azu = false;
             VfhLog.I(LogCat.Test, "fixture.room", ("tag", tag), ("center", c), ("items", string.Join(" ", args.Skip(1))), ("azu", azu));
             yield return new WaitForSeconds(0.5f);
         }
