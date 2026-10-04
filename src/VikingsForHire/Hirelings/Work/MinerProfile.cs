@@ -9,8 +9,9 @@ namespace VikingsForHire.Hirelings.Work
     /// <summary>
     /// Rocks and ore deposits: MineRock5 (copper, large rocks, scrap piles), MineRock (tin, obsidian and other small
     /// deposits) and plain destructibles that drop something the miner collects (small rocks, boulders). Ore comes
-    /// before plain stone. Chunks buried in the ground are left alone, since getting at them needs digging, and miners
-    /// never dig; so are rocks right next to player pieces, which may be holding them up.
+    /// before plain stone. Chunks buried deep in the ground are left alone; low ones are reached by digging, which miners
+    /// only do in the field (TerrainProtectionPatches). Rocks right next to player pieces, which may be holding them up,
+    /// are left alone too.
     /// </summary>
     internal sealed class MinerProfile : IGatherProfile
     {
