@@ -390,6 +390,27 @@ namespace VikingsForHire.Hirelings.Work
             if (!drop.m_nview.IsOwner())
                 drop.m_nview.ClaimOwnership();
             ItemDrop.ItemData item = drop.m_itemData.Clone();
+            // Only as many as the weight limit allows; the rest stays on the ground for the next trip.
+            float unit = item.GetWeight(1);
+            int fits = unit <= 0f ? item.m_stack : Mathf.Min(item.m_stack, Mathf.FloorToInt(h.CargoWeightRoom / unit));
+            if (fits <= 0)
+            {
+                _pickup = null;
+                return;
+            }
+            if (fits < item.m_stack)
+            {
+                item.m_stack = fits;
+                if (h.CargoInventory != null && h.CargoInventory.AddItem(item))
+                {
+                    drop.m_itemData.m_stack -= fits;
+                    drop.Save();
+                    VfhLog.T(LogCat.Work, "work.pickup_part", ("hid", h.Hid), ("item", GearApplier.Name(item)), ("n", fits), ("left", drop.m_itemData.m_stack));
+                    h.OnPickedUp();
+                }
+                _pickup = null;
+                return;
+            }
             if (h.CargoInventory != null && h.CargoInventory.AddItem(item))
             {
                 VfhLog.T(LogCat.Work, "work.pickup", ("hid", h.Hid), ("item", GearApplier.Name(item)), ("n", item.m_stack));

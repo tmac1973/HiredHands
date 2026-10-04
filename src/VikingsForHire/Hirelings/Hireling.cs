@@ -110,14 +110,30 @@ namespace VikingsForHire.Hirelings
         public int ToolTier => Tool?.m_shared.m_toolTier ?? 0;
         public HitData.DamageTypes ToolDamage => Tool?.GetDamage() ?? new HitData.DamageTypes();
 
+        /// <summary>Full: every usable slot holds a full stack, or there's no weight left for even one more heavy item.</summary>
         public bool CargoFull
         {
             get
             {
                 Inventory? cargo = CargoInventory;
-                return cargo != null && cargo.NrOfItems() >= CargoSlots && cargo.GetAllItems().All(i => i.m_stack >= i.m_shared.m_maxStackSize);
+                if (cargo == null)
+                    return false;
+                if (CargoWeightLimit > 0f && cargo.GetTotalWeight() > CargoWeightLimit - FullWeightMargin)
+                    return true;
+                return cargo.NrOfItems() >= CargoSlots && cargo.GetAllItems().All(i => i.m_stack >= i.m_shared.m_maxStackSize);
             }
         }
+
+        // About one piece of ore: less room than this counts as full, so a gatherer goes to deliver rather than
+        // trying (and failing) to pick up one more heavy item.
+        private const float FullWeightMargin = 12f;
+
+        /// <summary>The most its cargo may weigh (0: no limit, only slots).</summary>
+        public float CargoWeightLimit => Mathf.Max(0f, LevelData.CargoWeight);
+
+        /// <summary>How much more weight its cargo takes (float.MaxValue with no limit).</summary>
+        public float CargoWeightRoom => CargoWeightLimit <= 0f ? float.MaxValue
+            : Mathf.Max(0f, CargoWeightLimit - (CargoInventory?.GetTotalWeight() ?? 0f));
 
         private string _activity = "";
 
@@ -507,7 +523,11 @@ namespace VikingsForHire.Hirelings
             sb.Append("\n$vfh_health ").Append(Mathf.CeilToInt(_humanoid.GetHealth())).Append('/').Append(Mathf.CeilToInt(_humanoid.GetMaxHealth()));
             Inventory? cargo = CargoInventory;
             if (cargo != null)
+            {
                 sb.Append("\n$vfh_cargo ").Append(cargo.NrOfItems()).Append('/').Append(CargoSlots);
+                if (CargoWeightLimit > 0f)
+                    sb.Append("  $vfh_weight ").Append(Mathf.CeilToInt(cargo.GetTotalWeight())).Append('/').Append(Mathf.RoundToInt(CargoWeightLimit));
+            }
             sb.Append("\n[<color=yellow><b>$KEY_Use</b></color>] $vfh_open_cargo   [<color=yellow><b>Shift + $KEY_Use</b></color>] $vfh_orders");
             return Localization.instance.Localize(sb.ToString());
         }

@@ -11,7 +11,7 @@ namespace VikingsForHire.Hirelings
     /// A hireling's cargo grid is always 8×4, but only the first N slots (row by row) are usable, N from the level table.
     /// Slot-specific moves into a locked slot are refused; automatic placement is refused if the item can't fit in the
     /// usable slots (vanilla fills the earliest free slot first, so an accepted item always lands in a usable one).
-    /// Locked slots are greyed out in the container UI.
+    /// Locked slots are greyed out in the container UI. Nothing goes in past the level's weight limit (cargoWeight).
     /// </summary>
     internal static class CargoGate
     {
@@ -44,6 +44,25 @@ namespace VikingsForHire.Hirelings
             return room >= item.m_stack;
         }
 
+        /// <summary>
+        /// Whether adding <paramref name="amount"/> of the item would take a hireling's cargo over its weight limit. Moves
+        /// within the same cargo don't change its weight. A player trying it is told why.
+        /// </summary>
+        private static bool TooHeavy(Inventory inv, ItemDrop.ItemData item, int amount, Inventory? from, out Hireling? hireling)
+        {
+            hireling = Hireling.ForCargo(inv);
+            if (hireling == null || hireling.CargoWeightLimit <= 0f || from == inv || inv.ContainsItem(item))
+                return false;
+            float adding = item.GetWeight(amount > 0 ? amount : item.m_stack);
+            if (adding <= hireling.CargoWeightRoom + 0.01f)
+                return false;
+            if (InventoryGui.IsVisible() && Player.m_localPlayer != null)
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$vfh_cargo_too_heavy",
+                    hireling.DisplayName, Mathf.CeilToInt(inv.GetTotalWeight()).ToString(), Mathf.RoundToInt(hireling.CargoWeightLimit).ToString()));
+            VfhLog.D(LogCat.Hireling, "cargo.too_heavy", ("hid", hireling.Hid), ("item", item.m_shared.m_name), ("adding", adding), ("room", hireling.CargoWeightRoom));
+            return true;
+        }
+
         private static void Refused(Hireling h, ItemDrop.ItemData item, string how) =>
             VfhLog.D(LogCat.Hireling, "cargo.refused", ("hid", h.Hid), ("item", item.m_shared.m_name), ("how", how), ("slots", h.CargoSlots));
 
@@ -62,6 +81,11 @@ namespace VikingsForHire.Hirelings
                 {
                     if (item == null)
                         return true;
+                    if (TooHeavy(__instance, item, item.m_stack, null, out _))
+                    {
+                        __result = false;
+                        return false;
+                    }
                     if (!FitsAuto(__instance, item, out Hireling? h))
                     {
                         Refused(h!, item, "auto");
@@ -126,6 +150,11 @@ namespace VikingsForHire.Hirelings
                 long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
+                    if (item != null && TooHeavy(__instance, item, item.m_stack, null, out _))
+                    {
+                        __result = false;
+                        return false;
+                    }
                     if (item == null || SlotAllowed(__instance, pos.x, pos.y, out Hireling? h))
                         return true;
                     Refused(h!, item, "slot");
@@ -147,11 +176,16 @@ namespace VikingsForHire.Hirelings
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.MoveItemToThis), typeof(Inventory), typeof(ItemDrop.ItemData), typeof(int), typeof(int), typeof(int))]
         private static class MovePatch
         {
-            private static bool Prefix(Inventory __instance, ItemDrop.ItemData item, int x, int y, ref bool __result)
+            private static bool Prefix(Inventory __instance, Inventory fromInventory, ItemDrop.ItemData item, int amount, int x, int y, ref bool __result)
             {
                 long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
+                    if (item != null && TooHeavy(__instance, item, amount, fromInventory, out _))
+                    {
+                        __result = false;
+                        return false;
+                    }
                     if (item == null || SlotAllowed(__instance, x, y, out Hireling? h))
                         return true;
                     Refused(h!, item, "move");
@@ -173,11 +207,16 @@ namespace VikingsForHire.Hirelings
         [HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.DropItem))]
         private static class DropPatch
         {
-            private static bool Prefix(InventoryGrid __instance, ItemDrop.ItemData item, Vector2i pos, ref bool __result)
+            private static bool Prefix(InventoryGrid __instance, Inventory fromInventory, ItemDrop.ItemData item, int amount, Vector2i pos, ref bool __result)
             {
                 long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
+                    if (item != null && TooHeavy(__instance.GetInventory(), item, amount, fromInventory, out _))
+                    {
+                        __result = false;
+                        return false;
+                    }
                     if (item == null || SlotAllowed(__instance.GetInventory(), pos.x, pos.y, out Hireling? h))
                         return true;
                     Refused(h!, item, "drop");

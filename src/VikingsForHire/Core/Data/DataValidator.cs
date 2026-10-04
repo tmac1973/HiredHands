@@ -29,6 +29,7 @@ namespace VikingsForHire.Core.Data
                 string p = $"hirelingLevels[{h.Level}]";
                 if (h.Health <= 0) errors.Add($"{p}.health must be > 0");
                 if (h.CargoSlots < 1 || h.CargoSlots > MaxCargoSlots) errors.Add($"{p}.cargoSlots must be 1-{MaxCargoSlots}");
+                if (h.CargoWeight < 0) errors.Add($"{p}.cargoWeight must be 0 (no limit) or more");
                 if (h.ArmorBonus < 0 || h.GuardDamageMult < 0 || h.GatherMult < 0) errors.Add($"{p} has a negative stat");
                 if (h.HireFood < 0 || h.HireCoins < 0 || h.UpkeepFood < 0 || h.UpkeepCoins < 0) errors.Add($"{p} has a negative price");
             }

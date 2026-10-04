@@ -144,6 +144,7 @@ namespace VikingsForHire.Core.Data
             int hireFood, int hireCoins, int upkeepFood, int upkeepCoins) => new()
         {
             Level = level, Health = health, Armor = armor, ArmorBonus = level <= 1 ? 0 : level - 1, GuardDamageMult = guardMult, GatherMult = gatherMult, CargoSlots = slots,
+            CargoWeight = 300f + 25f * (level - 1), // like a player's 300, a little more with experience (475 at level 8)
             HireFood = hireFood, HireCoins = hireCoins, UpkeepFood = upkeepFood, UpkeepCoins = upkeepCoins,
         };
 

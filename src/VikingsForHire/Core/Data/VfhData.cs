@@ -61,6 +61,9 @@ namespace VikingsForHire.Core.Data
         [YamlMember(Description = "Usable cargo slots (max 32).")]
         public int CargoSlots { get; set; }
 
+        [YamlMember(Description = "Most cargo weight it carries (a player carries 300, 450 with Megingjord). 0 = no weight limit, only slots.")]
+        public float CargoWeight { get; set; }
+
         public int HireFood { get; set; }
         public int HireCoins { get; set; }
         public int UpkeepFood { get; set; }

@@ -33,6 +33,8 @@
   "vfh_post_outside": "A post has to be inside its board's area",
   "vfh_order_recall": "$1 followers: follow me",
   "vfh_orders_rename": "Rename",
+  "vfh_weight": "weight",
+  "vfh_cargo_too_heavy": "$1 can't carry that much ($2/$3)",
   "vfh_orders_gather": "Gather",
   "vfh_on": "on",
   "vfh_off": "off",
