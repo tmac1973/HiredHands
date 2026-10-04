@@ -149,6 +149,7 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-GRAVE-2 Grave by hand | D | — | A follower carrying something dies away from base; a second player tries the grave | The grave shows the hireling's name and a map pin for you; the other player can't open it; you can, and the pin goes once it's empty |
 | VFH-WEIGHT-1 Weight limit | SP, D | — | A level 1 miner at copper; then hand a follower lots of stone | The miner goes to deliver at about 300 weight (25 ore); the hover shows the weight; handing over too much says "can't carry that much" |
 | VFH-FUNDS-1 Low funds | SP, D | — | A board with two hirelings and food for about 1 day | Hover shows the upkeep and days left in red; next upkeep, players at the base are told; the builder sees a map pin until it's topped up |
+| VFH-SNEAK-1 Sneak | SP, D | — | Followers with you; crouch and walk up behind a greydwarf or deer | They crouch and creep with you (no running, no footsteps) and the animal notices later than when they walk; stand up and they stand; a fight stands them up |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.

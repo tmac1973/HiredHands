@@ -51,6 +51,27 @@ namespace VikingsForHire.Hirelings
         public string StowedOn => Zdo?.GetString(HirelingZdo.Stowed) ?? "";
         public bool IsStowed => StowedOn.Length > 0;
 
+        /// <summary>Crouched and sneaking with its owner (owner side; others see the crouch through the animator).</summary>
+        public bool Sneaking { get; private set; }
+
+        /// <summary>The hirelings sneaking right now, for the crouch and stealth hooks (characters aren't hirelings by type).</summary>
+        public static readonly HashSet<Character> SneakingNow = new();
+
+        private static readonly int CrouchingAnim = ZSyncAnimation.GetHash("crouching");
+
+        public void SetSneaking(bool on)
+        {
+            if (on == Sneaking)
+                return;
+            Sneaking = on;
+            if (on)
+                SneakingNow.Add(_humanoid);
+            else
+                SneakingNow.Remove(_humanoid);
+            _humanoid.m_zanim?.SetBool(CrouchingAnim, on);
+            VfhLog.T(LogCat.Follow, "follow.sneak", ("hid", Hid), ("on", on));
+        }
+
         /// <summary>Gatherers: items switched off in the Shift+E panel (parsed once per change of the ZDO value).</summary>
         public HashSet<string> SkipItems
         {
@@ -316,6 +337,7 @@ namespace VikingsForHire.Hirelings
         private void OnDestroy()
         {
             Loaded.Remove(this);
+            SneakingNow.Remove(_humanoid);
             if (CargoInventory != null)
                 ByCargo.Remove(CargoInventory);
         }

@@ -17,6 +17,7 @@ namespace VikingsForHire.Followers
         private const float FollowDistance = 3f;
         private const float RunBeyond = 10f;
         private const float FollowRunBeyond = 5f;
+        private const float SneakWithin = 15f;
         private const float StaySlack = 3f;
 
         private string _shown = "";
@@ -95,10 +96,13 @@ namespace VikingsForHire.Followers
             }
             Show(h, retreat ? "$vfh_status_retreating" : "$vfh_status_following");
             float dist = OwnerDistance(ai.transform.position, owner.transform.position);
+            // Sneak with the owner when close; a follower well behind keeps running to catch up.
+            bool sneak = owner.IsCrouching() && !retreat && dist <= SneakWithin;
+            ai.WantSneak = sneak;
             if (_catchUp.Tick(ai, owner, dist, dt))
                 return;
             if (dist > FollowDistance)
-                ai.Chase(dt, owner.transform.position, FollowDistance * 0.8f, run: retreat || owner.IsRunning() || dist > FollowRunBeyond);
+                ai.Chase(dt, owner.transform.position, FollowDistance * 0.8f, run: !sneak && (retreat || owner.IsRunning() || dist > FollowRunBeyond));
             else
             {
                 ai.Halt();

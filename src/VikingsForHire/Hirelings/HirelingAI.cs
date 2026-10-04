@@ -187,6 +187,7 @@ namespace VikingsForHire.Hirelings
                 ?? (Hireling.Mode == HirelingMode.Returning ? Followers.HomeReturn.HoldOrArrive(Hireling) : null);
             if (pin is Vector3 at)
             {
+                Hireling.SetSneaking(false);
                 Hold(at);
                 return true;
             }
@@ -236,7 +237,9 @@ namespace VikingsForHire.Hirelings
                     _current = next;
                 }
                 t = PerfCounters.Start();
+                WantSneak = false;
                 next.Tick(this, dt);
+                Hireling.SetSneaking(WantSneak); // only the follow behaviour asks for it, so anything else stands it up
                 PerfCounters.Add(next.Name, t);
             }, ("hid", Hireling.Hid));
             return true;
@@ -314,6 +317,9 @@ namespace VikingsForHire.Hirelings
             _doors.Tick(point);
             return MoveAndAvoid(dt, point, stopDistance, run);
         }
+
+        /// <summary>Set by a behaviour during its tick to crouch (a follower sneaking with its owner).</summary>
+        public bool WantSneak { get; set; }
 
         /// <summary>Set while a follower waits on the far side of a portal for its owner to arrive (TeleportTravel).</summary>
         public Vector3? TravelPin { get; set; }

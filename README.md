@@ -86,6 +86,7 @@ With the stone in hand (the list of your followers shows on the left of the scre
 | E | Your follower | Its cargo, to load your own loot onto it |
 
 - **Gather Here**: a woodcutter or miner works around the spot you leave it until its cargo is full.
+- **Sneaking**: crouch and your followers nearby crouch with you: slower, silent and harder to spot.
 - **Keeping up**: followers sprint when you do, catch up faster when well behind, get themselves unstuck, and as a last resort reappear just behind you when you can't see them.
 - **Portals and dungeons**: followers within 20 m go through with you. One carrying what the portal won't take (ore, metal) stays behind in Stay, as you would (`AllowNonTeleportableThroughPortals`). The world modifier that lets portals take everything applies to them too.
 - **Ships**: take the helm (or stand on a ship that's under way) and your followers nearby board as passengers; they step off beside you when you're ashore. If the ship sinks they're left in the water to swim after you.
