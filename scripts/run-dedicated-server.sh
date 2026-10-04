@@ -2,7 +2,7 @@
 # Start a local Valheim dedicated server with the vikingsforhire-dev Gale profile's BepInEx + mods.
 #
 # Usage: scripts/run-dedicated-server.sh [--no-vfh] [--vfh-dll <path>]
-#   --no-vfh          run the server without VikingsForHire (removes any copy left from earlier runs)
+#   --no-vfh          run the server without Hired Hands (removes any copy left from earlier runs)
 #   --vfh-dll <path>  run the server with this HiredHands.dll instead of the profile's copy
 #
 # Env overrides: SERVER_DIR, PROFILE, SAVE_DIR
@@ -49,7 +49,7 @@ if [[ -n "$vfh_dll" && $no_vfh -eq 0 ]]; then
     cp "$vfh_dll" "$SERVER_DIR/BepInEx/plugins/Spronglehump-HiredHands/HiredHands.dll"
 fi
 
-echo "VikingsForHire on server: $([[ $no_vfh -eq 1 ]] && echo no || echo "yes${vfh_dll:+ ($vfh_dll)}")"
+echo "Hired Hands on server: $([[ $no_vfh -eq 1 ]] && echo no || echo "yes${vfh_dll:+ ($vfh_dll)}")"
 echo "Save dir: $SAVE_DIR (adminlist.txt lives here)"
 
 # Make the local player an admin so devcommands (and the vfh_t_* test macros) work. The ID is the plain Steam
