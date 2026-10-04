@@ -15,11 +15,28 @@ Works in single-player and on dedicated servers. Every client and the server nee
 
 1. **Build a base.** The board can only be placed with a workbench, a bed and 40 built pieces within 20 m (all configurable). Boards must be 100 m apart.
 2. **Build the Hiring Board** with the hammer (Wood 45, Stone 20, Deer hide 10, Leather scraps 10, Resin 10).
-3. **Stock it.** Use the board's *Funds (food & coins)* to put in cooked food and coins. Only food and coins fit. Food is counted in *food points* (a food's health + stamina + eitr), and the cheapest food is used first so your best food is left alone.
-4. **Post a contract** under *Manage → Contracts*: choose the job, the level, the work radius and, for guards, a stance. The hire fee is taken from the board's funds, and a viking walks in a few minutes later.
-5. **Upkeep** is paid in food from the board every in-game day; coins are only spent on hiring (from level 2), promoting and respawns (only while the base is loaded: days away are free). The board's hover shows the daily cost and how long the funds last, and warns you (and pins the board on the map for its builder) when they're running low. If the board can't pay for 2 days, that hireling quits. Dead hirelings come back after a cooldown for half their hire fee (permadeath can be turned on instead).
+3. **Stock it.** Use the board's *Funds (food & coins)* to put in cooked food and coins. Only food and coins fit. Food is counted in *food points* (a food's health + stamina + eitr: a cooked meat is 40), and the cheapest food is used first so your best food is left alone.
+4. **Post a contract** under *Manage → Contracts*: choose the job, the level, the work radius (it starts at the most the job allows) and, for guards, a stance. The hire fee is taken from the board's funds, and a viking walks in a few minutes later.
+5. **Feed them.** Upkeep is paid in food from the board every in-game day, only while the base is loaded (days away are free). If the board can't pay for 2 days, that hireling quits.
 
-Hover a hireling to see its name, job, level, health, what it's doing and its cargo. You can open its cargo like a chest. A hireling carries about what you can: 300 weight at level 1, 25 more per level, as well as being limited by its cargo slots.
+**What it costs.** Hiring is paid in **coins** (level 1 in food, since there are hardly any coins in the Meadows); upkeep is always **food**. Promoting a hireling costs the difference in hire fees, and bringing a dead one back costs half its hire fee (or turn on permadeath). Each job scales the prices: Steward ×0.9, Woodcutter ×1, Miner ×1.1, guards ×1.3.
+
+| Level | Hire fee | Upkeep a day | Health | Cargo slots | Carries (weight) |
+|---|---|---|---|---|---|
+| 1 | 150 food | 40 food | 80 | 8 | 300 |
+| 2 | 50 coins | 60 food | 120 | 10 | 325 |
+| 3 | 150 coins | 90 food | 180 | 12 | 350 |
+| 4 | 300 coins | 120 food | 250 | 16 | 375 |
+| 5 | 500 coins | 160 food | 330 | 20 | 400 |
+| 6 | 800 coins | 200 food | 420 | 24 | 425 |
+| 7 | 1200 coins | 250 food | 520 | 28 | 450 |
+| 8 | 1800 coins | 300 food | 650 | 32 | 475 |
+
+**Running low.** The board's hover shows the daily upkeep and how many days its food and coins last, orange when it's low and red on the last day. When it's down to 2 days (`LowFundsWarnDays`), everyone at the base is told once a day, and the board's builder gets a map pin on it until it's topped up.
+
+**Hirelings.** Hover one to see its name, job, level, stance, health, what it's doing and its cargo (slots and weight). Open its cargo with E like a chest; Shift+E opens its orders panel (stance, rename, and more for gatherers and followers). A hireling carries about what you can: it's full when its slots or its weight limit run out, and a gatherer then goes to deliver.
+
+**Deaths.** When a hireling dies, its cargo goes into a **grave** named after it, which floats and lasts like a player's (it doesn't despawn). A follower's grave opens only for its owner, who gets a map pin on it; a base worker's opens for anyone with ward access there. Its weapon and armour aren't dropped. You're told when one of yours dies. With permadeath off (`PermadeathEnabled`) it comes back to the board after a cooldown for half its hire fee.
 
 ## Jobs
 
@@ -27,7 +44,7 @@ Hover a hireling to see its name, job, level, health, what it's doing and its ca
 |---|---|---|
 | Woodcutter | Fells trees in its radius, clears the fallen logs and stumps, picks up wood, resin and seeds | Fells trees away from your buildings and leaves trees right next to them alone. Axe tier rises with level (stone, flint, bronze…), which decides what it can cut |
 | Miner | Mines copper, tin, rocks and boulders, ore before stone | Needs a level 2 board. Leaves rocks touching your builds alone and never digs near your buildings; out in the field it digs down to ore buried up to 1.5 m deep (but never digs up a deposit nobody has found, like a hidden silver vein). Pickaxe tier rises with level |
-| Steward | Keeps smelters, kilns, blast furnaces and eitr refineries in its radius stocked from your chests | Tops a station up when it's below half full. Never takes the last of an item from a chest, and leaves a reserve of chosen items in storage (`keepInStorage`, default 50 Wood). Without AzuAutoStore it also collects the bars |
+| Steward (was the Smelter) | Keeps smelters, kilns, blast furnaces and eitr refineries in its radius stocked from your chests | Tops a station up when it's below half full. Never takes the last of an item from a chest, and leaves a reserve of chosen items in storage (`keepInStorage`, default 50 Wood). Without AzuAutoStore it also collects the bars. Still `Smelter` in the data file and commands |
 | Guard (melee) | Patrols the radius and fights | Stances: Passive, Defensive, Aggressive |
 | Guard (ranged) | Same, with a bow | |
 
@@ -88,16 +105,23 @@ With the stone in hand (the list of your followers shows on the left of the scre
 | 7 | The Queen trophy, Black core 3, Eitr 15, Yggdrasil wood 40, Carapace 20 | 8 | 50 m |
 | 8 | Fader trophy, Flametal 20, Blackwood 40, Asksvin hide 10, Molten core 3 | 10 | 60 m |
 
-A board hires up to its own level. Higher-level hirelings have more health and armour, better gear, work faster and carry more, and cost more (hiring from level 2 costs coins only; upkeep is always food).
+A board hires up to its own level. Higher-level hirelings have more health and armour, better gear, work faster and carry more, and cost more (see *What it costs* above).
 
 ## Configuration
 
 Two files in `BepInEx/config`, both synced from the server and only editable there in multiplayer:
 
-- **`Spronglehump.HiredHands.cfg`**: rules and behaviour, in sections *General* (raw food, permadeath, respawn), *Base* (what counts as a base, board spacing), *Hiring* (arrival delay, unpaid days), *Work* (tree and rock safety distances, terrain protection and field digging, gathering noise, smelter refill threshold, chest minimums), *Followers* (portal and ship radius, catch-up, when lost followers go home, trip times), *Combat*, *Balance log* and *Debug*.
-- **`Spronglehump.HiredHands.yml`**: the data tables: board levels and their upgrade costs, hireling levels (health, armour, gear, cargo, prices), per-job settings (cost multiplier, pickup list, gear by level, minimum board level, work-radius multiplier, smelter stations), raw foods, names. Edits are picked up live. An invalid file is rejected with a log message and the defaults are used.
+- **`Spronglehump.HiredHands.cfg`**: rules and behaviour, in sections *General* (raw food, permadeath, respawn, graves), *Base* (what counts as a base, board spacing), *Hiring* (arrival delay, unpaid days, low funds warnings and map pins), *Work* (tree and rock safety distances, terrain protection and field digging, gathering noise, smelter refill threshold, chest minimums), *Followers* (portal and ship radius, catch-up, when lost followers go home, trip times), *Combat*, *Balance log* and *Debug*.
+- **`Spronglehump.HiredHands.yml`**: the data tables: board levels and their upgrade costs, hireling levels (health, armour, cargo slots and weight, hire fee and upkeep in food and coins), per-job settings (cost multiplier, pickup list, what gatherers can be told to gather, gear by level, minimum board level, work-radius multiplier, steward stations and reserves), raw foods, names. Edits are picked up live. An invalid file is rejected with a log message and the defaults are used. **Updating the mod doesn't change values already in this file**: new settings are added with their defaults, but changed defaults (like 0.2.1's coin-only hiring and food-only upkeep) only reach a server when you edit the file or delete it to get a fresh one.
 
 ```yaml
+hirelingLevels:
+- level: 2
+  hireFood: 0          # hiring from level 2 is coins only
+  hireCoins: 50
+  upkeepFood: 60       # upkeep is food only
+  upkeepCoins: 0
+  cargoWeight: 325     # 0 = no weight limit
 jobs:
   Miner:
     minBoardLevel: 2          # no pickaxe before Eikthyr
@@ -120,4 +144,4 @@ Logs go to `BepInEx/LogOutput.log` and `BepInEx/HiredHands.log`, one line per ev
 
 ## Coming next
 
-Ideas being considered: woodcutters replanting, a farmer, repairs, meal plans (more food for stronger hirelings), a scout. Balance tuning from the balance logs.
+Ideas being considered: the Steward taking on repairs and base chores, a Cook and a Farmer working to production orders ("keep 40 cooked meat"), woodcutters replanting, meal plans (more food for stronger hirelings), a scout. Balance tuning from the balance logs.
