@@ -305,6 +305,14 @@ namespace VikingsForHire.Hirelings
         private void SetHidden(bool hide)
         {
             _hidden = hide;
+            // The floating name and health bar too: no new one while hidden, and the one already up goes now (it would
+            // otherwise hang over the mast until its hover timer ran out).
+            _humanoid.m_hideHud = hide;
+            if (hide && EnemyHud.instance != null && EnemyHud.instance.m_huds.TryGetValue(_humanoid, out EnemyHud.HudData hud))
+            {
+                Destroy(hud.m_gui);
+                EnemyHud.instance.m_huds.Remove(_humanoid);
+            }
             if (hide)
             {
                 _hiddenRenderers.Clear();
