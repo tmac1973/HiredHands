@@ -60,7 +60,7 @@ namespace VikingsForHire.Hirelings.Combat
                     if (attacker == null || __instance == null || attacker == __instance)
                         return;
                     bool friendly = __instance is Player || __instance.IsTamed() || Hireling.Of(__instance) != null;
-                    if (!friendly || attacker is Player || Hireling.Of(attacker) != null)
+                    if (!friendly || attacker is Player || attacker.IsTamed() || Hireling.Of(attacker) != null)
                         return;
                     Hits.Add(new Hit(__instance.transform.position, attacker, Time.time));
                 }

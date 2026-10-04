@@ -111,6 +111,7 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-SMELT-4 Keeps the last item | SP | `vfh_t_keep1` | Open ground | `pass=true`; the tin and coal chests each keep 1 |
 | VFH-NAV-1 Stairs and floors | SP | — | A real two-level build: a chest holding wood upstairs, reached by stairs; a smelter on a raised wooden floor | The woodcutter climbs the stairs to deliver to the upstairs chest; the smelter hireling loads the raised smelter; neither gets stuck on floor edges (watch for `smelter.stuck` / `work.unreachable`) |
 | VFH-NAV-2 Doors and walls | SP | — | Chest inside a walled room with a closed door | Hirelings can't open doors: the chest is skipped after a while (`smelter.stuck` or the pile is used), and nothing loops |
+| VFH-TAME-1 Tames and hirelings | SP | — | A tame (a wolf, or a Defend Your Base guardian) and a guard hireling fighting the same enemy (`event army_eikthyr`, or spawn a troll near both) | Neither hurts the other (`damage.blocked reason=tame_on_hireling` / `hireling_on_tame` in a Combat trace log); the guard never turns on the tame |
 | VFH-WORK-6 Station owned by another client | D | — | Client B built and is near the smelter; client A's area owns the hireling | Loading still works, counts correct |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 

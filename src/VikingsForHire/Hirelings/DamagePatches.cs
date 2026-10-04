@@ -36,6 +36,12 @@ namespace VikingsForHire.Hirelings
                             return Blocked("hireling_on_hireling", target, attacker);
                         if (attacker is Player && !VfhConfig.FriendlyFireOnHirelings.Value)
                             return Blocked("friendly_fire", target, attacker);
+                        // Tames (pets, summons, Defend Your Base guardians) are on our side: a stray area attack in a
+                        // shared fight mustn't kill a worker, just as hirelings can't hurt tames.
+                        if (attacker != null && attacker.IsTamed())
+                            return Blocked("tame_on_hireling", target, attacker);
+                        target.LastHitBy = attacker != null ? $"{Utils.GetPrefabName(attacker.gameObject)}{(attacker.IsTamed() ? "(tame)" : "")}" : "none";
+                        target.LastHitDamage = hit.GetTotalDamage();
                         VfhLog.D(LogCat.Combat, "hireling.hit", ("hid", target.Hid), ("by", attacker != null ? attacker.m_name : "none"),
                             ("damage", hit.GetTotalDamage()), ("armor", target.LevelData.Armor));
                         return true;

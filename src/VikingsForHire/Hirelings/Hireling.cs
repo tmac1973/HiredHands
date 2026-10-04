@@ -54,6 +54,10 @@ namespace VikingsForHire.Hirelings
 
         /// <summary>Smelter: when it started holding ore/fuel that no station needed (0 = not idle with leftovers).</summary>
         public float LeftoverSince { get; set; }
+
+        /// <summary>The last thing that damaged this hireling, for the death log.</summary>
+        public string LastHitBy { get; set; } = "";
+        public float LastHitDamage { get; set; }
         public bool DeliverPending => Zdo?.GetBool(HirelingZdo.DeliverPending) ?? false;
         public ItemDrop.ItemData? Tool => _humanoid.GetRightItem();
         public int ToolTier => Tool?.m_shared.m_toolTier ?? 0;
@@ -241,7 +245,8 @@ namespace VikingsForHire.Hirelings
             VfhLog.Guard(LogCat.Hireling, "hireling.death_failed", () =>
             {
                 int dropped = CargoInventory != null ? Work.DropPile.DropAll(CargoInventory, transform.position + Vector3.up * 0.5f, "died", Hid) : 0;
-                VfhLog.I(LogCat.Hireling, "hireling.died", ("hid", Hid), ("board", BoardId), ("name", DisplayName), ("job", Job), ("level", Level), ("cargoStacks", dropped));
+                VfhLog.I(LogCat.Hireling, "hireling.died", ("hid", Hid), ("board", BoardId), ("name", DisplayName), ("job", Job), ("level", Level), ("cargoStacks", dropped),
+                    ("lastHitBy", LastHitBy), ("lastHitDamage", LastHitDamage));
                 if (BoardId.Length > 0 && Mode != HirelingMode.Leaving)
                     Net.MutationService.SubmitBoard(BoardId, new RosterOp { Type = RosterOpType.MarkDied, Hid = Hid, Name = DisplayName });
             }, ("hid", Hid));

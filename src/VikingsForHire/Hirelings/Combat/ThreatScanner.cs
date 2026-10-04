@@ -29,7 +29,7 @@ namespace VikingsForHire.Hirelings.Combat
 
         public void OnDamaged(Character? attacker)
         {
-            if (attacker == null || attacker is Player || Hireling.Of(attacker) != null)
+            if (attacker == null || attacker is Player || attacker.IsTamed() || Hireling.Of(attacker) != null)
                 return;
             LastAttacker = attacker;
             LastAttackedAt = Time.time;
