@@ -61,6 +61,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> OrphanStuckSeconds = null!;
         public static ConfigEntry<float> OrphanStayDistance = null!;
         public static ConfigEntry<float> OrphanStaySeconds = null!;
+        public static ConfigEntry<float> OrphanOfflineSeconds = null!;
         public static ConfigEntry<float> ReturnSecondsPer100m = null!;
         public static ConfigEntry<float> ReturnMinSeconds = null!;
         public static ConfigEntry<float> ReturnMaxSeconds = null!;
@@ -136,6 +137,7 @@ namespace VikingsForHire.Config
             OrphanStuckSeconds = Synced(f, "OrphanStuckSeconds", 20f, "A follower that can't make progress this long heads home.");
             OrphanStayDistance = Synced(f, "OrphanStayDistance", 150f, "A staying follower whose owner is farther than this (m) for OrphanStaySeconds heads home.");
             OrphanStaySeconds = Synced(f, "OrphanStaySeconds", 120f, "See OrphanStayDistance.");
+            OrphanOfflineSeconds = Synced(f, "OrphanOfflineSeconds", 300f, "Followers out in the field whose owner has been offline this long (s) head home. Long enough to ride out a reconnect or a server restart.");
             ReturnSecondsPer100m = Synced(f, "ReturnSecondsPer100m", 25f, "Return-home trip time per 100 m of distance.");
             ReturnMinSeconds = Synced(f, "ReturnMinSeconds", 60f, "Shortest return-home trip.");
             ReturnMaxSeconds = Synced(f, "ReturnMaxSeconds", 1200f, "Longest return-home trip.");
@@ -180,7 +182,7 @@ namespace VikingsForHire.Config
                 Overrides[ArrivalDelayMinSeconds] = 5f;
                 Overrides[ArrivalDelayMaxSeconds] = 10f;
                 Overrides[RespawnCooldownSeconds] = 10f;
-                foreach (ConfigEntry<float> e in new[] { OrphanDistanceSeconds, OrphanStuckSeconds, OrphanStaySeconds,
+                foreach (ConfigEntry<float> e in new[] { OrphanDistanceSeconds, OrphanStuckSeconds, OrphanStaySeconds, OrphanOfflineSeconds,
                              ReturnSecondsPer100m, ReturnMinSeconds, ReturnMaxSeconds })
                     Overrides[e] = e.Value / 10f;
             }

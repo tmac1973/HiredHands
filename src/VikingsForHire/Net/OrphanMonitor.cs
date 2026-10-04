@@ -14,7 +14,7 @@ namespace VikingsForHire.Net
     /// Server, every 5 s: followers that have lost their owner head home (HomeReturn). The server holds every ZDO and
     /// knows where every player is, so this works for followers in unloaded areas too. Rules (OrphanRules.Check):
     /// following but more than OrphanDistance from its owner for OrphanDistanceSeconds; in Stay or Gather Here with its
-    /// owner more than OrphanStayDistance away for OrphanStaySeconds; or its owner offline for 30 s. Distances are along
+    /// owner more than OrphanStayDistance away for OrphanStaySeconds; or its owner offline for OrphanOfflineSeconds (5 min). Distances are along
     /// the ground, so a dungeon (5000 m up) doesn't count as far. Followers inside their board's area never head home
     /// this way, and passengers stay aboard while their owner is online.
     /// </summary>
@@ -54,7 +54,7 @@ namespace VikingsForHire.Net
                 FollowSeconds = VfhConfig.Get(VfhConfig.OrphanDistanceSeconds),
                 StayDistance = VfhConfig.OrphanStayDistance.Value,
                 StaySeconds = VfhConfig.Get(VfhConfig.OrphanStaySeconds),
-                OfflineSeconds = 30f,
+                OfflineSeconds = VfhConfig.Get(VfhConfig.OrphanOfflineSeconds),
             };
             var seen = new HashSet<string>();
             foreach (ZDO zdo in WorldIndex.AllHirelings().Where(z => z.GetInt(HirelingZdo.Mode) == (int)HirelingMode.Following).ToList())
