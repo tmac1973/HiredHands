@@ -130,6 +130,7 @@ namespace VikingsForHire.Board
             reply.Write(id);
             reply.Write(a.NearestDistance ?? -1f);
             reply.Write(a.Count);
+            reply.Write(pos); // echoed, so a late answer to a re-sent request still lands in the right cell
             _rpc.SendPackage(sender, reply);
             VfhLog.T(LogCat.Placement, "registry.answer", ("to", sender), ("id", id), ("nearest", a.NearestDistance), ("count", a.Count));
             yield break;
@@ -140,12 +141,11 @@ namespace VikingsForHire.Board
             int id = package.ReadInt();
             float nearest = package.ReadSingle();
             int count = package.ReadInt();
-            if (Pending.TryGetValue(id, out var pending))
-            {
-                Vector2Int cell = pending.Cell;
-                Pending.Remove(id);
-                ClientCache[cell] = (new Answer(nearest < 0f ? null : nearest, count), Time.realtimeSinceStartup);
-            }
+            Vector3 pos = package.ReadVector3();
+            var cell = new Vector2Int(Mathf.RoundToInt(pos.x / CellSize), Mathf.RoundToInt(pos.z / CellSize));
+            Pending.Remove(id);
+            ClientCache[cell] = (new Answer(nearest < 0f ? null : nearest, count), Time.realtimeSinceStartup);
+            VfhLog.T(LogCat.Placement, "registry.answered", ("id", id), ("nearest", nearest), ("count", count));
             yield break;
         }
     }
