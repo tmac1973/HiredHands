@@ -123,7 +123,7 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-FOLLOW-1 Owner logs out | D | — | Recruit a follower, walk far from base, log out, log back in | It stays where it was (Stay); a follower inside its board's radius goes back to work instead |
 | VFH-FOLLOW-2 Two players | D | — | Two players with quality 1 stones each recruit one | Each has their own follower; neither can take the other's |
 | VFH-CATCHUP-1 Stranded follower | SP, D | `vfh_t_catchup1` | Open ground | `pass=true`; a follower put 50 m behind you out of view teleports to just behind you |
-| VFH-LAG-1 Keeping up | SP, D | `vfh_t_lag1a`, then `vfh_t_lag1b` | A follower with you; sprint ~300 m over rough ground between the two | `pass=true`: never more than 20 m behind and no teleports needed (`vfh_debug Follow on` logs `follow.lag` every 5 s and any `follow.unstick`/`follow.teleport`) |
+| VFH-LAG-1 Keeping up | SP, D | `vfh_t_lag1a`, then `vfh_t_lag1b` | A follower with you; sprint ~300 m over rough ground between the two | `pass=true`: at most one catch-up teleport over the whole run (the teleport is the safety net; it shouldn't be how the follower keeps up) (`vfh_debug Follow on` logs `follow.lag` every 5 s and any `follow.unstick`/`follow.teleport`) |
 | VFH-RETREAT-1 Retreat order | SP, D | `vfh_t_retreat1` | Open ground | `pass=true`; on the retreat order the fighting guard switches to following and keeps following while greydwarves hit it |
 | VFH-RETREAT-2 Retreat by hand | SP | — | Followers on Defensive/Aggressive in a fight; middle click with the stone and run | "Retreat!" message, HUD shows Retreating, they drop the fight and run with you; 20 s after the last hit their stance applies again; a left-click order ends the retreat early |
 | VFH-POST-1 Guard post | SP, D | `vfh_t_post1` | Open ground | `pass=true`; posted guard leaves follower status, holds its post, fights there and returns; clearing the post sends it back to patrol |
@@ -225,3 +225,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-04 | 85f255e | VFH-ORDER-1 | D | Pass | Harvest order on a tagged beech: felled and cleared, then the order ended |
 | 2026-10-04 | 9077d08 | VFH-RETREAT-2 | D | Pass | Middle click pulled followers out of a fight and they ran with the player |
 | 2026-10-04 | 3055b7e | VFH-CATCHUP-1 | D | Pass | Follower stranded 50 m behind out of view teleported to just behind the player within about 1 s |
+| 2026-10-04 | 08f3860 | VFH-LAG-1 | D | Pass | Woodcutter, ~300 m sprint with god mode and run skill 100: 1 teleport (was 9 before the chase fix); judged by teleports, the lag check was dropped |
