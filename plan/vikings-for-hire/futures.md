@@ -70,3 +70,17 @@ Let guards and archers hold a chosen spot instead of walking the work radius.
 - **Behaviour:** stand at the post facing outward (or the way the post faces), engage by stance as usual, then walk back to the post after a fight. Archers would suit walls and towers: a post on a rampart gives them height and cover.
 - **Options per guard:** Patrol (current behaviour) or Watch post, chosen in the Roster tab.
 - **Several posts per board** so a wall can be manned at the gate and the corners.
+
+## Meal plans (pay more food for stronger hirelings)
+A per-contract setting for how well a hireling is fed: more food points per day buys a modest buff, the way better food buffs the player.
+- **Three plans:** Normal meal (today's upkeep, no buff), Hearty meal, Gourmet meal. Chosen per contract (Contracts/Roster tab, and the Shift+E panel), with an "apply to all" option like stances.
+- **Cost:** a multiplier on the level's `UpkeepFood`, e.g. Normal ×1, Hearty ×1.5, Gourmet ×2.5. The hire fee is unchanged. It's in the data file per plan, so servers can tune it.
+- **Buff:** mainly max health, e.g. Hearty +15%, Gourmet +30%. Candidates for a second stat, to pick during balancing:
+  - faster health regeneration out of combat (today 1% every 2 s);
+  - a little more damage for guards;
+  - a little faster work (gather speed) for workers.
+  One bonus besides health is plenty: the point is a small reason to spend food, not a second levelling system.
+- **Quality instead of quantity (option):** let the plan require better food rather than just more of it, e.g. Gourmet only counts prepared dishes (not cooked meat), so it pulls on the player's cooking. That's closer to how the player's own food works, but harder to keep stocked.
+- **Running short:** if the board can't pay the chosen plan, drop to the best plan it can pay that day (with a message and a roster note), and only count the day unpaid when even Normal can't be paid. A hireling never leaves because Gourmet ran out.
+- **Show it:** hover and roster show the plan (and the buff), and the HUD follower lines could show it for followers, since that's where the extra health matters most.
+- **Balance check:** compare a level 1 hireling on Gourmet with a level 2 on Normal. The meal plan shouldn't make levelling pointless, so the buff should stay well under the gap between two levels (about +50% health per level today).
