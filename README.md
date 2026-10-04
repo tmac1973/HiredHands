@@ -1,6 +1,6 @@
 # Hired Hands
 
-Build a **Hiring Board** at your base and post contracts to hire wandering vikings. They chop wood, mine, keep your smelters and kilns fed, and guard your base. Hire them for food (and coins once they're more skilled) and feed them every day. Upgrade the board with boss trophies to hire better vikings and more of them. Craft a **Command Stone** to take them out with you: they follow you through portals and dungeons and aboard ships, gather and fight on your orders, and find their own way home.
+Build a **Hiring Board** at your base and post contracts to hire wandering vikings. They chop wood, mine, keep your smelters and kilns fed, and guard your base. Hire them for coins (level 1 for food: there are hardly any coins in the Meadows) and feed them every day. Upgrade the board with boss trophies to hire better vikings and more of them. Craft a **Command Stone** to take them out with you: they follow you through portals and dungeons and aboard ships, gather and fight on your orders, and find their own way home.
 
 Works in single-player and on dedicated servers. Every client and the server need the mod.
 
@@ -17,7 +17,7 @@ Works in single-player and on dedicated servers. Every client and the server nee
 2. **Build the Hiring Board** with the hammer (Wood 45, Stone 20, Deer hide 10, Leather scraps 10, Resin 10).
 3. **Stock it.** Use the board's *Funds (food & coins)* to put in cooked food and coins. Only food and coins fit. Food is counted in *food points* (a food's health + stamina + eitr), and the cheapest food is used first so your best food is left alone.
 4. **Post a contract** under *Manage → Contracts*: choose the job, the level, the work radius and, for guards, a stance. The hire fee is taken from the board's funds, and a viking walks in a few minutes later.
-5. **Upkeep** is paid in food from the board every in-game day; coins are only spent on hiring, promoting and respawns (only while the base is loaded: days away are free). The board's hover shows the daily cost and how long the funds last, and warns you (and pins the board on the map for its builder) when they're running low. If the board can't pay for 2 days, that hireling quits. Dead hirelings come back after a cooldown for half their hire fee (permadeath can be turned on instead).
+5. **Upkeep** is paid in food from the board every in-game day; coins are only spent on hiring (from level 2), promoting and respawns (only while the base is loaded: days away are free). The board's hover shows the daily cost and how long the funds last, and warns you (and pins the board on the map for its builder) when they're running low. If the board can't pay for 2 days, that hireling quits. Dead hirelings come back after a cooldown for half their hire fee (permadeath can be turned on instead).
 
 Hover a hireling to see its name, job, level, health, what it's doing and its cargo. You can open its cargo like a chest. A hireling carries about what you can: 300 weight at level 1, 25 more per level, as well as being limited by its cargo slots.
 
@@ -88,7 +88,7 @@ With the stone in hand (the list of your followers shows on the left of the scre
 | 7 | The Queen trophy, Black core 3, Eitr 15, Yggdrasil wood 40, Carapace 20 | 8 | 50 m |
 | 8 | Fader trophy, Flametal 20, Blackwood 40, Asksvin hide 10, Molten core 3 | 10 | 60 m |
 
-A board hires up to its own level. Higher-level hirelings have more health and armour, better gear, work faster and carry more, and cost more (a coin fee to hire from level 2; upkeep is always food).
+A board hires up to its own level. Higher-level hirelings have more health and armour, better gear, work faster and carry more, and cost more (hiring from level 2 costs coins only; upkeep is always food).
 
 ## Configuration
 

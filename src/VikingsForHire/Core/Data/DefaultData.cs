@@ -19,18 +19,19 @@ namespace VikingsForHire.Core.Data
                 Board(7, 8, 50, ("TrophySeekerQueen", 1), ("BlackCore", 3), ("Eitr", 15), ("YggdrasilWood", 40), ("Carapace", 20)),
                 Board(8, 10, 60, ("TrophyFader", 1), ("FlametalNew", 20), ("Blackwood", 40), ("AskHide", 10), ("MoltenCore", 3)),
             },
-            // Upkeep is food only: coins are scarce (the trader and dungeon chests), so they're a one-time cost when
-            // hiring, promoting and paying for a respawn; daily coin upkeep added up to hundreds of coins an hour.
+            // Hiring is paid in coins and upkeep in food. Coins are scarce (the trader, dungeon chests), so they're a
+            // one-time cost (hiring, promoting, respawning); daily coin upkeep added up to hundreds of coins an hour. Level
+            // 1 is hired for food: there are hardly any coins before the Black Forest.
             HirelingLevels = new List<HirelingLevelData>
             {
                 Hireling(1, 80, 4, 1.0f, 1.0f, 8, 150, 0, 40, 0),
-                Hireling(2, 120, 8, 1.3f, 1.2f, 10, 250, 50, 60, 0),
-                Hireling(3, 180, 14, 1.7f, 1.4f, 12, 400, 150, 90, 0),
-                Hireling(4, 250, 20, 2.2f, 1.6f, 16, 600, 300, 120, 0),
-                Hireling(5, 330, 26, 2.8f, 1.8f, 20, 800, 500, 160, 0),
-                Hireling(6, 420, 32, 3.5f, 2.0f, 24, 1000, 800, 200, 0),
-                Hireling(7, 520, 38, 4.3f, 2.2f, 28, 1300, 1200, 250, 0),
-                Hireling(8, 650, 44, 5.2f, 2.4f, 32, 1600, 1800, 300, 0),
+                Hireling(2, 120, 8, 1.3f, 1.2f, 10, 0, 50, 60, 0),
+                Hireling(3, 180, 14, 1.7f, 1.4f, 12, 0, 150, 90, 0),
+                Hireling(4, 250, 20, 2.2f, 1.6f, 16, 0, 300, 120, 0),
+                Hireling(5, 330, 26, 2.8f, 1.8f, 20, 0, 500, 160, 0),
+                Hireling(6, 420, 32, 3.5f, 2.0f, 24, 0, 800, 200, 0),
+                Hireling(7, 520, 38, 4.3f, 2.2f, 28, 0, 1200, 250, 0),
+                Hireling(8, 650, 44, 5.2f, 2.4f, 32, 0, 1800, 300, 0),
             },
             ArmorSets = new List<ArmorSetData>
             {

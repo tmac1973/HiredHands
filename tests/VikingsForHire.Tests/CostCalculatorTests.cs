@@ -21,8 +21,8 @@ namespace VikingsForHire.Tests
         [Fact]
         public void JobMultiplierApplies()
         {
-            // L2 guard: 250 * 1.3 = 325 food, 50 * 1.3 = 65 coins.
-            Assert.Equal(new Cost(325, 65), Calc().HireCost(JobType.GuardMelee, 2));
+            // L2 guard: no food, 50 * 1.3 = 65 coins.
+            Assert.Equal(new Cost(0, 65), Calc().HireCost(JobType.GuardMelee, 2)); // level 2+ hire is coins only
             // L3 miner upkeep: 90 * 1.1 = 99 food, and no coins (upkeep is food only by default).
             Assert.Equal(new Cost(99, 0), Calc().DailyUpkeep(JobType.Miner, 3));
         }
@@ -32,12 +32,12 @@ namespace VikingsForHire.Tests
         {
             CostCalculator c = Calc();
             Assert.Equal(c.HireCost(JobType.Smelter, 4) - c.HireCost(JobType.Smelter, 2), c.PromotionCost(JobType.Smelter, 2, 4));
-            Assert.Equal(new Cost(100, 50), c.PromotionCost(JobType.Woodcutter, 1, 2));
+            Assert.Equal(new Cost(0, 50), c.PromotionCost(JobType.Woodcutter, 1, 2)); // level 1's food fee doesn't go negative
         }
 
         [Fact]
         public void RespawnIsFractionOfHire() =>
-            Assert.Equal(new Cost(200, 75), Calc().RespawnCost(JobType.Woodcutter, 3));
+            Assert.Equal(new Cost(0, 75), Calc().RespawnCost(JobType.Woodcutter, 3)); // half the (coin) hire fee
 
         [Fact]
         public void CostNeverNegative()
