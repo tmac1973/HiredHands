@@ -128,6 +128,8 @@ namespace VikingsForHire.UI
                 case ContractState.Leaving:
                     return "$vfh_status_leaving";
                 default:
+                    if (live != null && live.Mode == HirelingMode.Following)
+                        return Localization.instance.Localize("$vfh_roster_following", live.OwnerName);
                     string status = live?.Zdo?.GetString(HirelingZdo.Status) ?? "";
                     if (e.UnpaidDays > 0 && status.Length == 0)
                         status = $"$vfh_status_unpaid ({e.UnpaidDays}/{VfhConfig.UnpaidDaysBeforeLeaving.Value})";

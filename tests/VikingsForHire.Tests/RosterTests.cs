@@ -149,6 +149,19 @@ namespace VikingsForHire.Tests
             Assert.Equal(99, back.LeavingSince);
             Assert.Null(back.Level);
             Assert.Equal("$x", back.Status);
+
+            var f = new HirelingOp { Mode = HirelingMode.Following, Owner = 123456789012L, OwnerName = "Tim", FollowMode = FollowMode.Stay,
+                StayPos = (1.5f, 2f, -3.25f), DeliverPending = true };
+            var w3 = new W();
+            f.Write(w3);
+            HirelingOp f2 = HirelingOp.Read(new R(w3.Stream.ToArray()));
+            Assert.Equal(HirelingMode.Following, f2.Mode);
+            Assert.Equal(123456789012L, f2.Owner);
+            Assert.Equal("Tim", f2.OwnerName);
+            Assert.Equal(FollowMode.Stay, f2.FollowMode);
+            Assert.Equal((1.5f, 2f, -3.25f), f2.StayPos);
+            Assert.True(f2.DeliverPending);
+            Assert.Null(f2.Stance);
         }
 
         [Fact]

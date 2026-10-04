@@ -46,6 +46,8 @@ namespace VikingsForHire
             CompatPatcher.Apply(Harmony);
 
             BoardPiece.Register();
+            Followers.CommandStoneItem.Register();
+            Net.FollowerServer.Register();
             BoardRegistry.Register();
             Net.MutationService.Register();
             Net.BoardServer.Register();
@@ -65,6 +67,7 @@ namespace VikingsForHire
             FixturesWork.Register();
             FixturesMining.Register();
             FixturesSmelter.Register();
+            FixturesFollow.Register();
 
             SessionInfo.LogHeader("plugin load");
             Log.LogInfo($"{Name} {Version} loaded");
@@ -76,6 +79,7 @@ namespace VikingsForHire
             VfhLog.Guard(LogCat.Data, "data.tick_failed", DataStore.Tick);
             VfhLog.Guard(LogCat.Board, "upgrade.tick_failed", BoardUpgrade.Tick);
             VfhLog.Guard(LogCat.Roster, "server.tick_failed", Net.BoardServer.Tick);
+            VfhLog.Guard(LogCat.Follow, "follow.tick_failed", Net.FollowerServer.Tick);
         }
 
         private void OnDestroy() => VfhLog.Shutdown();

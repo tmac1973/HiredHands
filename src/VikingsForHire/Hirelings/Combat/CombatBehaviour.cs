@@ -147,8 +147,8 @@ namespace VikingsForHire.Hirelings.Combat
         private Character? Choose(HirelingAI ai)
         {
             ThreatScanner scan = ai.Threats;
-            Vector3 home = ai.Hireling.Home;
-            float radius = ai.Hireling.Radius;
+            Vector3 home = ai.LeashCenter;
+            float radius = ai.LeashRadius;
             Character? threat = scan.Nearest;
             bool inRadius = threat != null && Vector3.Distance(threat.transform.position, home) <= radius;
             bool inExtended = threat != null && Vector3.Distance(threat.transform.position, home) <= radius + StanceRules.AggressiveExtraRange;
@@ -164,7 +164,7 @@ namespace VikingsForHire.Hirelings.Combat
 
         private bool Leashed(HirelingAI ai, Character target)
         {
-            float limit = ai.Hireling.Radius + StanceRules.LeashBeyondRadius(ai.Stance);
+            float limit = ai.LeashRadius + StanceRules.LeashBeyondRadius(ai.Stance);
             return Vector3.Distance(target.transform.position, ai.LeashCenter) > limit;
         }
 

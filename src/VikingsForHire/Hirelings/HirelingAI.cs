@@ -30,7 +30,24 @@ namespace VikingsForHire.Hirelings
         public bool Retreating { get; private set; }
 
         /// <summary>Where a fight is measured from for the leash: home for base workers (phase 12 switches it to the owner).</summary>
-        public Vector3 LeashCenter => Hireling.Home;
+        /// <summary>Where fights are kept close to: home, or while following the owner (or the stay spot).</summary>
+        public Vector3 LeashCenter
+        {
+            get
+            {
+                if (Hireling.Mode != HirelingMode.Following)
+                    return Hireling.Home;
+                if (Hireling.FollowMode == FollowMode.Stay)
+                    return Hireling.StayPos;
+                Player? owner = Player.GetPlayer(Hireling.OwnerId);
+                return owner != null ? owner.transform.position : transform.position;
+            }
+        }
+
+        /// <summary>How far from LeashCenter a fight may go: the work radius at home, 30 m around the owner.</summary>
+        public float LeashRadius => Hireling.Mode == HirelingMode.Following ? FollowerLeash : Hireling.Radius;
+
+        public const float FollowerLeash = 30f;
 
         public Hireling Hireling { get; private set; } = null!;
 
@@ -65,6 +82,7 @@ namespace VikingsForHire.Hirelings
                     Add(new Work.DeliverBehaviour(new Work.OnRequestDeliveryPolicy()));
                     break;
             }
+            Add(new Followers.FollowBehaviour());
             Add(new FleeBehaviour());
             _combat = new CombatBehaviour();
             Add(_combat);

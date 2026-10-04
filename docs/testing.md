@@ -172,3 +172,12 @@ tagged, and `clear_area` removes it.
 | check `deposited <tag> <item>` | What hirelings themselves put into a tagged chest since login (AzuAutoStore pulling items from the ground into a chest doesn't count) |
 | fixture `room <tag> [item count]…` / check `door_open <tag>` | A closed room with a door (`<tag>_door`) and a chest (`<tag>`) inside; whether a tagged door is open |
 | fixture `tame_ally <prefab> <distance>` / checks `tame_alive`, `damage_blocked <reason>` | A tamed creature next to the last spawned hireling; whether it lives; how many hits were blocked for a reason |
+
+## Phase 12
+
+| Check / fixture | |
+|---|---|
+| fixture `stone <quality>` / `stone_mats <quality>` | A Command Stone of that quality in your hands / that quality's materials |
+| fixture `recruit_posted` / `release_posted` / `release_all` | The real recruit / release requests, for the hireling from your last contract |
+| check `followers` | Your follower count, as the server counts it |
+| check `craftable <quality>` | Whether that quality could be made at the nearest workbench (materials and board level) |

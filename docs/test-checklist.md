@@ -117,6 +117,11 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-TAME-1 Tames and hirelings | SP, D | `vfh_t_tame1` | Open ground (`vfh_debug Combat trace` shows `damage.blocked reason=tame_on_hireling` if the troll's slam catches the guard) | `pass=true`; troll and guard both survive the fight and the guard never turns on the troll |
 | VFH-SMELT-5 Wood reserve | SP | `vfh_t_keep2` | Open ground | `pass=true`; with 60 wood in storage the kiln gets only 10 and 50 stay |
 | VFH-WORK-6 Station owned by another client | D | — | Client B built and is near the smelter; client A's area owns the hireling | Loading still works, counts correct |
+| VFH-STONE-1 Stone qualities | SP, D | `vfh_t_stone1` | Open ground | `pass=true`; quality 1 needs a level 2 board near the workbench, quality 2 a level 4 board (and each its own materials) |
+| VFH-RECRUIT-1 Recruit and release | SP, D | `vfh_t_recruit1` | Open ground | `pass=true`; one follower with a quality 1 stone, a second is refused, release sends it back to work |
+| VFH-FOLLOW-0 Following by hand | SP | — | Craft a stone at a workbench near a level 2 board; recruit a woodcutter; walk around, fight a greydwarf, walk far away; aim at it away from home | It follows within a few metres, runs to catch up, defends you, and toggles to Stay/Follow when you aim at it away from home; at home, aiming at it sends it back to work and it delivers what it carries |
+| VFH-FOLLOW-1 Owner logs out | D | — | Recruit a follower, walk far from base, log out, log back in | It stays where it was (Stay); a follower inside its board's radius goes back to work instead |
+| VFH-FOLLOW-2 Two players | D | — | Two players with quality 1 stones each recruit one | Each has their own follower; neither can take the other's |
 | VFH-BOARD-1 Ward | D | — | A second player places a ward (you not permitted) over a board they built | You can't open its storage and hover says no access |
 
 If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD-1.

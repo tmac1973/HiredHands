@@ -53,3 +53,10 @@ Start milestone 2. Add the **Command Stone**, a 4-quality item crafted and upgra
 
 ## Rollback
 Revert the commit. Hireling ZDOs left in `Following` behave like idle in phase 11 code, because unknown modes fall back to idle. Release followers to work before reverting in worlds you keep. Crafted stones become unknown items, which vanilla removes from inventories with a log warning.
+
+## As built
+- The stone is a clone of the Club (a one-handed item with a hand attachment), wearing the Crystal's mesh and icon. Its recipe lists every material any quality uses; `Piece.Requirement.GetAmount` returns the data file's amount for the quality being made (0 hides the row) and the list is rebuilt when the data changes.
+- Recruit / release go through a dedicated server RPC (`VFH_FollowerOp`, `Net/FollowerServer.cs`) rather than `MutationService` with `allowLocal: false`: the server checks the cap, then writes the hireling through `MutationService` and replies with the message. `OwnerSession` wasn't needed: counts come from the server.
+- Aiming at your own follower **away** from home toggles it between Follow and Stay (a small addition so a follower left in Stay, e.g. after a logout, can be picked up again before phase 13's hotkeys).
+- Every spawn (arrival or respawn) clears the follower fields, so nobody comes back as someone's follower.
+- The crafting gate looks for the board near the station you're using (the game only tracks that while its crafting menu is open); the `craftable` test check uses the nearest workbench.

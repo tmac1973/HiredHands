@@ -16,6 +16,11 @@ namespace VikingsForHire.Hirelings
             if (op.Level.HasValue) zdo.Set(HirelingZdo.Level, op.Level.Value);
             if (op.LeavingSince.HasValue) zdo.Set(HirelingZdo.LeavingSince, op.LeavingSince.Value);
             if (op.Status != null) zdo.Set(HirelingZdo.Status, op.Status);
+            if (op.Owner.HasValue) zdo.Set(HirelingZdo.Owner, op.Owner.Value);
+            if (op.OwnerName != null) zdo.Set(HirelingZdo.OwnerName, op.OwnerName);
+            if (op.FollowMode.HasValue) zdo.Set(HirelingZdo.FollowMode, (int)op.FollowMode.Value);
+            if (op.StayPos is (float x, float y, float z)) zdo.Set(HirelingZdo.StayPos, new UnityEngine.Vector3(x, y, z));
+            if (op.DeliverPending.HasValue) zdo.Set(HirelingZdo.DeliverPending, op.DeliverPending.Value);
             VfhLog.D(LogCat.Hireling, "hireling.fields", ("hid", zdo.GetString(HirelingZdo.Hid)), ("op", op.ToString()));
             return new OpResult(OpOutcome.Ok);
         }

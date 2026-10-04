@@ -69,10 +69,18 @@ namespace VikingsForHire.Core
         public long? LeavingSince { get; set; }
         public string? Status { get; set; }
 
+        /// <summary>Follower fields (phase 12). Owner 0 = no owner.</summary>
+        public long? Owner { get; set; }
+        public string? OwnerName { get; set; }
+        public FollowMode? FollowMode { get; set; }
+        public (float X, float Y, float Z)? StayPos { get; set; }
+        public bool? DeliverPending { get; set; }
+
         public void Write(IPackageWriter w)
         {
             int flags = (Mode.HasValue ? 1 : 0) | (Stance.HasValue ? 2 : 0) | (Radius.HasValue ? 4 : 0) | (Level.HasValue ? 8 : 0)
-                        | (LeavingSince.HasValue ? 16 : 0) | (Status != null ? 32 : 0);
+                        | (LeavingSince.HasValue ? 16 : 0) | (Status != null ? 32 : 0) | (Owner.HasValue ? 64 : 0) | (OwnerName != null ? 128 : 0)
+                        | (FollowMode.HasValue ? 256 : 0) | (StayPos.HasValue ? 512 : 0) | (DeliverPending.HasValue ? 1024 : 0);
             w.Write(flags);
             if (Mode.HasValue) w.Write((int)Mode.Value);
             if (Stance.HasValue) w.Write((int)Stance.Value);
@@ -80,6 +88,16 @@ namespace VikingsForHire.Core
             if (Level.HasValue) w.Write(Level.Value);
             if (LeavingSince.HasValue) w.Write(LeavingSince.Value);
             if (Status != null) w.Write(Status);
+            if (Owner.HasValue) w.Write(Owner.Value);
+            if (OwnerName != null) w.Write(OwnerName);
+            if (FollowMode.HasValue) w.Write((int)FollowMode.Value);
+            if (StayPos is (float x, float y, float z))
+            {
+                w.Write(x);
+                w.Write(y);
+                w.Write(z);
+            }
+            if (DeliverPending.HasValue) w.Write(DeliverPending.Value ? 1 : 0);
         }
 
         public static HirelingOp Read(IPackageReader r)
@@ -92,10 +110,15 @@ namespace VikingsForHire.Core
             if ((flags & 8) != 0) op.Level = r.ReadInt();
             if ((flags & 16) != 0) op.LeavingSince = r.ReadLong();
             if ((flags & 32) != 0) op.Status = r.ReadString();
+            if ((flags & 64) != 0) op.Owner = r.ReadLong();
+            if ((flags & 128) != 0) op.OwnerName = r.ReadString();
+            if ((flags & 256) != 0) op.FollowMode = (FollowMode)r.ReadInt();
+            if ((flags & 512) != 0) op.StayPos = (r.ReadSingle(), r.ReadSingle(), r.ReadSingle());
+            if ((flags & 1024) != 0) op.DeliverPending = r.ReadInt() != 0;
             return op;
         }
 
         public override string ToString() =>
-            $"SetFields({(Mode.HasValue ? $"mode={Mode} " : "")}{(Stance.HasValue ? $"stance={Stance} " : "")}{(Radius.HasValue ? $"radius={Radius} " : "")}{(Level.HasValue ? $"level={Level} " : "")}{(LeavingSince.HasValue ? "leaving " : "")}{(Status != null ? $"status={Status}" : "")})".Replace(" )", ")");
+            $"SetFields({(Mode.HasValue ? $"mode={Mode} " : "")}{(Stance.HasValue ? $"stance={Stance} " : "")}{(Radius.HasValue ? $"radius={Radius} " : "")}{(Level.HasValue ? $"level={Level} " : "")}{(LeavingSince.HasValue ? "leaving " : "")}{(Status != null ? $"status={Status} " : "")}{(Owner.HasValue ? $"owner={Owner} " : "")}{(FollowMode.HasValue ? $"follow={FollowMode} " : "")}{(StayPos.HasValue ? "stay " : "")}{(DeliverPending == true ? "deliver " : "")})".Replace(" )", ")");
     }
 }

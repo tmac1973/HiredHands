@@ -46,6 +46,11 @@ namespace VikingsForHire.Hirelings
         public string BoardId => Zdo?.GetString(HirelingZdo.BoardId) ?? "";
         public JobType Job => (JobType)(Zdo?.GetInt(HirelingZdo.Job) ?? 0);
         public int Level => Mathf.Max(1, Zdo?.GetInt(HirelingZdo.Level, 1) ?? 1);
+        public long OwnerId => Zdo?.GetLong(HirelingZdo.Owner) ?? 0L;
+        public string OwnerName => Zdo?.GetString(HirelingZdo.OwnerName) ?? "";
+        public FollowMode FollowMode => (FollowMode)(Zdo?.GetInt(HirelingZdo.FollowMode) ?? 0);
+        public Vector3 StayPos => Zdo?.GetVec3(HirelingZdo.StayPos, transform.position) ?? transform.position;
+
         public HirelingMode Mode => (HirelingMode)(Zdo?.GetInt(HirelingZdo.Mode, (int)HirelingMode.Idle) ?? (int)HirelingMode.Idle);
         public string DisplayName => Zdo?.GetString(HirelingZdo.Name) ?? "";
         // Work state (owner side).
