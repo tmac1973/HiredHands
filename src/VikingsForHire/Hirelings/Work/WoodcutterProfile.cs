@@ -13,7 +13,7 @@ namespace VikingsForHire.Hirelings.Work
     internal sealed class WoodcutterProfile : IGatherProfile
     {
         private static readonly int Mask = LayerMask.GetMask("Default", "static_solid", "Default_small", "piece_nonsolid", "terrain");
-        private static readonly Collider[] Hits = new Collider[512];
+        private static readonly Collider[] Hits = new Collider[2048];
         private static readonly List<Piece> Pieces = new();
 
         public string Status => "$vfh_status_chopping";
@@ -36,6 +36,10 @@ namespace VikingsForHire.Hirelings.Work
                 if (c != null && seen.Add(c))
                     yield return c;
             }
+            // Logs aren't on the layers above, so they come from the registry.
+            foreach (TreeLog log in LogRegistry.Within(center, radius))
+                if (seen.Add(log))
+                    yield return log;
         }
 
         public bool IsValid(Component target, Hireling hireling, out string reason)
@@ -161,6 +165,26 @@ namespace VikingsForHire.Hirelings.Work
 
         public Collider? Aim(Component target, Vector3 from, out Vector3 point)
         {
+            if (target is TreeLog)
+            {
+                // A log is long: aim at the nearest point of its surface, not its middle, or a woodcutter at one end
+                // would never be "in reach".
+                Collider? best = null;
+                float bestSq = float.MaxValue;
+                foreach (Collider c in target.GetComponentsInChildren<Collider>())
+                {
+                    if (!c.enabled || c.isTrigger)
+                        continue;
+                    float sq = (c.bounds.ClosestPoint(from) - from).sqrMagnitude;
+                    if (sq < bestSq)
+                    {
+                        bestSq = sq;
+                        best = c;
+                    }
+                }
+                point = best != null ? MinerProfile.Surface(best, from) : target.transform.position;
+                return best;
+            }
             point = target.transform.position;
             return target.GetComponentInChildren<Collider>();
         }

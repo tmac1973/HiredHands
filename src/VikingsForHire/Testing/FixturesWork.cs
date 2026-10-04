@@ -45,6 +45,8 @@ namespace VikingsForHire.Testing
             TestHarness.RegisterCheck("object_alive", "<tag> - whether a tagged object still exists", args => FindTagged(args.ElementAtOrDefault(0) ?? "") != null ? "true" : "false");
             TestHarness.RegisterCheck("deposited", "<tag> <item> - how many of an item hirelings themselves put into a tagged chest since login", args =>
                 Hirelings.Work.ContainerAccess.Deposited(args.ElementAtOrDefault(0) ?? "", args.ElementAtOrDefault(1) ?? "").ToString());
+            TestHarness.RegisterCheck("logs_near", "<radius=60> - fallen logs within this distance of the nearest board", args =>
+                Hirelings.Work.LogRegistry.Within(Board().transform.position, args.Length > 0 ? float.Parse(args[0], CultureInfo.InvariantCulture) : 60f).Count().ToString());
             TestHarness.RegisterCheck("door_open", "<tag> - whether a tagged door is open", args =>
             {
                 GameObject door = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged door");
