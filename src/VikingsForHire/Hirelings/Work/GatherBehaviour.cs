@@ -31,6 +31,10 @@ namespace VikingsForHire.Hirelings.Work
         private float _rescanAt;
         private float _approachStarted;
         private ItemDrop? _pickup;
+        private float _pickupStarted;
+        private readonly HashSet<ItemDrop> _unreachableDrops = new();
+        private const float PickupGiveUp = 8f;
+        private const float PickupReachUp = 2.5f; // items on a rock or in a dip still count as in reach
         private Vector3? _fellDir;
         private Collider? _lastStruck;
         private int _strikesOnIt;
@@ -239,7 +243,7 @@ namespace VikingsForHire.Hirelings.Work
             float bestSq = float.MaxValue;
             foreach (ItemDrop d in ItemDrop.s_instances)
             {
-                if (d == null || d == exclude || d.m_itemData?.m_dropPrefab == null || !wanted.Contains(d.m_itemData.m_dropPrefab.name) || d.m_itemData.m_customData.ContainsKey(DropPile.Tag))
+                if (d == null || d == exclude || _unreachableDrops.Contains(d) || d.m_itemData?.m_dropPrefab == null || !wanted.Contains(d.m_itemData.m_dropPrefab.name) || d.m_itemData.m_customData.ContainsKey(DropPile.Tag))
                     continue;
                 if ((d.transform.position - anchor).sqrMagnitude > PickupRadius * PickupRadius || Vector3.Distance(d.transform.position, h.Home) > h.Radius + MaxExtraReach + 5f)
                     continue;
@@ -250,6 +254,8 @@ namespace VikingsForHire.Hirelings.Work
                     best = d;
                 }
             }
+            if (best != _pickup)
+                _pickupStarted = Time.time;
             _pickup = best;
             return best != null;
         }
@@ -264,8 +270,22 @@ namespace VikingsForHire.Hirelings.Work
                     FindTarget(h, _anchor, out _);
                 return;
             }
-            if (Vector3.Distance(ai.transform.position, drop.transform.position) > PickupReach)
+            bool inReach = Utils.DistanceXZ(ai.transform.position, drop.transform.position) <= PickupReach &&
+                           Mathf.Abs(drop.transform.position.y - ai.transform.position.y) <= PickupReachUp;
+            if (!inReach)
             {
+                if (Time.time - _pickupStarted > PickupGiveUp)
+                {
+                    // Inside the rock, under the ground or across water: leave it rather than stand there forever.
+                    VfhLog.D(LogCat.Work, "work.pickup_unreachable", ("hid", h.Hid), ("item", drop.m_itemData.m_dropPrefab.name),
+                        ("pos", drop.transform.position), ("me", ai.transform.position));
+                    _unreachableDrops.RemoveWhere(d => d == null);
+                    _unreachableDrops.Add(drop);
+                    _pickup = null;
+                    if (!FindPickup(h))
+                        FindTarget(h, _anchor, out _);
+                    return;
+                }
                 ai.WalkTo(dt, drop.transform.position, PickupReach * 0.6f, run: false);
                 return;
             }
