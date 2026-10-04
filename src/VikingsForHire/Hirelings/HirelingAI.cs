@@ -323,8 +323,32 @@ namespace VikingsForHire.Hirelings
             if (route)
                 return WalkTo(dt, point, stopDistance, run);
             _doors.Tick(point);
+            if (_doors.Through is Vector3 beyond)
+            {
+                Vector3 dir = beyond - transform.position;
+                dir.y = 0f;
+                MoveTowards(dir.normalized, run);
+                return false;
+            }
+            // A wall between us and no route (the walkable map lags behind a door just opened): use a doorway rather
+            // than pushing against the wall beside it (which ended in the unstuck jump over it).
+            if (WallBetween(point) && _doors.DoorwayTowards(point) is Vector3 doorway)
+            {
+                // By route to the doorway when there is one (round a corner of the building), else straight at it.
+                if (PathReaches(doorway, 1.5f))
+                    MoveTo(dt, doorway, 0.4f, run);
+                else
+                    MoveAndAvoid(dt, doorway, 0.4f, run);
+                return false;
+            }
             return MoveAndAvoid(dt, point, stopDistance, run);
         }
+
+        private static readonly int WallMask = LayerMask.GetMask("piece", "Default", "static_solid");
+
+        // A built wall (or rock) on the straight line between us at chest height.
+        private bool WallBetween(Vector3 point) =>
+            Physics.Linecast(transform.position + Vector3.up * 1f, point + Vector3.up * 1f, WallMask);
 
         /// <summary>Set by a behaviour during its tick to crouch (a follower sneaking with its owner).</summary>
         public bool WantSneak { get; set; }

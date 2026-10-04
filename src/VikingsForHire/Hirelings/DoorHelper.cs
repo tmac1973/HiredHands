@@ -90,6 +90,64 @@ namespace VikingsForHire.Hirelings
             return _detour.transform.position + normal * 1.2f;
         }
 
+        /// <summary>
+        /// A follower chasing its owner with a wall in the way and no route: the doorway to go through (open or closed),
+        /// as the point on our side of it to walk to. Once there, the door is opened if need be and it goes straight
+        /// through (<see cref="Through"/>). Null when there's no door that gets it closer.
+        /// </summary>
+        public Vector3? DoorwayTowards(Vector3 goal)
+        {
+            if (!VfhConfig.HirelingsOpenDoors.Value || _throughDoor != null)
+                return null;
+            Vector3 me = _ai.transform.position;
+            if (_detour != null && (_detour.m_nview == null || !_detour.m_nview.IsValid()))
+                _detour = null;
+            if (_detour == null)
+            {
+                float straight = Vector3.Distance(me, goal);
+                _detour = Doors(me, DetourRange)
+                    .Where(d => (IsOpen(d) || Usable(d)) && Vector3.Distance(d.transform.position, goal) < straight)
+                    .OrderBy(d => Vector3.Distance(me, d.transform.position) + Vector3.Distance(d.transform.position, goal))
+                    .FirstOrDefault();
+                if (_detour == null)
+                    return null;
+                VfhLog.D(LogCat.AI, "door.detour", ("hid", _ai.Hireling.Hid), ("door", _detour.transform.position), ("goal", goal), ("open", IsOpen(_detour)));
+            }
+            Vector3 near = Side(_detour, me, 1.2f);
+            if (Utils.DistanceXZ(me, near) > 0.8f)
+                return near;
+            if (!IsOpen(_detour))
+                Open(_detour, me);
+            StartThrough(_detour, me);
+            _detour = null;
+            return null;
+        }
+
+        // A point beside the doorway, on the side of <paramref name="from"/> (positive depth) or the other (negative).
+        private static Vector3 Side(Door d, Vector3 from, float depth)
+        {
+            Vector3 side = from - d.transform.position;
+            side.y = 0f;
+            Vector3 normal = Vector3.Dot(side, d.transform.forward) >= 0f ? d.transform.forward : -d.transform.forward;
+            return d.transform.position + normal * depth;
+        }
+
+        private void Open(Door d, Vector3 me)
+        {
+            // Same as a player using it from where we stand: it swings away from us.
+            Vector3 userDir = (me - d.transform.position).normalized;
+            d.m_nview.InvokeRPC("UseDoor", Vector3.Dot(d.transform.forward, userDir) < 0f);
+            _opened[d] = Time.time;
+            VfhLog.D(LogCat.AI, "door.open", ("hid", _ai.Hireling.Hid), ("door", d.transform.position));
+        }
+
+        private void StartThrough(Door d, Vector3 me)
+        {
+            _throughDoor = d;
+            _throughPoint = Side(d, me, -ThroughDepth);
+            _throughUntil = Time.time + ThroughSeconds;
+        }
+
         /// <summary>Called while walking towards <paramref name="goal"/>: open what's in the way, close what's behind.</summary>
         public void Tick(Vector3 goal)
         {
@@ -109,22 +167,12 @@ namespace VikingsForHire.Hirelings
                 bool ahead = heading.sqrMagnitude < 0.01f || Vector3.Dot(toDoor.normalized, heading.normalized) > 0.2f;
                 if (!ahead && d != _detour)
                     continue;
-                // Same as a player using it from where we stand: it swings away from us.
-                Vector3 userDir = (me - d.transform.position).normalized;
-                d.m_nview.InvokeRPC("UseDoor", Vector3.Dot(d.transform.forward, userDir) < 0f);
-                _opened[d] = Time.time;
+                Open(d, me);
                 if (d == _detour)
                 {
                     _detour = null;
-                    // The far side: the side of the doorway away from where we stand.
-                    Vector3 side = me - d.transform.position;
-                    side.y = 0f;
-                    Vector3 normal = Vector3.Dot(side, d.transform.forward) >= 0f ? d.transform.forward : -d.transform.forward;
-                    _throughDoor = d;
-                    _throughPoint = d.transform.position - normal * ThroughDepth;
-                    _throughUntil = Time.time + ThroughSeconds;
+                    StartThrough(d, me);
                 }
-                VfhLog.D(LogCat.AI, "door.open", ("hid", _ai.Hireling.Hid), ("door", d.transform.position));
             }
             CloseBehind(false);
         }
