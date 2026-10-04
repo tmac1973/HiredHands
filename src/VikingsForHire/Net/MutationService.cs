@@ -91,6 +91,7 @@ namespace VikingsForHire.Net
 
         private static CustomRPC _submitRpc = null!;
         private static CustomRPC _resultRpc = null!;
+        private static CustomRPC _forwardRpc = null!;
         private static readonly Dictionary<int, Action<OpResult>> Callbacks = new();
         private static int _nextRequest = 1;
 
@@ -98,6 +99,7 @@ namespace VikingsForHire.Net
         {
             _submitRpc = NetworkManager.Instance.AddRPC("VFH_SubmitOp", OnServerSubmit, OnClientSubmitIgnored);
             _resultRpc = NetworkManager.Instance.AddRPC("VFH_OpResult", OnResultAtServer, OnResultAtClient);
+            _forwardRpc = NetworkManager.Instance.AddRPC("VFH_ForwardOp", OnForwardAtServer, OnForwardAtClient);
         }
 
         /// <summary>Called by HiringBoard and Hireling in Awake so the server can forward ops to them.</summary>
@@ -176,14 +178,41 @@ namespace VikingsForHire.Net
             long owner = zdo.GetOwner();
             if (owner != 0L && owner != me && ZNet.instance.GetPeer(owner) != null && env.Hops < MaxHops)
             {
+                // To the owner's game as a plain message, not one addressed to the object: a game can still own an
+                // object it no longer has loaded (a player who walked or portalled away), and a message addressed to an
+                // object that isn't loaded is dropped without a trace. That lost a follower's death far from its board.
                 env.Hops++;
-                ZRoutedRpc.instance.InvokeRoutedRPC(owner, zdo.m_uid, ApplyRpc, env.ToPackage());
+                _forwardRpc.SendPackage(owner, env.ToPackage());
                 VfhLog.D(LogCat.Net, "op.forward", ("to", owner), ("zdo", zdo.m_uid.ToString()), ("op", env.Describe()), ("req", env.RequestId), ("hops", env.Hops));
                 return;
             }
             if (owner != me)
                 zdo.SetOwner(me);
             Finish(env, Apply(zdo, env), "server");
+        }
+
+        private static IEnumerator OnForwardAtServer(long sender, ZPackage pkg)
+        {
+            yield break;
+        }
+
+        // The owner's game: apply it if we have the object loaded and still own it; otherwise send it back to the
+        // server marked as bounced, and the server applies it to the ZDO itself.
+        private static IEnumerator OnForwardAtClient(long sender, ZPackage pkg)
+        {
+            VfhLog.Guard(LogCat.Net, "op.forward_failed", () =>
+            {
+                Envelope env = Envelope.From(pkg);
+                if (LocalOwned(env.Kind, env.TargetId) is ZDO zdo)
+                {
+                    Finish(env, Apply(zdo, env), "owner");
+                    return;
+                }
+                VfhLog.D(LogCat.Net, "op.bounce", ("req", env.RequestId), ("why", "not loaded or not ours here"));
+                env.Hops = MaxHops;
+                _submitRpc.SendPackage(ZRoutedRpc.instance.GetServerPeerID(), env.ToPackage());
+            });
+            yield break;
         }
 
         // Owner (forwarded to us). If ownership moved on meanwhile, hand it back to the server to route again.

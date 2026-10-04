@@ -50,6 +50,18 @@ namespace VikingsForHire.Net
             }
         }
 
+        /// <summary>Every board ZDO the server knows of.</summary>
+        public static IEnumerable<ZDO> AllBoards()
+        {
+            Refresh(false);
+            foreach (ZDOID id in Boards.Values)
+            {
+                ZDO? zdo = ZDOMan.instance.GetZDO(id);
+                if (zdo != null)
+                    yield return zdo;
+            }
+        }
+
         public static bool BoardExists(string boardId) => boardId.Length > 0 && Board(boardId) != null;
 
         public static int BoardCount

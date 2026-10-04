@@ -25,7 +25,7 @@ namespace VikingsForHire
     {
         public const string Guid = "Spronglehump.HiredHands";
         public const string Name = "HiredHands";
-        public const string Version = "0.2.0";
+        public const string Version = "0.2.1";
 
         internal static ManualLogSource Log = null!;
         internal static Harmony Harmony = null!;
@@ -83,6 +83,7 @@ namespace VikingsForHire
             VfhLog.Guard(LogCat.Roster, "server.tick_failed", Net.BoardServer.Tick);
             VfhLog.Guard(LogCat.Follow, "follow.tick_failed", Net.FollowerServer.Tick);
             VfhLog.Guard(LogCat.Follow, "orphan.tick_failed", Net.OrphanMonitor.Tick);
+            VfhLog.Guard(LogCat.Roster, "reconcile.tick_failed", Net.RosterReconciler.Tick);
             VfhLog.Guard(LogCat.Core, "balance.tick_failed", Telemetry.BalanceLog.Tick);
             Followers.StoneInput.Tick();
             VfhLog.Guard(LogCat.Follow, "travel.tick_failed", Followers.TeleportTravel.Tick);
