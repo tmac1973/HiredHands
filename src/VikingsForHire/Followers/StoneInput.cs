@@ -17,9 +17,14 @@ namespace VikingsForHire.Followers
     internal static class StoneInput
     {
         private const float Range = 50f;
-        private const float Debounce = 0.4f;
+        // The game keeps calling StartAttack while the button is held: act only after a gap (a fresh press), and
+        // never on the same hireling twice in quick succession (a held click recruited and then released a guard).
+        private const float PressGap = 0.3f;
+        private const float SameTargetSeconds = 2f;
         private static readonly int Mask = LayerMask.GetMask("character", "character_net", "character_noenv", "piece", "terrain", "static_solid", "Default");
-        private static float _last;
+        private static float _lastCall = -10f;
+        private static string _lastHid = "";
+        private static float _lastHidAt = -10f;
 
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.StartAttack))]
         private static class StartAttackPatch
@@ -31,11 +36,10 @@ namespace VikingsForHire.Followers
                     if (__instance != Player.m_localPlayer || !CommandStoneItem.IsStone(__instance.GetRightItem()))
                         return true;
                     __result = false;
-                    if (!secondaryAttack && Time.time - _last > Debounce)
-                    {
-                        _last = Time.time;
+                    bool freshPress = Time.time - _lastCall > PressGap;
+                    _lastCall = Time.time;
+                    if (!secondaryAttack && freshPress)
                         Act(Player.m_localPlayer, __instance.GetRightItem()!.m_quality);
-                    }
                     return false;
                 }
                 catch (Exception e)
@@ -59,6 +63,10 @@ namespace VikingsForHire.Followers
                 VfhLog.D(LogCat.Follow, "stone.no_target");
                 return;
             }
+            if (h.Hid == _lastHid && Time.time - _lastHidAt < SameTargetSeconds)
+                return;
+            _lastHid = h.Hid;
+            _lastHidAt = Time.time;
             if (h.Mode == HirelingMode.Following && h.OwnerId == me.GetPlayerID())
             {
                 if (Utils.DistanceXZ(h.transform.position, h.Home) <= h.Radius)
