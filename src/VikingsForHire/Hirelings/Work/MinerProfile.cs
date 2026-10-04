@@ -84,6 +84,14 @@ namespace VikingsForHire.Hirelings.Work
                 reason = "only buried or out-of-reach chunks left";
                 return false;
             }
+            // Never dig up a deposit nobody has found: silver veins are hidden underground on purpose (the Wishbone
+            // finds them). Digging only goes on at a deposit that shows something above ground or that someone has
+            // already broken into (a stone order is checked the same way; you can't click a vein through the dirt anyway).
+            if (!Areas(target).Any(Workable) && !BrokenInto(target))
+            {
+                reason = "buried and undiscovered";
+                return false;
+            }
             float clear = VfhConfig.MinerSafetyDistanceFromPieces.Value;
             Pieces.Clear();
             Piece.GetAllPiecesInRadius(target.transform.position, clear + Extent(target), Pieces);
@@ -156,6 +164,9 @@ namespace VikingsForHire.Hirelings.Work
             point = target.transform.position;
             return null;
         }
+
+        private static bool BrokenInto(Component target) =>
+            target is MineRock5 r5 && r5.m_hitAreas != null && r5.m_hitAreas.Any(a => a.m_health < r5.m_health);
 
         public bool NeedsDigging(Collider part) => part != null && !Workable(part) && Diggable(part);
 
