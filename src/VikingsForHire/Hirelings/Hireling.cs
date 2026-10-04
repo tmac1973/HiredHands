@@ -287,8 +287,9 @@ namespace VikingsForHire.Hirelings
             if (Zdo != null && Time.time >= _nextHideCheck)
             {
                 _nextHideCheck = Time.time + 0.25f;
-                if (IsStowed != _hidden)
-                    SetHidden(IsStowed);
+                bool hide = IsStowed || Mode == HirelingMode.Returning;
+                if (hide != _hidden)
+                    SetHidden(hide);
             }
             if (Time.time < _nextPoll || Zdo == null)
                 return;
@@ -310,7 +311,7 @@ namespace VikingsForHire.Hirelings
                 }
                 if (IsOwner && Job == JobType.GuardRanged)
                     GearApplier.RefillAmmo(_humanoid);
-                if (IsOwner && !IsStowed)
+                if (IsOwner && !_hidden)
                 {
                     EnsureArmed();
                     EnsureWeaponAnimation();

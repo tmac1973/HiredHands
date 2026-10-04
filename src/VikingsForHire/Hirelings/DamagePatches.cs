@@ -41,7 +41,7 @@ namespace VikingsForHire.Hirelings
                         if (attacker != null && attacker.IsTamed())
                             return Blocked("tame_on_hireling", target, attacker);
                         // Passengers are below deck: nothing reaches them.
-                        if (target.IsStowed)
+                        if (target.IsStowed || target.Mode == HirelingMode.Returning)
                             return Blocked("stowed", target, attacker);
                         // Vanilla only applies body armor to players; hirelings get the armor of what they wear.
                         hit.ApplyArmor(target.Armor);

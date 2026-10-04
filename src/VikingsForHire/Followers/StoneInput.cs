@@ -17,7 +17,8 @@ namespace VikingsForHire.Followers
     ///   your follower in the field → toggle Follow / Stay; a tree or log → your woodcutters harvest it; a rock →
     ///   your miners mine it; an enemy → your guards attack it; the ground → your followers move there and hold (guards
     ///   at home are posted there instead).
-    /// Right click: on your follower or a posted guard → release it (back to work / clear the post); on nothing →
+    /// Right click: on your follower → back to work at home, or sent home from the field; on a posted guard → clear its
+    /// post; on nothing →
     /// recall every follower within 50 m to follow you. Middle click: retreat, everyone within 50 m drops its fight and
     /// follows you, ignoring enemies until things are quiet (a left-click order ends it). All act once per press.
     /// </summary>
@@ -126,10 +127,8 @@ namespace VikingsForHire.Followers
             {
                 if (h.Mode == HirelingMode.Following && h.OwnerId == me.GetPlayerID())
                 {
-                    if (AtHome(h))
-                        FollowerServer.Send(FollowerServer.Kind.Release, h.Hid, Quality);
-                    else
-                        Say("$vfh_follow_too_far"); // phase 15 adds the return trip from the field
+                    // At home: back to work now. In the field: it heads home on its own (phase 15).
+                    FollowerServer.Send(AtHome(h) ? FollowerServer.Kind.Release : FollowerServer.Kind.SendHome, h.Hid, Quality);
                     return;
                 }
                 if (h.HasPost && h.Mode == HirelingMode.Working)

@@ -29,6 +29,7 @@ namespace VikingsForHire.Net
             ReleaseAll = 3,
             Post = 4,
             ClearPost = 5,
+            SendHome = 6,
         }
 
         private const float OwnershipSeconds = 5f;
@@ -127,6 +128,7 @@ namespace VikingsForHire.Net
                 Kind.Release => Release(pid, hid),
                 Kind.Post => Post(pid, hid, pos, yaw),
                 Kind.ClearPost => ClearPost(hid),
+                Kind.SendHome => SendHome(pid, hid),
                 _ => ReleaseAll(pid),
             };
             VfhLog.I(LogCat.Follow, "follow.reply", ("kind", kind), ("hid", hid), ("player", pid), ("reply", reply));
@@ -201,6 +203,43 @@ namespace VikingsForHire.Net
             return Localization.instance.Localize("$vfh_post_here", zdo.GetString(HirelingZdo.Name));
         }
 
+        // Right click on your follower in the field: it heads home (phase 15), as a lost follower does.
+        private static string SendHome(long pid, string hid)
+        {
+            ZDO? zdo = WorldIndex.Hireling(hid);
+            if (zdo == null || zdo.GetLong(HirelingZdo.Owner) != pid || zdo.GetInt(HirelingZdo.Mode) != (int)HirelingMode.Following)
+                return "$vfh_follow_not_yours";
+            if (InsideHome(zdo))
+            {
+                ReleaseOne(zdo, "sent_home_at_home");
+                return Localization.instance.Localize("$vfh_follow_released", zdo.GetString(HirelingZdo.Name));
+            }
+            float seconds = Followers.HomeReturn.Begin(zdo, "sent home");
+            VfhLog.I(LogCat.Follow, "follow.sent_home", ("player", pid), ("hid", hid), ("seconds", seconds));
+            return Localization.instance.Localize("$vfh_follow_sent_home", zdo.GetString(HirelingZdo.Name), Minutes(seconds));
+        }
+
+        /// <summary>"about 3 min" style text for a trip time.</summary>
+        public static string Minutes(float seconds) => Mathf.Max(1, Mathf.RoundToInt(seconds / 60f)).ToString();
+
+        /// <summary>Server: a message to a player, wherever they are (nothing if they're offline).</summary>
+        public static void Tell(long pid, string message)
+        {
+            if (Player.m_localPlayer != null && Player.m_localPlayer.GetPlayerID() == pid)
+            {
+                Reply(ZDOMan.GetSessionID(), message);
+                return;
+            }
+            foreach (ZNetPeer peer in ZNet.instance.GetPeers())
+            {
+                if (PlayerIdOf(peer) == pid)
+                {
+                    Reply(peer.m_uid, message);
+                    return;
+                }
+            }
+        }
+
         private static string ClearPost(string hid)
         {
             ZDO? zdo = WorldIndex.Hireling(hid);
@@ -243,7 +282,7 @@ namespace VikingsForHire.Net
             WorldIndex.AllHirelings().Where(z => z.GetLong(HirelingZdo.Owner) == pid &&
                                                  z.GetInt(HirelingZdo.Mode) == (int)HirelingMode.Following).ToList();
 
-        private static bool InsideHome(ZDO zdo)
+        public static bool InsideHome(ZDO zdo)
         {
             Vector3 home = zdo.GetVec3(HirelingZdo.Home, zdo.GetPosition());
             return Utils.DistanceXZ(zdo.GetPosition(), home) <= zdo.GetFloat(HirelingZdo.Radius, 20f);
@@ -270,7 +309,7 @@ namespace VikingsForHire.Net
             return peer == null ? 0L : PlayerIdOf(peer);
         }
 
-        private static long PlayerIdOf(ZNetPeer peer)
+        public static long PlayerIdOf(ZNetPeer peer)
         {
             ZDO? character = ZDOMan.instance.GetZDO(peer.m_characterID);
             return character?.GetLong(ZDOVars.s_playerID) ?? 0L;

@@ -132,6 +132,11 @@ namespace VikingsForHire.UI
                 default:
                     if (e.Post != null && (live == null || live.Mode == HirelingMode.Working))
                         return "$vfh_roster_posted";
+                    if (live != null && live.Mode == HirelingMode.Returning && live.Zdo != null)
+                    {
+                        float left = Followers.HomeReturn.SecondsLeft(live.Zdo);
+                        return Localization.instance.Localize("$vfh_status_returning_home") + (left > 0f ? $" ({Mathf.FloorToInt(left / 60f)}:{Mathf.FloorToInt(left % 60f):00})" : "");
+                    }
                     if (live != null && live.Mode == HirelingMode.Following)
                         return Localization.instance.Localize("$vfh_roster_following", live.OwnerName);
                     string status = live?.Zdo?.GetString(HirelingZdo.Status) ?? "";

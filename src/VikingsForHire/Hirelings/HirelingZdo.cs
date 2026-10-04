@@ -21,6 +21,8 @@ namespace VikingsForHire.Hirelings
         public const string PostYaw = "vfh_post_yaw";
         /// <summary>A follower aboard a ship as a passenger: the ship's ZDOID ("user:id"); empty when not aboard.</summary>
         public const string Stowed = "vfh_stowed";
+        /// <summary>Heading home (mode Returning): ZNet time (s) it arrives at its board.</summary>
+        public const string ReturnAt = "vfh_return_at";
         public const string Radius = "vfh_radius";
         public const string LeavingSince = "vfh_leaving_since";
         public const string Order = "vfh_order";

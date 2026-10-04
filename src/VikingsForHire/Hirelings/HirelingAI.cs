@@ -181,8 +181,9 @@ namespace VikingsForHire.Hirelings
         {
             if (Hireling == null || !m_nview.IsValid() || !m_nview.IsOwner())
                 return false;
-            // In transit through a portal, or aboard a ship: held at a point, nothing else runs.
-            Vector3? pin = TravelPin ?? (Hireling.IsStowed ? Followers.ShipStowage.CarryPoint(Hireling) : null);
+            // In transit through a portal, aboard a ship, or on its way home: held at a point, nothing else runs.
+            Vector3? pin = TravelPin ?? (Hireling.IsStowed ? Followers.ShipStowage.CarryPoint(Hireling) : null)
+                ?? (Hireling.Mode == HirelingMode.Returning ? Followers.HomeReturn.HoldOrArrive(Hireling) : null);
             if (pin is Vector3 at)
             {
                 Hold(at);

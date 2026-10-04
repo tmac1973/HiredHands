@@ -7,6 +7,8 @@ namespace VikingsForHire.Core
         Following = 1,
         Idle = 3,
         Leaving = 4,
+        /// <summary>On its way back to its board (phase 15): hidden, parked at home until its return time.</summary>
+        Returning = 5,
     }
 
     public enum FollowMode
