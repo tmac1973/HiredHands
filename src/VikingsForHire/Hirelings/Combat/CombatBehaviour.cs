@@ -39,6 +39,8 @@ namespace VikingsForHire.Hirelings.Combat
         {
             if (ai.Retreating)
                 return Drop(ai, "retreat");
+            if (ai.RetreatOrdered)
+                return Drop(ai, "retreat order");
             if (ThreatScanner.Alive(_target) && !Leashed(ai, _target!) && Time.time - _lastAction < QuietSeconds)
                 return true;
             if (_target != null)

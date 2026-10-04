@@ -28,6 +28,7 @@ namespace VikingsForHire.Testing
             Fixtures.Add("order_harvest", "<tag> - give the follower from your last contract a stone order to harvest a tagged tree or rock", HarvestTagged);
             Fixtures.Add("order_harvest_nearest", "- give your followers a stone order to harvest the nearest tree or rock to the board", HarvestNearest);
             Fixtures.Add("strand_posted", "<distance> - put your follower from your last contract that far behind the camera, out of your view (to test catching up)", Strand);
+            Fixtures.Add("retreat", "- the stone's middle click: your followers nearby retreat with you", _ => RetreatNow());
             Fixtures.Add("follow_stats_reset", "- start counting follower lag and catch-up teleports afresh", _ => ResetStats());
             Fixtures.Add("release_all", "- ask the server to send every follower that's home back to work", _ => Op(FollowerServer.Kind.ReleaseAll, ""));
 
@@ -120,6 +121,12 @@ namespace VikingsForHire.Testing
             h.Ai.Order = FieldOrder.Harvest(target);
             h.Ai.Gather.Force(h.Ai, target);
             VfhLog.I(LogCat.Test, "fixture.order_harvest", ("hid", h.Hid), ("target", target.name), ("dist", Vector3.Distance(target.transform.position, at)));
+            yield return null;
+        }
+
+        private static IEnumerator RetreatNow()
+        {
+            StoneInput.Retreat(Player.m_localPlayer);
             yield return null;
         }
 

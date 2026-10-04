@@ -18,7 +18,8 @@ namespace VikingsForHire.Followers
     ///   your miners mine it; an enemy → your guards attack it; the ground → your followers move there and hold (guards
     ///   at home are posted there instead).
     /// Right click: on your follower or a posted guard → release it (back to work / clear the post); on nothing →
-    /// recall every follower within 50 m to follow you. Both act once per press.
+    /// recall every follower within 50 m to follow you. Middle click: retreat, everyone within 50 m drops its fight and
+    /// follows you, ignoring enemies until things are quiet (a left-click order ends it). All act once per press.
     /// </summary>
     internal static class StoneInput
     {
@@ -36,6 +37,7 @@ namespace VikingsForHire.Followers
         private static string _lastHid = "";
         private static float _lastHidAt = -10f;
         private static float _lastBlockPress = -10f;
+        private static float _lastMiddlePress = -10f;
 
         public static bool StoneInHand =>
             Player.m_localPlayer != null && CommandStoneItem.IsStone(Player.m_localPlayer.GetRightItem());
@@ -71,6 +73,11 @@ namespace VikingsForHire.Followers
         {
             if (!StoneInHand || !Player.m_localPlayer.TakeInput())
                 return;
+            if (ZInput.GetMouseButtonDown(2) && Time.time - _lastMiddlePress > PressGap)
+            {
+                _lastMiddlePress = Time.time;
+                VfhLog.Guard(LogCat.Orders, "stone.middle_click_failed", () => Retreat(Player.m_localPlayer));
+            }
             if (!(ZInput.GetButtonDown("Block") || ZInput.GetButtonDown("JoyBlock")) || Time.time - _lastBlockPress < PressGap)
                 return;
             _lastBlockPress = Time.time;
@@ -135,6 +142,23 @@ namespace VikingsForHire.Followers
             Recall(me);
         }
 
+        // Middle click: the escape button. Everyone near you drops its fight and runs after you, ignoring enemies, until
+        // things have been quiet for a while (HirelingAI.RetreatOrdered); stances are untouched.
+        internal static void Retreat(Player me)
+        {
+            int n = 0;
+            foreach (Hireling f in MyFollowers(me, RecallRange))
+            {
+                f.Ai.Order = null;
+                f.Ai.OrderRetreat();
+                if (f.FollowMode != FollowMode.Follow)
+                    MutationService.SubmitHireling(f.Hid, new HirelingOp { FollowMode = FollowMode.Follow });
+                n++;
+            }
+            VfhLog.I(LogCat.Orders, "order.retreat", ("followers", n));
+            Say(n == 0 ? "$vfh_order_none_near" : Localization.instance.Localize("$vfh_order_retreat", n.ToString()));
+        }
+
         // Right click on nothing: everyone near you follows you again, wherever you're looking.
         private static void Recall(Player me)
         {
@@ -155,6 +179,8 @@ namespace VikingsForHire.Followers
             List<Hireling> near = MyFollowers(me, OrderRange).ToList();
             if (near.Count == 0)
                 return;
+            foreach (Hireling f in near)
+                f.Ai.CancelRetreat();
             Collider c = hit.collider;
             Component? tree = (Component?)c.GetComponentInParent<TreeBase>() ?? c.GetComponentInParent<TreeLog>();
             if (tree == null && c.GetComponentInParent<Destructible>() is Destructible dt && dt.m_destructibleType == DestructibleType.Tree)
@@ -228,6 +254,7 @@ namespace VikingsForHire.Followers
         // Away from home, aiming at your follower switches it between following you and holding its spot.
         private static void ToggleStay(Hireling h)
         {
+            h.Ai.CancelRetreat();
             bool stay = h.FollowMode == FollowMode.Follow;
             Vector3 p = h.transform.position;
             MutationService.SubmitHireling(h.Hid, stay

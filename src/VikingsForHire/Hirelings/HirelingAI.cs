@@ -32,6 +32,35 @@ namespace VikingsForHire.Hirelings
         /// <summary>Badly hurt and falling back (with hysteresis), unless an aggressive guard.</summary>
         public bool Retreating { get; private set; }
 
+        /// <summary>
+        /// The owner's retreat order (middle click with the stone): drop every fight and follow, ignoring enemies, until
+        /// RetreatQuietSeconds pass without a hit (each hit restarts that), at most RetreatMaxSeconds, or a new order.
+        /// </summary>
+        public bool RetreatOrdered => _retreatStarted >= 0f && Time.time < _retreatUntil;
+        private float _retreatStarted = -1f;
+        private float _retreatUntil;
+        public const float RetreatQuietSeconds = 20f;
+        public const float RetreatMaxSeconds = 60f;
+
+        public void OrderRetreat()
+        {
+            _retreatStarted = Time.time;
+            _retreatUntil = Time.time + RetreatQuietSeconds;
+        }
+
+        public void CancelRetreat()
+        {
+            if (_retreatStarted >= 0f && RetreatOrdered)
+                VfhLog.D(LogCat.Orders, "order.retreat_end", ("hid", Hireling.Hid), ("why", "new order"));
+            _retreatStarted = -1f;
+        }
+
+        private void RetreatHit()
+        {
+            if (RetreatOrdered)
+                _retreatUntil = Mathf.Min(Time.time + RetreatQuietSeconds, _retreatStarted + RetreatMaxSeconds);
+        }
+
         /// <summary>Where a fight is measured from for the leash: home for base workers (phase 12 switches it to the owner).</summary>
         /// <summary>Where fights are kept close to: home, or while following the owner (or the stay spot).</summary>
         public Vector3 LeashCenter
@@ -122,6 +151,7 @@ namespace VikingsForHire.Hirelings
             {
                 Threats.OnDamaged(attacker);
                 _combat.OnHit();
+                RetreatHit();
                 VfhLog.D(LogCat.Combat, "hireling.damaged", ("hid", Hireling.Hid), ("by", attacker != null ? attacker.m_name : "none"), ("damage", damage),
                     ("health", Hireling.Humanoid.GetHealth()));
             };

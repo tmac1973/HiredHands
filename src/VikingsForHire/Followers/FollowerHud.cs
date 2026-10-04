@@ -77,7 +77,7 @@ namespace VikingsForHire.Followers
             foreach (Hireling f in StoneInput.MyFollowers(me, ListRange).OrderBy(f => f.DisplayName))
             {
                 sb.Append('\n').Append(f.DisplayName).Append(" — ")
-                    .Append(Localization.instance.Localize($"$vfh_mode_{f.FollowMode.ToString().ToLowerInvariant()}"))
+                    .Append(Localization.instance.Localize(f.Ai.RetreatOrdered ? "$vfh_status_retreating" : $"$vfh_mode_{f.FollowMode.ToString().ToLowerInvariant()}"))
                     .Append(" — ").Append(Mathf.CeilToInt(f.Humanoid.GetHealth())).Append('/').Append(Mathf.CeilToInt(f.Humanoid.GetMaxHealth()));
                 if (f.CargoInventory != null && f.Job is JobType.Woodcutter or JobType.Miner)
                     sb.Append(" — ").Append(f.CargoInventory.NrOfItems()).Append('/').Append(f.CargoSlots);

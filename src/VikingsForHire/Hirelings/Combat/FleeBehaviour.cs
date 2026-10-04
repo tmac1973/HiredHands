@@ -22,6 +22,12 @@ namespace VikingsForHire.Hirelings.Combat
 
         public bool Wants(HirelingAI ai)
         {
+            // Ordered to retreat: following the owner out of there is the fleeing.
+            if (ai.RetreatOrdered)
+            {
+                _fleeing = false;
+                return false;
+            }
             ThreatScanner scan = ai.Threats;
             bool stanceFlee = ai.Stance == Stance.Flee &&
                               StanceRules.Decide(Stance.Flee, scan.Nearest != null ? scan.NearestDistance : null, false, false, scan.RecentlyAttacked, false) == CombatAction.Flee;
@@ -29,7 +35,7 @@ namespace VikingsForHire.Hirelings.Combat
             if (danger)
                 _lastThreat = Time.time;
 
-            bool want = danger || (_fleeing && Time.time - _lastThreat < CalmSeconds) || (ai.Retreating && Vector3.Distance(ai.transform.position, ai.Hireling.Home) > 4f);
+            bool want = danger || (_fleeing && Time.time - _lastThreat < CalmSeconds) || (ai.Retreating && Vector3.Distance(ai.transform.position, Safe(ai)) > 4f);
             if (want != _fleeing)
             {
                 _fleeing = want;
@@ -39,10 +45,14 @@ namespace VikingsForHire.Hirelings.Combat
             return want;
         }
 
+        // Where safety is: home for workers at the base; for a follower its owner (or its stay spot), not a board that
+        // may be a biome away.
+        private static Vector3 Safe(HirelingAI ai) => ai.Hireling.Mode == HirelingMode.Following ? ai.LeashCenter : ai.Hireling.Home;
+
         public void Tick(HirelingAI ai, float dt)
         {
             Vector3 me = ai.transform.position;
-            Vector3 home = ai.Hireling.Home;
+            Vector3 home = Safe(ai);
             Character? threat = ai.Threats.RecentlyAttacked ? ai.Threats.LastAttacker : ai.Threats.Nearest;
             if (threat == null)
             {

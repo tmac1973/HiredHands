@@ -30,6 +30,7 @@ namespace VikingsForHire.Followers
         private const float HoldStuckSeconds = 8f;
         private bool _toldFull;
         private readonly FollowCatchUp _catchUp = new();
+        private bool _retreating;
 
         public string Name => "Follow";
         public int Priority => 400;
@@ -45,9 +46,16 @@ namespace VikingsForHire.Followers
                 ai.Order = null;
             }
 
+            bool retreat = ai.RetreatOrdered;
+            if (retreat != _retreating)
+            {
+                _retreating = retreat;
+                VfhLog.D(LogCat.Orders, retreat ? "order.retreat_start" : "order.retreat_end", ("hid", h.Hid), ("why", retreat ? "ordered" : "quiet"));
+            }
+
             // Gatherers with a harvest order or parked in Gather Here work while there's something to work; the shared
             // gather behaviour does the chopping and mining, inside the follower's work area.
-            if (ai.Gather != null && ai.WorkArea != null)
+            if (!retreat && ai.Gather != null && ai.WorkArea != null)
             {
                 if (h.CargoFull)
                 {
@@ -70,7 +78,7 @@ namespace VikingsForHire.Followers
                 }
             }
 
-            if (h.FollowMode != FollowMode.Follow)
+            if (h.FollowMode != FollowMode.Follow && !retreat)
             {
                 Show(h, h.CargoFull && h.FollowMode == FollowMode.GatherHere ? "$vfh_status_cargo_full" : "$vfh_status_staying");
                 Hold(ai, h.StayPos, dt);
@@ -85,12 +93,12 @@ namespace VikingsForHire.Followers
                 ai.Halt();
                 return;
             }
-            Show(h, "$vfh_status_following");
+            Show(h, retreat ? "$vfh_status_retreating" : "$vfh_status_following");
             float dist = Utils.DistanceXZ(ai.transform.position, owner.transform.position);
             if (_catchUp.Tick(ai, owner, dist, dt))
                 return;
             if (dist > FollowDistance)
-                ai.WalkTo(dt, owner.transform.position, FollowDistance * 0.8f, run: owner.IsRunning() || dist > FollowRunBeyond);
+                ai.WalkTo(dt, owner.transform.position, FollowDistance * 0.8f, run: retreat || owner.IsRunning() || dist > FollowRunBeyond);
             else
             {
                 ai.Halt();

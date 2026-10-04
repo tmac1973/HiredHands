@@ -124,6 +124,8 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-FOLLOW-2 Two players | D | — | Two players with quality 1 stones each recruit one | Each has their own follower; neither can take the other's |
 | VFH-CATCHUP-1 Stranded follower | SP, D | `vfh_t_catchup1` | Open ground | `pass=true`; a follower put 50 m behind you out of view teleports to just behind you |
 | VFH-LAG-1 Keeping up | SP, D | `vfh_t_lag1a`, then `vfh_t_lag1b` | A follower with you; sprint ~300 m over rough ground between the two | `pass=true`: never more than 20 m behind and no teleports needed (`vfh_debug Follow on` logs `follow.lag` every 5 s and any `follow.unstick`/`follow.teleport`) |
+| VFH-RETREAT-1 Retreat order | SP, D | `vfh_t_retreat1` | Open ground | `pass=true`; on the retreat order the fighting guard switches to following and keeps following while greydwarves hit it |
+| VFH-RETREAT-2 Retreat by hand | SP | — | Followers on Defensive/Aggressive in a fight; middle click with the stone and run | "Retreat!" message, HUD shows Retreating, they drop the fight and run with you; 20 s after the last hit their stance applies again; a left-click order ends the retreat early |
 | VFH-POST-1 Guard post | SP, D | `vfh_t_post1` | Open ground | `pass=true`; posted guard leaves follower status, holds its post, fights there and returns; clearing the post sends it back to patrol |
 | VFH-GATHER-1 Gather Here | SP, D | `vfh_t_gather1` | Open ground | `pass=true`; parked woodcutter chops the trees by its spot, then delivers once released |
 | VFH-ORDER-1 Harvest order | SP, D | `vfh_t_order1` | Open ground | `pass=true`; the order sends it to the tree, it clears it, and the order ends |
