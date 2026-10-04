@@ -230,3 +230,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-04 | 3055b7e | VFH-CATCHUP-1 | D | Pass | Follower stranded 50 m behind out of view teleported to just behind the player within about 1 s |
 | 2026-10-04 | 08f3860 | VFH-LAG-1 | D | Pass | Woodcutter, ~300 m sprint with god mode and run skill 100: 1 teleport (was 9 before the chase fix); judged by teleports, the lag check was dropped |
 | 2026-10-04 | 2af8c96 | VFH-PORTAL-1 | D | Pass | Woodcutter came through the portal with its wood; carrying copper ore it stayed behind in Stay with the message |
+| 2026-10-04 | 79376dc | VFH-TRAVEL-2 | D | Pass | Archer boarded the Karve (hidden, carried), stepped off beside the player on landing, twice; breaking the ship at sea put her back in the water where it sank. Fixed after: name plate lingered over the mast; archer punched the air after one landing (weapon guard added, to recheck) |
