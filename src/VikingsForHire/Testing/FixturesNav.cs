@@ -23,7 +23,7 @@ namespace VikingsForHire.Testing
                 args => House(args, "wood_stepladder"));
             Fixtures.Add("remove_piece", "<tag> - deconstruct a tagged piece (as a player with the hammer)", RemovePiece);
             Fixtures.Add("flatten", "<radius=22> - level the ground around you to the height under your feet and remove rocks, trees, bushes and stumps there (test worlds only)", Flatten);
-            Fixtures.Add("roof_over", "<prefab> - a wooden roof (3x3 floor pieces) over the nearest such station, e.g. a spinning wheel, which only works under a roof", RoofOver);
+            Fixtures.Add("roof_over", "<prefab> - a thatch roof (3x3 wood_roof pieces) over the nearest such station, e.g. a spinning wheel, which only works under a roof", RoofOver);
             Fixtures.Add("nav_links", "<on|off> - turn BaseNavLinks on or off here (single player only; end the macro with nav_links on)", NavLinks);
             Fixtures.Add("nav_stats_reset", "- start counting stair hops from zero", _ => ResetStats());
 
@@ -253,7 +253,7 @@ namespace VikingsForHire.Testing
             float y = b.max.y + 1.2f; // high enough that the floor check beside the wheel finds the ground, not the roof
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++)
-                    Place("wood_floor", new Vector3(b.center.x + i * 2f, y, b.center.z + j * 2f), Vector3.forward, "");
+                    Place("wood_roof", new Vector3(b.center.x + i * 2f, y, b.center.z + j * 2f), Vector3.forward, ""); // floors are "leaky": rain, and the roof check, go through
             VfhLog.I(LogCat.Test, "fixture.roof_over", ("prefab", prefab), ("height", y));
             yield return new WaitForSeconds(1f);
         }
