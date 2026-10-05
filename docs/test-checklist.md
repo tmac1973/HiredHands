@@ -109,7 +109,10 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-SMELT-1 No input | SP | — | Smelter hireling with its stations low and the ore chests emptied | Hover says "Stations need ore or fuel, chests have none"; it idles by the board |
 | VFH-SMELT-2 Two smelters | SP | — | Two smelter hirelings, three or four stations | They split the stations; no station is loaded past its max |
 | VFH-SMELT-3 Blast furnace | SP | — | Add a blast furnace with iron/black metal scrap and coal in chests | It gets fed too |
-| VFH-SMELT-4 Keeps the last item | SP | `vfh_t_keep1` | Open ground | `pass=true`; the tin and coal chests each keep 1 |
+| VFH-CHORE-1 Steward level gate | SP | `vfh_t_chore_gate` | Open ground (flattened) | `pass=true`; a level 1 Steward leaves the smelter alone for 60 s; promoted to 2, it loads it |
+| VFH-CHORE-2 Steward chore toggle | SP | `vfh_t_chore_toggle` | Open ground (flattened) | `pass=true`; Stations off: smelter untouched for 60 s; on: loaded |
+| VFH-CHORE-3 Mills | SP | `vfh_t_mills` | Open ground (flattened) | `pass=true`; windmill and spinning wheel loaded from chests; flour and linen reach their chests (with AzuAutoStore: Azu stores them) |
+| VFH-SMELT-4 Keeps the last item (Steward level 2 since 0.4.0) | SP | `vfh_t_keep1` | Open ground | `pass=true`; the tin and coal chests each keep 1 |
 | VFH-NAV-1 Stairs and floors | SP | — | A real two-level build: a chest holding wood upstairs, reached by stairs; a smelter on a raised wooden floor | The woodcutter climbs the stairs to deliver to the upstairs chest; the smelter hireling loads the raised smelter; neither gets stuck on floor edges (watch for `smelter.stuck` / `work.unreachable`) |
 | VFH-NAV-2 Doors | SP | `vfh_t_door1` | Open ground (`vfh_debug AI on` shows `door.open` / `door.detour` / `door.close`) | `pass=true`; the woodcutter opens the room's door, delivers to the chest inside and the door is closed again afterwards. Also by hand: a door under someone else's ward (you not permitted) is never opened |
 | VFH-COMBAT-5 Quick engage | SP | `vfh_t_combat5` | Open ground (`vfh_debug Combat on` shows `combat.first_swing`) | `pass=true`; the guard swings within a second or two of noticing, and doesn't stand behind its shield |

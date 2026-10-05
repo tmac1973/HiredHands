@@ -121,3 +121,14 @@ Each station is gated by its own level, so a level 1 Steward no longer smelts. T
 
 ## Rollback
 Revert the commit. `SmelterBehaviour` comes back and the station rows behave as in 0.3.0. `chore:` entries already saved in contracts' skip lists are ignored by 0.3 builds, so they're harmless.
+
+## As built
+- **Status lines with arguments** are stored in the activity ZDO field as `token|arg|arg` (`ActivityText`), and expanded where they're shown: the hover, the roster status and the panel. That way each game shows them in its own language.
+- **`IChore`** also has `RestAfter`, the pause before the next survey: 2 s after loading (the old settle pause), 5 s after a failure, 0 otherwise.
+- **Interruptions:** a job not ticked for 2 s (combat, fleeing) is dropped and the Steward surveys afresh. A running job whose chore becomes switched off, locked or handled by another mod is dropped within 1 s.
+- **Claims:** stations no longer in the plan are released on every survey; stopping (leaving Working) releases every chore's claims. Skipped stations (3 failures) are left out of the plan, so one unreachable station doesn't block the rest.
+- **Approach:** "close enough" also needs the hireling within 1.8 m of the object's base height (on its floor, not under it). The spot beside an object is found on the floor at the object's height, not on the roof above it.
+- **Leftovers:** `LeftoverSince` is reset only by a load job. When idle, the leftovers are the cargo items that aren't station products.
+- **Panel:** one full-width row per chore. A partly unlocked Stations or Mills row has a dim line underneath listing the stations still locked.
+- **`steward_chores` fixture:** it edits the contract, so it works before the Steward arrives.
+- **`vfh_t_mills`** ends with a `wind_off` fixture (`EnvMan.ResetDebugWind`).

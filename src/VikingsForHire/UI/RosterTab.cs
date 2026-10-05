@@ -150,6 +150,9 @@ namespace VikingsForHire.UI
                     if (live != null && live.Mode == HirelingMode.Following)
                         return Localization.instance.Localize("$vfh_roster_following", live.OwnerName);
                     string status = live?.Zdo?.GetString(HirelingZdo.Status) ?? "";
+                    // A Steward: what it's doing now, or why it's idle.
+                    if (status.Length == 0 && e.Job == JobType.Smelter && live?.Zdo?.GetString(HirelingZdo.Activity) is string act && act.Length > 0)
+                        status = Hirelings.Work.Steward.ActivityText.Show(act);
                     if (e.UnpaidDays > 0 && status.Length == 0)
                         status = $"$vfh_status_unpaid ({e.UnpaidDays}/{VfhConfig.UnpaidDaysBeforeLeaving.Value})";
                     return status.Length > 0 ? status : live != null ? "$vfh_status_working" : "$vfh_status_away";

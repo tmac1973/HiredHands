@@ -3,6 +3,7 @@ using System.Linq;
 using Jotunn.Managers;
 using VikingsForHire.Config;
 using VikingsForHire.Core;
+using VikingsForHire.Core.Chores;
 using VikingsForHire.Core.Data;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
@@ -109,7 +110,7 @@ namespace VikingsForHire.UI
             if (Time.unscaledTime < _nextRefresh)
                 return;
             _nextRefresh = Time.unscaledTime + 0.3f;
-            string signature = $"{h.Mode}|{h.FollowMode}|{h.Stance}|{h.HasPost}|{_all}|{h.DisplayName}|{h.Zdo.GetString(HirelingZdo.SkipItems)}|{h.WorksAtHome}|{h.IsParked}";
+            string signature = $"{h.Mode}|{h.FollowMode}|{h.Stance}|{h.HasPost}|{_all}|{h.DisplayName}|{h.Zdo.GetString(HirelingZdo.SkipItems)}|{h.WorksAtHome}|{h.IsParked}|{h.Level}|{(h.Job == JobType.Smelter ? h.Zdo.GetString(HirelingZdo.Activity) : "")}";
             if (signature == _shown)
                 return;
             _shown = signature;
@@ -168,6 +169,43 @@ namespace VikingsForHire.UI
                 y -= 55f;
             }
 
+            // Stewards: each chore with its toggle, or why it can't be switched on; then what it's doing.
+            if (h.Job == JobType.Smelter && DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out JobData? steward))
+            {
+                PanelUi.Text(t, "$vfh_orders_chores", -170f, y, 140f, 18, TextAnchor.MiddleLeft);
+                HashSet<ChoreKind> off = ChoreRules.ChoresOff(h.Zdo?.GetString(HirelingZdo.SkipItems));
+                y -= 30f;
+                foreach (ChoreKind kind in ChoreKeys.All)
+                {
+                    string name = Localization.instance.Localize("$vfh_chore_" + ChoreKeys.Key(kind));
+                    string? state = LockedState(kind, steward, h.Level);
+                    if (state != null)
+                    {
+                        PanelUi.Text(t, name + ": " + state, 0f, y, 400f, 15, TextAnchor.MiddleCenter, PanelUi.Dim);
+                        y -= 30f;
+                        continue;
+                    }
+                    bool on = !off.Contains(kind);
+                    Button b = PanelUi.Button(t, name + ": " + Localization.instance.Localize(on ? "$vfh_chore_state_on" : "$vfh_chore_state_off"),
+                        0f, y, 400f, 30f, () => ToggleChore(kind));
+                    ShowToggle(b, on);
+                    y -= 34f;
+                    string later = StillLocked(kind, steward, h.Level);
+                    if (later.Length > 0)
+                    {
+                        PanelUi.Text(t, later, 0f, y + 4f, 400f, 13, TextAnchor.MiddleCenter, PanelUi.Dim);
+                        y -= 22f;
+                    }
+                }
+                y -= 10f;
+                string doing = Hirelings.Work.Steward.ActivityText.Show(h.Zdo?.GetString(HirelingZdo.Activity) ?? "");
+                if (doing.Length > 0)
+                {
+                    PanelUi.Text(t, doing, 0f, y, 440f, 15, color: PanelUi.Dim);
+                    y -= 35f;
+                }
+            }
+
             if (follower)
             {
                 Button all = PanelUi.Button(t, _all ? "$vfh_orders_all_on" : "$vfh_orders_all_off", 0f, y, 360f, 34f, () => { _all = !_all; _shown = ""; });
@@ -223,6 +261,47 @@ namespace VikingsForHire.UI
                     skip.Remove(item);
                 SubmitGather(f, skip, !f.WorksAtHome);
             }
+        }
+
+        // A chore that can't be switched on for this Steward: off on the server, done by another mod, or not unlocked yet.
+        private static string? LockedState(ChoreKind kind, JobData steward, int level)
+        {
+            if (!Hirelings.Work.Steward.StewardBehaviour.ServerAllows(kind))
+                return Localization.instance.Localize("$vfh_chore_state_disabled");
+            if (Compat.StewardCompat.HandledBy(kind) is string mod)
+                return Localization.instance.Localize("$vfh_chore_state_handled", mod);
+            int first = ChoreRules.FirstUnlock(steward, kind);
+            if (first == int.MaxValue)
+                return Localization.instance.Localize("$vfh_chore_state_disabled");
+            return level < first ? Localization.instance.Localize("$vfh_chore_state_locked", first.ToString()) : null;
+        }
+
+        // For a partly unlocked Stations or Mills chore: the stations still to come, e.g. "Blast furnace: locked until level 5".
+        private static string StillLocked(ChoreKind kind, JobData steward, int level)
+        {
+            if (kind is not (ChoreKind.Stations or ChoreKind.Mills))
+                return "";
+            return string.Join(", ", ChoreRules.GateKeys(steward, kind).Where(k => ChoreRules.MinLevel(steward, k) > level)
+                .Select(k => StationName(k) + ": " + Localization.instance.Localize("$vfh_chore_state_locked", ChoreRules.MinLevel(steward, k).ToString())));
+        }
+
+        private static string StationName(string prefab)
+        {
+            Piece? piece = ZNetScene.instance != null ? ZNetScene.instance.GetPrefab(prefab)?.GetComponent<Piece>() : null;
+            return piece != null ? Localization.instance.Localize(piece.m_name) : prefab;
+        }
+
+        // Switch a chore on or off for this Steward (with "all": every Steward of yours nearby, as for gather toggles).
+        private void ToggleChore(ChoreKind kind)
+        {
+            Hireling h = _hireling!;
+            bool turnOn = ChoreRules.ChoresOff(h.Zdo?.GetString(HirelingZdo.SkipItems)).Contains(kind);
+            foreach (Hireling f in Targets().Where(f => f.Job == h.Job))
+            {
+                string skip = ChoreRules.WithChore(f.Zdo?.GetString(HirelingZdo.SkipItems), kind, turnOn);
+                SubmitGather(f, GatherRules.ParseSkip(skip), !f.WorksAtHome);
+            }
+            _shown = "";
         }
 
         private void ToggleHome()

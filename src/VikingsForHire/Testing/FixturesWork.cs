@@ -25,6 +25,14 @@ namespace VikingsForHire.Testing
             Fixtures.Add("room", "<tag> [item count]… - a closed 6x6 m room 12 m to the board's right with a door facing the board (tagged <tag>_door) and a chest inside (tagged <tag>)", Room);
             Fixtures.Add("deliver_now", "- tell the hireling from your last contract to deliver what it carries now", DeliverNow);
             Fixtures.Add("fill_chest", "<tag> <item> - fill every free slot of a tagged chest with full stacks", FillChest);
+            Fixtures.Add("steward_chores", "<chore=on|off>… - switch chores for the Steward from your last contract (fires, beehives, stations, mills, sap, animals, repairs)", StewardChores);
+            Fixtures.Add("wind_on", "- steady wind, so windmills turn (wind_off puts the weather back)", _ => WindOn());
+            Fixtures.Add("wind_off", "- the weather's own wind again", _ => WindOff());
+            TestHarness.RegisterCheck("steward_chore", "- the chore the Steward from your last contract is doing now (Fires, Stations…), or none", _ =>
+            {
+                Hirelings.Hireling h = Posted();
+                return h.Ai?.Steward?.Doing?.ToString() ?? "none";
+            });
 
             TestHarness.RegisterCheck("chest", "<tag> <item|free_slots> - count of an item in a tagged chest, or its free slots", args =>
             {
@@ -215,6 +223,44 @@ namespace VikingsForHire.Testing
             Hirelings.Hireling h = Hirelings.Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == hid) ?? throw new InvalidOperationException("the posted hireling isn't loaded");
             h.Zdo!.Set(Hirelings.HirelingZdo.DeliverPending, true);
             VfhLog.I(LogCat.Test, "fixture.deliver_now", ("hid", hid));
+            yield return null;
+        }
+
+        private static Hirelings.Hireling Posted()
+        {
+            string hid = BoardContracts.LastPostedHid;
+            return Hirelings.Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == hid) ?? throw new InvalidOperationException("the posted hireling isn't loaded");
+        }
+
+        // On the contract, so it works before the Steward has even arrived (the arrival copies it onto the hireling).
+        private static IEnumerator StewardChores(string[] args)
+        {
+            string hid = BoardContracts.LastPostedHid;
+            HiringBoard board = Board();
+            Core.ContractEntry entry = BoardRosterOps.Read(board.Zdo!).ByHid(hid) ?? throw new InvalidOperationException("no contract posted");
+            string skip = entry.SkipItems;
+            foreach (string a in args)
+            {
+                string[] kv = a.Split('=');
+                if (kv.Length != 2 || !Core.Chores.ChoreKeys.TryParse(kv[0], out Core.Chores.ChoreKind kind))
+                    throw new InvalidOperationException($"not chore=on|off: {a}");
+                skip = Core.Chores.ChoreRules.WithChore(skip, kind, kv[1] == "on");
+            }
+            Net.MutationService.SubmitBoard(board.Id, new Core.RosterOp { Type = Core.RosterOpType.SetGather, Hid = hid, SkipItems = skip, NoHomeWork = entry.NoHomeWork });
+            VfhLog.I(LogCat.Test, "fixture.steward_chores", ("hid", hid), ("skip", skip));
+            yield return new WaitForSeconds(1f);
+        }
+
+        private static IEnumerator WindOn()
+        {
+            EnvMan.instance.SetDebugWind(0f, 1f);
+            VfhLog.I(LogCat.Test, "fixture.wind_on");
+            yield return null;
+        }
+
+        private static IEnumerator WindOff()
+        {
+            EnvMan.instance.ResetDebugWind();
             yield return null;
         }
 

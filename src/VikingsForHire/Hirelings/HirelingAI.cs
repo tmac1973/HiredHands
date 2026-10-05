@@ -88,6 +88,9 @@ namespace VikingsForHire.Hirelings
         /// <summary>The job's gathering behaviour (woodcutters, miners), which Follow drives in the field.</summary>
         public Work.GatherBehaviour? Gather { get; private set; }
 
+        /// <summary>The Steward's chore loop (Stewards only).</summary>
+        public Work.Steward.StewardBehaviour? Steward { get; private set; }
+
         /// <summary>
         /// Where this hireling may gather right now: the board's area while working; around a harvest order's target;
         /// around its parked spot in Gather Here. Null = not gathering.
@@ -134,7 +137,7 @@ namespace VikingsForHire.Hirelings
                     Add(new Work.DeliverBehaviour(new Work.GathererDeliveryPolicy()));
                     break;
                 case JobType.Smelter:
-                    Add(new Work.SmelterBehaviour());
+                    Add(Steward = new Work.Steward.StewardBehaviour());
                     Add(new Work.DeliverBehaviour(new Work.SmelterDeliveryPolicy()));
                     break;
                 case JobType.Miner:

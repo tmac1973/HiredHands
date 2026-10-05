@@ -543,7 +543,8 @@ namespace VikingsForHire.Hirelings
                 };
             if (status.Length > 0)
                 sb.Append('\n').Append(status);
-            string activity = Zdo?.GetString(HirelingZdo.Activity) ?? "";
+            // Steward status lines carry arguments ("token|arg|arg"): expand them here, in this game's language.
+            string activity = Work.Steward.ActivityText.Show(Zdo?.GetString(HirelingZdo.Activity) ?? "");
             if (Mode == HirelingMode.Following)
             {
                 // "Following Tim (Stay)", plus what it's doing when that says more (chopping, cargo full…).
