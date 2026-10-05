@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.4 (unreleased)
+## 0.2.4
 
 - **Call a hireling to the board.** The Roster tab has **Call to board** for a working hireling you can't find: it drops what it's doing, comes to the board and waits beside it ("Waiting at the board"), facing you, until you press **Back to work** on the Roster tab or in its Shift+E panel. With no way there, or stuck for 20 s, it's moved there. Recruiting it as a follower also ends the wait.
 - **A hireling holds still while you give it orders.** With its Shift+E panel open it stops and faces you, as it already did with its cargo open, so it doesn't walk out of range and close the panel.
