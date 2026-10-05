@@ -55,3 +55,8 @@ A Steward empties beehives from level 1, and sap collectors from level 6, once t
 
 ## Rollback
 Revert the commit, or set `StewardBeehives` / `StewardSap` to false on the server. Nothing is saved apart from the items moved.
+
+## As built
+- **Delivery:** honey and sap are added to `SmelterDeliveryPolicy.StewardOutputs` when first seen, so the existing delivery rule takes them to chests on its own; the chore never sets `DeliverPending`. A trip that fills the cargo ends early, so the Steward delivers and comes back for the rest.
+- **No chest for the item:** the job's own status line reads `vfh_need_room` ("Beehive: no chest holds Honey") instead of "Collecting from Beehive", so the hint shows while it works.
+- **`vfh_t_sap`** checks the gate with a level 5 Steward first, then promotes it to 6 on the same contract.

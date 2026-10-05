@@ -40,6 +40,12 @@ namespace VikingsForHire.Testing
                 Fireplace f = FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<Fireplace>() ?? throw new InvalidOperationException("no such tagged fire");
                 return (Hirelings.Work.Steward.FiresChore.FuelAdded.TryGetValue(f.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
             });
+            Fixtures.Add("producer", "<piece_beehive|piece_sapcollector> <level> [tag] - a beehive or sap collector in a ring 7 m from the board, already that full", Producer);
+            TestHarness.RegisterCheck("producer_level", "<tag> - how full a tagged beehive or sap collector is", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged producer");
+                return go.GetComponent<ZNetView>().GetZDO().GetInt(ZDOVars.s_level).ToString(CultureInfo.InvariantCulture);
+            });
             Fixtures.Add("station_info", "<prefab> - log the nearest such station's make-up and state (as vfh_station), in step with the test", args => StationInfo(args));
             TestHarness.RegisterCheck("steward_chore", "- the chore the Steward from your last contract is doing now (Fires, Stations…), or none", _ =>
             {
@@ -268,6 +274,21 @@ namespace VikingsForHire.Testing
         {
             EnvMan.instance.SetDebugWind(0f, 1f);
             VfhLog.I(LogCat.Test, "fixture.wind_on");
+            yield return null;
+        }
+
+        private static IEnumerator Producer(string[] args)
+        {
+            string prefab = args.ElementAtOrDefault(0) ?? "piece_beehive";
+            int level = int.Parse(args.ElementAtOrDefault(1) ?? "4", CultureInfo.InvariantCulture);
+            string tag = args.ElementAtOrDefault(2) ?? "";
+            HiringBoard board = Board();
+            Vector3 pos = board.transform.position + Quaternion.Euler(0f, 140f + 50f * (_fires++ % 6), 0f) * board.transform.forward * 7f;
+            GameObject go = Spawn(prefab, pos, tag);
+            OwnBuilt(go);
+            yield return null;
+            go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_level, level);
+            VfhLog.I(LogCat.Test, "fixture.producer", ("prefab", prefab), ("level", level), ("tag", tag));
             yield return null;
         }
 

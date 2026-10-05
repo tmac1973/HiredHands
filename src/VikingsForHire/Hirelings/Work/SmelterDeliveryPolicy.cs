@@ -12,11 +12,14 @@ namespace VikingsForHire.Hirelings.Work
     {
         public const float LeftoverSeconds = 300f;
 
+        /// <summary>What the Steward's chores collect (honey, sap…): delivered like the stations' products.</summary>
+        public static readonly System.Collections.Generic.HashSet<string> StewardOutputs = new();
+
         public bool NeedsDelivery(Hireling h) =>
             h.CargoInventory != null && h.CargoInventory.GetAllItems().Any(i => i.m_dropPrefab != null && Delivers(h, i.m_dropPrefab.name));
 
         public bool Delivers(Hireling h, string prefab) =>
-            h.DeliverPending || StationSurvey.Products().Contains(prefab) || LeftoversExpired(h);
+            h.DeliverPending || StationSurvey.Products().Contains(prefab) || StewardOutputs.Contains(prefab) || LeftoversExpired(h);
 
         private static bool LeftoversExpired(Hireling h) => h.LeftoverSince > 0f && Time.time - h.LeftoverSince > LeftoverSeconds;
     }
