@@ -34,6 +34,7 @@ namespace VikingsForHire.Core.Data
             VfhData data = Deserializer.Deserialize<VfhData>(yaml) ?? new VfhData();
             object? raw = Deserializer.Deserialize<object>(yaml);
             filled = DataDefaults.FillMissing(data, DefaultData.Create(), raw);
+            DataDefaults.Migrate(data, filled);
             return data;
         }
 

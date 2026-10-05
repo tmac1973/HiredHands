@@ -25,6 +25,25 @@ namespace VikingsForHire.Core.Data
             return filled;
         }
 
+        /// <summary>
+        /// One-off changes for files older than a setting that came with list entries (FillMissing never touches lists).
+        /// 0.4.0: a file without the Steward's choreLevels predates the windmill and spinning wheel, so they're added to
+        /// its stations (once: from then on the file has choreLevels and its stations list is left as written).
+        /// </summary>
+        public static void Migrate(VfhData data, List<string> filled)
+        {
+            if (filled.Contains("jobs.Smelter.choreLevels") && data.Jobs.TryGetValue(JobType.Smelter, out JobData? steward))
+            {
+                foreach (string mill in new[] { "windmill", "piece_spinningwheel" })
+                {
+                    if (steward.Stations.Any(s => string.Equals(s, mill, StringComparison.OrdinalIgnoreCase)))
+                        continue;
+                    steward.Stations.Add(mill);
+                    filled.Add($"jobs.Smelter.stations+{mill}");
+                }
+            }
+        }
+
         private static void Fill(object target, object defaults, object? raw, string path, List<string> filled)
         {
             if (raw is not IDictionary map)

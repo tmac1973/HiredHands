@@ -86,7 +86,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 StationState st = states.First(s => s.Id == _plan.Loads[0].StationId);
                 jobs.Add(Job(first, ChoreUrgency.Station(st.OreRatio, st.FuelRatio, false, threshold), VariantLoad, ctx, "$vfh_steward_load"));
             }
-            if (!AzuAutoStoreCompat.IsLoaded && ctx.FreeSlots > 0 && stations.FirstOrDefault(OutputWaiting) is Smelter full)
+            // With AzuAutoStore, Azu picks up what stations drop, but a station that holds its output inside (spinning
+            // wheel, eitr refinery) still needs emptying; then Azu takes it from there.
+            if ((AzuAutoStoreCompat.IsLoaded || ctx.FreeSlots > 0) && stations.FirstOrDefault(s => OutputWaiting(s, AzuAutoStoreCompat.IsLoaded)) is Smelter full)
                 jobs.Add(Job(full, ChoreUrgency.Station(1f, 1f, true, threshold), VariantCollect, ctx, "$vfh_status_collecting"));
 
             if (jobs.Count == 0 && _plan.Starved.Count > 0 && _byId.TryGetValue(_plan.Starved[0], out Smelter starved))
@@ -255,16 +257,21 @@ namespace VikingsForHire.Hirelings.Work.Steward
             }
             if (Time.time < _nextItemAt)
                 return ChoreProgress.Running;
+            if (AzuAutoStoreCompat.IsLoaded)
+                return End(0f); // emptied: AzuAutoStore puts the stack away
             Vector3 point = s.m_outputPoint != null ? s.m_outputPoint.position : s.transform.position;
             int picked = StewardSteps.PickUpDrops(h, point, StationSurvey.Outputs(s), OutputPickupRadius);
             VfhLog.I(LogCat.Smelter, "smelter.collected", ("hid", h.Hid), ("station", Utils.GetPrefabName(s.gameObject)), ("n", picked));
             return End(0f);
         }
 
-        private static bool OutputWaiting(Smelter s)
+        // Output to collect: held inside (needs emptying) or, unless AzuAutoStore picks drops up, lying at the output point.
+        private static bool OutputWaiting(Smelter s, bool azu)
         {
             if (StationSurvey.ProcessedWaiting(s) > 0 && s.m_emptyOreSwitch != null)
                 return true;
+            if (azu)
+                return false;
             HashSet<string> outputs = StationSurvey.Outputs(s);
             Vector3 at = s.m_outputPoint != null ? s.m_outputPoint.position : s.transform.position;
             return ItemDrop.s_instances.Any(d => d != null && d.m_nview != null && d.m_nview.IsValid() && d.m_itemData?.m_dropPrefab != null &&

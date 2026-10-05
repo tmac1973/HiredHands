@@ -67,10 +67,9 @@ namespace VikingsForHire.Core.Data
                 foreach (KeyValuePair<string, int> c in job.Value.ChoreLevels)
                 {
                     string p = $"jobs.{job.Key}.choreLevels.{c.Key}";
+                    // Only the range is an error. A key that's neither a chore nor a listed station is just unused (an older
+                    // file's stations list lacks the stations newer versions add): Sanitize warns about it instead.
                     if (c.Value < 1 || c.Value > Levels) errors.Add($"{p} must be 1-{Levels}");
-                    bool chore = Chores.ChoreKeys.TryParse(c.Key, out _);
-                    bool station = job.Value.Stations.Any(s => string.Equals(s, c.Key, StringComparison.OrdinalIgnoreCase));
-                    if (!chore && !station) errors.Add($"{p}: not a chore (fires, beehives, stations, mills, sap, animals, repairs) or a station in stations");
                 }
             }
 
@@ -88,6 +87,12 @@ namespace VikingsForHire.Core.Data
         public static List<string> Sanitize(VfhData data, Func<string, bool> itemExists)
         {
             var warnings = new List<string>();
+
+            // A chore level for something that's neither a chore nor a listed station has no effect.
+            foreach (KeyValuePair<JobType, JobData> job in data.Jobs)
+                foreach (string key in job.Value.ChoreLevels.Keys)
+                    if (!Chores.ChoreKeys.TryParse(key, out _) && !job.Value.Stations.Any(s => string.Equals(s, key, StringComparison.OrdinalIgnoreCase)))
+                        warnings.Add($"jobs.{job.Key}.choreLevels.{key}: not a chore or a station in stations, so it has no effect (add it to stations to use it)");
 
             // A station with no chore level works from level 1: allowed, but worth a line in the log.
             foreach (KeyValuePair<JobType, JobData> job in data.Jobs)

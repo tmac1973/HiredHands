@@ -63,6 +63,27 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void PreChoreFilesGainTheMills()
+        {
+            // A 0.3 file: no choreLevels, and stations without the windmill and spinning wheel.
+            VfhData old = DefaultData.Create();
+            old.Jobs[JobType.Smelter].Stations.RemoveAll(s => s == "windmill" || s == "piece_spinningwheel");
+            string full = DataYaml.Serialize(old);
+            int start = full.IndexOf("    choreLevels:", full.IndexOf("  Smelter:"));
+            int end = full.IndexOf("    keepInStorage:", start);
+            VfhData data = DataYaml.Deserialize(full.Remove(start, end - start), out var filled);
+            Assert.Contains("windmill", data.Jobs[JobType.Smelter].Stations);
+            Assert.Contains("piece_spinningwheel", data.Jobs[JobType.Smelter].Stations);
+            Assert.Empty(DataValidator.Validate(data));
+
+            // A 0.4 file whose owner took the windmill out keeps it out.
+            VfhData owner = DefaultData.Create();
+            owner.Jobs[JobType.Smelter].Stations.Remove("windmill");
+            VfhData back = DataYaml.Deserialize(DataYaml.Serialize(owner), out _);
+            Assert.DoesNotContain("windmill", back.Jobs[JobType.Smelter].Stations);
+        }
+
+        [Fact]
         public void WhatTheFileSaysIsKept()
         {
             string yaml = DataYaml.Serialize(DefaultData.Create()).Replace("    minBoardLevel: 2\n", "    minBoardLevel: 4\n");
