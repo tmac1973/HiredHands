@@ -25,10 +25,14 @@ namespace VikingsForHire.Board
         public static void Register() =>
             PrefabManager.OnVanillaPrefabsAvailable += () => VfhLog.Guard(LogCat.Board, "charter.register_failed", Create);
 
+        private static bool _created;
+
+        // Once: the vanilla-prefabs event fires again on every return to the main menu, and Jotunn keeps the item.
         private static void Create()
         {
-            if (ObjectDB.instance != null && ObjectDB.instance.GetItemPrefab(PrefabName) != null)
+            if (_created || (ObjectDB.instance != null && ObjectDB.instance.GetItemPrefab(PrefabName) != null))
                 return;
+            _created = true;
             var item = new CustomItem(PrefabName, BasePrefab, new ItemConfig { Name = "$vfh_charter", Description = "$vfh_charter_desc" });
             ItemDrop.ItemData.SharedData shared = item.ItemPrefab.GetComponent<ItemDrop>().m_itemData.m_shared;
             shared.m_maxStackSize = 1; // each one carries its own level
