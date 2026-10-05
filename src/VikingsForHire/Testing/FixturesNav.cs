@@ -79,7 +79,12 @@ namespace VikingsForHire.Testing
             Vector3 stairPos = c - n * 1f + n * along + (stair.transform.position - sb.center).With(y: 0f);
             stair.transform.position = new Vector3(stairPos.x, ground, stairPos.z);
             yield return null;
-            float top = Bounds(stair).max.y;
+            // Its origin isn't at its foot: stand it on the ground under its own foot.
+            float footGround = ZoneSystem.instance.GetGroundHeight(stair.transform.position + n * along * 0.8f);
+            stair.transform.position += Vector3.up * (footGround - Bounds(stair).min.y);
+            yield return null;
+            // The upper floor goes level with the top step as the scan measures it (not the rails' top).
+            float top = TopStep(stair, -n);
 
             // Upper floor: the back 2 m strip, three 2x2 m floor pieces, its surface level with the stair's top.
             for (int i = -1; i <= 1; i++)
@@ -96,10 +101,21 @@ namespace VikingsForHire.Testing
             Inventory inv = chest.GetComponent<Container>().GetInventory();
             for (int i = 1; i + 1 < args.Length; i += 2)
                 FixturesWork.AddStacks(inv, args[i], int.Parse(args[i + 1], CultureInfo.InvariantCulture));
-            VfhLog.I(LogCat.Test, "fixture.house", ("tag", tag), ("stair", stairPrefab), ("center", c), ("ground", ground), ("upperFloor", top));
+            VfhLog.I(LogCat.Test, "fixture.house", ("tag", tag), ("stair", stairPrefab), ("center", c), ("ground", ground), ("upperFloor", top),
+                ("rise", top - Bounds(stair).min.y));
             yield return new WaitForSeconds(0.5f);
 
             Vector3 Ground(Vector3 p) => new(p.x, ZoneSystem.instance.GetGroundHeight(p), p.z);
+        }
+
+        // The highest walkable surface along the axis, sampled the way the board's scan does it.
+        private static float TopStep(GameObject piece, Vector3 axis)
+        {
+            var cols = new System.Collections.Generic.List<Collider>();
+            if (!StairSampler.Colliders(piece.GetComponent<Piece>(), cols, out Bounds b))
+                return Bounds(piece).max.y;
+            float? top = StairSampler.Sample(cols, b, axis, new System.Collections.Generic.List<Vector3>()).Max(s => s.Height);
+            return top ?? b.max.y;
         }
 
         // Which way the piece climbs along the axis: positive when its surface is higher towards +axis.

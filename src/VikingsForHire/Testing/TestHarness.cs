@@ -308,7 +308,8 @@ namespace VikingsForHire.Testing
                 }
                 else
                 {
-                    actual = Evaluate(def, args);
+                    // Single player (or the host): the same arguments a client would send, e.g. your player id.
+                    actual = Evaluate(def, def.PrepareArgs != null ? def.PrepareArgs(args) : args);
                 }
 
                 bool pass;
