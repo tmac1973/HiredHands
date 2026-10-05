@@ -17,8 +17,10 @@ Plan: `plan/steward-chores/`.
 | 811918a | Tamed animals (level 2): food from chests dropped in front of each hungry tamed animal, nearest first; marked so AzuAutoStore leaves it; steps aside for PetPantry | the game simulating the Steward |
 | 0f1608b | Repairs (level 3): damaged pieces repaired worst first under vanilla's rules (station in range, wards, free), not until 20 s after the last enemy near the base | the game simulating the Steward |
 | fbe2004 | Fermenters (level 4: tap, store meads, load a base), shield generators (level 7: bones), tidying up (level 1, last priority: items on the ground into chests that hold them) | the game simulating the Steward |
+| 485973d | The Steward's broom: club stats with the game's broom model (cultivator model as fallback); the Steward's weapon in new data files | the Steward |
 
 ### To test (batch)
+- [ ] By hand: the broom. With a fresh data file, or the Steward's `gear` set to `VFH_Broom`, a Steward holds a broom the right way up and swats a Greyling with it; `vfh_broom_info` says which model was used.
 - [x] Macros: `vfh_test_chain fires chore_urgency` (passed).
 - [ ] Macros: `vfh_test_chain beehive sap animals repairs fermenter shield tidy`.
 - [x] Macros (single player): `vfh_test_chain chore_gate chore_toggle mills azu3 keep1 keep2` (passed; work5 needs AzuAutoStore absent).
