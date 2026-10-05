@@ -1,9 +1,12 @@
 # Changelog
 
-## 0.3.0 (unreleased)
+## 0.3.0
 
 - **Hirelings find their way through your buildings.** Inside a hiring board's area, the board scans for doors and for anything that climbs from one floor to another (stairs, stepladders, modded stairs and ladders, recognised by their shape). When the game's walking map can't get a hireling somewhere (a chest upstairs, a closed room), it routes through those: it opens the door, steps through and closes it behind, walks up the stairs, and hops to the top of a ladder it can't climb. It replans around a locked door or a removed stair. Followers follow you through the house and upstairs the same way while you're both at a base. Server settings `BaseNavLinks` (on; off is the 0.2 behaviour) and `HirelingsCloseDoors` (on).
-- **`vfh_navlinks show|hide|scan|list`** draws and lists the doors, stairs and ladders found and each hireling's route.
+- **Stairs that run straight into each other** (two flights with no landing between) join into one climb. Small landings, and the last step onto a chest's platform, count as walkable even where the game's map has none.
+- **`vfh_navlinks show|hide|scan|list|why`** draws and lists the doors, stairs and ladders found and each hireling's route; `why` plans from the nearest hireling to what you're looking at and prints every step it considered.
+- **`vfh_deliver`** (cheat): the nearest hireling takes what it carries to the chests now.
+- **Fixes:** the Hiring Charter no longer logs an error each time you go back to the main menu; in single player, Command Stone requests (recruit, release, posts) work again.
 - **Data file:** new `navLinks` block (`include`/`exclude` prefab names) for the rare piece the shape test gets wrong. 0.2 builds reject a file with it, so everyone moves to 0.3 together.
 
 ## 0.2.4

@@ -169,3 +169,7 @@ Logs go to `BepInEx/LogOutput.log` and `BepInEx/HiredHands.log`, one line per ev
 ## Coming next
 
 Ideas being considered: the Steward taking on repairs and base chores, a Cook and a Farmer working to production orders ("keep 40 cooked meat"), woodcutters replanting, meal plans (more food for stronger hirelings), a scout. Balance tuning from the balance logs.
+
+## License
+
+MIT; see [LICENSE](LICENSE).
