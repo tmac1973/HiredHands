@@ -14,10 +14,11 @@ Plan: `plan/steward-chores/`.
 | af9eca8 | Steward chore loop (most urgent job first), stations gated per station level (level 1 Stewards no longer smelt), Mills chore, Shift+E chore list with toggles and states, status lines naming the chore or what's missing | the game simulating the Steward; panel on yours |
 | d7ebfd8 | Fires chore: fires, torches, braziers and hot tubs fuelled from chests (level 1), a trip per fuel type; steps aside for Torches Eternal | the game simulating the Steward |
 | cef3728 | Beehives (level 1) and sap collectors (level 6) emptied at half full, a trip per kind; honey and sap delivered to chests holding them | the game simulating the Steward |
+| 811918a | Tamed animals (level 2): food from chests dropped in front of each hungry tamed animal, nearest first; marked so AzuAutoStore leaves it; steps aside for PetPantry | the game simulating the Steward |
 
 ### To test (batch)
 - [x] Macros: `vfh_test_chain fires chore_urgency` (passed).
-- [ ] Macros: `vfh_test_chain beehive sap`.
+- [ ] Macros: `vfh_test_chain beehive sap animals`.
 - [x] Macros (single player): `vfh_test_chain chore_gate chore_toggle mills azu3 keep1 keep2` (passed; work5 needs AzuAutoStore absent).
 - [x] By hand: a level 2 Steward's Shift+E panel lists the seven chores. Fires, beehives, stations and animals are on (fires and animals show "handled by TorchesEternal"/"PetPantry" with those mods installed). Mills, sap and repairs show "locked until level 5/6/3". Under Stations: "Blast furnace: locked until level 5, Eitr refinery: locked until level 6". Switching Stations off stops it loading the smelter.
 - [ ] By hand: the Roster tab and hover show what the Steward is doing ("Loading Smelter") or why it's idle ("Smelter: no Coal in any chest", "All done").
