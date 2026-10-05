@@ -22,6 +22,7 @@ namespace VikingsForHire.Testing
             Fixtures.Add("stepladder", "<tag> [item count]… - the same house with a stepladder (<tag>_stair) instead of the stair",
                 args => House(args, "wood_stepladder"));
             Fixtures.Add("remove_piece", "<tag> - deconstruct a tagged piece (as a player with the hammer)", RemovePiece);
+            Fixtures.Add("flatten", "<radius=22> - level the ground around you to the height under your feet and remove rocks, trees, bushes and stumps there (test worlds only)", Flatten);
             Fixtures.Add("nav_links", "<on|off> - turn BaseNavLinks on or off here (single player only; end the macro with nav_links on)", NavLinks);
             Fixtures.Add("nav_stats_reset", "- start counting stair hops from zero", _ => ResetStats());
 
@@ -72,7 +73,7 @@ namespace VikingsForHire.Testing
             yield return null;
             // Colliders only follow a moved transform after a sync; measuring before it reads the old place.
             Physics.SyncTransforms();
-            if (HighEnd(stair, -n) < 0f)
+            if (Climbs(stair, -n) < 0f)
                 stair.transform.rotation = Quaternion.LookRotation(n);
             Physics.SyncTransforms();
             Bounds sb = Bounds(stair);
@@ -105,7 +106,7 @@ namespace VikingsForHire.Testing
             for (int i = 1; i + 1 < args.Length; i += 2)
                 FixturesWork.AddStacks(inv, args[i], int.Parse(args[i + 1], CultureInfo.InvariantCulture));
             VfhLog.I(LogCat.Test, "fixture.house", ("tag", tag), ("stair", stairPrefab), ("center", c), ("ground", ground), ("upperFloor", top),
-                ("rise", top - Bounds(stair).min.y), ("stairPos", stair.transform.position), ("climbs", HighEnd(stair, -n) >= 0f ? "back" : "front"));
+                ("rise", top - Bounds(stair).min.y), ("stairPos", stair.transform.position), ("climbs", Climbs(stair, -n) >= 0f ? "back" : "front"));
             yield return new WaitForSeconds(0.5f);
 
             Vector3 Ground(Vector3 p) => new(p.x, ZoneSystem.instance.GetGroundHeight(p), p.z);
@@ -119,6 +120,59 @@ namespace VikingsForHire.Testing
                 return Bounds(piece).max.y;
             float? top = StairSampler.Sample(cols, b, axis, new System.Collections.Generic.List<Vector3>()).Max(s => s.Height);
             return top ?? b.max.y;
+        }
+
+        // Which way the piece climbs along the axis (positive: up towards +axis), judged by the scan's own shape test
+        // on the piece's own colliders, so the ground and floors around it can't mislead it.
+        private static float Climbs(GameObject piece, Vector3 axis)
+        {
+            var cols = new System.Collections.Generic.List<Collider>();
+            if (StairSampler.Colliders(piece.GetComponent<Piece>(), cols, out Bounds b))
+            {
+                var samples = StairSampler.Sample(cols, b, axis, new System.Collections.Generic.List<Vector3>());
+                StairResult r = StairProfile.Classify(samples, nameHint: true);
+                if (r.Accepted)
+                    return r.TopIndex > r.BottomIndex ? 1f : -1f;
+            }
+            return HighEnd(piece, axis);
+        }
+
+        private static IEnumerator Flatten(string[] args)
+        {
+            float radius = args.Length > 0 ? float.Parse(args[0], CultureInfo.InvariantCulture) : 22f;
+            Vector3 c = Player.m_localPlayer.transform.position;
+            c.y = ZoneSystem.instance.GetGroundHeight(c);
+            // Clutter first, so nothing ends up buried or floating.
+            int removed = 0;
+            foreach (ZNetView v in ZNetScene.instance.m_instances.Values.ToList())
+            {
+                if (v == null || v.GetZDO() == null || Utils.DistanceXZ(v.transform.position, c) > radius)
+                    continue;
+                GameObject go = v.gameObject;
+                if (go.GetComponent<Piece>() != null || go.GetComponent<Character>() != null)
+                    continue;
+                if (go.GetComponent<TreeBase>() || go.GetComponent<TreeLog>() || go.GetComponent<MineRock>() || go.GetComponent<MineRock5>() ||
+                    go.GetComponent<Destructible>() || go.GetComponent<Pickable>() || go.GetComponent<ItemDrop>())
+                {
+                    ZNetScene.instance.Destroy(go);
+                    removed++;
+                }
+            }
+            yield return null;
+            // The hoe's level, as one big operation at your feet's height.
+            var op = new GameObject("VFH_Flatten");
+            op.SetActive(false);
+            op.transform.position = c;
+            TerrainOp t = op.AddComponent<TerrainOp>();
+            t.m_settings = new TerrainOp.Settings
+            {
+                m_level = true, m_levelRadius = radius, m_levelOffset = 0f, m_square = false,
+                m_raise = false, m_smooth = false, m_paintCleared = false,
+            };
+            op.SetActive(true); // Awake applies it to every heightmap it touches, then destroys itself
+            VfhLog.I(LogCat.Test, "fixture.flatten", ("center", c), ("radius", radius), ("removed", removed));
+            // The game's walking map catches up with new ground a few seconds later.
+            yield return new WaitForSeconds(6f);
         }
 
         // Which way the piece climbs along the axis: positive when its surface is higher towards +axis.
