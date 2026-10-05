@@ -20,6 +20,17 @@ namespace VikingsForHire.Testing
                 Nearest(args.ElementAtOrDefault(0) ?? "") is TeleportWorld p &&
                 p.GetComponent<ZNetView>().GetZDO().GetConnectionZDOID(ZDOExtraData.ConnectionType.Portal) != ZDOID.None ? "true" : "false");
             TestHarness.RegisterCheck("transit_count", "- followers on their way through a portal with you", _ => TeleportTravel.InTransit.ToString());
+            // Ore may go through portals in a world with the "teleport everything" modifier, or with the server setting:
+            // then the follower carrying it comes along; otherwise it's left behind in Stay.
+            TestHarness.RegisterCheck("ore_portal_ok", "- the follower from your last contract, carrying ore, did what this world's portal rules call for (came along where ore may pass, else stayed behind): true | false", _ =>
+            {
+                bool orePasses = ZoneSystem.instance.GetGlobalKey(GlobalKeys.TeleportAll) || Config.VfhConfig.AllowNonTeleportableThroughPortals.Value;
+                Hirelings.Hireling h = Hirelings.Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == Board.BoardContracts.LastPostedHid)
+                                       ?? throw new InvalidOperationException("the posted hireling isn't loaded");
+                Core.FollowMode want = orePasses ? Core.FollowMode.Follow : Core.FollowMode.Stay;
+                VfhLog.I(LogCat.Test, "check.ore_portal", ("orePasses", orePasses), ("mode", h.FollowMode), ("want", want));
+                return h.FollowMode == want ? "true" : "false";
+            });
         }
 
         private static IEnumerator PortalPair(string[] args)

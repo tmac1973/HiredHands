@@ -278,3 +278,5 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-05 | 15e1adf | VFH-NAVLINK-5 | SP | Pass | Delivered up the stepladder route (earlier build) |
 | 2026-10-05 | 15e1adf | VFH-NAVLINK-7 | SP | Pass | Setting off: 0.2 door handling (got stuck at the door, then jumped past, as 0.2 does) |
 | 2026-10-05 | ab4d51b | Regression after nav links (door1 order1 gather1 deliver1 deliver2 catchup1 recruit1 portal1 home1 post1 lag1a lag1b) | SP | Pass (11/12) | PORTAL-1 failed: its full stack of copper ore (300 weight) no longer fits a level 1 hireling's 300 limit since 0.2.1, so no ore went in; macro now puts 5 ore |
+| 2026-10-05 | 0eda3b3 | VFH-PORTAL-1 | SP (testboy) | Fail (test) | The ore went in, but the testboy world has the "teleport everything" modifier, so the follower rightly came along; the macro now checks `ore_portal_ok` (what the world's rules call for) |
+| 2026-10-05 | 0eda3b3 | MissingPieces ladder + vanilla stair and ladder (by hand) | SP | Pass | All three show as links with `vfh_navlinks show`, no list entries needed |
