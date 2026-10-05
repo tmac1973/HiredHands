@@ -17,7 +17,7 @@ namespace VikingsForHire.Testing
         {
             Fixtures.Add("hirelings", "<job> <level> <n=1> - spawn hirelings 4m ahead, linked to the nearest board", Hirelings);
             Fixtures.Add("snapshot_test", "- run vfh_snapshot_test on the nearest hireling and wait for it", _ => SnapshotTest.Run(HirelingCommands.NearestOrThrow()));
-            Fixtures.Add("cargo_put", "<item> <stacks> - move full stacks of an item from you into the nearest hireling's cargo, like the UI", CargoPut);
+            Fixtures.Add("cargo_put", "<item> <stacks> [per stack] - move stacks of an item (full ones unless given) from you into the nearest hireling's cargo, like the UI", CargoPut);
             Fixtures.Add("kill_hirelings", "<radius=50> - kill hirelings near you", args =>
             {
                 HirelingCommands.Kill(args.Length > 0 && float.TryParse(args[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float r) ? r : 50f);
@@ -49,6 +49,9 @@ namespace VikingsForHire.Testing
             int stacks = int.Parse(args.ElementAtOrDefault(1) ?? "1", CultureInfo.InvariantCulture);
             GameObject itemPrefab = ObjectDB.instance.GetItemPrefab(prefab) ?? throw new InvalidOperationException($"no item {prefab}");
             int size = Math.Max(1, itemPrefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_maxStackSize);
+            // A smaller stack when asked: a full stack of ore alone weighs a level 1 hireling's whole limit.
+            if (args.Length > 2)
+                size = Math.Min(size, Math.Max(1, int.Parse(args[2], CultureInfo.InvariantCulture)));
             Inventory player = Player.m_localPlayer.GetInventory();
             h.GetComponent<ZNetView>().ClaimOwnership();
             int moved = 0;
