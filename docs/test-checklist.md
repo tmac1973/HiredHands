@@ -129,6 +129,9 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-POST-1 Guard post | SP, D | `vfh_t_post1` | Open ground | `pass=true`; posted guard leaves follower status, holds its post, fights there and returns; clearing the post sends it back to patrol |
 | VFH-GATHER-1 Gather Here | SP, D | `vfh_t_gather1` | Open ground | `pass=true`; parked woodcutter chops the trees by its spot, then delivers once released |
 | VFH-ORDER-1 Harvest order | SP, D | `vfh_t_order1` | Open ground | `pass=true`; the order sends it to the tree, it clears it, and the order ends |
+| VFH-NAVLINK-1 Nav scan | SP | `vfh_t_navscan1` | Open ground | `pass=true`; `navlinks.scan` finds the room's and the house's doors and the house's stair; `vfh_navlinks show` draws them |
+| VFH-NAVLINK-2 Stepladder scan | SP | `vfh_t_navscan2` | Open ground | `pass=true`; the vanilla stepladder is a stair or ladder link |
+| VFH-NAVLINK-3 Rescan on removal | SP | `vfh_t_navscan3` | Open ground | `pass=true`; deconstructing the stair removes its link within 10 s (a new `navlinks.scan` line) |
 | VFH-STONE-2 Stone by hand | SP | — | Stone in hand: left click a tree / rock / enemy / the ground with followers near; right click nothing; Shift+E a follower | Woodcutters chop, miners mine, guards attack, everyone holds at the clicked spot; right click calls them back; the Shift+E panel changes follow mode and stance (with "apply to all") |
 | VFH-POST-2 Archer on a tower | SP | — | Lead an archer up the stairs of a tower inside your board's area and left click it there | It stays on the tower, shoots from there, and only steps off for something within 6 m |
 | VFH-PORTAL-1 Portal | SP, D | `vfh_t_portal1` | Open ground, flat 60 m ahead | `pass=true`; the woodcutter comes through with its wood; with copper ore it stays behind in Stay |

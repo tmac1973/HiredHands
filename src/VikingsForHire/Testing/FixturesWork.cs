@@ -188,7 +188,7 @@ namespace VikingsForHire.Testing
         }
 
         // One AddItem call is capped at a single stack (50 wood), so add stack by stack.
-        private static void AddStacks(Inventory inv, string prefab, int amount)
+        internal static void AddStacks(Inventory inv, string prefab, int amount)
         {
             GameObject item = ObjectDB.instance.GetItemPrefab(prefab) ?? throw new ArgumentException($"no item {prefab}");
             int max = Math.Max(1, item.GetComponent<ItemDrop>().m_itemData.m_shared.m_maxStackSize);
@@ -196,7 +196,7 @@ namespace VikingsForHire.Testing
                 inv.AddItem(item, Math.Min(left, max));
         }
 
-        private static void OwnBuilt(GameObject go)
+        internal static void OwnBuilt(GameObject go)
         {
             Piece piece = go.GetComponent<Piece>();
             if (piece != null && Player.m_localPlayer != null)

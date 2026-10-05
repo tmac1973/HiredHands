@@ -135,8 +135,7 @@ namespace VikingsForHire.Hirelings
         private void Open(Door d, Vector3 me)
         {
             // Same as a player using it from where we stand: it swings away from us.
-            Vector3 userDir = (me - d.transform.position).normalized;
-            d.m_nview.InvokeRPC("UseDoor", Vector3.Dot(d.transform.forward, userDir) < 0f);
+            Nav.DoorRules.Open(d, me);
             _opened[d] = Time.time;
             VfhLog.D(LogCat.AI, "door.open", ("hid", _ai.Hireling.Hid), ("door", d.transform.position));
         }
@@ -217,34 +216,8 @@ namespace VikingsForHire.Hirelings
             }
         }
 
-        private static bool IsOpen(Door d) => d.m_nview != null && d.m_nview.IsValid() && d.m_nview.GetZDO().GetInt(ZDOVars.s_state) != 0;
+        private static bool IsOpen(Door d) => Nav.DoorRules.IsOpen(d);
 
-        // Not locked, can be closed again, and the board's owner has access under any ward covering it.
-        private bool Usable(Door d)
-        {
-            if (d == null || d.m_nview == null || !d.m_nview.IsValid() || d.m_keyItem != null || d.m_canNotBeClosed)
-                return false;
-            if (!d.m_checkGuardStone)
-                return true;
-            long owner = BoardOwner();
-            if (owner == 0L)
-                return PrivateArea.CheckAccess(d.transform.position, 0f, flash: false);
-            foreach (PrivateArea area in PrivateArea.m_allAreas)
-            {
-                if (area == null || !area.IsEnabled() || !area.IsInside(d.transform.position, 0f))
-                    continue;
-                if (area.m_piece.GetCreator() != owner && !area.IsPermitted(owner))
-                    return false;
-            }
-            return true;
-        }
-
-        private long BoardOwner()
-        {
-            string id = _ai.Hireling.BoardId;
-            HiringBoard? board = HiringBoard.Loaded.FirstOrDefault(b => b != null && b.Id == id);
-            Piece? piece = board != null ? board.GetComponent<Piece>() : null;
-            return piece != null ? piece.GetCreator() : 0L;
-        }
+        private bool Usable(Door d) => Nav.DoorRules.Usable(d, Nav.DoorRules.BoardOwner(_ai.Hireling.BoardId));
     }
 }

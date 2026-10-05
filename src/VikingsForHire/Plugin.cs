@@ -59,6 +59,7 @@ namespace VikingsForHire
             DebugCommands.Register();
             BoardCommands.Register();
             HirelingCommands.Register();
+            NavCommands.Register();
             RosterCommands.Register();
             TestHarness.Register();
             Fixtures.Register();
@@ -72,6 +73,7 @@ namespace VikingsForHire
             FixturesSmelter.Register();
             FixturesFollow.Register();
             FixturesTravel.Register();
+            FixturesNav.Register();
 
             SessionInfo.LogHeader("plugin load");
             Log.LogInfo($"{Name} {Version} loaded");
@@ -93,6 +95,7 @@ namespace VikingsForHire
             VfhLog.Guard(LogCat.UI, "hud.tick_failed", Followers.FollowerHud.Tick);
             VfhLog.Guard(LogCat.Board, "funds.tick_failed", Board.LowFunds.Tick);
             VfhLog.Guard(LogCat.Hireling, "graves.tick_failed", Hirelings.Graves.Tick);
+            VfhLog.Guard(LogCat.Nav, "navlinks.tick_failed", Hirelings.Nav.NavLinkRegistry.Tick);
         }
 
         private void OnDestroy() => VfhLog.Shutdown();
