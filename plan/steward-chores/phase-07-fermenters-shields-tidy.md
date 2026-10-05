@@ -32,7 +32,7 @@ Three more chores, added the same way as phases 03–06:
   - `vfh_steward_ferment` ("Tending $1"), `vfh_steward_shield` ("Feeding $1"), `vfh_steward_tidy` ("Tidying up");
   - `vfh_need_base` ("$1: no mead base in any chest").
 - `src/VikingsForHire/Testing/FixturesWork.cs`:
-  - fixture `fermenter <state> [tag]` (`empty` | `ready`): places a `fermenter` 6 m from the board with a `wood_floor` piece 2.5 m above it as a roof (an uncovered fermenter is Exposed and never ferments); for `ready`, loads it with a mead base and sets its start time back past `m_fermentationDuration`;
+  - fixture `fermenter <state> [tag]` (`empty` | `ready`): places a `fermenter` 6 m from the board under the `roof_over` fixture's thatch roof (wood floors are "leaky" and don't count) (an uncovered fermenter is Exposed and never ferments); for `ready`, loads it with a mead base and sets its start time back past `m_fermentationDuration`;
   - fixture `shieldgen <fuel> [tag]`: places a `piece_shieldgenerator` with that fuel;
   - fixture `litter <item> <count> [tag]`: drops items 10 m from the board, with their spawn time set back past `StewardTidyMinSeconds`;
   - checks `fermenter_status <tag>`, `shield_fuel <tag>` and `ground_items <item> [radius]`.
