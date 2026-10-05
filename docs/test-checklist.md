@@ -283,3 +283,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-05 | e39ebaa | Upstairs delivery by hand (MissingPieces ladder, landing, two chained ladders, chest on the top square) | SP | Pass | Route walk>stair>walk>stair>stair>walk, 17 wood into the top chest, no hops. Needed: chained flights joined (3d7ccd5), short same-level steps without the game's map (a882554), and that step not blocked by the chest itself (e39ebaa) |
 | 2026-10-05 | 3d7ccd5 | Follower up the stairs by hand | SP | Pass | Followed Tim upstairs |
 | 2026-10-05 | e39ebaa | VFH-NAVLINK-4, VFH-NAVLINK-8 on the local dedicated server | D | Pass (behaviour) | Both did their job; each failed only `log_errors == 0` from a `charter.register_failed` logged when Tim went back to the main menu between worlds (Hiring Charter created twice; fixed in the next commit) |
+| 2026-10-05 | 6018bc2 | VFH-PORTAL-1 | D | Pass | Rerun on the local dedicated server with `ore_portal_ok` |
