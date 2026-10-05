@@ -59,6 +59,20 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void NavLinksListsAreValidated()
+        {
+            VfhData data = DefaultData.Create();
+            data.NavLinks.Include.Add("MyLadder");
+            data.NavLinks.Exclude.Add("myladder");
+            data.NavLinks.Exclude.Add(" ");
+            List<string> errors = DataValidator.Validate(data);
+            Assert.Contains(errors, e => e.Contains("both include and exclude"));
+            Assert.Contains(errors, e => e.Contains("empty entries"));
+            VfhData back = DataYaml.Deserialize(DataYaml.Serialize(DefaultData.Create()), out _);
+            Assert.Empty(back.NavLinks.Include);
+        }
+
+        [Fact]
         public void SanitizeDropsAndFallsBack()
         {
             VfhData data = DefaultData.Create();

@@ -52,7 +52,7 @@ Nothing changes in game yet.
    - **Edges:**
      - Each unblocked link between its two endpoints, with cost `Length` for a stair and 2.4 for a door, both ways.
      - **Leg edges** between any two nodes on the same graph. A leg's cost comes from `oracle(a, b)`. Legs from `start` are only tried to the 8 endpoints nearest to `start` (XZ, within 30 m), plus `goal`. Legs into `goal` are tried from the 8 endpoints nearest to `goal`. Endpoint-to-endpoint legs are tried from each endpoint to its 6 nearest endpoints within 30 m.
-     - **Hard cap:** one `Plan` call asks the oracle at most 300 times. Past that, every further leg counts as `Unknown`, so a huge base yields `NeedLegs`, never a slow frame.
+     - **Hard cap:** one `Plan` call asks the oracle at most 2000 times (as built: 300 was too few for a route across a big base; the answers come from the game-side cache, so this only bounds CPU). Past that, every further leg counts as `Unknown`, so a huge base yields `NeedLegs`, never a slow frame.
    - **Heuristic:** the 3D straight-line distance to `goal`.
    - **Unknown legs:** if `oracle` answers `Unknown` for any leg the search needed, the search keeps going without that leg. If it finds no route, it returns `NeedLegs` with those pairs (at most 16, cheapest-looking first) so the caller can work them out and plan again. A route found without the unknown legs is returned as a `Route`.
    - **Route:** an ordered list of `Walk(to)`, `Door(linkId, fromA)` and `Stair(linkId, fromA)` steps, ending with `Walk(goal)`. The direct `start → goal` leg is the caller's job (phase 03 tries the game's map first), but the planner may still return a single `Walk(goal)` when the oracle says yes.
@@ -87,7 +87,7 @@ Nothing changes in game yet.
   - A blocked stair with a second stair available uses the second.
   - All legs `No` returns `NoRoute`.
   - Unknown legs return `NeedLegs`, and after answering them the next call returns a route.
-  - A graph with 200 endpoints asks the oracle at most 300 times in one call and finishes in under 5 ms.
+  - A graph with 200 endpoints asks the oracle at most 2000 times in one call and finishes in under 5 ms.
 - Data tests: `navLinks` loads, fills in and validates.
 
 ## Commit

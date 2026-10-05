@@ -26,6 +26,9 @@ namespace VikingsForHire.Core.Data
 
         [YamlMember(Description = "Names given to hirelings, picked to match the generated body.")]
         public NameData Names { get; set; } = new();
+
+        [YamlMember(Description = "Doors, stairs and ladders hirelings route through inside a board's area are found automatically. Only for a piece that gets it wrong.")]
+        public NavLinksData NavLinks { get; set; } = new();
     }
 
     public class BoardLevelData
@@ -130,6 +133,15 @@ namespace VikingsForHire.Core.Data
     {
         [YamlMember(Description = "Edible items that don't count as food unless AllowRawFood is on.")]
         public List<string> RawFoods { get; set; } = new();
+    }
+
+    public class NavLinksData
+    {
+        [YamlMember(Description = "Prefab names always tested as stairs or ladders (as if named like one), e.g. a modded ladder the shape test misses.")]
+        public List<string> Include { get; set; } = new();
+
+        [YamlMember(Description = "Prefab names never used as stairs or ladders, e.g. a piece wrongly taken for one.")]
+        public List<string> Exclude { get; set; } = new();
     }
 
     public class NameData

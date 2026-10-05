@@ -43,6 +43,8 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> ThreatScanIntervalSeconds = null!;
         public static ConfigEntry<float> TreeSafetyDistanceFromPieces = null!;
         public static ConfigEntry<bool> HirelingsOpenDoors = null!;
+        public static ConfigEntry<bool> HirelingsCloseDoors = null!;
+        public static ConfigEntry<bool> BaseNavLinks = null!;
         public static ConfigEntry<float> TreeFallCorridorHalfWidth = null!;
         public static ConfigEntry<bool> MinerProtectsTerrain = null!;
         public static ConfigEntry<bool> GatheringMakesNoise = null!;
@@ -130,6 +132,8 @@ namespace VikingsForHire.Config
             PostLeashRadius = Synced("8 - Combat", "PostLeashRadius", 20f, "How far (m) a posted guard goes from its post to fight, before walking back to it.");
             ThreatScanIntervalSeconds = Synced("8 - Combat", "ThreatScanIntervalSeconds", 0.5f, "Seconds between a hireling's looks around for enemies. Lower reacts faster; being hit always triggers an immediate look.");
             HirelingsOpenDoors = Synced(w, "HirelingsOpenDoors", true, "Hirelings open doors in their way (only doors the board's owner may use under wards, never locked ones) and close them behind themselves.");
+            HirelingsCloseDoors = Synced(w, "HirelingsCloseDoors", true, "Hirelings close the doors they opened once through (never with a player in the doorway). Off: they leave them open.");
+            BaseNavLinks = Synced(w, "BaseNavLinks", true, "Inside a hiring board's area, hirelings route through doors and up stairs and ladders found in your buildings (modded pieces too, by their shape). Off: the 0.2 door and stairs handling.");
             TreeSafetyDistanceFromPieces = Synced(w, "TreeSafetyDistanceFromPieces", 6f, "Woodcutters skip trees with a player-built piece this close to the trunk (m).");
             TreeFallCorridorHalfWidth = Synced(w, "TreeFallCorridorHalfWidth", 4f, "Woodcutters fell a tree only in a direction where no player-built piece lies within the tree's height and this far either side of the fall line (m). If no direction is clear, the tree is left standing.");
             MinerProtectsTerrain = Synced(w, "MinerProtectsTerrain", true, "Hireling pickaxe swings never dig the ground near your buildings or inside their board's work area. Out in the field they dig like a player would, to get at ore sitting low in the ground. Turning this off lets miners dig anywhere, including in your base.");

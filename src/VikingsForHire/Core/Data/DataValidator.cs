@@ -61,6 +61,11 @@ namespace VikingsForHire.Core.Data
             }
 
             if (data.Names.Male.Count == 0 || data.Names.Female.Count == 0) errors.Add("names.male and names.female need at least one name each");
+
+            if (data.NavLinks.Include.Any(string.IsNullOrWhiteSpace) || data.NavLinks.Exclude.Any(string.IsNullOrWhiteSpace))
+                errors.Add("navLinks.include and navLinks.exclude can't have empty entries");
+            foreach (string both in data.NavLinks.Include.Intersect(data.NavLinks.Exclude, System.StringComparer.OrdinalIgnoreCase))
+                errors.Add($"navLinks: {both} is in both include and exclude");
             return errors;
         }
 

@@ -36,6 +36,19 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void NavLinksReachOlderFiles()
+        {
+            string full = DataYaml.Serialize(DefaultData.Create());
+            int start = full.IndexOf("navLinks:");
+            Assert.True(start > 0, "default file should have navLinks");
+            string yaml = full.Substring(0, full.LastIndexOf('\n', start) + 1);
+            VfhData data = DataYaml.Deserialize(yaml, out var filled);
+            Assert.Empty(data.NavLinks.Include);
+            Assert.Empty(data.NavLinks.Exclude);
+            Assert.Contains("navLinks", filled);
+        }
+
+        [Fact]
         public void WhatTheFileSaysIsKept()
         {
             string yaml = DataYaml.Serialize(DefaultData.Create()).Replace("    minBoardLevel: 2\n", "    minBoardLevel: 4\n");
