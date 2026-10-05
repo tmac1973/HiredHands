@@ -22,7 +22,7 @@ namespace VikingsForHire.Testing
             _skipTimeRpc = Jotunn.Managers.NetworkManager.Instance.AddRPC("VFH_TestSkipTime", OnServerSkipTime, OnClientSkipTimeIgnored);
             Fixtures.Add("stock_board", "<foodPoints> <coins> - put cooked meat and coins in the nearest board", StockBoard);
             Fixtures.Add("board_clear", "- empty the nearest board's storage", _ => BoardClear());
-            Fixtures.Add("post", "<job> <level> [radius=20] - post a contract on the nearest board (pays like the panel) and wait for the answer", Post);
+            Fixtures.Add("post", "<job> <level> [radius=20] [free] - post a contract on the nearest board (pays like the panel, or nothing with free) and wait for the answer", Post);
             Fixtures.Add("contract", "<cancel|dismiss|promote> - act on the contract last posted, through the real op", Contract);
             Fixtures.Add("skip_time", "<seconds> - move the world clock on (up to 1500 s, under a day so no upkeep is charged): stations, fermenters and beehives catch up as after sleeping", SkipTime);
             Fixtures.Add("skip_days", "<n> - advance the clock n days (like skiptime 1800) and let the board charge upkeep", SkipDays);
@@ -119,10 +119,12 @@ namespace VikingsForHire.Testing
         private static IEnumerator Post(string[] args)
         {
             if (args.Length < 2 || !Enum.TryParse(args[0], true, out JobType job) || !int.TryParse(args[1], out int level))
-                throw new ArgumentException("usage: post <job> <level> [radius]");
+                throw new ArgumentException("usage: post <job> <level> [radius] [free]");
             float radius = args.Length > 2 ? float.Parse(args[2], CultureInfo.InvariantCulture) : 20f;
+            // free: no hire fee (high levels cost more than a board's 8 slots hold under some price tables).
+            bool free = args.Skip(3).Any(a => a == "free");
             bool answered = false;
-            BoardContracts.Post(Board(), job, level, radius, StanceRules.Default(job), _ => answered = true);
+            BoardContracts.Post(Board(), job, level, radius, StanceRules.Default(job), _ => answered = true, free);
             for (float t = 0f; !answered && t < 5f; t += Time.deltaTime)
                 yield return null;
         }

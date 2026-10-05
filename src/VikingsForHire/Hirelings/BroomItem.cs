@@ -86,32 +86,43 @@ namespace VikingsForHire.Hirelings
             return filters.OrderByDescending(f => f.sharedMesh.bounds.size.magnitude).FirstOrDefault();
         }
 
-        // A mesh named like a broom, of a broom's size (a whole building with "broom" in a part name won't do).
+        // A mesh named like a broom, of a broom's size (a whole building with "broom" in a part name won't do). Meshes
+        // drawn by plain or skinned renderers both count.
         private static (Mesh, Material[], string)? FindBroom()
         {
-            IEnumerable<(MeshFilter Filter, string Where)> candidates =
-                (ZNetScene.instance != null ? ZNetScene.instance.m_prefabs : new List<GameObject>()).Where(p => p != null).SelectMany(p => p.GetComponentsInChildren<MeshFilter>(true).Select(f => (f, "prefab:" + p.name)))
-                    .Concat(Resources.FindObjectsOfTypeAll<MeshFilter>().Select(f => (f, "loaded")));
-            foreach ((MeshFilter f, string where) in candidates)
+            IEnumerable<(Renderer R, Mesh M, string Where)> candidates =
+                (ZNetScene.instance != null ? ZNetScene.instance.m_prefabs : new List<GameObject>()).Where(p => p != null)
+                    .SelectMany(p => Meshes(p).Select(x => (x.R, x.M, "prefab:" + p.name)))
+                    .Concat(Resources.FindObjectsOfTypeAll<MeshFilter>().Select(f => ((Renderer)f.GetComponent<MeshRenderer>(), f.sharedMesh, "loaded")))
+                    .Concat(Resources.FindObjectsOfTypeAll<SkinnedMeshRenderer>().Select(s => ((Renderer)s, s.sharedMesh, "loaded")));
+            var seen = new List<string>();
+            foreach ((Renderer r, Mesh m, string where) in candidates)
             {
-                Mesh? m = f != null ? f.sharedMesh : null;
-                if (f == null || m == null || m.name.IndexOf("broom", StringComparison.OrdinalIgnoreCase) < 0 || Rejected.Contains(m.name))
+                if (r == null || m == null || m.name.IndexOf("broom", System.StringComparison.OrdinalIgnoreCase) < 0 || Rejected.Contains(m.name))
                     continue;
-                float longest = Mathf.Max(m.bounds.size.x, Mathf.Max(m.bounds.size.y, m.bounds.size.z)) * MaxScale(f.transform);
-                MeshRenderer? r = f.GetComponent<MeshRenderer>();
-                if (longest < 0.8f || longest > 3f || m.vertexCount > 5000 || r == null || r.sharedMaterials.Length == 0)
+                float longest = Mathf.Max(m.bounds.size.x, Mathf.Max(m.bounds.size.y, m.bounds.size.z)) * MaxScale(r.transform);
+                if (seen.Count < 10)
+                    seen.Add($"{m.name}@{where} {longest:0.00}m {m.vertexCount}v");
+                if (longest < 0.8f || longest > 3f || m.vertexCount > 5000 || r.sharedMaterials.Length == 0)
                     continue;
                 return (m, r.sharedMaterials, where);
             }
+            VfhLog.I(LogCat.Hireling, "broom.search", ("found", seen.Count == 0 ? "no mesh named broom is loaded" : string.Join(" | ", seen)));
             return null;
         }
+
+        private static IEnumerable<(Renderer R, Mesh M)> Meshes(GameObject go) =>
+            go.GetComponentsInChildren<MeshFilter>(true).Select(f => ((Renderer)f.GetComponent<MeshRenderer>(), f.sharedMesh))
+                .Concat(go.GetComponentsInChildren<SkinnedMeshRenderer>(true).Select(s => ((Renderer)s, s.sharedMesh)));
 
         private static (Mesh, Material[], string)? Fallback()
         {
             GameObject? cultivator = ObjectDB.instance != null ? ObjectDB.instance.GetItemPrefab(FallbackPrefab) : null;
-            MeshFilter? f = cultivator != null ? Visual(cultivator) : null;
-            MeshRenderer? r = f != null ? f.GetComponent<MeshRenderer>() : null;
-            return f != null && r != null ? (f.sharedMesh, r.sharedMaterials, "fallback:Cultivator") : null;
+            if (cultivator == null)
+                return null;
+            (Renderer R, Mesh M) best = Meshes(cultivator).Where(x => x.R != null && x.M != null)
+                .OrderByDescending(x => x.M.bounds.size.magnitude).FirstOrDefault();
+            return best.R != null && best.M != null ? (best.M, best.R.sharedMaterials, "fallback:Cultivator") : null;
         }
 
         private static float MaxScale(Transform t) => Mathf.Max(Mathf.Abs(t.lossyScale.x), Mathf.Max(Mathf.Abs(t.lossyScale.y), Mathf.Abs(t.lossyScale.z)));

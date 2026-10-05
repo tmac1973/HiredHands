@@ -63,12 +63,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
             {
                 if (Reservations.IsReservedByOther(f, ctx.Hireling.Hid) || Reservations.IsSkipped(f))
                     continue;
-                // Out in the open it never brews (vanilla keeps resetting it): leave it to the player to roof over.
-                if (f.m_exposed || !f.m_hasRoof)
-                    continue;
                 Fermenter.Status status = f.GetStatus();
                 bool ready = status == Fermenter.Status.Ready;
-                bool empty = status == Fermenter.Status.Empty;
+                // Out in the open it never brews (vanilla keeps resetting it): don't load it; the player has to roof it over.
+                bool empty = status == Fermenter.Status.Empty && !f.m_exposed && f.m_hasRoof;
                 if (empty && !Bases(f).Any(b => Have(ctx, b) > 0))
                 {
                     Missing ??= ActivityText.Make("$vfh_need_base", f.m_name);

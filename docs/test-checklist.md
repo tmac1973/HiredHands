@@ -114,7 +114,7 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-CHORE-3 Mills | SP | `vfh_t_mills` | Open ground (flattened) | `pass=true`; windmill and spinning wheel loaded from chests; flour and linen reach their chests (with AzuAutoStore: Azu stores them) |
 | VFH-CHORE-4 Fires | SP | `vfh_t_fires` | Open ground (flattened) | `pass=true`; hearth and wood torch fuelled to full from a chest (Torches Eternal switched off for it); with Torches Eternal installed the Steward adds nothing |
 | VFH-CHORE-5 Beehive | SP | `vfh_t_beehive` | Open ground (flattened) | `pass=true`; a full beehive emptied, its honey in the honey chest |
-| VFH-CHORE-6 Sap collector | SP | `vfh_t_sap` | Open ground (flattened) | `pass=true`; level 5 leaves it, level 6 empties it into the sap chest |
+| VFH-CHORE-6 Sap collector | SP | `vfh_t_sap` | Open ground (flattened) | `pass=true`; a level 6 Steward empties it into the sap chest (the level gate itself is VFH-CHORE-1) |
 | VFH-CHORE-7 Tamed animals | SP | `vfh_t_animals` | Open ground (flattened) | `pass=true`; a hungry tamed boar gets a raspberry dropped in front of it and eats it (AzuAutoStore doesn't take it); with PetPantry counted, a second boar is left alone |
 | VFH-CHORE-8 Repairs | SP | `vfh_t_repairs` | Open ground (flattened) | `pass=true`; the wall by the workbench is repaired, the one 28 m out (no station in range) isn't, and nothing is repaired while a Greyling is about |
 | VFH-CHORE-9 Most urgent first | SP | `vfh_t_chore_urgency` | Open ground (flattened) | `pass=true`; an empty hearth before an empty smelter, then the smelter |
@@ -303,3 +303,9 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-05 | d103f20 | VFH-CHORE-3 | SP | Pass | Windmill and roofed spinning wheel loaded; flour and linen stored after a 20-minute skip |
 | 2026-10-05 | d7ebfd8 | VFH-CHORE-4 | SP | Pass | Hearth and wood torch fuelled from a chest; nothing added with Torches Eternal counted |
 | 2026-10-05 | d7ebfd8 | VFH-CHORE-9 | SP | Pass | Empty hearth (score 0.90) first, then the smelter (0.88) |
+| 2026-10-05 | 5f085ff | VFH-CHORE-5 | SP | Pass | Full beehive emptied, honey in the honey chest |
+| 2026-10-05 | 5f085ff | VFH-CHORE-7 | SP | Pass | Hungry tamed boar fed from a chest (AzuAutoStore left the food alone) |
+| 2026-10-05 | 5f085ff | VFH-CHORE-12 | SP | Pass | Wood lying about put away; resin torch fuelled first |
+| 2026-10-05 | 5f085ff | VFH-CHORE-6, VFH-CHORE-11 | SP | Fail (test) | Level 6/7 hires cost more than a board's 8 slots hold under the dev profile's price table; tests now hire free |
+| 2026-10-05 | 5f085ff | VFH-CHORE-8 | SP | Fail | Quiet check counted wild monsters anywhere within the area + 30 m; now only within 30 m of the Steward or the piece |
+| 2026-10-05 | 5f085ff | VFH-CHORE-10 | SP | Fail | Roof check also stopped tapping; now only loading needs the roof |

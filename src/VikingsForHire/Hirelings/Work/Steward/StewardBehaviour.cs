@@ -144,7 +144,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                         best = (j, chore);
             }
             VfhLog.D(LogCat.Smelter, "steward.survey", ("hid", h.Hid), ("level", ctx.Level), ("candidates", string.Join(",", counts)),
-                ("skipped", string.Join(",", skipped)), ("winner", best.Job == null ? "none" : $"{best.Job.Kind}:{TargetName(best.Job)}"),
+                ("skipped", string.Join(",", skipped)), ("missing", missing ?? ""), ("winner", best.Job == null ? "none" : $"{best.Job.Kind}:{TargetName(best.Job)}"),
                 ("score", best.Job?.Score ?? 0f));
 
             if (best.Job == null || best.Chore == null)

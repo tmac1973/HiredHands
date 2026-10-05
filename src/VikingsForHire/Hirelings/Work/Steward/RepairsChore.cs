@@ -26,23 +26,28 @@ namespace VikingsForHire.Hirelings.Work.Steward
         public string? Missing { get; private set; }
         public float RestAfter { get; private set; }
 
-        // Any enemy of the Steward's within 30 m of it or of the base area: wait until the fight is over.
-        private bool Quiet(StewardContext ctx)
+        // Monsters about: any enemy of the Steward's (monsters only: the players' side counts deer and wild boar as
+        // enemies too, and they never attack). Listed once per survey.
+        private static List<Vector3> Monsters(StewardContext ctx)
         {
             Humanoid me = ctx.Hireling.Humanoid;
+            var found = new List<Vector3>();
             foreach (Character c in Character.GetAllCharacters())
             {
-                // Monsters only: the players' side counts deer and wild boar as enemies too, and they never attack.
                 if (c == null || c.IsDead() || c == me || !BaseAI.IsEnemy(me, c) || c.GetFaction() == Character.Faction.AnimalsVeg ||
                     c.GetBaseAI() is not MonsterAI)
                     continue;
-                if (Vector3.Distance(c.transform.position, ctx.Position) < EnemyRange ||
-                    Utils.DistanceXZ(c.transform.position, ctx.Home) < ctx.Radius + EnemyRange)
-                {
-                    _lastEnemySeen = Time.time;
-                    break;
-                }
+                if (Utils.DistanceXZ(c.transform.position, ctx.Home) < ctx.Radius + EnemyRange)
+                    found.Add(c.transform.position);
             }
+            return found;
+        }
+
+        // Not while a fight is on: no monster within 30 m of the Steward or of the piece, for a while after the last one.
+        private bool Quiet(StewardContext ctx, List<Vector3> monsters, Vector3 piece)
+        {
+            if (monsters.Any(m => Vector3.Distance(m, ctx.Position) < EnemyRange || Vector3.Distance(m, piece) < EnemyRange))
+                _lastEnemySeen = Time.time;
             return Time.time - _lastEnemySeen >= VfhConfig.StewardRepairQuietSeconds.Value;
         }
 
@@ -68,13 +73,14 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 .ToList();
             if (damaged.Count == 0)
                 return jobs;
-            if (!Quiet(ctx))
-            {
-                Missing = "$vfh_steward_wait_enemies";
-                return jobs;
-            }
+            List<Vector3> monsters = Monsters(ctx);
             foreach ((Piece p, WearNTear wnt, float health) in damaged)
             {
+                if (!Quiet(ctx, monsters, p.transform.position))
+                {
+                    Missing ??= "$vfh_steward_wait_enemies";
+                    continue;
+                }
                 if (Reservations.IsReservedByOther(wnt, ctx.Hireling.Hid) || Reservations.IsSkipped(wnt) || !ctx.BoardOwnerMayUse(p.transform.position))
                     continue;
                 if (MissingStation(p, p.transform.position) is CraftingStation station)
