@@ -14,8 +14,8 @@ Plan: `plan/steward-chores/`.
 | af9eca8 | Steward chore loop (most urgent job first), stations gated per station level (level 1 Stewards no longer smelt), Mills chore, Shift+E chore list with toggles and states, status lines naming the chore or what's missing | the game simulating the Steward; panel on yours |
 
 ### To test (batch)
-- [ ] Macros (single player): `vfh_test_chain chore_gate chore_toggle mills work5 azu3 keep1 keep2`.
-- [ ] By hand: a level 2 Steward's Shift+E panel lists the seven chores. Fires, beehives, stations and animals are on (fires and animals show "handled by TorchesEternal"/"PetPantry" with those mods installed). Mills, sap and repairs show "locked until level 5/6/3". Under Stations: "Blast furnace: locked until level 5, Eitr refinery: locked until level 6". Switching Stations off stops it loading the smelter.
+- [x] Macros (single player): `vfh_test_chain chore_gate chore_toggle mills azu3 keep1 keep2` (passed; work5 needs AzuAutoStore absent).
+- [x] By hand: a level 2 Steward's Shift+E panel lists the seven chores. Fires, beehives, stations and animals are on (fires and animals show "handled by TorchesEternal"/"PetPantry" with those mods installed). Mills, sap and repairs show "locked until level 5/6/3". Under Stations: "Blast furnace: locked until level 5, Eitr refinery: locked until level 6". Switching Stations off stops it loading the smelter.
 - [ ] By hand: the Roster tab and hover show what the Steward is doing ("Loading Smelter") or why it's idle ("Smelter: no Coal in any chest", "All done").
 
 ## 0.3.0 (released 2026-10-05): base nav links
