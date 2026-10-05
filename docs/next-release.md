@@ -22,7 +22,7 @@ Plan: `plan/base-nav-links/`. All of it runs on the game simulating the hireling
 - [ ] By hand at a house of yours near a board: `vfh_navlinks show` draws the door green and the stairs yellow; remove the stairs and the line goes within ~3 s; a roof gets no line.
 - [ ] By hand: a woodcutter delivering to a chest upstairs behind a closed door; it closes the door behind it; `vfh_navlinks show` draws its route (white).
 - [ ] By hand: followers into the house, door closed behind you, upstairs: they follow without a teleport; back down and out.
-- [ ] Local dedicated server: `vfh_t_nav1` and `vfh_t_nav5` from a client.
+- [x] Local dedicated server: `vfh_t_nav1`, `vfh_t_nav5`, `vfh_t_nav6` and `vfh_t_portal1` from a client (passed).
 - [ ] Live mod set (single-player copy with `1dotohsupermodded`): modded staircases show as links without any list entry; `navlinks.scan` `ms`/`frames` reasonable; `perf.minute` worst frame and `aiMsPerFrame` about as in 0.2.4.
 - [ ] Live server after release: Gerd's door and fence, no door/stairs `nav.stuck` lines.
 
