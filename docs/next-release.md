@@ -8,7 +8,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
-| (next) | Idle hirelings (nothing to do at home, e.g. "Works at home" off and no post) stand at an open-air spot near the board they have a full route to, moving now and then, instead of wandering into buildings and up and down the stairs (Gerd) | the game simulating the hireling |
+| d7466ba | Idle hirelings (nothing to do at home, e.g. "Works at home" off and no post) stand at an open-air spot near the board they have a full route to, moving now and then, instead of wandering into buildings and up and down the stairs (Gerd) | the game simulating the hireling |
 
 ### To test (batch)
 - [ ] By hand (live server): Gerd with "Works at home" off and no post stands near the board outside the house; every minute or so he moves to another spot nearby; no stair runs. A board inside a hall: idle hirelings stand on the hall floor near it.
