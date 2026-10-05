@@ -117,7 +117,10 @@ namespace VikingsForHire.Hirelings
 
         private static (Mesh, Material[], string)? Fallback()
         {
-            GameObject? cultivator = ObjectDB.instance != null ? ObjectDB.instance.GetItemPrefab(FallbackPrefab) : null;
+            // The scene knows every item prefab too (the item database may not be up yet when this runs).
+            GameObject? cultivator = ZNetScene.instance != null ? ZNetScene.instance.GetPrefab(FallbackPrefab) : null;
+            if (cultivator == null && ObjectDB.instance != null)
+                cultivator = ObjectDB.instance.GetItemPrefab(FallbackPrefab);
             if (cultivator == null)
                 return null;
             (Renderer R, Mesh M) best = Meshes(cultivator).Where(x => x.R != null && x.M != null)

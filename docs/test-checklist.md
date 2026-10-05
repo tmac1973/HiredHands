@@ -309,3 +309,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-05 | 5f085ff | VFH-CHORE-6, VFH-CHORE-11 | SP | Fail (test) | Level 6/7 hires cost more than a board's 8 slots hold under the dev profile's price table; tests now hire free |
 | 2026-10-05 | 5f085ff | VFH-CHORE-8 | SP | Fail | Quiet check counted wild monsters anywhere within the area + 30 m; now only within 30 m of the Steward or the piece |
 | 2026-10-05 | 5f085ff | VFH-CHORE-10 | SP | Fail | Roof check also stopped tapping; now only loading needs the roof |
+| 2026-10-05 | c86af42 | VFH-CHORE-11 | SP | Pass | Empty shield generator fed bones from a chest |

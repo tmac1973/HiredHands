@@ -40,7 +40,7 @@ namespace VikingsForHire.Testing
                 Fireplace f = FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<Fireplace>() ?? throw new InvalidOperationException("no such tagged fire");
                 return (Hirelings.Work.Steward.FiresChore.FuelAdded.TryGetValue(f.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
             });
-            Fixtures.Add("producer", "<piece_beehive|piece_sapcollector> <level> [tag] - a beehive or sap collector in a ring 7 m from the board, already that full", Producer);
+            Fixtures.Add("producer", "<piece_beehive|piece_sapcollector> <level|full> [tag] - a beehive or sap collector in a ring 7 m from the board, already that full", Producer);
             TestHarness.RegisterCheck("producer_level", "<tag> - how full a tagged beehive or sap collector is", args =>
             {
                 GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged producer");
@@ -310,15 +310,18 @@ namespace VikingsForHire.Testing
         private static IEnumerator Producer(string[] args)
         {
             string prefab = args.ElementAtOrDefault(0) ?? "piece_beehive";
-            int level = int.Parse(args.ElementAtOrDefault(1) ?? "4", CultureInfo.InvariantCulture);
+            string levelArg = args.ElementAtOrDefault(1) ?? "full";
             string tag = args.ElementAtOrDefault(2) ?? "";
             HiringBoard board = Board();
             Vector3 pos = board.transform.position + Quaternion.Euler(0f, 140f + 50f * (_fires++ % 6), 0f) * board.transform.forward * 7f;
             GameObject go = Spawn(prefab, pos, tag);
             OwnBuilt(go);
             yield return null;
+            // "full": as full as this producer gets (beehives and sap collectors hold different amounts).
+            int max = go.GetComponentInChildren<Beehive>()?.m_maxHoney ?? go.GetComponentInChildren<SapCollector>()?.m_maxLevel ?? 4;
+            int level = levelArg == "full" ? max : int.Parse(levelArg, CultureInfo.InvariantCulture);
             go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_level, level);
-            VfhLog.I(LogCat.Test, "fixture.producer", ("prefab", prefab), ("level", level), ("tag", tag));
+            VfhLog.I(LogCat.Test, "fixture.producer", ("prefab", prefab), ("level", level), ("max", max), ("tag", tag));
             yield return null;
         }
 

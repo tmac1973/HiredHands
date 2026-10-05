@@ -21,6 +21,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private readonly StewardSteps _walk = new();
         private WearNTear? _piece;
         private float _lastEnemySeen = -999f;
+        private float _waitLoggedAt = -999f;
+        private static readonly List<string> _monsterNames = new();
 
         public ChoreKind Kind => ChoreKind.Repairs;
         public string? Missing { get; private set; }
@@ -32,13 +34,17 @@ namespace VikingsForHire.Hirelings.Work.Steward
         {
             Humanoid me = ctx.Hireling.Humanoid;
             var found = new List<Vector3>();
+            _monsterNames.Clear();
             foreach (Character c in Character.GetAllCharacters())
             {
                 if (c == null || c.IsDead() || c == me || !BaseAI.IsEnemy(me, c) || c.GetFaction() == Character.Faction.AnimalsVeg ||
                     c.GetBaseAI() is not MonsterAI)
                     continue;
                 if (Utils.DistanceXZ(c.transform.position, ctx.Home) < ctx.Radius + EnemyRange)
+                {
                     found.Add(c.transform.position);
+                    _monsterNames.Add($"{Utils.GetPrefabName(c.gameObject)}@{Vector3.Distance(c.transform.position, ctx.Position):0}m");
+                }
             }
             return found;
         }
@@ -47,7 +53,14 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private bool Quiet(StewardContext ctx, List<Vector3> monsters, Vector3 piece)
         {
             if (monsters.Any(m => Vector3.Distance(m, ctx.Position) < EnemyRange || Vector3.Distance(m, piece) < EnemyRange))
+            {
                 _lastEnemySeen = Time.time;
+                if (Time.time - _waitLoggedAt > 10f)
+                {
+                    _waitLoggedAt = Time.time;
+                    VfhLog.D(LogCat.Smelter, "steward.repair_wait", ("hid", ctx.Hireling.Hid), ("monsters", string.Join(" ", _monsterNames)));
+                }
+            }
             return Time.time - _lastEnemySeen >= VfhConfig.StewardRepairQuietSeconds.Value;
         }
 
