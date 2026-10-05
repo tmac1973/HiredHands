@@ -296,3 +296,5 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-05 | 7aaecec | VFH-CHORE-1, VFH-CHORE-2, VFH-AZU-3, VFH-SMELT-4, VFH-SMELT-5 | SP | Pass | Steward chore loop (phase 02): level gate, toggle, and the existing smelting rows with a level 2 Steward |
 | 2026-10-05 | 1e83624 | VFH-CHORE-3 | SP | Fail (test) | Windmill loaded and flour stored; spinning wheel loaded but never span: it needs a roof (m_requiresRoof). Test now builds one (roof_over) |
 | 2026-10-05 | d103f20 | VFH-CHORE-3 | SP | Pass | Windmill and roofed spinning wheel loaded; flour and linen stored after a 20-minute skip |
+| 2026-10-05 | d7ebfd8 | VFH-CHORE-4 | SP | Pass | Hearth and wood torch fuelled from a chest; nothing added with Torches Eternal counted |
+| 2026-10-05 | d7ebfd8 | VFH-CHORE-9 | SP | Pass | Empty hearth (score 0.90) first, then the smelter (0.88) |
