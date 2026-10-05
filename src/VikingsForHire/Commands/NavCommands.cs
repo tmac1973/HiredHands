@@ -87,7 +87,8 @@ namespace VikingsForHire.Commands
             var outputs = new HashSet<string>(s.m_conversion.Where(c => c.m_to != null).Select(c => c.m_to.gameObject.name));
             int onGround = ItemDrop.s_instances.Where(d => d != null && d.m_itemData?.m_dropPrefab != null && outputs.Contains(d.m_itemData.m_dropPrefab.name) &&
                                                              UnityEngine.Vector3.Distance(d.transform.position, outAt) < 6f).Sum(d => d.m_itemData.m_stack);
-            string text = $"{prefab}: spawnStack={s.m_spawnStack} emptySwitch={(s.m_emptyOreSwitch != null)} secPerProduct={s.m_secPerProduct} maxOre={s.m_maxOre} " +
+            bool roofOk = !s.m_requiresRoof || (s.m_roofCheckPoint != null && Cover.IsUnderRoof(s.m_roofCheckPoint.position));
+            string text = $"{prefab}: needsRoof={s.m_requiresRoof} roofOk={roofOk} windmill={(s.m_windmill != null)} spawnStack={s.m_spawnStack} emptySwitch={(s.m_emptyOreSwitch != null)} secPerProduct={s.m_secPerProduct} maxOre={s.m_maxOre} " +
                           $"fuel={(s.m_fuelItem != null ? s.m_fuelItem.name : "none")} queue={z.GetInt(ZDOVars.s_queued)} heldInside={z.GetInt(ZDOVars.s_spawnAmount)} " +
                           $"heldItem={z.GetString(ZDOVars.s_spawnOre)} outputNearby={onGround} outputs={string.Join(",", outputs)}";
             VfhCommand.Print(text);

@@ -289,3 +289,5 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-05 | 6018bc2 | VFH-PORTAL-1 | D | Pass | Rerun on the local dedicated server with `ore_portal_ok` |
 | 2026-10-05 | 8c08688 | VFH-NAVLINK-8 | D | Pass | On the local dedicated server: follower took walk>door>stair>walk up to you, no catch-up teleport |
 | 2026-10-05 | 8c08688 | VFH-NAVLINK-9 | D | Pass | Up (door, stair) and back down the stair and out, door closed behind, no teleport |
+| 2026-10-05 | 7aaecec | VFH-CHORE-1, VFH-CHORE-2, VFH-AZU-3, VFH-SMELT-4, VFH-SMELT-5 | SP | Pass | Steward chore loop (phase 02): level gate, toggle, and the existing smelting rows with a level 2 Steward |
+| 2026-10-05 | 1e83624 | VFH-CHORE-3 | SP | Fail (test) | Windmill loaded and flour stored; spinning wheel loaded but never span: it needs a roof (m_requiresRoof). Test now builds one (roof_over) |
