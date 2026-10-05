@@ -42,6 +42,17 @@ namespace VikingsForHire.Testing
             });
             Fixtures.Add("retreat", "- the stone's middle click: your followers nearby retreat with you", _ => RetreatNow());
             Fixtures.Add("follow_stats_reset", "- start counting follower lag and catch-up teleports afresh", _ => ResetStats());
+            Fixtures.Add("player_to", "<tag> [dy=0.5] - move yourself onto a tagged object (a direct move: followers aren't carried along as by a teleport)", PlayerTo);
+            TestHarness.RegisterCheck("follower_gap", "<dist|dy> - the largest distance (or height difference) between you and any of your followers right now", args =>
+            {
+                Player me = Player.m_localPlayer;
+                var mine = Hireling.Loaded.Where(f => f != null && f.Mode == HirelingMode.Following && f.OwnerId == me.GetPlayerID()).ToList();
+                if (mine.Count == 0)
+                    return "-1";
+                bool dy = args.ElementAtOrDefault(0) == "dy";
+                float worst = mine.Max(f => dy ? Mathf.Abs(f.transform.position.y - me.transform.position.y) : Vector3.Distance(f.transform.position, me.transform.position));
+                return worst.ToString("0.00", CultureInfo.InvariantCulture);
+            });
             Fixtures.Add("release_all", "- ask the server to send every follower that's home back to work", _ => Op(FollowerServer.Kind.ReleaseAll, ""));
 
             TestHarness.RegisterCheck("followers", "- how many followers you have (server's count)",
@@ -104,6 +115,24 @@ namespace VikingsForHire.Testing
             Vector3 p = Spot(args.ElementAtOrDefault(1) ?? "back", float.Parse(args.ElementAtOrDefault(2) ?? "20", CultureInfo.InvariantCulture), out _);
             MutationService.SubmitHireling(Posted(), new HirelingOp { FollowMode = mode, StayPos = (p.x, p.y, p.z) });
             VfhLog.I(LogCat.Test, "fixture.park", ("hid", Posted()), ("mode", mode), ("pos", p));
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        // Not Player.TeleportTo: TeleportTravel carries followers along on any teleport, which would defeat the test.
+        private static IEnumerator PlayerTo(string[] args)
+        {
+            GameObject target = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged object");
+            float dy = args.Length > 1 ? float.Parse(args[1], CultureInfo.InvariantCulture) : 0.5f;
+            Player me = Player.m_localPlayer;
+            Vector3 to = target.transform.position + Vector3.up * dy;
+            me.transform.position = to;
+            if (me.GetComponent<Rigidbody>() is Rigidbody body)
+            {
+                body.position = to;
+                body.linearVelocity = Vector3.zero;
+            }
+            me.m_maxAirAltitude = to.y;
+            VfhLog.I(LogCat.Test, "fixture.player_to", ("tag", args[0]), ("pos", to));
             yield return new WaitForSeconds(0.5f);
         }
 

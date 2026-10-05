@@ -136,6 +136,8 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-NAVLINK-5 Stepladder | SP | `vfh_t_nav2` | Open ground | `pass=true`; delivered upstairs via the stepladder (a `navlinks.hop` is allowed) |
 | VFH-NAVLINK-6 Stair removed | SP | `vfh_t_nav3` | Open ground | `pass=true`; after the stair goes, the woodcutter delivers to the chest by the board, no hang |
 | VFH-NAVLINK-7 Setting off | SP | `vfh_t_nav4` | Open ground | `pass=true`; with `BaseNavLinks` off the 0.2 door detour still works (same as `vfh_t_door1`) |
+| VFH-NAVLINK-8 Follow upstairs | SP | `vfh_t_nav5` | Open ground | `pass=true`; the follower comes through the house's door and up the stair to you, no catch-up teleport |
+| VFH-NAVLINK-9 Follow back out | SP | `vfh_t_nav6` | Open ground | `pass=true`; it follows you back down and out; the door is closed behind it |
 | VFH-STONE-2 Stone by hand | SP | — | Stone in hand: left click a tree / rock / enemy / the ground with followers near; right click nothing; Shift+E a follower | Woodcutters chop, miners mine, guards attack, everyone holds at the clicked spot; right click calls them back; the Shift+E panel changes follow mode and stance (with "apply to all") |
 | VFH-POST-2 Archer on a tower | SP | — | Lead an archer up the stairs of a tower inside your board's area and left click it there | It stays on the tower, shoots from there, and only steps off for something within 6 m |
 | VFH-PORTAL-1 Portal | SP, D | `vfh_t_portal1` | Open ground, flat 60 m ahead | `pass=true`; the woodcutter comes through with its wood; with copper ore it stays behind in Stay |

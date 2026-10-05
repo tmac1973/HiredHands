@@ -340,11 +340,16 @@ namespace VikingsForHire.Hirelings
         /// </summary>
         public bool Chase(float dt, Vector3 point, float stopDistance, bool run)
         {
-            if (Utils.DistanceXZ(point, transform.position) <= stopDistance)
+            // Close along the ground counts as there, unless it's another floor of a building at home.
+            bool otherFloor = Mathf.Abs(point.y - transform.position.y) > 1.5f && Nav.NavLinkRegistry.AreaAt(transform.position) != null;
+            if (Utils.DistanceXZ(point, transform.position) <= stopDistance && !otherFloor)
             {
                 StopMoving();
                 return true;
             }
+            // Inside a board's area with no full route to the owner: through the board's doors and stairs.
+            if (Nav.NavLinkRegistry.Enabled && Links.Chase(dt, point, stopDistance, run) is bool viaLinks)
+                return viaLinks;
             TrackProgress(point);
             bool route = PathReaches(point, Mathf.Max(stopDistance, 1f) + 3f);
             if (route != !ChasingDirect)

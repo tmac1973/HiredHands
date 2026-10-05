@@ -17,7 +17,9 @@ namespace VikingsForHire.Hirelings.Nav
     internal sealed class LinkNavigator
     {
         private const float GoalMoved = 1.5f;
+        private const float ChaseMoved = 3f;
         private const float PlanEvery = 0.5f;
+        private const float ChasePlanEvery = 1f;
         private const float DirectCheckEvery = 2f;
         private const float WalkDone = 0.8f;
         private const float WalkStuckSeconds = 10f;
@@ -86,8 +88,21 @@ namespace VikingsForHire.Hirelings.Nav
         /// Walk towards the goal through the links if that's needed. Null: not needed or not possible, so the caller walks
         /// the usual way; otherwise whether it has arrived.
         /// </summary>
-        public bool? Walk(float dt, Vector3 goal, float stopDistance, bool run)
+        public bool? Walk(float dt, Vector3 goal, float stopDistance, bool run) => Go(dt, goal, stopDistance, run, chase: false);
+
+        /// <summary>
+        /// A follower after its owner (a moving goal) inside a board's area: through the links when the game's map has no
+        /// full route to them; back to the usual chase as soon as it has one.
+        /// </summary>
+        public bool? Chase(float dt, Vector3 owner, float stopDistance, bool run) => Go(dt, owner, stopDistance, run, chase: true);
+
+        /// <summary>Getting somewhere along a route (for the follower stuck check): mid door or stair, or closing in on the next point.</summary>
+        public bool Progressing => _steps != null && (OnLinkStep || (_i < _steps.Count && _ai.StuckSeconds(_steps[_i].To.ToUnity()) < 4f));
+
+        private bool? Go(float dt, Vector3 goal, float stopDistance, bool run, bool chase)
         {
+            float moved = chase ? ChaseMoved : GoalMoved;
+            float slack = chase ? 3f : 1.5f;
             BoardNav? nav = Area(goal);
             if (nav == null || FallingBack(goal))
             {
@@ -99,22 +114,28 @@ namespace VikingsForHire.Hirelings.Nav
 
             if (_steps != null && !OnLinkStep)
             {
-                if (Vector3.Distance(goal, _goal) > GoalMoved || (_nav != null && _nav.Graph.Version != _version))
+                if (Vector3.Distance(goal, _goal) > moved || (_nav != null && _nav.Graph.Version != _version))
                     Drop();
+                // A follower takes the usual chase again as soon as the map can get it to its owner.
+                else if (chase && DirectOk(goal, stopDistance, slack))
+                {
+                    Drop();
+                    return null;
+                }
             }
 
             if (_steps == null)
             {
                 if (nav == null)
                     return null;
-                if (Vector3.Distance(goal, _goal) > GoalMoved)
+                if (Vector3.Distance(goal, _goal) > moved)
                 {
                     _replans = 0;
                     _goal = goal;
                 }
-                if (DirectOk(goal, stopDistance))
+                if (DirectOk(goal, stopDistance, slack))
                     return null;
-                if (Time.time - _lastPlan < PlanEvery)
+                if (Time.time - _lastPlan < (chase ? ChasePlanEvery : PlanEvery))
                     return Waiting();
                 Plan(nav, goal);
                 if (_steps == null)
@@ -132,13 +153,13 @@ namespace VikingsForHire.Hirelings.Nav
             return false;
         }
 
-        private bool DirectOk(Vector3 goal, float stopDistance)
+        private bool DirectOk(Vector3 goal, float stopDistance, float slack)
         {
             if (Vector3.Distance(goal, _directGoal) > GoalMoved || Time.time - _directAt > DirectCheckEvery)
             {
                 _directGoal = goal;
                 _directAt = Time.time;
-                _directOk = _ai.FullRouteTo(goal, Mathf.Max(stopDistance, 1f) + 1.5f);
+                _directOk = _ai.FullRouteTo(goal, Mathf.Max(stopDistance, 1f) + slack);
             }
             return _directOk;
         }

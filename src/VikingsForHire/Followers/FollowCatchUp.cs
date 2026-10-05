@@ -74,7 +74,8 @@ namespace VikingsForHire.Followers
         private void UpdateStuck(HirelingAI ai, bool shouldMove)
         {
             Vector3 pos = ai.transform.position;
-            if (!shouldMove)
+            // On its way through a door or up a stair at home: not stuck, however slowly it's going.
+            if (!shouldMove || (Hirelings.Nav.NavLinkRegistry.Enabled && ai.Links.Progressing))
             {
                 _stuckSince = -1f;
                 _unstickStep = 0;

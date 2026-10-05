@@ -17,7 +17,7 @@ namespace VikingsForHire.Testing
     {
         public static void Register()
         {
-            Fixtures.Add("house2", "<tag> [item count]… - a 6x6 m house 12 m to the board's left: door facing the board (<tag>_door), a wood stair (<tag>_stair) up to an upper floor at the back, chest upstairs (<tag>)",
+            Fixtures.Add("house2", "<tag> [item count]… - a 6x6 m house 12 m to the board's left: door facing the board (<tag>_door), a wood stair (<tag>_stair) up to an upper floor at the back (middle piece <tag>_up), chest upstairs (<tag>)",
                 args => House(args, "wood_stair"));
             Fixtures.Add("stepladder", "<tag> [item count]… - the same house with a stepladder (<tag>_stair) instead of the stair",
                 args => House(args, "wood_stepladder"));
@@ -84,7 +84,7 @@ namespace VikingsForHire.Testing
             // Upper floor: the back 2 m strip, three 2x2 m floor pieces, its surface level with the stair's top.
             for (int i = -1; i <= 1; i++)
             {
-                GameObject floor = Place("wood_floor", c - n * 2f + t * (2f * i) + Vector3.up * (top - c.y), n, "");
+                GameObject floor = Place("wood_floor", c - n * 2f + t * (2f * i) + Vector3.up * (top - c.y), n, i == 0 ? tag + "_up" : "");
                 floor.transform.position = new Vector3(floor.transform.position.x, top, floor.transform.position.z);
                 yield return null;
                 float surface = Bounds(floor).max.y;
