@@ -86,7 +86,15 @@ namespace VikingsForHire.Testing
             float footGround = ZoneSystem.instance.GetGroundHeight(stair.transform.position + n * along * 0.8f);
             stair.transform.position += Vector3.up * (footGround - Bounds(stair).min.y);
             Physics.SyncTransforms();
-            // The upper floor goes level with the top step as the scan measures it (not the rails' top).
+            // Slide it so its top step (as the scan measures it) ends 0.9 m behind the centre, just inside the upper
+            // floor's front edge (1 m behind), so the floor is there to step onto.
+            if (TopStepPoint(stair, -n) is Vector3 step)
+            {
+                float d = Vector3.Dot(step - c, -n);
+                stair.transform.position += -n * (0.9f - d);
+                Physics.SyncTransforms();
+            }
+            // The upper floor goes level with the top step (not the rails' top).
             float top = TopStep(stair, -n);
 
             // Upper floor: the back 2 m strip, three 2x2 m floor pieces, its surface level with the stair's top.
@@ -110,6 +118,17 @@ namespace VikingsForHire.Testing
             yield return new WaitForSeconds(0.5f);
 
             Vector3 Ground(Vector3 p) => new(p.x, ZoneSystem.instance.GetGroundHeight(p), p.z);
+        }
+
+        // Where the top step is, by the scan's own shape test (null if it doesn't take the piece for a stair).
+        private static Vector3? TopStepPoint(GameObject piece, Vector3 axis)
+        {
+            var cols = new System.Collections.Generic.List<Collider>();
+            if (!StairSampler.Colliders(piece.GetComponent<Piece>(), cols, out Bounds b))
+                return null;
+            var points = new System.Collections.Generic.List<Vector3>();
+            StairResult r = StairProfile.Classify(StairSampler.Sample(cols, b, axis, points), nameHint: true);
+            return r.Accepted ? points[r.TopIndex] : null;
         }
 
         // The highest walkable surface along the axis, sampled the way the board's scan does it.
@@ -159,18 +178,30 @@ namespace VikingsForHire.Testing
                 }
             }
             yield return null;
-            // The hoe's level, as one big operation at your feet's height.
-            var op = new GameObject("VFH_Flatten");
-            op.SetActive(false);
-            op.transform.position = c;
-            TerrainOp t = op.AddComponent<TerrainOp>();
-            t.m_settings = new TerrainOp.Settings
+            // The hoe's level, as one big operation at your feet's height. Not through a TerrainOp object: the game only
+            // accepts those as registered prefabs and then uses the prefab's own settings, so apply it to each terrain
+            // patch directly (this game owns them in single player).
+            var settings = new TerrainOp.Settings
             {
                 m_level = true, m_levelRadius = radius, m_levelOffset = 0f, m_square = false,
                 m_raise = false, m_smooth = false, m_paintCleared = false,
             };
-            op.SetActive(true); // Awake applies it to every heightmap it touches, then destroys itself
-            VfhLog.I(LogCat.Test, "fixture.flatten", ("center", c), ("radius", radius), ("removed", removed));
+            var maps = new System.Collections.Generic.List<Heightmap>();
+            Heightmap.FindHeightmap(c, radius, maps);
+            System.Reflection.MethodInfo doOp = HarmonyLib.AccessTools.Method(typeof(TerrainComp), "DoOperation",
+                new[] { typeof(Vector3), typeof(Vector3), typeof(TerrainOp.Settings) });
+            int patches = 0;
+            foreach (Heightmap hm in maps)
+            {
+                TerrainComp comp = hm.GetAndCreateTerrainCompiler();
+                if (comp == null || comp.m_nview == null || !comp.m_nview.IsValid())
+                    continue;
+                if (!comp.m_nview.IsOwner())
+                    comp.m_nview.ClaimOwnership();
+                doOp.Invoke(comp, new object[] { c, Vector3.zero, settings });
+                patches++;
+            }
+            VfhLog.I(LogCat.Test, "fixture.flatten", ("center", c), ("radius", radius), ("removed", removed), ("patches", patches));
             // The game's walking map catches up with new ground a few seconds later.
             yield return new WaitForSeconds(6f);
         }
