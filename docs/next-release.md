@@ -18,10 +18,10 @@ Plan: `plan/base-nav-links/`. All of it runs on the game simulating the hireling
 | 15e1adf…e39ebaa | From the first test runs: rescan when a piece is removed; fewer map queries per frame; chained flights (a stair running straight onto another) join; short same-level steps (small landings, the last step to a chest) walkable without the game's map; `vfh_navlinks why`; `vfh_deliver`; single-player fixes in the test harness (follower requests, server checks) | as above |
 
 ### To test (batch)
-- [ ] Macros in single player (`vikingsforhire-dev`, `vfh_debug Nav on`): `vfh_t_navscan1`, `vfh_t_navscan2`, `vfh_t_navscan3`, `vfh_t_nav1` … `vfh_t_nav6`; then the regression set `vfh_t_door1`, `vfh_t_order1`, `vfh_t_gather1`, `vfh_t_deliver1`, `vfh_t_deliver2`, `vfh_t_catchup1`, `vfh_t_recruit1`, `vfh_t_portal1`, `vfh_t_home1`, `vfh_t_post1`, `vfh_t_lag1a`, `vfh_t_lag1b`. Easiest: `vfh_test_chain navscan1 navscan2 navscan3 nav1 nav2 nav3 nav4 nav5 nav6` then the rest.
-- [ ] By hand at a house of yours near a board: `vfh_navlinks show` draws the door green and the stairs yellow; remove the stairs and the line goes within ~3 s; a roof gets no line.
-- [ ] By hand: a woodcutter delivering to a chest upstairs behind a closed door; it closes the door behind it; `vfh_navlinks show` draws its route (white).
-- [ ] By hand: followers into the house, door closed behind you, upstairs: they follow without a teleport; back down and out.
+- [x] Macros in single player (`vikingsforhire-dev`, `vfh_debug Nav on`): `vfh_t_navscan1`, `vfh_t_navscan2`, `vfh_t_navscan3`, `vfh_t_nav1` … `vfh_t_nav6`; then the regression set `vfh_t_door1`, `vfh_t_order1`, `vfh_t_gather1`, `vfh_t_deliver1`, `vfh_t_deliver2`, `vfh_t_catchup1`, `vfh_t_recruit1`, `vfh_t_portal1`, `vfh_t_home1`, `vfh_t_post1`, `vfh_t_lag1a`, `vfh_t_lag1b`. Easiest: `vfh_test_chain navscan1 navscan2 navscan3 nav1 nav2 nav3 nav4 nav5 nav6` then the rest.
+- [x] By hand at a house of yours near a board: `vfh_navlinks show` draws the door green and the stairs yellow; remove the stairs and the line goes within ~3 s; a roof gets no line.
+- [x] By hand: a woodcutter delivering to a chest upstairs behind a closed door; it closes the door behind it; `vfh_navlinks show` draws its route (white).
+- [x] By hand: followers into the house, door closed behind you, upstairs: they follow without a teleport; back down and out.
 - [x] Local dedicated server: `vfh_t_nav1`, `vfh_t_nav5`, `vfh_t_nav6` and `vfh_t_portal1` from a client (passed).
 - [ ] Live mod set (single-player copy with `1dotohsupermodded`): modded staircases show as links without any list entry; `navlinks.scan` `ms`/`frames` reasonable; `perf.minute` worst frame and `aiMsPerFrame` about as in 0.2.4.
 - [ ] Live server after release: Gerd's door and fence, no door/stairs `nav.stuck` lines.
