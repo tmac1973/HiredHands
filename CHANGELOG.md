@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4 (unreleased)
+
+- **Idle hirelings stay put.** A hireling with nothing to do at home ("Works at home" off and no post, say) wandered at random round the board, into nearby buildings and up and down their stairs. It now stands at an open-air spot a few metres from the board that it has a full route to (on the board's floor if the board is indoors), and moves to another one now and then.
+
 ## 0.2.3
 
 - **Board upgrades pull from nearby chests (AzuCraftyBoxes).** With AzuCraftyBoxes installed, the Upgrade tab counts the materials in the chests near the board that CraftyBoxes would let you pull from (its range, pull toggle and chest rules), and upgrading takes them from your inventory first, then from those chests. Per-player setting `UpgradeFromNearbyChests` (Hiring section, on by default).
