@@ -63,3 +63,9 @@ When you walk into your house with followers, and both you and they are inside t
 
 ## Rollback
 Revert the commit. `Chase` and `FollowCatchUp` return to their phase 03 state, where followers use today's doorway chase everywhere. Workers keep link routes. `BaseNavLinks = false` also turns this off.
+
+## As built
+- **Another floor counts as far.** Followers measure the gap to their owner along the ground, so with the owner upstairs right above it, a follower thought it had arrived. Inside a board's area, a height difference of more than 1.5 m now counts as far, both in `FollowBehaviour.OwnerDistance` and in `Chase`'s "close enough" check, so it follows you up.
+- `ChaseStep` is `LinkNavigator.Chase`. It shares the walking code with `Walk`, with a 3 m goal-moved threshold and 1 s between plans. It drops back to the usual chase as soon as the game's map has a full route to the owner.
+- `FollowCatchUp`'s stuck counter (jumps, sideways detours and the stuck teleport) is reset while `LinkNavigator.Progressing` (mid door or stair, or closing in on the next point within the last 4 s).
+- `player_to` targets the `<tag>_up` floor piece (0.3 m above it), so you stand on the floor, not on the chest.

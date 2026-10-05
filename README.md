@@ -93,6 +93,26 @@ With the stone in hand (the list of your followers shows on the left of the scre
 - **Going home**: *Send home* in the Shift+E panel walks a follower back to its board on a timer (25 s per 100 m, 1 to 20 minutes) with its cargo; it delivers it and goes back to work. A follower left far behind, left in Stay while you're far away, or whose owner has been offline for 5 minutes goes home the same way. With `ReturnHomeWithNonTeleportable` off, it first drops what a portal wouldn't take, so going home isn't a free ore portal.
 - **Posts**: a guard can stand watch on a spot at home (a tower, a gate). It watches all round, fights by its stance and walks back to its post. Archers hold fire when the shot is blocked. A gatherer with "Works at home" off can be posted the same way, so it waits on that spot instead of wandering about the base.
 
+## Doors, stairs and ladders
+
+Inside a hiring board's area, hirelings find their way through your buildings: through closed doors and up and down stairs to any floor you can walk to. The game's own walking map treats a closed door as a wall and often doesn't join the floors of a house, so the board scans its area for doors and for anything that climbs from one floor to another, and hirelings route through those when the game's map can't get them there.
+
+- **Automatic, modded pieces included.** Stairs and ladders are recognised by their shape (a surface that climbs steadily from one floor to another), so build pieces from other mods work without any setup. The scan is redone a couple of seconds after anything near the board is built or removed.
+- **Doors** are opened, walked through and closed behind (never in a player's face). Locked doors and doors under a ward the board's owner can't use stay closed.
+- **Ladders**: a hireling that can't physically climb one (or any stair it can't manage) hops to the top after a few seconds.
+- **Followers** follow you through the house the same way while you're both inside a board's area. Elsewhere they follow as before.
+- **Settings** (*Work* section, server): `BaseNavLinks` (on) turns all of this off, back to the 0.2 handling; `HirelingsCloseDoors` (on) off leaves doors open behind them.
+- **See what it found:** `vfh_navlinks show` draws every link (doors green, stairs yellow, ladders cyan, blocked red) and each hireling's route; `hide`, `scan` (rescan the nearest board now) and `list` (print its links).
+- **A piece it gets wrong** (rare): name its prefab in the data file.
+
+```yaml
+navLinks:
+  include: [MyModLadder]     # always try this piece as a stair or ladder
+  exclude: [MyModFancyRamp]  # never use this piece as one
+```
+
+0.3.0 adds `navLinks` to the data file, which 0.2 builds don't accept: the server and every player need 0.3.
+
 ## Board levels
 
 | Level | Upgrade needs | Hirelings | Max radius |

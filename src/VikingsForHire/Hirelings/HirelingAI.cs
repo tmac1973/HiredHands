@@ -311,9 +311,16 @@ namespace VikingsForHire.Hirelings
         internal Nav.LinkNavigator Links => _links ??= new Nav.LinkNavigator(this);
 
         /// <summary>The game's map has a full route ending near the goal on its floor (not under or over it).</summary>
-        internal bool FullRouteTo(Vector3 goal, float within) =>
-            FindPath(goal) && m_path.Count > 0 && Utils.DistanceXZ(m_path[m_path.Count - 1], goal) <= within &&
-            Mathf.Abs(m_path[m_path.Count - 1].y - goal.y) <= 1f;
+        /// <remarks>Its own query: BaseAI.FindPath hands back its last result for any target within a second.</remarks>
+        internal bool FullRouteTo(Vector3 goal, float within)
+        {
+            if (Pathfinding.instance == null || !Pathfinding.instance.GetPath(transform.position, goal, _directPath, m_pathAgentType) || _directPath.Count == 0)
+                return false;
+            Vector3 end = _directPath[_directPath.Count - 1];
+            return Utils.DistanceXZ(end, goal) <= within && Mathf.Abs(end.y - goal.y) <= 1f;
+        }
+
+        private readonly List<Vector3> _directPath = new();
 
         // For LinkNavigator: BaseAI's movement is protected at runtime (the publicized reference only looks public).
         internal bool MoveToPublic(float dt, Vector3 point, float stop, bool run) => MoveTo(dt, point, stop, run);

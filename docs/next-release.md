@@ -3,6 +3,27 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.3.0 (unreleased): base nav links
+
+Plan: `plan/base-nav-links/`. All of it runs on the game simulating the hireling (and the overlay on yours).
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| f4a7fa2 | Core link graph, stair shape test, route planner; settings `BaseNavLinks`, `HirelingsCloseDoors`; data `navLinks.include/exclude` | everywhere (pure logic, unit-tested) |
+| 65c2098 | Each board's area scanned into door and stair/ladder links, rescanned 2 s after a piece is built or removed; `vfh_navlinks show/hide/scan/list` | the game with the board loaded |
+| d26a4f5 | Hirelings route through doors and up stairs when the game's map can't get them there; hop to the top of a ladder; replan around failures; `CanReach` counts upstairs spots | the game simulating the hireling |
+| 0970367 | Followers follow you through doors and upstairs while you're both in a board's area; another floor at home counts as far; no stuck-teleport while crossing a door or stair | your game (followers) |
+
+### To test (batch)
+- [ ] Macros in single player (`vikingsforhire-dev`, `vfh_debug Nav on`): `vfh_t_navscan1`, `vfh_t_navscan2`, `vfh_t_navscan3`, `vfh_t_nav1` … `vfh_t_nav6`; then the regression set `vfh_t_door1`, `vfh_t_order1`, `vfh_t_gather1`, `vfh_t_deliver1`, `vfh_t_deliver2`, `vfh_t_catchup1`, `vfh_t_recruit1`, `vfh_t_portal1`, `vfh_t_home1`, `vfh_t_post1`, `vfh_t_lag1a`, `vfh_t_lag1b`. Easiest: `vfh_test_chain navscan1 navscan2 navscan3 nav1 nav2 nav3 nav4 nav5 nav6` then the rest.
+- [ ] By hand at a house of yours near a board: `vfh_navlinks show` draws the door green and the stairs yellow; remove the stairs and the line goes within ~3 s; a roof gets no line.
+- [ ] By hand: a woodcutter delivering to a chest upstairs behind a closed door; it closes the door behind it; `vfh_navlinks show` draws its route (white).
+- [ ] By hand: followers into the house, door closed behind you, upstairs: they follow without a teleport; back down and out.
+- [ ] Local dedicated server: `vfh_t_nav1` and `vfh_t_nav5` from a client.
+- [ ] Live mod set (single-player copy with `1dotohsupermodded`): modded staircases show as links without any list entry; `navlinks.scan` `ms`/`frames` reasonable; `perf.minute` worst frame and `aiMsPerFrame` about as in 0.2.4.
+- [ ] Live server after release: Gerd's door and fence, no door/stairs `nav.stuck` lines.
+
 ## 0.2.4 (released 2026-10-05, testing on the live server)
 
 ### Fixed or added

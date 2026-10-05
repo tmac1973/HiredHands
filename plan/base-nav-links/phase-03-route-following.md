@@ -113,3 +113,9 @@ It replans around a link that fails. Every behaviour that calls `HirelingAI.Walk
 
 ## Rollback
 Revert the commit. `WalkTo`, `CanReach` and `DoorHelper` return to their phase 02 state (the scanner and overlay stay). With the build kept, `BaseNavLinks = false` turns route-following off: `Active` is false, so every code path is the 0.2 one.
+
+## As built
+- **LegOracle** works out up to 12 legs per frame. A plan's own questions use that budget first, synchronously; only the rest are queued. Most routes are planned in the frame they're asked for. A leg's end counts if the map's route ends within 1.6 m along the ground and 0.8 m in height of the point asked for (a chest's middle is inside it).
+- **While waiting for answers** (`NeedLegs`), the hireling stands still for up to 3 s instead of walking the old way: moving would change the start and ask again. After 3 s it falls back for 10 s (`navlinks.route_failed last=slow_map`).
+- **Fallback:** when there's no route through the links, `WalkTo` behaves as in 0.2 for that goal for 10 s, including the door detour (`DoorHelper.Detour`) as a last resort. That's the only time the detour runs inside a board's area. The direct check (`HirelingAI.FullRouteTo`) makes its own path query, because `BaseAI.FindPath` hands back its last result for any target within a second.
+- **`nav_links off`** has no automatic restore: `vfh_t_nav4` ends with `nav_links on`. The `navlinks_hops` check counts from `nav_stats_reset`.

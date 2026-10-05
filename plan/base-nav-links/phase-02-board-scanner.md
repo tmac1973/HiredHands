@@ -127,3 +127,8 @@ The graph is rescanned a couple of seconds after any piece in the area is built 
 
 ## Rollback
 Revert the commit. The registry, patches and overlay go with it. `DoorHelper` returns to holding its own door rules, with identical behaviour. Nothing is saved in the world. With the build kept, setting `BaseNavLinks = false` stops all scanning; the patches return early.
+
+## As built
+- The check is `navlinks <kind> [tag]`. With a tag it counts only links with an end within 8 m of the tagged object, so other buildings in the test world don't disturb a macro.
+- `house2` has no ground-floor pieces: the hireling walks on the terrain inside the walls. Its upper floor is the back 2 m strip (three `wood_floor` pieces, the middle one tagged `<tag>_up`), with no walls upstairs. The fixture turns the stair round if it was placed climbing the wrong way, then puts its high end at the floor's front edge and sets the floor's surface level with the stair's top.
+- The vanilla prefab names `wood_stair` and `wood_stepladder` were confirmed in the game's asset manifest.

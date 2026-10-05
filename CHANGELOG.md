@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 (unreleased)
+
+- **Hirelings find their way through your buildings.** Inside a hiring board's area, the board scans for doors and for anything that climbs from one floor to another (stairs, stepladders, modded stairs and ladders, recognised by their shape). When the game's walking map can't get a hireling somewhere (a chest upstairs, a closed room), it routes through those: it opens the door, steps through and closes it behind, walks up the stairs, and hops to the top of a ladder it can't climb. It replans around a locked door or a removed stair. Followers follow you through the house and upstairs the same way while you're both at a base. Server settings `BaseNavLinks` (on; off is the 0.2 behaviour) and `HirelingsCloseDoors` (on).
+- **`vfh_navlinks show|hide|scan|list`** draws and lists the doors, stairs and ladders found and each hireling's route.
+- **Data file:** new `navLinks` block (`include`/`exclude` prefab names) for the rare piece the shape test gets wrong. 0.2 builds reject a file with it, so everyone moves to 0.3 together.
+
 ## 0.2.4
 
 - **Call a hireling to the board.** The Roster tab has **Call to board** for a working hireling you can't find: it drops what it's doing, comes to the board and waits beside it ("Waiting at the board"), facing you, until you press **Back to work** on the Roster tab or in its Shift+E panel. With no way there, or stuck for 20 s, it's moved there. Recruiting it as a follower also ends the wait.
