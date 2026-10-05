@@ -148,3 +148,11 @@ Today deconstructing a hiring board gives back only its build cost (vanilla piec
   - Multiplayer: a charter can be traded like any item; that's fine, it's one level for one board.
   - The "remove this board?" confirmation should say what will happen ("You'll get a Hiring Charter (level 4) to place a new board").
 - **Either way:** respect the existing "board destroyed" rules (contracts end, cargo drops, funds drop like a chest's), and don't refund anything when the board is destroyed by monsters or damage, only when the player deconstructs it.
+
+## Test kit UI (separate dev mod)
+Tim's idea (2026-10-05): a small in-game panel so testing doesn't mean pasting into the console. A separate mod (for example `HiredHands.TestKit`), never shipped to players, that only works with `devcommands` on (or as an admin on a server).
+- **Ground prep:** flatten around you (the `flatten` fixture: level the terrain, remove rocks, trees and bushes), and clear test leftovers (`clear_area`).
+- **Run tests:** a list of the `vfh_t_*` macros from `alias_vfh.yaml`, grouped by area. Click to run one, or tick several and run them as a chain. Pass/fail is shown next to each name from the `evt=test.result` lines, with the failed checks on hover.
+- **Player toggles:** god mode, ghost mode, fly, kill nearby enemies, time of day, `vfh_debug` categories.
+- **Overlays:** `vfh_navlinks show/hide`.
+- It reuses Hired Hands' existing commands and fixtures, so the panel is only buttons; no test logic is duplicated.
