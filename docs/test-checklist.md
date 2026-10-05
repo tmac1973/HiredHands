@@ -268,3 +268,12 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-04 | 94e1c46 | m2 run (vfh_t_m2_sp) + reruns | D, 0.2.0 zip | Pass | STONE-1, RECRUIT-1, POST-1, CATCHUP-1, RETREAT-1, NOISE-1 passed first time; GATHER-1, PORTAL-1, HOME-1 failed on test setup (fixed in 94e1c46) and passed on rerun; ORDER-1 failed once (only the tree's own drop collected, no logs to say why) and passed on rerun with Work/Orders debug |
 | 2026-10-04 | cdaba11 | VFH-GRAVE-1 | D | Pass | Woodcutter follower died carrying 2 stacks of wood: a grave named after it held all 100 wood, owned by the player for opening |
 | 2026-10-04 | v0.2.1 | Board self-repair (live) | D, AMP_Valheim01 | Pass | Alf's contract (follower died far away on 0.2.0, death lost) settled 7 min after the 0.2.1 start: server logged roster.settled_missing, forwarded to the board owner's game, which recorded contract.died (permadeath) |
+| 2026-10-05 | ab4d51b | VFH-NAVLINK-1 | SP | Pass | Scan found the house's door and stair (after the fixture was fixed to sit the stair on the ground and flush with the upper floor) |
+| 2026-10-05 | ab4d51b | VFH-NAVLINK-3 | SP | Pass | Deconstructing the stair removed its link within seconds |
+| 2026-10-05 | ab4d51b | VFH-NAVLINK-4 | SP | Pass | Woodcutter went walk>door>walk to the chest upstairs (the open-topped test house's stair is on the game's own map, so no stair link was needed); door closed after |
+| 2026-10-05 | ab4d51b | VFH-NAVLINK-6 | SP | Pass | Stair removed: delivered to the chest by the board (chest kept away from AzuAutoStore) |
+| 2026-10-05 | ab4d51b | VFH-NAVLINK-8 | SP | Pass | Follower came through the door and up to you, no catch-up teleport |
+| 2026-10-05 | ab4d51b | VFH-NAVLINK-9 | SP | Pass | Follower followed you back down and out; door closed behind |
+| 2026-10-05 | 15e1adf | VFH-NAVLINK-2 | SP | Pass | Stepladder found (earlier build) |
+| 2026-10-05 | 15e1adf | VFH-NAVLINK-5 | SP | Pass | Delivered up the stepladder route (earlier build) |
+| 2026-10-05 | 15e1adf | VFH-NAVLINK-7 | SP | Pass | Setting off: 0.2 door handling (got stuck at the door, then jumped past, as 0.2 does) |
