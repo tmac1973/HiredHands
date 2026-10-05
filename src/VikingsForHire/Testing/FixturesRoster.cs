@@ -24,6 +24,7 @@ namespace VikingsForHire.Testing
             Fixtures.Add("board_clear", "- empty the nearest board's storage", _ => BoardClear());
             Fixtures.Add("post", "<job> <level> [radius=20] - post a contract on the nearest board (pays like the panel) and wait for the answer", Post);
             Fixtures.Add("contract", "<cancel|dismiss|promote> - act on the contract last posted, through the real op", Contract);
+            Fixtures.Add("skip_time", "<seconds> - move the world clock on (up to 1500 s, under a day so no upkeep is charged): stations, fermenters and beehives catch up as after sleeping", SkipTime);
             Fixtures.Add("skip_days", "<n> - advance the clock n days (like skiptime 1800) and let the board charge upkeep", SkipDays);
             Fixtures.Add("cfg_set", "<key> <value> - set a config value (stays set: put it back after the test)", CfgSet);
 
@@ -142,6 +143,29 @@ namespace VikingsForHire.Testing
             }
             for (float t = 0f; !answered && t < 5f; t += Time.deltaTime)
                 yield return null;
+        }
+
+        private static IEnumerator SkipTime(string[] args)
+        {
+            double seconds = double.Parse(args.ElementAtOrDefault(0) ?? "300", CultureInfo.InvariantCulture);
+            if (seconds <= 0 || seconds > 1500)
+                throw new System.InvalidOperationException("skip_time takes 1-1500 seconds (a day is 1800: use skip_days for whole days)");
+            double before = ZNet.instance.GetTimeSeconds();
+            if (ZNet.instance.IsServer())
+            {
+                ZNet.instance.SetNetTime(before + seconds);
+            }
+            else
+            {
+                var pkg = new ZPackage();
+                pkg.Write(seconds);
+                _skipTimeRpc.SendPackage(ZRoutedRpc.instance.GetServerPeerID(), pkg);
+                for (float waited = 0f; ZNet.instance.GetTimeSeconds() < before + seconds - 100.0 && waited < 10f; waited += 0.25f)
+                    yield return new WaitForSeconds(0.25f);
+            }
+            VfhLog.I(LogCat.Test, "fixture.skip_time", ("seconds", seconds), ("server", ZNet.instance.IsServer()));
+            // Stations work out the skipped time on their next update.
+            yield return new WaitForSeconds(2f);
         }
 
         private static IEnumerator SkipDays(string[] args)
