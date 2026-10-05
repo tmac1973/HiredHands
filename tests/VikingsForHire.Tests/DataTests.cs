@@ -59,6 +59,22 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void ChoreLevelsAreValidated()
+        {
+            VfhData data = DefaultData.Create();
+            data.Jobs[JobType.Smelter].ChoreLevels["fires"] = 9;
+            data.Jobs[JobType.Smelter].ChoreLevels["dusting"] = 2;
+            List<string> errors = DataValidator.Validate(data);
+            Assert.Contains(errors, e => e.Contains("choreLevels.fires must be 1-8"));
+            Assert.Contains(errors, e => e.Contains("choreLevels.dusting"));
+
+            VfhData unlevelled = DefaultData.Create();
+            unlevelled.Jobs[JobType.Smelter].Stations.Add("my_modded_forge");
+            Assert.Empty(DataValidator.Validate(unlevelled));
+            Assert.Contains(DataValidator.Sanitize(unlevelled, _ => true), w => w.Contains("my_modded_forge"));
+        }
+
+        [Fact]
         public void NavLinksListsAreValidated()
         {
             VfhData data = DefaultData.Create();

@@ -74,8 +74,17 @@ namespace VikingsForHire.Core.Data
                     CostMult = 0.9f,
                     WorkerCombatFactor = 0.3f,
                     Gear = Mains("Club", "Club", "Club", "Club", "Club", "Club", "Club", "Club"),
-                    Stations = List("smelter", "blastfurnace", "charcoal_kiln", "eitrrefinery"),
+                    Stations = List("smelter", "blastfurnace", "charcoal_kiln", "eitrrefinery", "windmill", "piece_spinningwheel"),
                     KeepInStorage = new Dictionary<string, int> { ["Wood"] = 50 },
+                    // Each chore unlocks with the biome whose boss makes its resources available.
+                    ChoreLevels = new Dictionary<string, int>
+                    {
+                        ["fires"] = 1, ["beehives"] = 1,
+                        ["smelter"] = 2, ["charcoal_kiln"] = 2, ["animals"] = 2,
+                        ["repairs"] = 3,
+                        ["blastfurnace"] = 5, ["windmill"] = 5, ["piece_spinningwheel"] = 5,
+                        ["eitrrefinery"] = 6, ["sap"] = 6,
+                    },
                 },
                 [JobType.GuardMelee] = new()
                 {

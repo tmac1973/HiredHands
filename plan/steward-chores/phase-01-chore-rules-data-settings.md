@@ -85,3 +85,9 @@ The ground work every chore uses, with no change in game yet:
 
 ## Rollback
 Revert the commit. Nothing in game uses these yet. An existing data file keeps its filled-in `choreLevels`, which this phase's build added and older builds reject: delete the `choreLevels:` block after reverting. 0.4.0 needs everyone on 0.4 together (phase 08).
+
+## As built
+- A station with no `choreLevels` entry produces a warning from `DataValidator.Sanitize`, which the data loader already logs with its other fix-up warnings, rather than a separate `data.station_no_level` event.
+- `ChoreRules` also has `GateKeys(kind)` (a kind's own key, or its stations) and `FirstUnlock(kind)` (the lowest level among them), which the panel's "locked until level N" uses in phase 02.
+- `StewardCompat` logs under the existing `Smelter` log category (`steward.compat`).
+- The settings live in a new config section, `10 - Steward`.

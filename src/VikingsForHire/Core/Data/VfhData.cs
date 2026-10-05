@@ -108,6 +108,9 @@ namespace VikingsForHire.Core.Data
         [YamlMember(Description = "Smelter only: station prefab names this job keeps stocked.")]
         public List<string> Stations { get; set; } = new();
 
+        [YamlMember(Description = "Steward only: lowest Steward level for each chore (fires, beehives, stations, mills, sap, animals, repairs) and each station prefab in stations (a station with no entry is level 1). Hireling level is capped by the board's, so these follow board upgrades.")]
+        public Dictionary<string, int> ChoreLevels { get; set; } = new();
+
         [YamlMember(Description = "Smelter only: item prefab -> how many to always leave in storage, counted across all the chests in the work radius (e.g. Wood: 50 so the kiln never burns your last building wood).")]
         public Dictionary<string, int> KeepInStorage { get; set; } = new();
     }

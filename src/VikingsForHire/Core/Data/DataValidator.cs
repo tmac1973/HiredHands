@@ -62,6 +62,18 @@ namespace VikingsForHire.Core.Data
 
             if (data.Names.Male.Count == 0 || data.Names.Female.Count == 0) errors.Add("names.male and names.female need at least one name each");
 
+            foreach (KeyValuePair<JobType, JobData> job in data.Jobs)
+            {
+                foreach (KeyValuePair<string, int> c in job.Value.ChoreLevels)
+                {
+                    string p = $"jobs.{job.Key}.choreLevels.{c.Key}";
+                    if (c.Value < 1 || c.Value > Levels) errors.Add($"{p} must be 1-{Levels}");
+                    bool chore = Chores.ChoreKeys.TryParse(c.Key, out _);
+                    bool station = job.Value.Stations.Any(s => string.Equals(s, c.Key, StringComparison.OrdinalIgnoreCase));
+                    if (!chore && !station) errors.Add($"{p}: not a chore (fires, beehives, stations, mills, sap, animals, repairs) or a station in stations");
+                }
+            }
+
             if (data.NavLinks.Include.Any(string.IsNullOrWhiteSpace) || data.NavLinks.Exclude.Any(string.IsNullOrWhiteSpace))
                 errors.Add("navLinks.include and navLinks.exclude can't have empty entries");
             foreach (string both in data.NavLinks.Include.Intersect(data.NavLinks.Exclude, System.StringComparer.OrdinalIgnoreCase))
@@ -76,6 +88,12 @@ namespace VikingsForHire.Core.Data
         public static List<string> Sanitize(VfhData data, Func<string, bool> itemExists)
         {
             var warnings = new List<string>();
+
+            // A station with no chore level works from level 1: allowed, but worth a line in the log.
+            foreach (KeyValuePair<JobType, JobData> job in data.Jobs)
+                foreach (string station in job.Value.Stations)
+                    if (job.Value.ChoreLevels.Count > 0 && !job.Value.ChoreLevels.Keys.Any(k => string.Equals(k, station, StringComparison.OrdinalIgnoreCase)))
+                        warnings.Add($"jobs.{job.Key}.stations: {station} has no choreLevels entry, so any level of Steward tends it");
 
             foreach (BoardLevelData b in data.BoardLevels)
                 DropUnknown(warnings, $"boardLevels[{b.Level}].cost", b.Cost, itemExists);

@@ -49,6 +49,20 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void ChoreLevelsReachOlderFiles()
+        {
+            string full = DataYaml.Serialize(DefaultData.Create());
+            int start = full.IndexOf("    choreLevels:", full.IndexOf("  Smelter:"));
+            Assert.True(start > 0, "default file should have the Steward's choreLevels");
+            int end = full.IndexOf("    keepInStorage:", start);
+            Assert.True(end > start, "choreLevels should come before keepInStorage");
+            string yaml = full.Remove(start, end - start);
+            VfhData data = DataYaml.Deserialize(yaml, out var filled);
+            Assert.Equal(2, data.Jobs[JobType.Smelter].ChoreLevels["smelter"]);
+            Assert.Contains("jobs.Smelter.choreLevels", filled);
+        }
+
+        [Fact]
         public void WhatTheFileSaysIsKept()
         {
             string yaml = DataYaml.Serialize(DefaultData.Create()).Replace("    minBoardLevel: 2\n", "    minBoardLevel: 4\n");
