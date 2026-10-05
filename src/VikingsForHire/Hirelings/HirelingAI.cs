@@ -125,6 +125,7 @@ namespace VikingsForHire.Hirelings
             Add(new LeaveBehaviour());
             Add(new GuardPatrolBehaviour());
             Add(new PostBehaviour());
+            Add(new ParkBehaviour());
             switch (hireling.Job)
             {
                 case JobType.Woodcutter:

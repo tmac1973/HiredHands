@@ -2,6 +2,7 @@
 
 ## 0.2.4 (unreleased)
 
+- **Call a hireling to the board.** The Roster tab has **Call to board** for a working hireling you can't find: it drops what it's doing, comes to the board and waits beside it ("Waiting at the board"), facing you, until you press **Back to work** on the Roster tab or in its Shift+E panel. With no way there, or stuck for 20 s, it's moved there. Recruiting it as a follower also ends the wait.
 - **A hireling holds still while you give it orders.** With its Shift+E panel open it stops and faces you, as it already did with its cargo open, so it doesn't walk out of range and close the panel.
 - **Low funds map pin matches the board.** The pin could say a board had food for 0 days while its hover said 20. For a board loaded in your game the pin now goes by what your game sees in it, as the hover does; the server logs `funds.pin_low` with what it read whenever it calls a board low.
 - **Idle hirelings stay put.** A hireling with nothing to do at home ("Works at home" off and no post, say) wandered at random round the board, into nearby buildings and up and down their stairs. It now stands at an open-air spot a few metres from the board that it has a full route to (on the board's floor if the board is indoors), and moves to another one now and then.

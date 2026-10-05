@@ -109,7 +109,7 @@ namespace VikingsForHire.UI
             if (Time.unscaledTime < _nextRefresh)
                 return;
             _nextRefresh = Time.unscaledTime + 0.3f;
-            string signature = $"{h.Mode}|{h.FollowMode}|{h.Stance}|{h.HasPost}|{_all}|{h.DisplayName}|{h.Zdo.GetString(HirelingZdo.SkipItems)}|{h.WorksAtHome}";
+            string signature = $"{h.Mode}|{h.FollowMode}|{h.Stance}|{h.HasPost}|{_all}|{h.DisplayName}|{h.Zdo.GetString(HirelingZdo.SkipItems)}|{h.WorksAtHome}|{h.IsParked}";
             if (signature == _shown)
                 return;
             _shown = signature;
@@ -186,6 +186,10 @@ namespace VikingsForHire.UI
                     PanelUi.Text(t, left.Count > 0 ? Localization.instance.Localize("$vfh_orders_send_home_drop_hint", string.Join(", ", left))
                         : "$vfh_orders_send_home_hint", 0f, y - 35f, 440f, 15, color: left.Count > 0 ? GUIManager.Instance.ValheimOrange : PanelUi.Dim);
                 }
+            }
+            else if (h.IsParked)
+            {
+                PanelUi.Button(t, "$vfh_roster_back_to_work", 0f, y, 240f, 38f, () => Board.BoardContracts.Park(h.Hid, false));
             }
             else if (h.HasPost)
             {

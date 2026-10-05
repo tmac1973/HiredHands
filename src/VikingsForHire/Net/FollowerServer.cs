@@ -198,7 +198,7 @@ namespace VikingsForHire.Net
             }
             MutationService.SubmitHireling(hid, new HirelingOp
             {
-                Mode = HirelingMode.Following, Owner = pid, OwnerName = playerName, FollowMode = FollowMode.Follow,
+                Mode = HirelingMode.Following, Owner = pid, OwnerName = playerName, FollowMode = FollowMode.Follow, Parked = false,
                 Status = "", DeliverPending = false,
             });
             _nextOwnership = 0f; // move it to the owner's machine straight away

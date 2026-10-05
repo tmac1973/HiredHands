@@ -47,6 +47,7 @@ namespace VikingsForHire.Hirelings
         public JobType Job => (JobType)(Zdo?.GetInt(HirelingZdo.Job) ?? 0);
         public int Level => Mathf.Max(1, Zdo?.GetInt(HirelingZdo.Level, 1) ?? 1);
         public bool HasPost => Zdo?.GetBool(HirelingZdo.Posted) ?? false;
+        public bool IsParked => Zdo?.GetBool(HirelingZdo.Parked) ?? false;
         /// <summary>The ship it's aboard as a passenger (its ZDOID as "user:id"), or empty.</summary>
         public string StowedOn => Zdo?.GetString(HirelingZdo.Stowed) ?? "";
         public bool IsStowed => StowedOn.Length > 0;

@@ -26,7 +26,8 @@ namespace VikingsForHire.UI
             int hash = bytes == null ? 0 : bytes.Aggregate(17, (h, b) => h * 31 + b);
             Cost funds = board.Inventory != null ? BoardStorage.Totals(board.Inventory) : Cost.Zero;
             long tick = (long)(ZNet.instance.GetTimeSeconds() / 5); // refresh countdowns every 5s
-            return $"{hash}|{_selected}|{_confirmDismiss}|{funds}|{tick}|{board.Level}";
+            string parked = string.Join(",", Hireling.Loaded.Where(h => h != null && h.BoardId == board.Id && h.IsParked).Select(h => h.Hid));
+            return $"{hash}|{_selected}|{_confirmDismiss}|{funds}|{tick}|{board.Level}|{parked}";
         }
 
         public void Build(RectTransform root, HiringBoard board)
@@ -112,7 +113,14 @@ namespace VikingsForHire.UI
                 PanelUi.Button(root, "$vfh_no", x + 60f, -480f, 100f, 32f, () => _confirmDismiss = "");
                 return;
             }
-            PanelUi.Button(root, "$vfh_roster_dismiss", x, -465f, 200f, 34f, () => _confirmDismiss = e.ContractId);
+            PanelUi.Button(root, "$vfh_roster_dismiss", x - 85f, -465f, 150f, 34f, () => _confirmDismiss = e.ContractId);
+            // Call to the board (a hireling you can't find comes and waits there), or send it back to work.
+            if (live == null || live.Mode == HirelingMode.Working)
+            {
+                bool parked = live != null && live.IsParked;
+                PanelUi.Button(root, parked ? "$vfh_roster_back_to_work" : "$vfh_roster_call", x + 85f, -465f, 160f, 34f,
+                    () => BoardContracts.Park(e.Hid, !parked));
+            }
             if (e.Post != null)
                 PanelUi.Button(root, "$vfh_orders_clear_post", x, -505f, 280f, 34f, () => BoardContracts.ClearPost(board, e.Hid));
         }
@@ -130,6 +138,8 @@ namespace VikingsForHire.UI
                 case ContractState.Leaving:
                     return "$vfh_status_leaving";
                 default:
+                    if (live != null && live.Mode == HirelingMode.Working && live.IsParked)
+                        return "$vfh_roster_parked";
                     if (e.Post != null && (live == null || live.Mode == HirelingMode.Working))
                         return "$vfh_roster_posted";
                     if (live != null && live.Mode == HirelingMode.Returning && live.Zdo != null)

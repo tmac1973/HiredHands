@@ -45,6 +45,14 @@ namespace VikingsForHire.Board
         public static void ClearPost(HiringBoard board, string hid, Action<OpResult>? done = null) =>
             MutationService.SubmitBoard(board.Id, new RosterOp { Type = RosterOpType.SetPost, Hid = hid, Post = null }, r => Show(r, done));
 
+        /// <summary>Call a hireling to the board to wait there (<paramref name="park"/>), or send it back to work.</summary>
+        public static void Park(string hid, bool park)
+        {
+            MutationService.SubmitHireling(hid, new HirelingOp { Parked = park });
+            VfhLog.I(LogCat.Roster, park ? "park.called" : "park.released", ("hid", hid));
+            Player.m_localPlayer?.Message(MessageHud.MessageType.Center, park ? "$vfh_park_called" : "$vfh_park_released");
+        }
+
         public static void Promote(HiringBoard board, string hid, int level, Action<OpResult>? done = null) =>
             MutationService.SubmitBoard(board.Id, new RosterOp { Type = RosterOpType.Promote, Hid = hid, Level = level }, r => Show(r, done));
 

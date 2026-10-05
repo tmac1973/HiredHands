@@ -109,6 +109,8 @@ namespace VikingsForHire.Core
         public string? Name { get; set; }
         public string? SkipItems { get; set; }
         public bool? NoHomeWork { get; set; }
+        /// <summary>Called to the board: stands there, off work, until sent back to work.</summary>
+        public bool? Parked { get; set; }
 
         public void Write(IPackageWriter w)
         {
@@ -116,7 +118,7 @@ namespace VikingsForHire.Core
                         | (LeavingSince.HasValue ? 16 : 0) | (Status != null ? 32 : 0) | (Owner.HasValue ? 64 : 0) | (OwnerName != null ? 128 : 0)
                         | (FollowMode.HasValue ? 256 : 0) | (StayPos.HasValue ? 512 : 0) | (DeliverPending.HasValue ? 1024 : 0)
                         | (Post.HasValue ? 2048 : 0) | (ClearPost == true ? 4096 : 0) | (Name != null ? 8192 : 0)
-                        | (SkipItems != null ? 16384 : 0) | (NoHomeWork.HasValue ? 32768 : 0);
+                        | (SkipItems != null ? 16384 : 0) | (NoHomeWork.HasValue ? 32768 : 0) | (Parked.HasValue ? 65536 : 0);
             w.Write(flags);
             if (Mode.HasValue) w.Write((int)Mode.Value);
             if (Stance.HasValue) w.Write((int)Stance.Value);
@@ -144,6 +146,7 @@ namespace VikingsForHire.Core
             if (Name != null) w.Write(Name);
             if (SkipItems != null) w.Write(SkipItems);
             if (NoHomeWork.HasValue) w.Write(NoHomeWork.Value ? 1 : 0);
+            if (Parked.HasValue) w.Write(Parked.Value ? 1 : 0);
         }
 
         public static HirelingOp Read(IPackageReader r)
@@ -166,10 +169,11 @@ namespace VikingsForHire.Core
             if ((flags & 8192) != 0) op.Name = r.ReadString();
             if ((flags & 16384) != 0) op.SkipItems = r.ReadString();
             if ((flags & 32768) != 0) op.NoHomeWork = r.ReadInt() != 0;
+            if ((flags & 65536) != 0) op.Parked = r.ReadInt() != 0;
             return op;
         }
 
         public override string ToString() =>
-            $"SetFields({(Mode.HasValue ? $"mode={Mode} " : "")}{(Stance.HasValue ? $"stance={Stance} " : "")}{(Radius.HasValue ? $"radius={Radius} " : "")}{(Level.HasValue ? $"level={Level} " : "")}{(LeavingSince.HasValue ? "leaving " : "")}{(Status != null ? $"status={Status} " : "")}{(Owner.HasValue ? $"owner={Owner} " : "")}{(FollowMode.HasValue ? $"follow={FollowMode} " : "")}{(StayPos.HasValue ? "stay " : "")}{(DeliverPending == true ? "deliver " : "")}{(Name != null ? $"name={Name} " : "")})".Replace(" )", ")");
+            $"SetFields({(Mode.HasValue ? $"mode={Mode} " : "")}{(Stance.HasValue ? $"stance={Stance} " : "")}{(Radius.HasValue ? $"radius={Radius} " : "")}{(Level.HasValue ? $"level={Level} " : "")}{(LeavingSince.HasValue ? "leaving " : "")}{(Status != null ? $"status={Status} " : "")}{(Owner.HasValue ? $"owner={Owner} " : "")}{(FollowMode.HasValue ? $"follow={FollowMode} " : "")}{(StayPos.HasValue ? "stay " : "")}{(DeliverPending == true ? "deliver " : "")}{(Name != null ? $"name={Name} " : "")}{(Parked.HasValue ? $"parked={Parked} " : "")})".Replace(" )", ")");
     }
 }
