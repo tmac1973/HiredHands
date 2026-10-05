@@ -116,6 +116,7 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-CHORE-5 Beehive | SP | `vfh_t_beehive` | Open ground (flattened) | `pass=true`; a full beehive emptied, its honey in the honey chest |
 | VFH-CHORE-6 Sap collector | SP | `vfh_t_sap` | Open ground (flattened) | `pass=true`; level 5 leaves it, level 6 empties it into the sap chest |
 | VFH-CHORE-7 Tamed animals | SP | `vfh_t_animals` | Open ground (flattened) | `pass=true`; a hungry tamed boar gets a raspberry dropped in front of it and eats it (AzuAutoStore doesn't take it); with PetPantry counted, a second boar is left alone |
+| VFH-CHORE-8 Repairs | SP | `vfh_t_repairs` | Open ground (flattened) | `pass=true`; the wall by the workbench is repaired, the one 28 m out (no station in range) isn't, and nothing is repaired while a Greyling is about |
 | VFH-CHORE-9 Most urgent first | SP | `vfh_t_chore_urgency` | Open ground (flattened) | `pass=true`; an empty hearth before an empty smelter, then the smelter |
 | VFH-SMELT-4 Keeps the last item (Steward level 2 since 0.4.0) | SP | `vfh_t_keep1` | Open ground | `pass=true`; the tin and coal chests each keep 1 |
 | VFH-NAV-1 Stairs and floors | SP | — | A real two-level build: a chest holding wood upstairs, reached by stairs; a smelter on a raised wooden floor | The woodcutter climbs the stairs to deliver to the upstairs chest; the smelter hireling loads the raised smelter; neither gets stuck on floor edges (watch for `smelter.stuck` / `work.unreachable`) |

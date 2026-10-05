@@ -55,6 +55,11 @@ namespace VikingsForHire.Testing
                 Character c = go.GetComponent<Character>();
                 return (Hirelings.Work.Steward.AnimalsChore.Fed.TryGetValue(c.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
             });
+            Fixtures.Add("damaged", "<prefab> <health 0..1> [tag] [near|far] - a damaged piece 6 m from the board (near: within the base's workbench range) or 28 m out (far: beyond a workbench's 20 m range)", Damaged);
+            Fixtures.Add("set_health", "<tag> <health 0..1> - set a tagged piece's health", SetHealth);
+            TestHarness.RegisterCheck("piece_health", "<tag> - a tagged piece's health (0..1)", args =>
+                (FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponent<WearNTear>() ?? throw new InvalidOperationException("no such tagged piece"))
+                    .GetHealthPercentage().ToString("0.00", CultureInfo.InvariantCulture));
             Fixtures.Add("station_info", "<prefab> - log the nearest such station's make-up and state (as vfh_station), in step with the test", args => StationInfo(args));
             TestHarness.RegisterCheck("steward_chore", "- the chore the Steward from your last contract is doing now (Fires, Stations…), or none", _ =>
             {
@@ -315,6 +320,37 @@ namespace VikingsForHire.Testing
             go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_tameLastFeeding, 0L);
             VfhLog.I(LogCat.Test, "fixture.tame", ("prefab", prefab), ("tag", tag), ("hungry", go.GetComponent<Tameable>()?.IsHungry() ?? false));
             yield return null;
+        }
+
+        private static IEnumerator Damaged(string[] args)
+        {
+            string prefab = args.ElementAtOrDefault(0) ?? "woodwall";
+            float health = float.Parse(args.ElementAtOrDefault(1) ?? "0.3", CultureInfo.InvariantCulture);
+            string tag = args.ElementAtOrDefault(2) ?? "";
+            bool far = args.ElementAtOrDefault(3) == "far";
+            HiringBoard board = Board();
+            Vector3 pos = board.transform.position + board.transform.forward * (far ? 28f : 6f) + board.transform.right * (_fires++ % 3 - 1) * 2.5f;
+            GameObject go = Spawn(prefab, pos, tag);
+            OwnBuilt(go);
+            if (go.GetComponent<WearNTear>() is WearNTear wnt)
+                wnt.m_noSupportWear = false;
+            yield return null;
+            SetHealthOf(go, health);
+            VfhLog.I(LogCat.Test, "fixture.damaged", ("prefab", prefab), ("health", health), ("tag", tag), ("far", far));
+            yield return null;
+        }
+
+        private static IEnumerator SetHealth(string[] args)
+        {
+            GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged piece");
+            SetHealthOf(go, float.Parse(args.ElementAtOrDefault(1) ?? "0.3", CultureInfo.InvariantCulture));
+            yield return null;
+        }
+
+        private static void SetHealthOf(GameObject go, float fraction)
+        {
+            WearNTear wnt = go.GetComponent<WearNTear>() ?? throw new InvalidOperationException("not a building piece");
+            wnt.m_nview.GetZDO().Set(ZDOVars.s_health, wnt.m_health * fraction);
         }
 
         private static int _fires;
