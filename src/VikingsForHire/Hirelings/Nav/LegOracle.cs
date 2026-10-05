@@ -138,10 +138,21 @@ namespace VikingsForHire.Hirelings.Nav
         private static bool ShortStep(Vector3 a, Vector3 b, out float cost)
         {
             cost = Vector3.Distance(a, b);
-            return Utils.DistanceXZ(a, b) <= ShortStepXZ && Mathf.Abs(a.y - b.y) <= 0.5f &&
-                   !Physics.Linecast(a + Vector3.up * 0.6f, b + Vector3.up * 0.6f, SolidMask, QueryTriggerInteraction.Ignore) &&
-                   !Physics.Linecast(a + Vector3.up * 1.4f, b + Vector3.up * 1.4f, SolidMask, QueryTriggerInteraction.Ignore);
+            if (Utils.DistanceXZ(a, b) > ShortStepXZ || Mathf.Abs(a.y - b.y) > 0.5f)
+                return false;
+            // Stop the look short of b: a goal is often a chest's own position, inside the chest.
+            Vector3 dir = b - a;
+            dir.y = 0f;
+            float clear = dir.magnitude - ShortStepGoalSlack;
+            if (clear <= 0f)
+                return true;
+            Vector3 end = a + dir.normalized * clear;
+            end.y = Mathf.Lerp(a.y, b.y, clear / dir.magnitude);
+            return !Physics.Linecast(a + Vector3.up * 0.6f, end + Vector3.up * 0.6f, SolidMask, QueryTriggerInteraction.Ignore) &&
+                   !Physics.Linecast(a + Vector3.up * 1.4f, end + Vector3.up * 1.4f, SolidMask, QueryTriggerInteraction.Ignore);
         }
+
+        private const float ShortStepGoalSlack = 0.8f;
 
         private static bool Near(Vector3 end, Vector3 wanted) =>
             Utils.DistanceXZ(end, wanted) <= EndSlackXZ && Mathf.Abs(end.y - wanted.y) <= EndSlackY;
