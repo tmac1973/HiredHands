@@ -208,8 +208,10 @@ namespace VikingsForHire.Core.Nav
                 if (e.Link == null)
                     steps.Add(new RouteStep(RouteStepKind.Walk, to));
                 else
+                    // The far end's node point (within NavGraph.MergeDistance of the link's own end), so a later leg
+                    // from here is keyed the way the planner asked about it.
                     steps.Add(new RouteStep(e.Link.Kind == NavLinkKind.Door ? RouteStepKind.Door : RouteStepKind.Stair,
-                        e.Link.End(e.FromA), e.Link, e.FromA));
+                        to, e.Link, e.FromA));
                 n = prev.From;
             }
             steps.Reverse();

@@ -126,6 +126,7 @@ namespace VikingsForHire.Hirelings.Nav
         {
             StairResult best = StairResult.Reject("no_surface");
             List<Vector3>? bestPoints = null;
+            List<(float Along, float? Height)>? bestSamples = null;
             foreach (Vector3 axis in new[] { piece.transform.forward, piece.transform.right })
             {
                 List<(float Along, float? Height)> samples = StairSampler.Sample(_colliders, b, axis, _points);
@@ -134,6 +135,7 @@ namespace VikingsForHire.Hirelings.Nav
                 {
                     best = r;
                     bestPoints = new List<Vector3>(_points);
+                    bestSamples = samples;
                 }
                 else if (!best.Accepted && r.Reason != "no_surface")
                     best = r; // keep the more telling reason
@@ -147,7 +149,8 @@ namespace VikingsForHire.Hirelings.Nav
                     int step = best.TopIndex > best.BottomIndex ? 1 : -1;
                     var way = new List<NavPoint> { bottom.ToNav() };
                     for (int i = best.BottomIndex; i != best.TopIndex + step; i += step)
-                        way.Add(bestPoints[i].ToNav());
+                        if (bestSamples![i].Height != null) // a missed sample has no real height to walk to
+                            way.Add(bestPoints[i].ToNav());
                     way.Add(top.ToNav());
                     _links.Add(new NavLink(NavLinkKind.Stair, bottom.ToNav(), top.ToNav(), way, piece.m_nview.GetZDO().m_uid.ToString(), prefab, best.IsLadder));
                     if (best.IsLadder)

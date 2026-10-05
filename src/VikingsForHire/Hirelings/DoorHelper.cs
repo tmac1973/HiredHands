@@ -177,6 +177,10 @@ namespace VikingsForHire.Hirelings
         }
 
         /// <summary>Closes the doors this hireling opened once it's clear of them (all of them when <paramref name="now"/>).</summary>
+        // Another hireling (or this one) still in the doorway: shutting the door on it would block its way through.
+        private static bool HirelingInDoorway(Door d) =>
+            Hireling.Loaded.Any(h => h != null && Vector3.Distance(h.transform.position, d.transform.position) < PlayerClearance);
+
         /// <summary>A door a link route opened: close it behind like the ones opened here.</summary>
         public void MarkOpened(Door d) => _opened[d] = Time.time;
 
@@ -201,7 +205,7 @@ namespace VikingsForHire.Hirelings
                 if (!now && d == _throughDoor)
                     continue; // not until it's through
                 bool clear = now || (Vector3.Distance(me, d.transform.position) > CloseDistance && Time.time - kv.Value > CloseAfterSeconds);
-                if (!clear || Player.GetClosestPlayer(d.transform.position, PlayerClearance) != null)
+                if (!clear || Player.GetClosestPlayer(d.transform.position, PlayerClearance) != null || HirelingInDoorway(d))
                     continue;
                 if (IsOpen(d))
                 {

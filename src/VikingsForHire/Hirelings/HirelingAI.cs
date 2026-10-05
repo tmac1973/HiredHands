@@ -314,7 +314,7 @@ namespace VikingsForHire.Hirelings
         /// <remarks>Its own query: BaseAI.FindPath hands back its last result for any target within a second.</remarks>
         internal bool FullRouteTo(Vector3 goal, float within)
         {
-            if (Pathfinding.instance == null || !Pathfinding.instance.GetPath(transform.position, goal, _directPath, m_pathAgentType) || _directPath.Count == 0)
+            if (Pathfinding.instance == null || !Pathfinding.instance.GetPath(transform.position, goal, _directPath, m_pathAgentType, requireFullPath: true) || _directPath.Count == 0)
                 return false;
             Vector3 end = _directPath[_directPath.Count - 1];
             return Utils.DistanceXZ(end, goal) <= within && Mathf.Abs(end.y - goal.y) <= 1f;
@@ -348,7 +348,7 @@ namespace VikingsForHire.Hirelings
         public bool Chase(float dt, Vector3 point, float stopDistance, bool run)
         {
             // Close along the ground counts as there, unless it's another floor of a building at home.
-            bool otherFloor = Mathf.Abs(point.y - transform.position.y) > 1.5f && Nav.NavLinkRegistry.AreaAt(transform.position) != null;
+            bool otherFloor = Mathf.Abs(point.y - transform.position.y) > 1.5f && Nav.NavLinkRegistry.Enabled && Links.Active(point);
             if (Utils.DistanceXZ(point, transform.position) <= stopDistance && !otherFloor)
             {
                 StopMoving();

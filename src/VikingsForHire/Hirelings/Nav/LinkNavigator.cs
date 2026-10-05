@@ -25,6 +25,9 @@ namespace VikingsForHire.Hirelings.Nav
         private const float WalkStuckSeconds = 10f;
         private const float DoorSeconds = 6f;
         private const float NeedLegsHoldSeconds = 3f;
+        private const float StaleSeconds = 0.5f;
+        private const float StaleDistance = 3f;
+        private const float DoorReopenSeconds = 1f;
         private const int MaxReplans = 3;
 
         /// <summary>Hops to a stair's far end since load (for the tests).</summary>
@@ -41,6 +44,9 @@ namespace VikingsForHire.Hirelings.Nav
         private float _stepStartedAt;
         private int _wp;
         private float _lastPlan = -999f;
+        private float _lastGoAt = -999f;
+        private Vector3 _planStart;
+        private float _doorTouchedAt;
         private float _needLegsSince = -1f;
         private int _replans;
         private Vector3 _fallbackGoal = new(float.NaN, 0, 0);
@@ -103,13 +109,23 @@ namespace VikingsForHire.Hirelings.Nav
         {
             float moved = chase ? ChaseMoved : GoalMoved;
             float slack = chase ? 3f : 1.5f;
+            // Not walked for a moment (combat, a stop near its owner) or pushed away: whatever step it was on is stale.
+            if (Time.time - _lastGoAt > StaleSeconds || (_steps != null && _stepStarted && _i < _steps.Count && _steps[_i].Link is NavLink cur &&
+                                                      Vector3.Distance(_ai.transform.position, _stepFrom) > StaleDistance + cur.Length))
+            {
+                Drop();
+                _needLegsSince = -1f;
+            }
+            _lastGoAt = Time.time;
             BoardNav? nav = Area(goal);
             if (nav == null || FallingBack(goal))
             {
                 if (!OnLinkStep)
+                {
                     Drop();
-                if (!OnLinkStep)
+                    _needLegsSince = -1f;
                     return null;
+                }
             }
 
             if (_steps != null && !OnLinkStep)
@@ -120,6 +136,7 @@ namespace VikingsForHire.Hirelings.Nav
                 else if (chase && DirectOk(goal, stopDistance, slack))
                 {
                     Drop();
+                    _needLegsSince = -1f;
                     return null;
                 }
             }
@@ -132,9 +149,13 @@ namespace VikingsForHire.Hirelings.Nav
                 {
                     _replans = 0;
                     _goal = goal;
+                    _needLegsSince = -1f;
                 }
                 if (DirectOk(goal, stopDistance, slack))
+                {
+                    _needLegsSince = -1f;
                     return null;
+                }
                 if (Time.time - _lastPlan < (chase ? ChasePlanEvery : PlanEvery))
                     return Waiting();
                 Plan(nav, goal);
@@ -176,6 +197,7 @@ namespace VikingsForHire.Hirelings.Nav
                     _needLegsSince = -1f;
                     _steps = r.Steps;
                     _i = 0;
+                    _planStart = _ai.transform.position;
                     _nav = nav;
                     _version = nav.Graph.Version;
                     _goal = goal;
@@ -277,7 +299,8 @@ namespace VikingsForHire.Hirelings.Nav
                     return true;
                 }
             }
-            else if (Vector3.Distance(me, to) <= WalkDone)
+            // The game's walking stops short of a point (1 m when running), so count that as there.
+            else if (Utils.DistanceXZ(me, to) <= Mathf.Max(WalkDone, run ? 1.05f : 0.55f) && Mathf.Abs(me.y - to.y) <= 1f)
             {
                 Next();
                 return false;
@@ -285,8 +308,10 @@ namespace VikingsForHire.Hirelings.Nav
             _ai.Track(to);
             if (_ai.StuckSeconds(to) > WalkStuckSeconds)
             {
-                LegOracle.MarkFailed(_nav!, _stepFrom, to);
-                VfhLog.D(LogCat.Nav, "navlinks.leg_failed", ("hid", _ai.Hireling.Hid), ("from", _stepFrom), ("to", to));
+                // The leg as the planner asked about it: from the previous step's point (or where the plan started).
+                Vector3 from = _i == 0 ? _planStart : _steps![_i - 1].To.ToUnity();
+                LegOracle.MarkFailed(_nav!, from, to);
+                VfhLog.D(LogCat.Nav, "navlinks.leg_failed", ("hid", _ai.Hireling.Hid), ("from", from), ("to", to));
                 Failed("walk");
                 return false;
             }
@@ -325,9 +350,18 @@ namespace VikingsForHire.Hirelings.Nav
                         return;
                     }
                     DoorRules.Open(door, me);
+                    _ai.MarkDoorOpened(door);
+                    _doorTouchedAt = Time.time;
                     VfhLog.D(LogCat.Nav, "navlinks.door", ("hid", _ai.Hireling.Hid), ("door", door.transform.position));
                 }
+            }
+            // Closed again in front of it (another hireling behind it, a player): open it again.
+            else if (!DoorRules.IsOpen(door) && Time.time - _doorTouchedAt > DoorReopenSeconds && VfhConfig.HirelingsOpenDoors.Value &&
+                     DoorRules.Usable(door, DoorRules.BoardOwner(_ai.Hireling.BoardId)))
+            {
+                DoorRules.Open(door, me);
                 _ai.MarkDoorOpened(door);
+                _doorTouchedAt = Time.time;
             }
             if (Utils.DistanceXZ(me, far) <= 0.6f)
             {

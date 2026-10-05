@@ -95,7 +95,7 @@ namespace VikingsForHire.Followers
                 return;
             }
             Show(h, retreat ? "$vfh_status_retreating" : "$vfh_status_following");
-            float dist = OwnerDistance(ai.transform.position, owner.transform.position);
+            float dist = OwnerDistance(ai, owner.transform.position);
             // Sneak with the owner when close; a follower well behind keeps running to catch up.
             bool sneak = owner.IsCrouching() && !retreat && dist <= SneakWithin;
             ai.WantSneak = sneak;
@@ -113,13 +113,16 @@ namespace VikingsForHire.Followers
         // Along the ground, unless far apart in height: a dungeon's inside is 5000 m above its entrance, and a follower
         // left in there measured along the ground thought it was right next to its owner outside.
         // At home, on another floor counts as far too (upstairs right above it isn't "with" its owner).
-        private static float OwnerDistance(Vector3 me, Vector3 owner) =>
-            Mathf.Abs(me.y - owner.y) > 10f ? Vector3.Distance(me, owner)
-            : OtherFloorAtHome(me, owner) ? Vector3.Distance(me, owner) + FollowDistance
-            : Utils.DistanceXZ(me, owner);
-
-        private static bool OtherFloorAtHome(Vector3 me, Vector3 owner) =>
-            Mathf.Abs(me.y - owner.y) > 1.5f && Hirelings.Nav.NavLinkRegistry.AreaAt(me) is Hirelings.Nav.BoardNav area && area.Contains(owner);
+        // Only while there's a way up through the links: otherwise it would grind underneath its owner forever.
+        private static float OwnerDistance(HirelingAI ai, Vector3 owner)
+        {
+            Vector3 me = ai.transform.position;
+            if (Mathf.Abs(me.y - owner.y) > 10f)
+                return Vector3.Distance(me, owner);
+            if (Mathf.Abs(me.y - owner.y) > 1.5f && Hirelings.Nav.NavLinkRegistry.Enabled && ai.Links.Active(owner))
+                return Vector3.Distance(me, owner) + FollowDistance;
+            return Utils.DistanceXZ(me, owner);
+        }
 
         private void Hold(HirelingAI ai, Vector3 spot, float dt)
         {
