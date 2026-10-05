@@ -38,6 +38,22 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void TidyingComesLast()
+        {
+            float tidyNear = ChoreUrgency.Score(ChoreUrgency.Tidy(), 0f, 30f);
+            // The least urgent real job, as far away as it gets, still beats tidying right here.
+            float[] lowest =
+            {
+                ChoreUrgency.Fire(4.99f, 10f, 0.5f), ChoreUrgency.Station(0.49f, 1f, false, 0.5f), ChoreUrgency.Producer(2, 4),
+                ChoreUrgency.Animal(true), ChoreUrgency.Repair(0.94f, 0.95f), ChoreUrgency.Fermenter(false, true),
+            };
+            foreach (float u in lowest)
+                Assert.True(ChoreUrgency.Score(u, 30f, 30f) > tidyNear, $"{u}");
+            Assert.Equal(0.6f, ChoreUrgency.Fermenter(true, false));
+            Assert.Equal(0f, ChoreUrgency.Fermenter(false, false));
+        }
+
+        [Fact]
         public void DistanceOrdersEqualJobsButNotUrgentOnes()
         {
             float near = ChoreUrgency.Score(0.7f, 5f, 30f);

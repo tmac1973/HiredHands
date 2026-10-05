@@ -32,6 +32,20 @@ namespace VikingsForHire.Core.Data
         /// </summary>
         public static void Migrate(VfhData data, List<string> filled)
         {
+            // A file with choreLevels but without a chore added later (e.g. fermenters): that chore's default level, not 1.
+            if (!filled.Contains("jobs.Smelter.choreLevels") && data.Jobs.TryGetValue(JobType.Smelter, out JobData? have) &&
+                DefaultData.Create().Jobs.TryGetValue(JobType.Smelter, out JobData? shipped))
+            {
+                foreach (Chores.ChoreKind kind in Chores.ChoreKeys.All)
+                {
+                    string key = Chores.ChoreKeys.Key(kind);
+                    if (!have.ChoreLevels.Keys.Any(k => string.Equals(k, key, StringComparison.OrdinalIgnoreCase)) && shipped.ChoreLevels.TryGetValue(key, out int level))
+                    {
+                        have.ChoreLevels[key] = level;
+                        filled.Add($"jobs.Smelter.choreLevels.{key}");
+                    }
+                }
+            }
             if (filled.Contains("jobs.Smelter.choreLevels") && data.Jobs.TryGetValue(JobType.Smelter, out JobData? steward))
             {
                 foreach (string mill in new[] { "windmill", "piece_spinningwheel" })

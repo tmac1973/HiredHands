@@ -37,6 +37,15 @@ namespace VikingsForHire.Core.Chores
 
         public static float Animal(bool hungry) => hungry ? 0.7f : 0f;
 
+        /// <summary>A fermenter: ready to tap 0.6; empty (with a mead base to put in) 0.45.</summary>
+        public static float Fermenter(bool ready, bool empty) => ready ? 0.6f : empty ? 0.45f : 0f;
+
+        /// <summary>A shield generator below the refill fraction, as a fire.</summary>
+        public static float Shield(float fuel, float max, float refill) => Fire(fuel, max, refill);
+
+        /// <summary>Tidying up: below every other chore's lowest urgency (0.3), so anything else comes first.</summary>
+        public static float Tidy() => 0.15f;
+
         /// <summary>A damaged piece: nothing at or above the line, 0.3 + 0.6 × damage below it.</summary>
         public static float Repair(float health, float below)
         {

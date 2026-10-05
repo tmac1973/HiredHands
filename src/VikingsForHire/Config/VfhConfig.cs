@@ -56,6 +56,10 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> StewardRepairBelow = null!;
         public static ConfigEntry<float> StewardRepairQuietSeconds = null!;
         public static ConfigEntry<bool> StewardIgnoreOtherMods = null!;
+        public static ConfigEntry<bool> StewardFermenters = null!;
+        public static ConfigEntry<bool> StewardShields = null!;
+        public static ConfigEntry<bool> StewardTidy = null!;
+        public static ConfigEntry<float> StewardTidyMinSeconds = null!;
         public static ConfigEntry<float> TreeFallCorridorHalfWidth = null!;
         public static ConfigEntry<bool> MinerProtectsTerrain = null!;
         public static ConfigEntry<bool> GatheringMakesNoise = null!;
@@ -152,6 +156,10 @@ namespace VikingsForHire.Config
             StewardSap = Synced(st, "StewardSap", true, "Stewards may empty sap collectors into chests.");
             StewardAnimals = Synced(st, "StewardAnimals", true, "Stewards may feed hungry tamed animals from chests.");
             StewardRepairs = Synced(st, "StewardRepairs", true, "Stewards may repair damaged building pieces (vanilla rules: crafting station in range, ward access, free).");
+            StewardFermenters = Synced(st, "StewardFermenters", true, "Stewards may load empty fermenters with mead bases from chests and tap them when ready.");
+            StewardShields = Synced(st, "StewardShields", true, "Stewards may keep shield generators fed with their fuel (bones) from chests.");
+            StewardTidy = Synced(st, "StewardTidy", true, "Stewards may pick up items lying on the ground in their work radius and put them in chests that already hold them (only when there's nothing else to do).");
+            StewardTidyMinSeconds = Synced(st, "StewardTidyMinSeconds", 60f, "Leave items alone until they've been on the ground this long, so a Steward doesn't grab what a player just dropped.");
             StewardFireRefillFraction = Synced(st, "StewardFireRefillFraction", 0.5f, "Refuel a fire when its fuel is below this fraction of full; it's filled up to full.");
             StewardRepairBelow = Synced(st, "StewardRepairBelow", 0.95f, "Repair pieces below this fraction of full health.");
             StewardRepairQuietSeconds = Synced(st, "StewardRepairQuietSeconds", 20f, "No repairs until this long after the last enemy was seen within 30 m of the Steward or the piece.");

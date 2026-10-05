@@ -22,6 +22,9 @@ namespace VikingsForHire.Tests
         [InlineData("piece_spinningwheel", 5)]
         [InlineData("eitrrefinery", 6)]
         [InlineData("sap", 6)]
+        [InlineData("tidy", 1)]
+        [InlineData("fermenters", 4)]
+        [InlineData("shields", 7)]
         public void DefaultLevels(string key, int level) => Assert.Equal(level, ChoreRules.MinLevel(Steward(), key));
 
         [Fact]

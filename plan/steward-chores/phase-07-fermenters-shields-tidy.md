@@ -89,3 +89,10 @@ Three more chores, added the same way as phases 03–06:
 
 ## Rollback
 Revert the commit, or set `StewardFermenters`, `StewardShields` or `StewardTidy` to false on the server.
+
+## As built
+- **Older files:** a data file with `choreLevels` but without a chore added later (fermenters, shields, tidy) gets that chore's default level from `DataDefaults.Migrate`, not level 1.
+- **Shield generators:** their `RPC_AddFuel` doesn't stop at full, so the Steward stops once fuel is within 1 of the maximum. The RPC plays its own effect.
+- **Fermenter loading:** `RPC_AddItem(hash of the base's prefab name, false)`, as `Fermenter.AddItem` does. The `fermenter ready` fixture uses the minor healing mead base when the fermenter takes it, so the test can seed a chest for `MeadHealthMinor`.
+- **Tidied items:** delivered by setting `DeliverPending` at the end of the trip, not by adding them to `StewardOutputs`. Otherwise tidying up wood would make the Steward hand back the wood it fetched for fires.
+- **Test setup:** `litter` sets the items' spawn time 10 minutes back, so they count as long on the ground. The tidy test's priority check uses a resin torch, because the wood reserve (`keepInStorage` Wood 50) would leave no wood for a hearth.

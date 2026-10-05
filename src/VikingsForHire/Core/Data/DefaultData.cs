@@ -79,11 +79,13 @@ namespace VikingsForHire.Core.Data
                     // Each chore unlocks with the biome whose boss makes its resources available.
                     ChoreLevels = new Dictionary<string, int>
                     {
-                        ["fires"] = 1, ["beehives"] = 1,
+                        ["fires"] = 1, ["beehives"] = 1, ["tidy"] = 1,
                         ["smelter"] = 2, ["charcoal_kiln"] = 2, ["animals"] = 2,
                         ["repairs"] = 3,
+                        ["fermenters"] = 4,
                         ["blastfurnace"] = 5, ["windmill"] = 5, ["piece_spinningwheel"] = 5,
                         ["eitrrefinery"] = 6, ["sap"] = 6,
+                        ["shields"] = 7,
                     },
                 },
                 [JobType.GuardMelee] = new()

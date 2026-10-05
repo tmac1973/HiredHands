@@ -41,6 +41,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
             _chores.Add(new ProducersChore(ChoreKind.Sap));
             _chores.Add(new AnimalsChore());
             _chores.Add(new RepairsChore());
+            _chores.Add(new FermentersChore());
+            _chores.Add(new ShieldsChore());
+            _chores.Add(new TidyChore());
         }
 
         public string Name => "Steward";
@@ -200,6 +203,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 ChoreKind.Mills => VfhConfig.StewardMills,
                 ChoreKind.Sap => VfhConfig.StewardSap,
                 ChoreKind.Animals => VfhConfig.StewardAnimals,
+                ChoreKind.Fermenters => VfhConfig.StewardFermenters,
+                ChoreKind.Shields => VfhConfig.StewardShields,
+                ChoreKind.Tidy => VfhConfig.StewardTidy,
                 _ => VfhConfig.StewardRepairs,
             };
             return setting.Value;

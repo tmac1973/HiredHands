@@ -60,6 +60,22 @@ namespace VikingsForHire.Testing
             TestHarness.RegisterCheck("piece_health", "<tag> - a tagged piece's health (0..1)", args =>
                 (FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponent<WearNTear>() ?? throw new InvalidOperationException("no such tagged piece"))
                     .GetHealthPercentage().ToString("0.00", CultureInfo.InvariantCulture));
+            Fixtures.Add("fermenter", "<empty|ready> [tag] - a fermenter 7 m from the board (put a roof over it with roof_over fermenter); ready: holding a finished mead base", Fermenter);
+            Fixtures.Add("shieldgen", "<fuel> [tag] - a shield generator 7 m from the board with that much fuel", ShieldGen);
+            Fixtures.Add("litter", "<item> <count> [tag] - drop items 10 m from the board, already on the ground long enough to be tidied", Litter);
+            TestHarness.RegisterCheck("fermenter_status", "<tag> - Empty, Fermenting, Exposed or Ready", args =>
+                (FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<global::Fermenter>() ?? throw new InvalidOperationException("no such tagged fermenter")).GetStatus().ToString());
+            TestHarness.RegisterCheck("shield_fuel", "<tag> - a tagged shield generator's fuel", args =>
+                (FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<ShieldGenerator>() ?? throw new InvalidOperationException("no such tagged generator"))
+                    .GetFuel().ToString("0.0", CultureInfo.InvariantCulture));
+            TestHarness.RegisterCheck("ground_items", "<item> [radius=40] - how many of an item lie on the ground within that distance of the nearest board", args =>
+            {
+                string item = args.ElementAtOrDefault(0) ?? "Wood";
+                float radius = args.Length > 1 ? float.Parse(args[1], CultureInfo.InvariantCulture) : 40f;
+                Vector3 at = Board().transform.position;
+                return ItemDrop.s_instances.Where(d => d != null && d.m_itemData?.m_dropPrefab != null && d.m_itemData.m_dropPrefab.name == item &&
+                                                      Utils.DistanceXZ(d.transform.position, at) <= radius).Sum(d => d.m_itemData.m_stack).ToString(CultureInfo.InvariantCulture);
+            });
             Fixtures.Add("station_info", "<prefab> - log the nearest such station's make-up and state (as vfh_station), in step with the test", args => StationInfo(args));
             TestHarness.RegisterCheck("steward_chore", "- the chore the Steward from your last contract is doing now (Fires, Stations…), or none", _ =>
             {
@@ -351,6 +367,64 @@ namespace VikingsForHire.Testing
         {
             WearNTear wnt = go.GetComponent<WearNTear>() ?? throw new InvalidOperationException("not a building piece");
             wnt.m_nview.GetZDO().Set(ZDOVars.s_health, wnt.m_health * fraction);
+        }
+
+        private static IEnumerator Fermenter(string[] args)
+        {
+            bool ready = args.ElementAtOrDefault(0) == "ready";
+            string tag = args.ElementAtOrDefault(1) ?? "";
+            HiringBoard board = Board();
+            Vector3 pos = board.transform.position + Quaternion.Euler(0f, 100f + 50f * (_fires++ % 6), 0f) * board.transform.forward * 7f;
+            GameObject go = Spawn("fermenter", pos, tag);
+            OwnBuilt(go);
+            yield return null;
+            global::Fermenter f = go.GetComponentInChildren<global::Fermenter>();
+            if (ready)
+            {
+                // The minor healing mead base if this fermenter takes it (the tests seed a chest for its mead), else the first.
+                string mead = f.m_conversion.Where(c => c.m_from != null).Select(c => c.m_from.gameObject.name)
+                    .OrderBy(m => m == "MeadBaseHealthMinor" ? 0 : 1).First();
+                ZDO z = f.m_nview.GetZDO();
+                z.Set(ZDOVars.s_content, mead.GetStableHashCode());
+                z.Set(ZDOVars.s_startTime, ZNet.instance.GetTime().AddSeconds(-f.m_fermentationDuration - 30.0).Ticks);
+            }
+            VfhLog.I(LogCat.Test, "fixture.fermenter", ("ready", ready), ("tag", tag));
+            yield return null;
+        }
+
+        private static IEnumerator ShieldGen(string[] args)
+        {
+            float fuel = float.Parse(args.ElementAtOrDefault(0) ?? "0", CultureInfo.InvariantCulture);
+            string tag = args.ElementAtOrDefault(1) ?? "";
+            HiringBoard board = Board();
+            Vector3 pos = board.transform.position + Quaternion.Euler(0f, 100f + 50f * (_fires++ % 6), 0f) * board.transform.forward * 7f;
+            GameObject go = Spawn("piece_shieldgenerator", pos, tag);
+            OwnBuilt(go);
+            yield return null;
+            go.GetComponentInChildren<ShieldGenerator>().m_nview.GetZDO().Set(ZDOVars.s_fuel, fuel);
+            VfhLog.I(LogCat.Test, "fixture.shieldgen", ("fuel", fuel), ("tag", tag));
+            yield return null;
+        }
+
+        private static IEnumerator Litter(string[] args)
+        {
+            string item = args.ElementAtOrDefault(0) ?? "Wood";
+            int count = int.Parse(args.ElementAtOrDefault(1) ?? "10", CultureInfo.InvariantCulture);
+            HiringBoard board = Board();
+            GameObject prefab = ObjectDB.instance.GetItemPrefab(item) ?? throw new InvalidOperationException($"no item {item}");
+            Vector3 at = board.transform.position - board.transform.right * 10f;
+            for (int i = 0; i < count; i++)
+            {
+                Vector3 p = at + new Vector3(UnityEngine.Random.Range(-2f, 2f), 0f, UnityEngine.Random.Range(-2f, 2f));
+                p.y = ZoneSystem.instance.GetGroundHeight(p) + 0.3f;
+                GameObject go = Object.Instantiate(prefab, p, Quaternion.identity);
+                ZDO z = go.GetComponent<ZNetView>().GetZDO();
+                z.Set(BoardZdo.Fixture, true);
+                // Long enough on the ground to be tidied.
+                z.Set(ZDOVars.s_spawnTime, ZNet.instance.GetTime().AddSeconds(-600.0).Ticks);
+            }
+            VfhLog.I(LogCat.Test, "fixture.litter", ("item", item), ("count", count));
+            yield return null;
         }
 
         private static int _fires;

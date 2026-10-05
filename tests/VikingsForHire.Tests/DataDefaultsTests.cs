@@ -63,6 +63,23 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void LaterChoresGetTheirDefaultLevelNotOne()
+        {
+            // A file from before fermenters, shields and tidying existed: choreLevels without them.
+            VfhData early = DefaultData.Create();
+            foreach (string k in new[] { "fermenters", "shields", "tidy" })
+                early.Jobs[JobType.Smelter].ChoreLevels.Remove(k);
+            VfhData data = DataYaml.Deserialize(DataYaml.Serialize(early), out var filled);
+            Assert.Equal(4, data.Jobs[JobType.Smelter].ChoreLevels["fermenters"]);
+            Assert.Equal(7, data.Jobs[JobType.Smelter].ChoreLevels["shields"]);
+            Assert.Contains("jobs.Smelter.choreLevels.shields", filled);
+            // A level the owner set is kept.
+            VfhData owner = DefaultData.Create();
+            owner.Jobs[JobType.Smelter].ChoreLevels["repairs"] = 1;
+            Assert.Equal(1, DataYaml.Deserialize(DataYaml.Serialize(owner), out _).Jobs[JobType.Smelter].ChoreLevels["repairs"]);
+        }
+
+        [Fact]
         public void PreChoreFilesGainTheMills()
         {
             // A 0.3 file: no choreLevels, and stations without the windmill and spinning wheel.
