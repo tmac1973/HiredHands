@@ -49,3 +49,8 @@ The Steward's weapon becomes a broom: a new item `VFH_Broom` with a club's stats
 
 ## Rollback
 Revert the commit. New data files go back to `Club`; an existing file with `VFH_Broom` falls back to the level-below rule and then to nothing. Edit it back to `Club` after reverting.
+
+## As built
+- **`vfh_broom_info`** is registered by `BroomItem` itself, not in `DebugCommands`. The model choice is logged as `broom.model`, with `source` set to `prefab:<name>`, `loaded`, `fallback:Cultivator`, or `club` when nothing usable was found.
+- **Mesh lookup:** done once, when the vanilla prefabs are ready, over every scene prefab's meshes and then the meshes already loaded.
+- **Alignment:** the broom's longest axis is lined up with the club's and scaled to 1.4 m. The bristles may come out at either end; check in game, and if they're wrong, add a turn in `Swap`.

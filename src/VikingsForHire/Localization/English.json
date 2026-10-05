@@ -86,6 +86,8 @@
   "vfh_chore_fermenters": "Fermenters",
   "vfh_chore_shields": "Shield generators",
   "vfh_chore_tidy": "Tidying up",
+  "vfh_broom": "Broom",
+  "vfh_broom_desc": "The Steward's trusty broom. Sweeps floors and the occasional Greyling.",
   "vfh_chore_state_on": "on",
   "vfh_chore_state_off": "off",
   "vfh_chore_state_locked": "locked until level $1",

@@ -73,7 +73,7 @@ namespace VikingsForHire.Core.Data
                 {
                     CostMult = 0.9f,
                     WorkerCombatFactor = 0.3f,
-                    Gear = Mains("Club", "Club", "Club", "Club", "Club", "Club", "Club", "Club"),
+                    Gear = Mains("VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom"),
                     Stations = List("smelter", "blastfurnace", "charcoal_kiln", "eitrrefinery", "windmill", "piece_spinningwheel"),
                     KeepInStorage = new Dictionary<string, int> { ["Wood"] = 50 },
                     // Each chore unlocks with the biome whose boss makes its resources available.
