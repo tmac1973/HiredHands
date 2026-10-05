@@ -70,19 +70,21 @@ namespace VikingsForHire.Testing
             // The stair climbs towards the back (-n); turn it round if it was placed climbing the other way.
             GameObject stair = Place(stairPrefab, new Vector3(c.x, ground, c.z), -n, tag + "_stair");
             yield return null;
+            // Colliders only follow a moved transform after a sync; measuring before it reads the old place.
+            Physics.SyncTransforms();
             if (HighEnd(stair, -n) < 0f)
                 stair.transform.rotation = Quaternion.LookRotation(n);
-            yield return null;
+            Physics.SyncTransforms();
             Bounds sb = Bounds(stair);
             float along = Mathf.Abs(n.x) * sb.extents.x + Mathf.Abs(n.z) * sb.extents.z;
             // High end at the front edge of the upper floor (1 m behind the centre), low end towards the door.
             Vector3 stairPos = c - n * 1f + n * along + (stair.transform.position - sb.center).With(y: 0f);
             stair.transform.position = new Vector3(stairPos.x, ground, stairPos.z);
-            yield return null;
+            Physics.SyncTransforms();
             // Its origin isn't at its foot: stand it on the ground under its own foot.
             float footGround = ZoneSystem.instance.GetGroundHeight(stair.transform.position + n * along * 0.8f);
             stair.transform.position += Vector3.up * (footGround - Bounds(stair).min.y);
-            yield return null;
+            Physics.SyncTransforms();
             // The upper floor goes level with the top step as the scan measures it (not the rails' top).
             float top = TopStep(stair, -n);
 
@@ -91,9 +93,10 @@ namespace VikingsForHire.Testing
             {
                 GameObject floor = Place("wood_floor", c - n * 2f + t * (2f * i) + Vector3.up * (top - c.y), n, i == 0 ? tag + "_up" : "");
                 floor.transform.position = new Vector3(floor.transform.position.x, top, floor.transform.position.z);
-                yield return null;
+                Physics.SyncTransforms();
                 float surface = Bounds(floor).max.y;
                 floor.transform.position += Vector3.up * (top - surface);
+                Physics.SyncTransforms();
             }
             yield return null;
             GameObject chest = Place("piece_chest_wood", new Vector3((c - n * 2f + t * 2f).x, top, (c - n * 2f + t * 2f).z), n, tag);
@@ -102,7 +105,7 @@ namespace VikingsForHire.Testing
             for (int i = 1; i + 1 < args.Length; i += 2)
                 FixturesWork.AddStacks(inv, args[i], int.Parse(args[i + 1], CultureInfo.InvariantCulture));
             VfhLog.I(LogCat.Test, "fixture.house", ("tag", tag), ("stair", stairPrefab), ("center", c), ("ground", ground), ("upperFloor", top),
-                ("rise", top - Bounds(stair).min.y));
+                ("rise", top - Bounds(stair).min.y), ("stairPos", stair.transform.position), ("climbs", HighEnd(stair, -n) >= 0f ? "back" : "front"));
             yield return new WaitForSeconds(0.5f);
 
             Vector3 Ground(Vector3 p) => new(p.x, ZoneSystem.instance.GetGroundHeight(p), p.z);

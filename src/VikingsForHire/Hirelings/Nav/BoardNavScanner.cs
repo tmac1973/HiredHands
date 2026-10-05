@@ -178,10 +178,10 @@ namespace VikingsForHire.Hirelings.Nav
             top = hi + up * EndOut;
             float? floorLo = StairSampler.FloorAt(bottom, lo.y, 0.5f);
             if (floorLo == null)
-                return "no_bottom_floor";
+                return $"no_bottom_floor at {bottom} (step {lo.y:0.00}, found {StairSampler.SurfaceBelow(bottom, lo.y)})";
             float? floorHi = StairSampler.FloorAt(top, hi.y, 0.4f);
             if (floorHi == null)
-                return "no_top_floor";
+                return $"no_top_floor at {top} (step {hi.y:0.00}, found {StairSampler.SurfaceBelow(top, hi.y)})";
             bottom.y = floorLo.Value;
             top.y = floorHi.Value;
             if (!StairSampler.Headroom(bottom) || !StairSampler.Headroom(top))

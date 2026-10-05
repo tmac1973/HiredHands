@@ -66,6 +66,11 @@ namespace VikingsForHire.Hirelings.Nav
             return hit.point.y;
         }
 
+        /// <summary>For logs: what the floor check's ray hit (height and how flat), or "nothing".</summary>
+        public static string SurfaceBelow(Vector3 p, float expected) =>
+            Physics.Raycast(new Vector3(p.x, expected + 1f, p.z), Vector3.down, out RaycastHit hit, 2.5f, FloorMask, QueryTriggerInteraction.Ignore)
+                ? $"{hit.point.y:0.00} {hit.collider.name} n.y={hit.normal.y:0.00}" : "nothing";
+
         /// <summary>Room to stand: nothing solid in the 1.5 m above the point.</summary>
         public static bool Headroom(Vector3 p) =>
             !Physics.Raycast(p + Vector3.up * 0.2f, Vector3.up, 1.5f, FloorMask, QueryTriggerInteraction.Ignore);
