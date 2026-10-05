@@ -63,7 +63,38 @@ namespace VikingsForHire.Commands
                 ("legs", string.Join(" | ", legs)), ("links", links));
         }
 
-        public static void Register() =>
+        public static void Register()
+        {
+            CommandManager.Instance.AddConsoleCommand(new VfhCommand("vfh_station", "<prefab> - how the nearest such station (smelter, windmill, piece_spinningwheel…) works and what it holds", false, Station));
+            RegisterNav();
+        }
+
+        // Prints a station's make-up (does it hold output inside, can it be emptied) and its state, to see where output goes.
+        internal static void Station(string[] args)
+        {
+            string prefab = args.FirstOrDefault() ?? "smelter";
+            Player me = Player.m_localPlayer;
+            Smelter? s = me == null ? null : UnityEngine.Object.FindObjectsByType<Smelter>(UnityEngine.FindObjectsSortMode.None)
+                .Where(x => Utils.GetPrefabName(x.gameObject) == prefab)
+                .OrderBy(x => UnityEngine.Vector3.Distance(x.transform.position, me.transform.position)).FirstOrDefault();
+            if (s == null || s.m_nview == null || !s.m_nview.IsValid())
+            {
+                VfhCommand.Print($"HiredHands: no {prefab} loaded near you");
+                return;
+            }
+            ZDO z = s.m_nview.GetZDO();
+            UnityEngine.Vector3 outAt = s.m_outputPoint != null ? s.m_outputPoint.position : s.transform.position;
+            var outputs = new HashSet<string>(s.m_conversion.Where(c => c.m_to != null).Select(c => c.m_to.gameObject.name));
+            int onGround = ItemDrop.s_instances.Where(d => d != null && d.m_itemData?.m_dropPrefab != null && outputs.Contains(d.m_itemData.m_dropPrefab.name) &&
+                                                             UnityEngine.Vector3.Distance(d.transform.position, outAt) < 6f).Sum(d => d.m_itemData.m_stack);
+            string text = $"{prefab}: spawnStack={s.m_spawnStack} emptySwitch={(s.m_emptyOreSwitch != null)} secPerProduct={s.m_secPerProduct} maxOre={s.m_maxOre} " +
+                          $"fuel={(s.m_fuelItem != null ? s.m_fuelItem.name : "none")} queue={z.GetInt(ZDOVars.s_queued)} heldInside={z.GetInt(ZDOVars.s_spawnAmount)} " +
+                          $"heldItem={z.GetString(ZDOVars.s_spawnOre)} outputNearby={onGround} outputs={string.Join(",", outputs)}";
+            VfhCommand.Print(text);
+            VfhLog.I(LogCat.Smelter, "station.info", ("text", text));
+        }
+
+        private static void RegisterNav() =>
             CommandManager.Instance.AddConsoleCommand(new VfhCommand("vfh_navlinks",
                 "<show|hide|scan|list|why> - the doors and stairs hirelings route through at your bases (show draws them, scan rescans the nearest board, list prints its links, why plans from the nearest hireling to where you're looking and prints every leg)",
                 false, Run, new List<string> { "show", "hide", "scan", "list", "why" }));
