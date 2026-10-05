@@ -2,6 +2,7 @@
 
 ## 0.2.4 (unreleased)
 
+- **Low funds map pin matches the board.** The pin could say a board had food for 0 days while its hover said 20. For a board loaded in your game the pin now goes by what your game sees in it, as the hover does; the server logs `funds.pin_low` with what it read whenever it calls a board low.
 - **Idle hirelings stay put.** A hireling with nothing to do at home ("Works at home" off and no post, say) wandered at random round the board, into nearby buildings and up and down their stairs. It now stands at an open-air spot a few metres from the board that it has a full route to (on the board's floor if the board is indoors), and moves to another one now and then.
 
 ## 0.2.3

@@ -28,6 +28,7 @@ namespace VikingsForHire.Board
         private static float _nextPins;
         private static readonly Dictionary<string, Minimap.PinData> Pins = new();
         private static readonly Dictionary<HiringBoard, (float At, Cost Daily)> DailyCache = new();
+        private static readonly Dictionary<string, float> LoggedLow = new();
 
         public static void Register() => _rpc = NetworkManager.Instance.AddRPC("VFH_LowFunds", OnServer, OnClient);
 
@@ -116,14 +117,49 @@ namespace VikingsForHire.Board
                 Cost daily = DailyUpkeep(BoardRosterOps.Read(zdo));
                 if (daily.FoodPoints == 0 && daily.Coins == 0)
                     continue;
-                (int foodDays, int coinDays) = FundsForecast.DaysLeft(new BoardLedger.Wallet(zdo).Funds, daily);
+                var wallet = new BoardLedger.Wallet(zdo);
+                Cost funds = wallet.Funds;
+                (int foodDays, int coinDays) = FundsForecast.DaysLeft(funds, daily);
                 int days = System.Math.Min(foodDays, coinDays);
                 if (!IsLow(days))
                     continue;
+                string boardId = zdo.GetString(BoardZdo.Id);
+                if (!LoggedLow.TryGetValue(boardId, out float at) || Time.time - at > 600f)
+                {
+                    LoggedLow[boardId] = Time.time;
+                    VfhLog.I(LogCat.Payment, "funds.pin_low", ("board", boardId), ("funds", $"{funds.FoodPoints}fp+{funds.Coins}c"),
+                        ("daily", $"{daily.FoodPoints}fp+{daily.Coins}c"), ("stacks", wallet.Inventory.GetAllItems().Count),
+                        ("items", string.Join(",", wallet.Inventory.GetAllItems().Select(i => $"{(i.m_dropPrefab != null ? i.m_dropPrefab.name : i.m_shared.m_name)}x{i.m_stack}"))),
+                        ("savedLength", zdo.GetString(ZDOVars.s_items).Length), ("dataRev", zdo.DataRevision));
+                }
                 string label = Localization.instance.Localize(foodDays <= coinDays ? "$vfh_pin_low_food" : "$vfh_pin_low_coins", days.ToString());
                 list.Add((zdo.GetString(BoardZdo.Id), zdo.GetPosition(), label));
             }
             return list;
+        }
+
+        private static List<(string Id, Vector3 Pos, string Label)> Local(List<(string Id, Vector3 Pos, string Label)> low)
+        {
+            if (Player.m_localPlayer == null || low.Count == 0)
+                return low;
+            long me = Player.m_localPlayer.GetPlayerID();
+            var result = new List<(string, Vector3, string)>();
+            foreach ((string id, Vector3 pos, string label) in low)
+            {
+                HiringBoard? board = HiringBoard.Loaded.FirstOrDefault(b => b != null && b.Id == id);
+                Inventory? inv = board != null ? board.Inventory : null;
+                if (board == null || board.Zdo == null || inv == null || board.Zdo.GetLong(ZDOVars.s_creator) != me)
+                {
+                    result.Add((id, pos, label));
+                    continue;
+                }
+                Cost daily = DailyUpkeep(BoardRosterOps.Read(board.Zdo));
+                (int foodDays, int coinDays) = FundsForecast.DaysLeft(BoardStorage.Totals(inv), daily);
+                int days = System.Math.Min(foodDays, coinDays);
+                if (IsLow(days))
+                    result.Add((id, pos, Localization.instance.Localize(foodDays <= coinDays ? "$vfh_pin_low_food" : "$vfh_pin_low_coins", days.ToString())));
+            }
+            return result;
         }
 
         private static IEnumerator OnServer(long sender, ZPackage pkg)
@@ -161,11 +197,13 @@ namespace VikingsForHire.Board
             yield break;
         }
 
-        // Keep exactly one pin per low board; remove the rest.
+        // Keep exactly one pin per low board; remove the rest. A board loaded here is judged on what this game sees in it
+        // (as its hover is), not on the server's copy.
         private static void Show(List<(string Id, Vector3 Pos, string Label)> low)
         {
             if (Minimap.instance == null)
                 return;
+            low = Local(low);
             var keep = new HashSet<string>(low.Select(l => l.Id));
             foreach (string id in Pins.Keys.Where(k => !keep.Contains(k)).ToList())
             {
