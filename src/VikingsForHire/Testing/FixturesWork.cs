@@ -21,7 +21,7 @@ namespace VikingsForHire.Testing
             Fixtures.Add("board_level", "<1-8> - set the nearest board's level (free, through its owner)", BoardLevel);
             Fixtures.Add("trees", "<prefab> <n> <distance> [tag] - plant trees in a ring that far from the nearest board (the first gets the tag)", Trees);
             Fixtures.Add("tree_near_wall", "<distance=22> - a wall and a beech 4 m from it (tagged near_wall), that far from the board", TreeNearWall);
-            Fixtures.Add("chest", "<tag> [item count]… - a wooden chest beside the board holding those items", Chest);
+            Fixtures.Add("chest", "<tag> [item count]… [noazu] - a wooden chest beside the board holding those items (noazu: not registered with AzuAutoStore)", Chest);
             Fixtures.Add("room", "<tag> [item count]… - a closed 6x6 m room 12 m to the board's right with a door facing the board (tagged <tag>_door) and a chest inside (tagged <tag>)", Room);
             Fixtures.Add("deliver_now", "- tell the hireling from your last contract to deliver what it carries now", DeliverNow);
             Fixtures.Add("fill_chest", "<tag> <item> - fill every free slot of a tagged chest with full stacks", FillChest);
@@ -109,6 +109,9 @@ namespace VikingsForHire.Testing
 
         private static IEnumerator Chest(string[] args)
         {
+            // "noazu": keep AzuAutoStore away, so wood it would sweep in from the ground can't stand in for a delivery.
+            bool noAzu = args.Contains("noazu", StringComparer.OrdinalIgnoreCase);
+            args = args.Where(a => !a.Equals("noazu", StringComparison.OrdinalIgnoreCase)).ToArray();
             string tag = args.ElementAtOrDefault(0) ?? "A";
             HiringBoard board = Board();
             // Chests go round the board in the order they're made: 6 per ring, rings 1.6 m apart.
@@ -129,7 +132,7 @@ namespace VikingsForHire.Testing
                 go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_creator, piece.m_creator);
             }
             yield return null; // let the Container wake up
-            bool azu = Compat.AzuAutoStoreCompat.Register(go.GetComponent<Container>());
+            bool azu = !noAzu && Compat.AzuAutoStoreCompat.Register(go.GetComponent<Container>());
             Inventory inv = go.GetComponent<Container>().GetInventory();
             for (int i = 1; i + 1 < args.Length; i += 2)
                 AddStacks(inv, args[i], int.Parse(args[i + 1], CultureInfo.InvariantCulture));
