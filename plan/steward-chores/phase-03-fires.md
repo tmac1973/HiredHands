@@ -70,3 +70,9 @@ Fires are skipped:
 
 ## Rollback
 Revert the commit: the chore is gone and the panel row shows nothing to do. Or set `StewardFires = false` on the server.
+
+## As built
+- **Torches Eternal in tests:** it refills every fire each frame, so a test fire would be full before the Steward got there. The `torches_eternal <on|off>` fixture unpatches its Harmony prefix for the test and re-applies it at the end. With its patch off but the mod still installed, the step-aside test (`StewardIgnoreOtherMods false`) still sees it via `StewardCompat`.
+- **Not fuelled:** fires with `m_canRefill` off (vanilla's "can't be refilled" fires).
+- **Fuelling:** goes through the fire's own `RPC_AddFuel`, which caps at full and plays the effect, so the Steward plays no effect itself.
+- **Ward check:** `StewardContext.BoardOwnerMayUse` (the door rule, for any position), which the other chores reuse.

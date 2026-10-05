@@ -33,6 +33,25 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         public Vector3 Position => Hireling.transform.position;
 
+        private long? _owner;
+
+        /// <summary>Whether the board's owner could use something here under the wards (as for doors and chests).</summary>
+        public bool BoardOwnerMayUse(Vector3 at)
+        {
+            _owner ??= Nav.DoorRules.BoardOwner(Hireling.BoardId);
+            long owner = _owner.Value;
+            if (owner == 0L)
+                return PrivateArea.CheckAccess(at, 0f, flash: false);
+            foreach (PrivateArea area in PrivateArea.m_allAreas)
+            {
+                if (area == null || !area.IsEnabled() || !area.IsInside(at, 0f))
+                    continue;
+                if (area.m_piece.GetCreator() != owner && !area.IsPermitted(owner))
+                    return false;
+            }
+            return true;
+        }
+
         /// <summary>
         /// How many of an item the chests can give: each chest keeps its minimum (KeepMinimumInChest), and the total
         /// keeps the data file's reserve for that item (keepInStorage, e.g. Wood 50).

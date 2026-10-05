@@ -28,6 +28,18 @@ namespace VikingsForHire.Testing
             Fixtures.Add("steward_chores", "<chore=on|off>… - switch chores for the Steward from your last contract (fires, beehives, stations, mills, sap, animals, repairs)", StewardChores);
             Fixtures.Add("wind_on", "- steady wind, so windmills turn (wind_off puts the weather back)", _ => WindOn());
             Fixtures.Add("wind_off", "- the weather's own wind again", _ => WindOff());
+            Fixtures.Add("fire", "<prefab> <fuel> [tag] - a fire (hearth, fire_pit, piece_groundtorch_wood…) in a ring 7 m from the board with that much fuel", Fire);
+            Fixtures.Add("torches_eternal", "<on|off> - switch Torches Eternal's keep-every-fire-full patch on or off (if it's installed), so fire tests can run with it", TorchesEternal);
+            TestHarness.RegisterCheck("fire_fuel", "<tag> - a tagged fire's fuel as a fraction of full (0..1)", args =>
+            {
+                Fireplace f = FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<Fireplace>() ?? throw new InvalidOperationException("no such tagged fire");
+                return (f.m_nview.GetZDO().GetFloat(ZDOVars.s_fuel) / f.m_maxFuel).ToString("0.00", CultureInfo.InvariantCulture);
+            });
+            TestHarness.RegisterCheck("fuel_added", "<tag> - fuel items Stewards have put into a tagged fire", args =>
+            {
+                Fireplace f = FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<Fireplace>() ?? throw new InvalidOperationException("no such tagged fire");
+                return (Hirelings.Work.Steward.FiresChore.FuelAdded.TryGetValue(f.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
+            });
             Fixtures.Add("station_info", "<prefab> - log the nearest such station's make-up and state (as vfh_station), in step with the test", args => StationInfo(args));
             TestHarness.RegisterCheck("steward_chore", "- the chore the Steward from your last contract is doing now (Fires, Stations…), or none", _ =>
             {
@@ -256,6 +268,48 @@ namespace VikingsForHire.Testing
         {
             EnvMan.instance.SetDebugWind(0f, 1f);
             VfhLog.I(LogCat.Test, "fixture.wind_on");
+            yield return null;
+        }
+
+        private static int _fires;
+
+        private static IEnumerator Fire(string[] args)
+        {
+            string prefab = args.ElementAtOrDefault(0) ?? "hearth";
+            float fuel = float.Parse(args.ElementAtOrDefault(1) ?? "0", CultureInfo.InvariantCulture);
+            string tag = args.ElementAtOrDefault(2) ?? "";
+            HiringBoard board = Board();
+            Vector3 pos = board.transform.position + Quaternion.Euler(0f, 200f + 50f * (_fires++ % 6), 0f) * board.transform.forward * 7f;
+            GameObject go = Spawn(prefab, pos, tag);
+            OwnBuilt(go);
+            yield return null;
+            Fireplace f = go.GetComponentInChildren<Fireplace>() ?? throw new InvalidOperationException($"{prefab} isn't a fire");
+            f.m_nview.GetZDO().Set(ZDOVars.s_fuel, fuel);
+            VfhLog.I(LogCat.Test, "fixture.fire", ("prefab", prefab), ("fuel", fuel), ("max", f.m_maxFuel), ("tag", tag));
+            yield return null;
+        }
+
+        // Torches Eternal keeps every fire full each frame (a Harmony prefix on Fireplace.UpdateFireplace): take it off to
+        // test fuelling, put it back after.
+        private static IEnumerator TorchesEternal(string[] args)
+        {
+            const string id = "Xenofell.TorchesEternal";
+            bool on = args.ElementAtOrDefault(0) != "off";
+            System.Reflection.MethodInfo target = HarmonyLib.AccessTools.Method(typeof(Fireplace), "UpdateFireplace");
+            if (!BepInEx.Bootstrap.Chainloader.PluginInfos.TryGetValue(id, out var info))
+            {
+                VfhLog.I(LogCat.Test, "fixture.torches_eternal", ("installed", false));
+                yield break;
+            }
+            var harmony = new HarmonyLib.Harmony(id);
+            harmony.Unpatch(target, HarmonyLib.HarmonyPatchType.Prefix, id);
+            if (on)
+            {
+                System.Reflection.MethodInfo? prefix = info.Instance.GetType().Assembly.GetType("TorchesEternal.Patches")?.GetMethod("Fireplace_UpdateFireplace");
+                if (prefix != null)
+                    harmony.Patch(target, prefix: new HarmonyLib.HarmonyMethod(prefix));
+            }
+            VfhLog.I(LogCat.Test, "fixture.torches_eternal", ("installed", true), ("on", on));
             yield return null;
         }
 

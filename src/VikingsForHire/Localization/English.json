@@ -90,6 +90,8 @@
   "vfh_chore_state_disabled": "off on this server",
   "vfh_orders_chores": "Chores:",
   "vfh_steward_load": "Loading $1",
+  "vfh_steward_fuel": "Fuelling $1",
+  "vfh_need_fuel": "$1: no $2 in any chest",
   "vfh_steward_idle": "All done",
   "vfh_need_item": "$1: no $2 in any chest",
   "vfh_need_room": "$1: no chest holds $2",
