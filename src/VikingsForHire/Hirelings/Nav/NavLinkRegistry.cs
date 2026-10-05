@@ -82,6 +82,7 @@ namespace VikingsForHire.Hirelings.Nav
                     nav.Job = new BoardNavScanner(nav);
                 }
             }
+            LegOracle.Step();
             NavOverlay.Tick();
         }
 

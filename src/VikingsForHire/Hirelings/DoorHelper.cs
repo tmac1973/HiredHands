@@ -177,10 +177,18 @@ namespace VikingsForHire.Hirelings
         }
 
         /// <summary>Closes the doors this hireling opened once it's clear of them (all of them when <paramref name="now"/>).</summary>
+        /// <summary>A door a link route opened: close it behind like the ones opened here.</summary>
+        public void MarkOpened(Door d) => _opened[d] = Time.time;
+
         public void CloseBehind(bool now)
         {
             if (_opened.Count == 0)
                 return;
+            if (!VfhConfig.HirelingsCloseDoors.Value)
+            {
+                _opened.Clear();
+                return;
+            }
             Vector3 me = _ai != null ? _ai.transform.position : Vector3.zero;
             foreach (var kv in _opened.ToList())
             {

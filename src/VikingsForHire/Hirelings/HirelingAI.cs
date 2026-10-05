@@ -120,6 +120,7 @@ namespace VikingsForHire.Hirelings
             if (Hireling != null)
                 return;
             Hireling = hireling;
+            Nav.LegOracle.Agent = m_pathAgentType;
             Threats = new ThreatScanner(this);
             Add(new IdleBehaviour());
             Add(new LeaveBehaviour());
@@ -258,6 +259,9 @@ namespace VikingsForHire.Hirelings
         /// </summary>
         public bool WalkTo(float dt, Vector3 point, float stopDistance, bool run)
         {
+            // Inside a board's area with no full route on the game's map: through the board's doors and stairs.
+            if (Nav.NavLinkRegistry.Enabled && Links.Walk(dt, point, stopDistance, run) is bool viaLinks)
+                return viaLinks;
             if (Vector3.Distance(point, transform.position) > stopDistance)
                 TrackProgress(point);
             // Doors: open what's ahead, and if there's no route at all, go via a door that leads towards the goal.
@@ -299,7 +303,24 @@ namespace VikingsForHire.Hirelings
             FindPath(point) && m_path.Count > 0 && Utils.DistanceXZ(m_path[m_path.Count - 1], point) <= within;
 
         /// <summary>Whether the pathfinder has a full route from here to the point.</summary>
-        public bool CanReach(Vector3 point) => HavePath(point);
+        public bool CanReach(Vector3 point) => HavePath(point) || (Nav.NavLinkRegistry.Enabled && Links.Reachable(point));
+
+        private Nav.LinkNavigator? _links;
+
+        /// <summary>This hireling's routes through its board's doors and stairs.</summary>
+        internal Nav.LinkNavigator Links => _links ??= new Nav.LinkNavigator(this);
+
+        /// <summary>The game's map has a full route ending near the goal on its floor (not under or over it).</summary>
+        internal bool FullRouteTo(Vector3 goal, float within) =>
+            FindPath(goal) && m_path.Count > 0 && Utils.DistanceXZ(m_path[m_path.Count - 1], goal) <= within &&
+            Mathf.Abs(m_path[m_path.Count - 1].y - goal.y) <= 1f;
+
+        // For LinkNavigator: BaseAI's movement is protected at runtime (the publicized reference only looks public).
+        internal bool MoveToPublic(float dt, Vector3 point, float stop, bool run) => MoveTo(dt, point, stop, run);
+        internal bool ClimbTo(float dt, Vector3 point, bool run) => Climb(dt, point, run);
+        internal void Track(Vector3 point) => TrackProgress(point);
+        internal void DoorTick(Vector3 goal) => _doors.Tick(goal);
+        internal void MarkDoorOpened(Door door) => _doors.MarkOpened(door);
 
         public void Wander(float dt, Vector3 center) => RandomMovement(dt, center, snapToGround: true);
 
@@ -409,7 +430,8 @@ namespace VikingsForHire.Hirelings
                 VfhLog.I(LogCat.Nav, "nav.stuck", ("hid", Hireling.Hid), ("doing", CurrentBehaviour), ("pos", me), ("to", point),
                     ("dist", d), ("dy", point.y - me.y), ("route", FoundPath()), ("waypoints", m_path.Count),
                     ("next", m_path.Count > 0 ? m_path[0] : (Vector3?)null), ("routeEndsShortBy", end is Vector3 e ? Vector3.Distance(e, point) : -1f),
-                    ("onGround", Hireling.Humanoid.IsOnGround()), ("inWater", Hireling.Humanoid.InWater()), ("secs", Time.time - _navProgressAt));
+                    ("onGround", Hireling.Humanoid.IsOnGround()), ("inWater", Hireling.Humanoid.InWater()), ("secs", Time.time - _navProgressAt),
+                    ("links", _links?.HasRoute ?? false), ("step", _links?.StepName ?? ""));
             }
             if (_navJumps < 2 && Hireling.Humanoid.IsOnGround())
             {

@@ -20,6 +20,7 @@ namespace VikingsForHire.Hirelings.Nav
         private static readonly Dictionary<string, (GameObject Root, string Key)> Shown = new();
         private static Material? _material;
         private static float _next;
+        private static GameObject? _routes;
 
         public static bool On { get; private set; }
 
@@ -46,6 +47,23 @@ namespace VikingsForHire.Hirelings.Nav
                 Remove(nav.BoardId);
                 Shown[nav.BoardId] = (Draw(nav, now), key);
             }
+            DrawRoutes();
+        }
+
+        // Each loaded hireling's route ahead, white, redrawn every refresh.
+        private static void DrawRoutes()
+        {
+            if (_routes != null)
+                Object.Destroy(_routes);
+            _routes = new GameObject("VFH_NavOverlay_routes");
+            foreach (Hireling h in Hireling.Loaded)
+            {
+                if (h == null || h.Ai == null || !h.Ai.Links.HasRoute)
+                    continue;
+                Vector3[] pts = new[] { h.transform.position }.Concat(h.Ai.Links.Remaining()).Select(p => p + Vector3.up * 0.3f).ToArray();
+                if (pts.Length > 1)
+                    Line(_routes.transform, pts, Color.white, 0.04f);
+            }
         }
 
         public static void Remove(string boardId)
@@ -57,6 +75,9 @@ namespace VikingsForHire.Hirelings.Nav
 
         public static void RemoveAll()
         {
+            if (_routes != null)
+                Object.Destroy(_routes);
+            _routes = null;
             foreach (string id in Shown.Keys.ToList())
                 Remove(id);
         }

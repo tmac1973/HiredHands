@@ -22,6 +22,10 @@ namespace VikingsForHire.Testing
             Fixtures.Add("stepladder", "<tag> [item count]… - the same house with a stepladder (<tag>_stair) instead of the stair",
                 args => House(args, "wood_stepladder"));
             Fixtures.Add("remove_piece", "<tag> - deconstruct a tagged piece (as a player with the hammer)", RemovePiece);
+            Fixtures.Add("nav_links", "<on|off> - turn BaseNavLinks on or off here (single player only; end the macro with nav_links on)", NavLinks);
+            Fixtures.Add("nav_stats_reset", "- start counting stair hops from zero", _ => ResetStats());
+
+            TestHarness.RegisterCheck("navlinks_hops", "- hops to a stair's far end since nav_stats_reset", _ => (LinkNavigator.Hops - _hopsAtReset).ToString(CultureInfo.InvariantCulture));
 
             TestHarness.RegisterCheck("navlinks", "<doors|stairs|ladders|floorlinks|rejected|version> [tag] - links the nearest board's scan found (with a tag: only those within 8 m of it)", args =>
             {
@@ -131,6 +135,24 @@ namespace VikingsForHire.Testing
             if (go.GetComponent<WearNTear>() is WearNTear wnt)
                 wnt.m_noSupportWear = false; // test buildings on uneven ground mustn't collapse
             return go;
+        }
+
+        private static int _hopsAtReset;
+
+        private static IEnumerator ResetStats()
+        {
+            _hopsAtReset = LinkNavigator.Hops;
+            yield return null;
+        }
+
+        private static IEnumerator NavLinks(string[] args)
+        {
+            if (ZNet.instance != null && !ZNet.instance.IsServer())
+                throw new InvalidOperationException("nav_links only works in single player (it's a server setting)");
+            bool on = args.ElementAtOrDefault(0) != "off";
+            Config.VfhConfig.BaseNavLinks.Value = on;
+            VfhLog.I(LogCat.Test, "fixture.nav_links", ("on", on));
+            yield return null;
         }
 
         private static IEnumerator RemovePiece(string[] args)

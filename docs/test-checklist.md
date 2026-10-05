@@ -132,6 +132,10 @@ together with **both** files from that run (client and, in mode D, server).
 | VFH-NAVLINK-1 Nav scan | SP | `vfh_t_navscan1` | Open ground | `pass=true`; `navlinks.scan` finds the room's and the house's doors and the house's stair; `vfh_navlinks show` draws them |
 | VFH-NAVLINK-2 Stepladder scan | SP | `vfh_t_navscan2` | Open ground | `pass=true`; the vanilla stepladder is a stair or ladder link |
 | VFH-NAVLINK-3 Rescan on removal | SP | `vfh_t_navscan3` | Open ground | `pass=true`; deconstructing the stair removes its link within 10 s (a new `navlinks.scan` line) |
+| VFH-NAVLINK-4 Upstairs chest | SP | `vfh_t_nav1` | Open ground | `pass=true`; the woodcutter goes through the house's door, up the stair and delivers to the chest upstairs; the door is closed afterwards (`vfh_debug Nav on`: `navlinks.route` walk>door>walk>stair>walk) |
+| VFH-NAVLINK-5 Stepladder | SP | `vfh_t_nav2` | Open ground | `pass=true`; delivered upstairs via the stepladder (a `navlinks.hop` is allowed) |
+| VFH-NAVLINK-6 Stair removed | SP | `vfh_t_nav3` | Open ground | `pass=true`; after the stair goes, the woodcutter delivers to the chest by the board, no hang |
+| VFH-NAVLINK-7 Setting off | SP | `vfh_t_nav4` | Open ground | `pass=true`; with `BaseNavLinks` off the 0.2 door detour still works (same as `vfh_t_door1`) |
 | VFH-STONE-2 Stone by hand | SP | — | Stone in hand: left click a tree / rock / enemy / the ground with followers near; right click nothing; Shift+E a follower | Woodcutters chop, miners mine, guards attack, everyone holds at the clicked spot; right click calls them back; the Shift+E panel changes follow mode and stance (with "apply to all") |
 | VFH-POST-2 Archer on a tower | SP | — | Lead an archer up the stairs of a tower inside your board's area and left click it there | It stays on the tower, shoots from there, and only steps off for something within 6 m |
 | VFH-PORTAL-1 Portal | SP, D | `vfh_t_portal1` | Open ground, flat 60 m ahead | `pass=true`; the woodcutter comes through with its wood; with copper ore it stays behind in Stay |
