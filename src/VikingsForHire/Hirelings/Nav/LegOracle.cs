@@ -69,6 +69,10 @@ namespace VikingsForHire.Hirelings.Nav
             return LegAnswer.Unknown;
         }
 
+        /// <summary>Asked now regardless of the budget, and not cached (for `vfh_navlinks why`).</summary>
+        public static LegAnswer AnswerNow(BoardNav nav, NavPoint a, NavPoint b) =>
+            Walkable(a.ToUnity(), b.ToUnity(), out float cost) ? LegAnswer.Yes(cost) : LegAnswer.No;
+
         public static void Queue(BoardNav nav, NavPoint a, NavPoint b)
         {
             Vector3 ua = a.ToUnity(), ub = b.ToUnity();
@@ -116,14 +120,27 @@ namespace VikingsForHire.Hirelings.Nav
             cost = 0f;
             if (Pathfinding.instance == null ||
                 !Pathfinding.instance.GetPath(a, b, Path, Agent, requireFullPath: true, cleanup: false) || Path.Count == 0)
-                return false;
+                return ShortStep(a, b, out cost);
             // The map moves both ends to the nearest walkable spot: a route to the floor below isn't a route upstairs.
             // Along the ground a little slack (a chest's middle is inside it), in height none to speak of.
             if (!Near(Path[0], a) || !Near(Path[Path.Count - 1], b))
-                return false;
+                return ShortStep(a, b, out cost);
             for (int i = 1; i < Path.Count; i++)
                 cost += Vector3.Distance(Path[i - 1], Path[i]);
             return true;
+        }
+
+        // A step or two on the same level with nothing solid in between (a small landing between two flights, where the
+        // game's map, keeping 0.4 m from every edge, may have no walkable area at all): walkable without the map.
+        private const float ShortStepXZ = 2.5f;
+        private static readonly int SolidMask = LayerMask.GetMask("piece", "Default", "static_solid", "terrain");
+
+        private static bool ShortStep(Vector3 a, Vector3 b, out float cost)
+        {
+            cost = Vector3.Distance(a, b);
+            return Utils.DistanceXZ(a, b) <= ShortStepXZ && Mathf.Abs(a.y - b.y) <= 0.5f &&
+                   !Physics.Linecast(a + Vector3.up * 0.6f, b + Vector3.up * 0.6f, SolidMask, QueryTriggerInteraction.Ignore) &&
+                   !Physics.Linecast(a + Vector3.up * 1.4f, b + Vector3.up * 1.4f, SolidMask, QueryTriggerInteraction.Ignore);
         }
 
         private static bool Near(Vector3 end, Vector3 wanted) =>

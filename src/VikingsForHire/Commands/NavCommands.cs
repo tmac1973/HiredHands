@@ -10,10 +10,51 @@ namespace VikingsForHire.Commands
 {
     internal static class NavCommands
     {
+        // Plan from the nearest hireling to the spot you're looking at, asking the game's map about every leg right away
+        // (no budget), and print what it said: why a route through the links was or wasn't found.
+        private static void Why()
+        {
+            Player me = Player.m_localPlayer;
+            if (me == null || GameCamera.instance == null)
+                return;
+            Hirelings.Hireling? h = Hirelings.Hireling.Loaded.Where(x => x != null).OrderBy(x => UnityEngine.Vector3.Distance(x.transform.position, me.transform.position)).FirstOrDefault();
+            if (h == null)
+            {
+                VfhCommand.Print("HiredHands: no hireling loaded");
+                return;
+            }
+            UnityEngine.Transform cam = GameCamera.instance.transform;
+            if (!UnityEngine.Physics.Raycast(cam.position, cam.forward, out UnityEngine.RaycastHit hit, 60f, StairSampler.FloorMask, UnityEngine.QueryTriggerInteraction.Ignore))
+            {
+                VfhCommand.Print("HiredHands: look at the spot (a chest, a floor) within 60 m");
+                return;
+            }
+            UnityEngine.Vector3 goal = hit.point;
+            BoardNav? nav = NavLinkRegistry.AreaAt(h.transform.position);
+            if (nav == null || NavLinkRegistry.AreaAt(goal) != nav)
+            {
+                VfhCommand.Print("HiredHands: the hireling and that spot aren't in the same board's area");
+                return;
+            }
+            bool direct = h.Ai.FullRouteTo(goal, 2.5f);
+            var legs = new List<string>();
+            LegAnswer Ask(NavPoint a, NavPoint b)
+            {
+                LegAnswer x = LegOracle.AnswerNow(nav, a, b);
+                legs.Add($"{a}→{b}: {(x.Walkable ? $"yes {x.Cost:0.0}m" : "no")}");
+                return x;
+            }
+            PlanResult r = LinkPlanner.Plan(nav.Graph, h.transform.position.ToNav(), goal.ToNav(), Ask, ZNet.instance.GetTimeSeconds());
+            VfhCommand.Print($"{h.DisplayName} → {goal}: game map full route {(direct ? "yes" : "no")}; links plan: {r.Describe()} ({legs.Count} legs asked)");
+            foreach (string l in legs)
+                VfhCommand.Print("  " + l);
+            VfhLog.I(LogCat.Nav, "navlinks.why", ("hid", h.Hid), ("goal", goal), ("direct", direct), ("plan", r.Describe()), ("legs", string.Join(" | ", legs)));
+        }
+
         public static void Register() =>
             CommandManager.Instance.AddConsoleCommand(new VfhCommand("vfh_navlinks",
-                "<show|hide|scan|list> - the doors and stairs hirelings route through at your bases (show draws them, scan rescans the nearest board, list prints its links)",
-                false, Run, new List<string> { "show", "hide", "scan", "list" }));
+                "<show|hide|scan|list|why> - the doors and stairs hirelings route through at your bases (show draws them, scan rescans the nearest board, list prints its links, why plans from the nearest hireling to where you're looking and prints every leg)",
+                false, Run, new List<string> { "show", "hide", "scan", "list", "why" }));
 
         private static void Run(string[] args)
         {
@@ -33,6 +74,9 @@ namespace VikingsForHire.Commands
                 case "hide":
                     NavOverlay.Show(false);
                     VfhCommand.Print("HiredHands: links hidden");
+                    break;
+                case "why":
+                    Why();
                     break;
                 case "scan":
                     if (nav == null)
