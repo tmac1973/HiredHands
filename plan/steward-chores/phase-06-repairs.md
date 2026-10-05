@@ -63,3 +63,7 @@ Revert the commit, or set `StewardRepairs = false` on the server.
 - **Quiet check:** any enemy of the Steward's (`BaseAI.IsEnemy`) within 30 m of it, or within the work radius plus 30 m of the board, resets the quiet timer. That covers "near the piece" for every piece in the area at once.
 - **The `far` test piece** is 28 m out: beyond a workbench's 20 m range from the base, inside a level 3 Steward's 30 m radius.
 - **Steward health:** the Steward's own repair skill and health play no part; repairs are free and instant, as vanilla's.
+- **Review fixes before the first run:**
+  - Only monsters count as enemies: `MonsterAI` creatures, not the `AnimalsVeg` faction. The players' side counts deer and wild boar as enemies, but they never attack.
+  - The `set_health`/`damaged` fixtures also send `RPC_HealthChanged`, because pieces cache their health fraction.
+  - **Reach:** an object counts as reached within 3 m of its nearest surface, like a player's reach. That covers upper wall rows and high sconces.

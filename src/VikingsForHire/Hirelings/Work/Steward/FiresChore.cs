@@ -31,6 +31,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private int _need;
         private Container? _chest;
         private float _nextItemAt;
+        private int _toAdd = -1; // for the fire being fuelled, counted from when it got there
         private Hireling? _h;
 
         public ChoreKind Kind => ChoreKind.Fires;
@@ -108,6 +109,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             _need = Mathf.Min(Mathf.Max(0, want - carried), ctx.Available(_fuel), room);
             _chest = _need > 0 ? ctx.NearestChestWith(new[] { _fuel }) : null;
             _step = _chest != null ? Step.Fetch : Step.Fuel;
+            RestAfter = _need > 0 && _chest == null ? 3f : 0f; // its chest is open: try again in a moment
             VfhLog.D(LogCat.Smelter, "steward.fires", ("hid", h.Hid), ("fires", _route.Count), ("fuel", _fuel), ("want", want), ("carried", carried), ("fetch", _need));
         }
 
@@ -155,11 +157,20 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 return ChoreProgress.Running;
             ai.Halt();
             ai.Face(f.transform.position);
+            // How many it takes, counted once on arrival: the fire's reading lags when another game owns it.
+            if (_toAdd < 0)
+                _toAdd = Mathf.Max(0, Mathf.CeilToInt(f.m_maxFuel - Fuel(f)));
+            if (_toAdd == 0)
+            {
+                NextFire(h);
+                return ChoreProgress.Running;
+            }
             if (Time.time < _nextItemAt)
                 return ChoreProgress.Running;
             _nextItemAt = Time.time + ItemSeconds;
             h.CargoInventory.RemoveItem(shared, 1);
             f.m_nview.InvokeRPC("RPC_AddFuel"); // the fire caps it at full and plays its own effect
+            _toAdd--;
             int id = f.GetInstanceID();
             FuelAdded[id] = (FuelAdded.TryGetValue(id, out int n) ? n : 0) + 1;
             return ChoreProgress.Running;
@@ -169,6 +180,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         {
             Fireplace done = _route[0];
             _route.RemoveAt(0);
+            _toAdd = -1;
             if (done != null)
             {
                 Reservations.Release(done, h.Hid);
@@ -184,7 +196,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
             _route.Clear();
             _step = Step.None;
             _chest = null;
-            RestAfter = rest;
+            _toAdd = -1;
+            RestAfter = System.Math.Max(rest, RestAfter);
             return result;
         }
 

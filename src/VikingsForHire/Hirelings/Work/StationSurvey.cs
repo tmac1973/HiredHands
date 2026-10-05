@@ -84,6 +84,30 @@ namespace VikingsForHire.Hirelings.Work
             return outputs;
         }
 
+        /// <summary>What any configured station burns or processes (so it's supply, never delivered as a product).</summary>
+        public static HashSet<string> Consumed()
+        {
+            if (_consumedHash == DataStore.Hash && _consumed != null)
+                return _consumed;
+            var consumed = new HashSet<string>();
+            if (DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out var job) && ZNetScene.instance != null)
+                foreach (string name in job.Stations)
+                {
+                    Smelter? s = ZNetScene.instance.GetPrefab(name)?.GetComponentInChildren<Smelter>();
+                    if (s == null)
+                        continue;
+                    consumed.UnionWith(s.m_conversion.Where(c => c.m_from != null).Select(c => c.m_from.gameObject.name));
+                    if (s.m_fuelItem != null)
+                        consumed.Add(s.m_fuelItem.gameObject.name);
+                }
+            _consumed = consumed;
+            _consumedHash = DataStore.Hash;
+            return consumed;
+        }
+
+        private static HashSet<string>? _consumed;
+        private static string _consumedHash = "";
+
         private static HashSet<string>? _products;
         private static string _productsHash = "";
     }

@@ -366,7 +366,10 @@ namespace VikingsForHire.Testing
         private static void SetHealthOf(GameObject go, float fraction)
         {
             WearNTear wnt = go.GetComponent<WearNTear>() ?? throw new InvalidOperationException("not a building piece");
-            wnt.m_nview.GetZDO().Set(ZDOVars.s_health, wnt.m_health * fraction);
+            float hp = wnt.m_health * fraction;
+            wnt.m_nview.GetZDO().Set(ZDOVars.s_health, hp);
+            // The piece caches its health fraction; this is how the game tells every copy of it.
+            wnt.m_nview.InvokeRPC(ZNetView.Everybody, "RPC_HealthChanged", hp);
         }
 
         private static IEnumerator Fermenter(string[] args)

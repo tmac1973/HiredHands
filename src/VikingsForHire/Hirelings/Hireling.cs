@@ -109,6 +109,9 @@ namespace VikingsForHire.Hirelings
         /// <summary>Smelter: when it started holding ore/fuel that no station needed (0 = not idle with leftovers).</summary>
         public float LeftoverSince { get; set; }
 
+        /// <summary>Set while a Steward collects from several producers in one trip: deliver once at the end, not after each.</summary>
+        public bool HoldDeliveries { get; set; }
+
         /// <summary>
         /// Armor applied to incoming hits: the real armor of the worn set (as a player in that gear would have) plus the
         /// level's bonus. Vanilla only applies body armor to players, so DamagePatches applies this itself.

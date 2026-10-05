@@ -28,6 +28,8 @@ namespace VikingsForHire.Hirelings
         private static readonly HashSet<string> Rejected = new(StringComparer.OrdinalIgnoreCase);
 
         private static bool _created;
+        private static bool _dressed;
+        private static CustomItem? _item;
 
         /// <summary>Which model the broom wears, for vfh_broom_info.</summary>
         public static string Source { get; private set; } = "none";
@@ -35,6 +37,8 @@ namespace VikingsForHire.Hirelings
         public static void Register()
         {
             PrefabManager.OnVanillaPrefabsAvailable += () => VfhLog.Guard(LogCat.Hireling, "broom.register_failed", Create);
+            // The model search needs the scene's prefabs, which only exist in a world (the event above fires at the menu).
+            PrefabManager.OnPrefabsRegistered += () => VfhLog.Guard(LogCat.Hireling, "broom.model_failed", Dress);
             CommandManager.Instance.AddConsoleCommand(new VfhCommand("vfh_broom_info", "- which model the Steward's broom uses", false, _ =>
                 VfhCommand.Print($"HiredHands: broom model {Source}")));
         }
@@ -44,9 +48,16 @@ namespace VikingsForHire.Hirelings
             if (_created)
                 return;
             _created = true;
-            var item = new CustomItem(PrefabName, BasePrefab, new ItemConfig { Name = "$vfh_broom", Description = "$vfh_broom_desc" });
-            ItemManager.Instance.AddItem(item);
-            GameObject prefab = item.ItemPrefab;
+            _item = new CustomItem(PrefabName, BasePrefab, new ItemConfig { Name = "$vfh_broom", Description = "$vfh_broom_desc" });
+            ItemManager.Instance.AddItem(_item);
+        }
+
+        private static void Dress()
+        {
+            if (_dressed || _item == null || ZNetScene.instance == null)
+                return;
+            _dressed = true;
+            GameObject prefab = _item.ItemPrefab;
             MeshFilter? visual = Visual(prefab);
             if (visual == null)
             {
@@ -79,7 +90,7 @@ namespace VikingsForHire.Hirelings
         private static (Mesh, Material[], string)? FindBroom()
         {
             IEnumerable<(MeshFilter Filter, string Where)> candidates =
-                ZNetScene.instance.m_prefabs.Where(p => p != null).SelectMany(p => p.GetComponentsInChildren<MeshFilter>(true).Select(f => (f, "prefab:" + p.name)))
+                (ZNetScene.instance != null ? ZNetScene.instance.m_prefabs : new List<GameObject>()).Where(p => p != null).SelectMany(p => p.GetComponentsInChildren<MeshFilter>(true).Select(f => (f, "prefab:" + p.name)))
                     .Concat(Resources.FindObjectsOfTypeAll<MeshFilter>().Select(f => (f, "loaded")));
             foreach ((MeshFilter f, string where) in candidates)
             {

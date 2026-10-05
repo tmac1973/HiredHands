@@ -63,6 +63,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
             {
                 if (Reservations.IsReservedByOther(f, ctx.Hireling.Hid) || Reservations.IsSkipped(f))
                     continue;
+                // Out in the open it never brews (vanilla keeps resetting it): leave it to the player to roof over.
+                if (f.m_exposed || !f.m_hasRoof)
+                    continue;
                 Fermenter.Status status = f.GetStatus();
                 bool ready = status == Fermenter.Status.Ready;
                 bool empty = status == Fermenter.Status.Empty;
@@ -103,6 +106,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
             bool carrying = ctx.Carried.TryGetValue(_base, out int c) && c > 0;
             _chest = carrying ? null : ctx.NearestChestWith(new[] { _base });
             _step = carrying ? Step.Load : _chest != null ? Step.Fetch : Step.None;
+            if (_step == Step.None)
+                RestAfter = 3f; // its chest is open: try again in a moment
         }
 
         public ChoreProgress Tick(HirelingAI ai, float dt)

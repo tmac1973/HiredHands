@@ -111,6 +111,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 .Where(f => f.Fetch > 0).ToDictionary(f => f.Key, f => f.Fetch);
             _chest = _fetch.Count > 0 ? ctx.NearestChestWith(_fetch.Keys) : null;
             _step = _chest != null ? Step.Fetch : Step.Feed;
+            RestAfter = _fetch.Count > 0 && _chest == null ? 3f : 0f; // its chest is open: try again in a moment
         }
 
         public ChoreProgress Tick(HirelingAI ai, float dt)
@@ -155,11 +156,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
             if (_dropped == null)
             {
                 Vector3 front = animal.transform.position + animal.transform.forward * 0.8f;
-                if (Utils.DistanceXZ(ai.transform.position, animal.transform.position) > 2f)
-                {
-                    _walk.Approach(ai, dt, animal, animal.transform.position);
+                // Close enough to drop it at its feet (big animals keep you further from their middle).
+                if (!_walk.Approach(ai, dt, animal, animal.transform.position))
                     return ChoreProgress.Running;
-                }
                 ai.Halt();
                 ai.Face(animal.transform.position);
                 string shared = StewardSteps.SharedName(food);

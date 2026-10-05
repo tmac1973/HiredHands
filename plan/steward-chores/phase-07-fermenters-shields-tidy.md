@@ -96,3 +96,7 @@ Revert the commit, or set `StewardFermenters`, `StewardShields` or `StewardTidy`
 - **Fermenter loading:** `RPC_AddItem(hash of the base's prefab name, false)`, as `Fermenter.AddItem` does. The `fermenter ready` fixture uses the minor healing mead base when the fermenter takes it, so the test can seed a chest for `MeadHealthMinor`.
 - **Tidied items:** delivered by setting `DeliverPending` at the end of the trip, not by adding them to `StewardOutputs`. Otherwise tidying up wood would make the Steward hand back the wood it fetched for fires.
 - **Test setup:** `litter` sets the items' spawn time 10 minutes back, so they count as long on the ground. The tidy test's priority check uses a resin torch, because the wood reserve (`keepInStorage` Wood 50) would leave no wood for a hearth.
+- **Review fixes before the first run:**
+  - Fermenters out in the open are skipped (`m_exposed || !m_hasRoof`): vanilla never reports them as Exposed, it just keeps resetting them.
+  - Tidying applies its own checks to every item it sweeps up at a spot (age, `vfh_feed`, players nearby, wards), not just the item the trip aimed at.
+  - Shields count the items they add and work out cargo room like fires.

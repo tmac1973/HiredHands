@@ -45,12 +45,28 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 ZDO z = d.m_nview.GetZDO();
                 if (z == null || z.GetBool(AnimalsChore.FeedKey) || d.GetTimeSinceSpawned() < minAge)
                     continue;
-                Vector3 p = d.transform.position;
-                if (Utils.DistanceXZ(p, ctx.Home) > ctx.Radius || Player.GetClosestPlayer(p, PlayerClearance) != null)
+                if (!Tidyable(d, ctx))
                     continue;
                 yield return d;
             }
         }
+
+        // Inside the area, under a ward the board's owner may use, not at a player's feet (they may want it back).
+        private static bool Tidyable(ItemDrop d, StewardContext ctx)
+        {
+            Vector3 p = d.transform.position;
+            return Utils.DistanceXZ(p, ctx.Home) <= ctx.Radius && Player.GetClosestPlayer(p, PlayerClearance) == null && ctx.BoardOwnerMayUse(p);
+        }
+
+        // Everything Litter checks, for each item swept up at a spot (not just the one the trip is aimed at).
+        private bool Sweepable(ItemDrop d)
+        {
+            ZDO? z = d.m_nview != null ? d.m_nview.GetZDO() : null;
+            return z != null && !z.GetBool(AnimalsChore.FeedKey) && d.GetTimeSinceSpawned() >= VfhConfig.StewardTidyMinSeconds.Value &&
+                   _ctx != null && Tidyable(d, _ctx);
+        }
+
+        private StewardContext? _ctx;
 
         public IEnumerable<ChoreJob> Candidates(StewardContext ctx)
         {
@@ -78,6 +94,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             RestAfter = 0f;
             _walk.Reset();
             _picked = 0;
+            _ctx = ctx;
             _kinds = Stored(ctx);
             _spots.Clear();
             // Up to five spots, each the nearest to the last and within 15 m of it.
@@ -112,7 +129,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             if (!_walk.Approach(ai, dt, spot, spot.transform.position))
                 return ChoreProgress.Running;
             ai.Halt();
-            int n = StewardSteps.PickUpDrops(h, spot.transform.position, _kinds, PickupRadius);
+            int n = StewardSteps.PickUpDrops(h, spot.transform.position, _kinds, PickupRadius, Sweepable);
             _picked += n;
             VfhLog.D(LogCat.Smelter, "steward.tidy", ("hid", h.Hid), ("at", spot != null ? spot.transform.position : Vector3.zero), ("picked", n));
             if (_spots.Count > 0)

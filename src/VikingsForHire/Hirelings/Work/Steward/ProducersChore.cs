@@ -110,6 +110,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             _route.AddRange(due.Where(x => x != first).OrderBy(x => Vector3.Distance(first.Comp.transform.position, x.Comp.transform.position)));
             foreach (Producer x in _route)
                 Reservations.TryReserve(x.Comp, h.Hid);
+            h.HoldDeliveries = true;
         }
 
         public ChoreProgress Tick(HirelingAI ai, float dt)
@@ -166,6 +167,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         private ChoreProgress End(Hireling h, float rest, ChoreProgress result = ChoreProgress.Done)
         {
+            h.HoldDeliveries = false;
             foreach (Producer x in _route.Where(x => x.Comp != null))
                 Reservations.Release(x.Comp, h.Hid);
             _route.Clear();

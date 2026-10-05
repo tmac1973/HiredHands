@@ -26,6 +26,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private int _need;
         private bool _fetching;
         private float _nextItemAt;
+        private int _toAdd;
 
         public ChoreKind Kind => ChoreKind.Shields;
         public string? Missing { get; private set; }
@@ -83,9 +84,12 @@ namespace VikingsForHire.Hirelings.Work.Steward
             int carried = ctx.Carried.TryGetValue(_fuel, out int c) ? c : 0;
             int want = Mathf.Max(0, Mathf.FloorToInt(_gen.m_maxFuel - _gen.GetFuel()));
             int stack = Mathf.Max(1, StewardSteps.MaxStack(_fuel));
-            _need = Mathf.Min(Mathf.Max(0, want - carried), ctx.Available(_fuel), Mathf.Max(1, ctx.FreeSlots) * stack);
+            int room = carried % stack == 0 ? ctx.FreeSlots * stack : stack - carried % stack + ctx.FreeSlots * stack;
+            _need = Mathf.Min(Mathf.Max(0, want - carried), ctx.Available(_fuel), room);
             _chest = _need > 0 ? ctx.NearestChestWith(new[] { _fuel }) : null;
             _fetching = _chest != null;
+            _toAdd = want;
+            RestAfter = _need > 0 && _chest == null && carried == 0 ? 3f : 0f;
         }
 
         public ChoreProgress Tick(HirelingAI ai, float dt)
@@ -123,13 +127,15 @@ namespace VikingsForHire.Hirelings.Work.Steward
             ai.Halt();
             ai.Face(g.transform.position);
             string shared = StewardSteps.SharedName(_fuel);
-            if (g.GetFuel() > g.m_maxFuel - 1f || h.CargoInventory!.CountItems(shared) <= 0)
-                return End(h, 0f);
+            // Counted here: the generator's own reading lags a round trip when another game owns it, and it doesn't cap.
+            if (_toAdd <= 0 || h.CargoInventory!.CountItems(shared) <= 0)
+                return End(h, RestAfter);
             if (Time.time < _nextItemAt)
                 return ChoreProgress.Running;
             _nextItemAt = Time.time + ItemSeconds;
             h.CargoInventory.RemoveItem(shared, 1);
             g.m_nview.InvokeRPC("RPC_AddFuel"); // plays its own effect
+            _toAdd--;
             return ChoreProgress.Running;
         }
 

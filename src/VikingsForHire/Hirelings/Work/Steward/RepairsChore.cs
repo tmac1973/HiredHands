@@ -32,7 +32,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
             Humanoid me = ctx.Hireling.Humanoid;
             foreach (Character c in Character.GetAllCharacters())
             {
-                if (c == null || c.IsDead() || c == me || !BaseAI.IsEnemy(me, c))
+                // Monsters only: the players' side counts deer and wild boar as enemies too, and they never attack.
+                if (c == null || c.IsDead() || c == me || !BaseAI.IsEnemy(me, c) || c.GetFaction() == Character.Faction.AnimalsVeg ||
+                    c.GetBaseAI() is not MonsterAI)
                     continue;
                 if (Vector3.Distance(c.transform.position, ctx.Position) < EnemyRange ||
                     Utils.DistanceXZ(c.transform.position, ctx.Home) < ctx.Radius + EnemyRange)

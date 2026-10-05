@@ -61,7 +61,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             if (_available.TryGetValue(prefab, out int n))
                 return n;
             int above = 0, total = 0;
-            foreach (Container c in Chests)
+            foreach (Container c in Chests.Where(c => !c.IsInUse()))
             {
                 int inChest = c.GetInventory().GetAllItems().Where(i => i.m_dropPrefab != null && i.m_dropPrefab.name == prefab).Sum(i => i.m_stack);
                 total += inChest;

@@ -43,7 +43,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 _progressAt = Time.time;
             }
             // Height against the object's base, not the switch (a smelter's ore input is 2 m up): on its floor, not below.
-            if (dist <= half + Reach && Mathf.Abs(ai.transform.position.y - obj.transform.position.y) < 1.8f)
+            // Or, like a player's reach, within 3 m of its nearest surface (a wall's upper row, a sconce up high).
+            if ((dist <= half + Reach && Mathf.Abs(ai.transform.position.y - obj.transform.position.y) < 1.8f) || WithinReach(ai, obj))
             {
                 _progressAt = Time.time; // working at it counts as progress
                 return true;
@@ -85,6 +86,23 @@ namespace VikingsForHire.Hirelings.Work.Steward
             return ZoneSystem.instance.GetSolidHeight(p);
         }
 
+        private const float PlayerReach = 3f;
+
+        private static bool WithinReach(HirelingAI ai, Component obj)
+        {
+            Vector3 eye = ai.transform.position + Vector3.up * 1.5f;
+            foreach (Collider c in obj.GetComponentsInChildren<Collider>())
+            {
+                if (!c.enabled || c.isTrigger)
+                    continue;
+                // ClosestPoint needs a convex collider; others fall back to their bounds.
+                Vector3 p = c is MeshCollider { convex: false } ? c.bounds.ClosestPoint(eye) : c.ClosestPoint(eye);
+                if (Vector3.Distance(eye, p) <= PlayerReach)
+                    return true;
+            }
+            return false;
+        }
+
         // Half the widest horizontal extent of the object's solid colliders.
         public static float Footprint(Component obj)
         {
@@ -117,13 +135,14 @@ namespace VikingsForHire.Hirelings.Work.Steward
         }
 
         /// <summary>Picks up dropped items of these kinds near a point into cargo, as far as cargo allows. Returns how many.</summary>
-        public static int PickUpDrops(Hireling h, Vector3 around, ICollection<string> prefabs, float radius)
+        public static int PickUpDrops(Hireling h, Vector3 around, ICollection<string> prefabs, float radius, System.Func<ItemDrop, bool>? only = null)
         {
             int picked = 0;
             foreach (ItemDrop d in ItemDrop.s_instances.Where(d => d != null && d.m_nview != null && d.m_nview.IsValid() && d.m_itemData?.m_dropPrefab != null &&
                                                                  prefabs.Contains(d.m_itemData.m_dropPrefab.name) &&
                                                                  !d.m_itemData.m_customData.ContainsKey(DropPile.Tag) &&
-                                                                 Vector3.Distance(d.transform.position, around) < radius).ToList())
+                                                                 Vector3.Distance(d.transform.position, around) < radius &&
+                                                                 (only == null || only(d))).ToList())
             {
                 if (h.CargoInventory!.NrOfItems() >= h.CargoSlots && !h.CargoInventory.CanAddItem(d.m_itemData))
                     break;
