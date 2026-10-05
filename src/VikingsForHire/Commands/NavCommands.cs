@@ -30,6 +30,15 @@ namespace VikingsForHire.Commands
                 return;
             }
             UnityEngine.Vector3 goal = hit.point;
+            // Looking at or near a chest: its position, as a delivery aims for.
+            Container? chest = hit.collider.GetComponentInParent<Container>();
+            if (chest == null)
+            {
+                var near = new List<UnityEngine.Collider>(UnityEngine.Physics.OverlapSphere(hit.point, 2f));
+                chest = near.Select(c => c.GetComponentInParent<Container>()).FirstOrDefault(c => c != null);
+            }
+            if (chest != null)
+                goal = chest.transform.position;
             BoardNav? nav = NavLinkRegistry.AreaAt(h.transform.position);
             if (nav == null || NavLinkRegistry.AreaAt(goal) != nav)
             {
@@ -48,7 +57,10 @@ namespace VikingsForHire.Commands
             VfhCommand.Print($"{h.DisplayName} → {goal}: game map full route {(direct ? "yes" : "no")}; links plan: {r.Describe()} ({legs.Count} legs asked)");
             foreach (string l in legs)
                 VfhCommand.Print("  " + l);
-            VfhLog.I(LogCat.Nav, "navlinks.why", ("hid", h.Hid), ("goal", goal), ("direct", direct), ("plan", r.Describe()), ("legs", string.Join(" | ", legs)));
+            string links = string.Join(" | ", nav.Graph.Links.Select(l => $"#{l.Id} {(l.IsLadder ? "ladder" : l.Kind.ToString().ToLowerInvariant())} {l.Prefab} {l.A}→{l.B}"));
+            VfhCommand.Print("Links: " + links);
+            VfhLog.I(LogCat.Nav, "navlinks.why", ("hid", h.Hid), ("goal", goal), ("chest", chest != null), ("direct", direct), ("plan", r.Describe()),
+                ("legs", string.Join(" | ", legs)), ("links", links));
         }
 
         public static void Register() =>
