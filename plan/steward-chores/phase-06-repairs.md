@@ -1,6 +1,6 @@
 # Phase 06 — Repairs
 
-**Depends on:** 01 (`ChoreUrgency.Repair`, level `repairs` 3, `StewardRepairBelow`, `StewardRepairQuietSeconds`), 02 (`IChore`, `StewardSteps.Approach`) · **Enables:** 08
+**Depends on:** 01 (`ChoreUrgency.Repair`, level `repairs` 3, `StewardRepairBelow`, `StewardRepairQuietSeconds`), 02 (`IChore`, `StewardSteps.Approach`) · **Enables:** 09
 
 ## Goal
 From level 3, a Steward repairs damaged building pieces in its work radius, worst first, under vanilla's own hammer rules:

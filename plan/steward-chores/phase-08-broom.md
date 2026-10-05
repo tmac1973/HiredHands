@@ -1,6 +1,6 @@
-# Phase 07 — The Steward's broom
+# Phase 08 — The Steward's broom
 
-**Depends on:** nothing in this plan (it's cosmetic and independent; ordered last so the chores never wait on it) · **Enables:** 08
+**Depends on:** nothing in this plan (it's cosmetic and independent; ordered last so the chores never wait on it) · **Enables:** 09
 
 ## Goal
 The Steward's weapon becomes a broom: a new item `VFH_Broom` with a club's stats (the Steward already wields a `Club` at every level), wearing the game's own broom model. Valheim has no broom item, and "broom" appears as a name in several of its asset bundles, which may be a broom mesh. The item looks the model up by name when the vanilla prefabs are ready. If it can't find it, or the result is unusable, it uses the vanilla cultivator's model instead. The Steward sweeps with it and fights with it.

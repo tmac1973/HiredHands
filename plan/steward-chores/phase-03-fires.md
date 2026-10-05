@@ -1,6 +1,6 @@
 # Phase 03 — Fires and lights
 
-**Depends on:** 01 (`ChoreUrgency.Fire`, `StewardFireRefillFraction`, `StewardCompat`), 02 (`IChore`, `StewardContext`, `StewardSteps`) · **Enables:** 08
+**Depends on:** 01 (`ChoreUrgency.Fire`, `StewardFireRefillFraction`, `StewardCompat`), 02 (`IChore`, `StewardContext`, `StewardSteps`) · **Enables:** 09
 
 ## Goal
 A Steward from level 1 keeps fires fuelled: every lit or unlit vanilla `Fireplace` with a fuel item in its work radius. That covers fire pits, hearths, braziers, standing and wall torches, sconces and hot tubs. When a fire's fuel drops below the refill fraction, it fetches that fire's fuel item from chests (respecting reserves) and adds fuel until the fire is full, through the fire's own RPC, as a player would.

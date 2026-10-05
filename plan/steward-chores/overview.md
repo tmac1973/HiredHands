@@ -21,14 +21,18 @@ Some servers already cover parts of this with other mods. Tim's live server (Gal
   - **Sap collectors:** empty them (sap) into chests.
   - **Tamed animals:** feed hungry tamed animals with food they eat, from chests.
   - **Repairs:** repair damaged building pieces, following the vanilla rule (only pieces in range of a crafting station of the right type), worst-damaged first, and not while enemies are near.
+  - **Fermenters:** load empty fermenters with a mead base from chests, tap them when ready, and deliver the meads.
+  - **Shield generators:** keep them fed with bones from chests.
+  - **Tidying up:** pick up items lying on the ground in the work radius and put them in chests that already hold them. It's the lowest priority (anything else comes first) and leaves alone what was dropped in the last minute. It runs alongside AzuAutoStore, because the Steward's radius is usually bigger than Azu's.
 - **Chores unlock with the biome.** Each chore needs a minimum Steward level, tied to the resources that boss unlocks. The levels are data-file values server owners can change. Hireling level is capped by board level, so this follows board upgrades.
-  - **Level 1, Meadows:** fires and lights, beehives.
+  - **Level 1, Meadows:** fires and lights, beehives, tidying up.
   - **Level 2, Black Forest:** smelters, charcoal kilns, tamed animals.
   - **Level 3, Swamp:** repairs.
-  - **Level 4, Mountains:** nothing new. Like every level, its bigger cargo (the hireling level table) carries more per trip, so it serves more stations at once.
+  - **Level 4, Mountains:** fermenters (meads).
   - **Level 5, Plains:** blast furnace, spinning wheel, windmill.
   - **Level 6, Mistlands:** eitr refinery, sap collectors.
-  - **Levels 7 and 8:** nothing new beyond the level table's bigger cargo and work radius.
+  - **Level 7, Ashlands:** shield generators.
+  - **Level 8, Deep North:** nothing new beyond the level table's bigger cargo and work radius.
 - **Per-Steward chore toggles:** in the Shift+E panel, like gatherers' item toggles, all on by default. Two Stewards can split the work. Each chore shows its state next to its toggle: on, off, locked until level N, or handled by another mod.
 - **Steps aside for other mods**, detected at load and logged once:
   - fires get no fuel when Torches Eternal is installed (it keeps every fireplace, torch and hot tub full); any single fire that never burns down is skipped too;
@@ -44,7 +48,7 @@ Some servers already cover parts of this with other mods. Tim's live server (Gal
   - **Delivering:** outputs go to a chest that already holds that item, else onto the pile at the board.
 
 ## Non-goals
-- **No Cook, Farmer or production orders.** No cooking stations, cauldron, oven or fermenter, and no planting or harvesting fields; those are separate futures.
+- **No Cook, Farmer or production orders.** No cooking stations, cauldron or oven, and no planting or harvesting fields; those are separate futures. The fermenter is only loaded with mead bases the player made and tapped when ready: the Steward never brews.
 - **No new hireling job:** this widens the Steward; it doesn't add a Caretaker or Builder.
 - **No crafting or building:** it never places pieces and never crafts items.
 - **No player-set chore order:** urgency decides the order.
@@ -55,8 +59,8 @@ Some servers already cover parts of this with other mods. Tim's live server (Gal
 ## Users & primary flow
 Players running a base, and server owners who mostly never touch the settings.
 1. A player with a level 2 board hires a level 2 Steward. Its hover says what it's doing; its Shift+E panel lists the chores:
-   - fires, beehives, stations and animals on;
-   - Mills (windmill, spinning wheel) "locked until level 5", Sap "locked until level 6", Repairs "locked until level 3";
+   - fires, beehives, stations, animals and tidying up on;
+   - Mills (windmill, spinning wheel) "locked until level 5", Sap "locked until level 6", Repairs "locked until level 3", Fermenters "locked until level 4", Shield generators "locked until level 7";
    - Stations "on (blast furnace at level 5, eitr refinery at level 6)".
 2. The Steward checks its radius for the most urgent need:
    - a hearth with little fuel left;
@@ -105,15 +109,17 @@ Players running a base, and server owners who mostly never touch the settings.
 - **Choosing chores** → per-Steward toggles in the Shift+E panel, all on by default.
 - **Order of work** → most urgent first: each chore scores its own urgency, with a small bias towards what's close.
 - **Level gating** → by the hireling's level (so capped by the board's), tied to each biome's resources:
-  - L1 fires/lights and beehives;
+  - L1 fires/lights, beehives and tidying;
   - L2 smelters, kilns, animals;
   - L3 repairs;
-  - L4 nothing new (bigger cargo, as every level);
+  - L4 fermenters;
   - L5 blast furnace, spinning wheel, windmill;
   - L6 eitr refinery, sap;
-  - L7–8 nothing new beyond the level table.
+  - L7 shield generators;
+  - L8 nothing new beyond the level table.
 
   All values are in the data file. Existing level 1 Stewards stop smelting until promoted, and the UI says why.
 - **Feedback** → a status line naming the current chore or what's missing, plus each chore's state in the Shift+E panel.
+- **More chores (added while testing phase 02)** → fermenters at level 4, shield generators at level 7, and tidying up at level 1 as the lowest-priority chore (runs alongside AzuAutoStore, which usually covers a smaller radius). They're their own phase (07), after repairs.
 - **Release** → one release, 0.4.0, after batch testing. The server and players update together.
-- **Broom** → yes, as the last phase. It's the Steward's weapon at every level: a club's stats with the game's broom model, found by name in Valheim's assets, so it fights with it too. The cultivator's model is the fallback. The chores don't depend on it.
+- **Broom** → yes, as the last feature phase (08), before the release phase. It's the Steward's weapon at every level: a club's stats with the game's broom model, found by name in Valheim's assets, so it fights with it too. The cultivator's model is the fallback. The chores don't depend on it.

@@ -1,6 +1,6 @@
 # Phase 04 — Beehives and sap collectors
 
-**Depends on:** 01 (`ChoreUrgency.Producer`, levels `beehives` 1 and `sap` 6), 02 (`IChore`, `StewardSteps.PickUpDrops`, `SmelterDeliveryPolicy.StewardOutputs`) · **Enables:** 08
+**Depends on:** 01 (`ChoreUrgency.Producer`, levels `beehives` 1 and `sap` 6), 02 (`IChore`, `StewardSteps.PickUpDrops`, `SmelterDeliveryPolicy.StewardOutputs`) · **Enables:** 09
 
 ## Goal
 A Steward empties beehives from level 1, and sap collectors from level 6, once they're at least half full. It extracts the way a player does (the producer's own `RPC_Extract`, which drops the items at its spawn point), picks the items up into cargo, and delivers them to a chest that already holds them (Honey, Sap), else to the pile at the board, like any Steward output.

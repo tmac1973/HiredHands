@@ -1,6 +1,6 @@
-# Phase 08 — Check, docs and release 0.4.0
+# Phase 09 — Check, docs and release 0.4.0
 
-**Depends on:** 01–07 · **Enables:** the next round of features (Cook, Farmer, production orders)
+**Depends on:** 01–08 · **Enables:** the next round of features (Cook, Farmer, production orders)
 
 ## Goal
 Check the Steward's chores against the overview's success criteria on single player, on the local dedicated server and on the live server's mod set. Document them, and ship 0.4.0 in one release, with everyone updating together (the data file gains `choreLevels`).
@@ -15,18 +15,18 @@ Check the Steward's chores against the overview's success criteria on single pla
   - a note that existing data files keep their `stations` and `Gear`: add `windmill`, `piece_spinningwheel` and `VFH_Broom` by hand, or delete the file for fresh defaults.
 - `CHANGELOG.md`: `## 0.4.0`, including the level 1 Steward change ("no longer smelts: promote to level 2").
 - `docs/next-release.md`: the 0.4.0 rows and the batch list.
-- `docs/test-checklist.md`: VFH-CHORE-1…9 and VFH-BROOM-1 with results.
+- `docs/test-checklist.md`: VFH-CHORE-1…12 and VFH-BROOM-1 with results.
 - `plan/steward-chores/*.md`: "As built" notes where the build differed.
 
 ## Steps
 1. **Single player** (`vikingsforhire-dev`, which has PetPantry, Torches Eternal and AzuAreaRepair since phase 01):
-   - every `vfh_t_chore_*`, `vfh_t_fires`, `vfh_t_beehive`, `vfh_t_sap`, `vfh_t_animals`, `vfh_t_repairs` and `vfh_t_mills`;
+   - every `vfh_t_chore_*`, `vfh_t_fires`, `vfh_t_beehive`, `vfh_t_sap`, `vfh_t_animals`, `vfh_t_repairs`, `vfh_t_mills`, `vfh_t_fermenter`, `vfh_t_shield` and `vfh_t_tidy`;
    - the regression set `vfh_t_work5`, `vfh_t_azu3`, `vfh_t_keep1`, `vfh_t_keep2`, `vfh_t_door1`, `vfh_t_nav1` and `vfh_t_nav5`.
 2. **Local dedicated server:** `vfh_t_fires`, `vfh_t_animals` and `vfh_t_repairs` from a client. Chore RPCs go to objects owned by other games.
 3. **Live mod set by hand,** on a copy of the live world with `1dotohsupermodded`:
    - a Steward at a real base, for 15 minutes;
    - the panel shows "Fires: handled by TorchesEternal" and "Animals: handled by PetPantry";
-   - smelters and beehives are serviced and damaged walls repaired;
+   - smelters, beehives and fermenters are serviced, damaged walls repaired, and items left on the ground tidied away;
    - no `lvl=E` lines, and `perf.minute` about as in 0.3.0.
 4. **Docs** as listed.
 5. **Release,** only with Tim's go-ahead in chat:

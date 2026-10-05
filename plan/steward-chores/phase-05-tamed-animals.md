@@ -1,6 +1,6 @@
 # Phase 05 — Feeding tamed animals
 
-**Depends on:** 01 (`ChoreUrgency.Animal`, level `animals` 2, `StewardCompat` for PetPantry), 02 (`IChore`, `StewardSteps`) · **Enables:** 08
+**Depends on:** 01 (`ChoreUrgency.Animal`, level `animals` 2, `StewardCompat` for PetPantry), 02 (`IChore`, `StewardSteps`) · **Enables:** 09
 
 ## Goal
 From level 2, a Steward feeds hungry tamed animals inside its work radius. It takes one item each animal eats from a chest and drops it right in front of the animal, which eats it the vanilla way. Tamed animals only eat items lying on the ground, which they look for themselves. AzuAutoStore must not sweep that food into a chest first. With PetPantry installed (animals eat straight from chests), the chore steps aside.

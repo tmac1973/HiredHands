@@ -1,6 +1,6 @@
 # Phase 02 — Steward chore loop, level gating, chore panel and status
 
-**Depends on:** 01 · **Enables:** 03, 04, 05, 06 (each adds one chore to this loop)
+**Depends on:** 01 · **Enables:** 03, 04, 05, 06, 07 (each adds chores to this loop)
 
 ## Goal
 The Steward becomes a chore picker. Each decision it gathers candidate jobs from every chore that is all of:
@@ -129,6 +129,7 @@ Revert the commit. `SmelterBehaviour` comes back and the station rows behave as 
 - **Claims:** stations no longer in the plan are released on every survey; stopping (leaving Working) releases every chore's claims. Skipped stations (3 failures) are left out of the plan, so one unreachable station doesn't block the rest.
 - **Approach:** "close enough" also needs the hireling within 1.8 m of the object's base height (on its floor, not under it). The spot beside an object is found on the floor at the object's height, not on the roof above it.
 - **Leftovers:** `LeftoverSince` is reset only by a load job. When idle, the leftovers are the cargo items that aren't station products.
-- **Panel:** one full-width row per chore. A partly unlocked Stations or Mills row has a dim line underneath listing the stations still locked.
+- **`StewardBehaviour.ServerAllows(kind)`** maps each chore to its server setting, and `WhyNot` gives the reason a chore is out (server, off, locked, or a mod's name).
+- **Panel:** one full-width row per chore, built from `ChoreKeys.All` (enum order), so new kinds appear without panel changes. A partly unlocked Stations or Mills row has a dim line underneath listing the stations still locked.
 - **`steward_chores` fixture:** it edits the contract, so it works before the Steward arrives.
 - **`vfh_t_mills`** ends with a `wind_off` fixture (`EnvMan.ResetDebugWind`).

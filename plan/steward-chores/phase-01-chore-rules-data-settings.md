@@ -1,6 +1,6 @@
 # Phase 01 — Chore rules, data, settings and mod detection
 
-**Depends on:** nothing (0.3.0 code) · **Enables:** 02 (the chore loop uses all of this), 03–06
+**Depends on:** nothing (0.3.0 code) · **Enables:** 02 (the chore loop uses all of this), 03–07
 
 ## Goal
 The ground work every chore uses, with no change in game yet:
@@ -54,7 +54,7 @@ The ground work every chore uses, with no change in game yet:
    - `Animal(hungry)`: 0.7 if hungry, else 0.
    - `Repair(health, below)`: 0 if `health >= below`, else `0.3 + 0.6*(1 - health)`.
    - `Score(urgency, distance, radius)` = `urgency - 0.1*min(distance/radius, 1)`. The highest score above 0 wins; ties go to the nearer job, then the earlier kind in enum order.
-4. **Data.** `DataDefaults.FillMissing` already fills new properties into older files, including the whole `choreLevels` dictionary. It doesn't add list entries, though, so in an existing file `stations` stays as it is: an existing server's data file gets no windmill or spinning wheel unless the owner adds them. Phase 08 documents this in the README, like the 0.2.1 price note.
+4. **Data.** `DataDefaults.FillMissing` already fills new properties into older files, including the whole `choreLevels` dictionary. It doesn't add list entries, though, so in an existing file `stations` stays as it is: an existing server's data file gets no windmill or spinning wheel unless the owner adds them. Phase 09 documents this in the README, like the 0.2.1 price note.
 5. **Compat** reads `Chainloader.PluginInfos` once, lazily, after all plugins have loaded.
 
 ## Build gate
@@ -84,7 +84,7 @@ The ground work every chore uses, with no change in game yet:
 `feat(steward): chore list, urgency scoring, chore levels in the data file, steward settings and mod detection`
 
 ## Rollback
-Revert the commit. Nothing in game uses these yet. An existing data file keeps its filled-in `choreLevels`, which this phase's build added and older builds reject: delete the `choreLevels:` block after reverting. 0.4.0 needs everyone on 0.4 together (phase 08).
+Revert the commit. Nothing in game uses these yet. An existing data file keeps its filled-in `choreLevels`, which this phase's build added and older builds reject: delete the `choreLevels:` block after reverting. 0.4.0 needs everyone on 0.4 together (phase 09).
 
 ## As built
 - A station with no `choreLevels` entry produces a warning from `DataValidator.Sanitize`, which the data loader already logs with its other fix-up warnings, rather than a separate `data.station_no_level` event.
