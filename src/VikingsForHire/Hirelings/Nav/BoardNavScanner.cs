@@ -28,6 +28,17 @@ namespace VikingsForHire.Hirelings.Nav
         private readonly BoardNav _nav;
         private readonly List<Piece> _pieces = new();
         private readonly List<NavLink> _links = new();
+        private readonly List<PendingStair> _flights = new();
+
+        // A stair found but not yet a link: chained flights have their ends joined first (see JoinFlights).
+        private sealed class PendingStair
+        {
+            public Vector3 Bottom, Top;
+            public bool JoinBottom, JoinTop;
+            public List<Vector3> Way = new();
+            public string PieceId = "", Prefab = "";
+            public bool Ladder;
+        }
         private readonly List<Collider> _colliders = new();
         private readonly List<Vector3> _points = new();
         private readonly HashSet<string> _include;
@@ -66,6 +77,13 @@ namespace VikingsForHire.Hirelings.Nav
 
         private void Finish()
         {
+            JoinFlights();
+            foreach (PendingStair s in _flights)
+            {
+                s.Way[0] = s.Bottom;
+                s.Way[s.Way.Count - 1] = s.Top;
+                _links.Add(new NavLink(NavLinkKind.Stair, s.Bottom.ToNav(), s.Top.ToNav(), s.Way.Select(p => p.ToNav()).ToList(), s.PieceId, s.Prefab, s.Ladder));
+            }
             _nav.Graph.Rebuild(_links);
             _nav.Rejected = _rejected;
             Done = true;
@@ -143,16 +161,20 @@ namespace VikingsForHire.Hirelings.Nav
 
             if (best.Accepted && bestPoints != null)
             {
-                string? why = Ends(bestPoints, best, out Vector3 bottom, out Vector3 top);
+                string? why = Ends(piece, bestPoints, best, out Vector3 bottom, out Vector3 top, out bool joinBottom, out bool joinTop);
                 if (why == null)
                 {
                     int step = best.TopIndex > best.BottomIndex ? 1 : -1;
-                    var way = new List<NavPoint> { bottom.ToNav() };
+                    var way = new List<Vector3> { bottom };
                     for (int i = best.BottomIndex; i != best.TopIndex + step; i += step)
                         if (bestSamples![i].Height != null) // a missed sample has no real height to walk to
-                            way.Add(bestPoints[i].ToNav());
-                    way.Add(top.ToNav());
-                    _links.Add(new NavLink(NavLinkKind.Stair, bottom.ToNav(), top.ToNav(), way, piece.m_nview.GetZDO().m_uid.ToString(), prefab, best.IsLadder));
+                            way.Add(bestPoints[i]);
+                    way.Add(top);
+                    _flights.Add(new PendingStair
+                    {
+                        Bottom = bottom, Top = top, JoinBottom = joinBottom, JoinTop = joinTop, Way = way,
+                        PieceId = piece.m_nview.GetZDO().m_uid.ToString(), Prefab = prefab, Ladder = best.IsLadder,
+                    });
                     if (best.IsLadder)
                         _ladders++;
                     else
@@ -167,8 +189,11 @@ namespace VikingsForHire.Hirelings.Nav
             Reject(piece, prefab, best.Reason, hint);
         }
 
-        // Where to stand at each end: just beyond the bottom and top samples, on a floor, with room overhead.
-        private static string? Ends(List<Vector3> pts, StairResult r, out Vector3 bottom, out Vector3 top)
+        // Where to stand at each end: just beyond the bottom and top samples, on a floor, with room overhead. Or, where
+        // a flight runs straight on into another stair (no landing between), on its own end step, joined to that stair's
+        // end afterwards.
+        private static string? Ends(Piece piece, List<Vector3> pts, StairResult r, out Vector3 bottom, out Vector3 top, out bool joinBottom,
+            out bool joinTop)
         {
             Vector3 lo = pts[r.BottomIndex], hi = pts[r.TopIndex];
             Vector3 up = hi - lo;
@@ -176,17 +201,95 @@ namespace VikingsForHire.Hirelings.Nav
             up = up.sqrMagnitude > 0.0001f ? up.normalized : Vector3.forward;
             bottom = lo - up * EndOut;
             top = hi + up * EndOut;
+            joinBottom = joinTop = false;
             float? floorLo = StairSampler.FloorAt(bottom, lo.y, 0.5f);
-            if (floorLo == null)
+            if (floorLo != null)
+                bottom.y = floorLo.Value;
+            else if (StairSampler.OntoOtherPiece(piece, bottom, lo.y))
+            {
+                bottom = lo;
+                joinBottom = true;
+            }
+            else
                 return $"no_bottom_floor at {bottom} (step {lo.y:0.00}, found {StairSampler.SurfaceBelow(bottom, lo.y)})";
             float? floorHi = StairSampler.FloorAt(top, hi.y, 0.4f);
-            if (floorHi == null)
+            if (floorHi != null)
+                top.y = floorHi.Value;
+            else if (StairSampler.OntoOtherPiece(piece, top, hi.y))
+            {
+                top = hi;
+                joinTop = true;
+            }
+            else
                 return $"no_top_floor at {top} (step {hi.y:0.00}, found {StairSampler.SurfaceBelow(top, hi.y)})";
-            bottom.y = floorLo.Value;
-            top.y = floorHi.Value;
-            if (!StairSampler.Headroom(bottom) || !StairSampler.Headroom(top))
+            if ((!joinBottom && !StairSampler.Headroom(bottom)) || (!joinTop && !StairSampler.Headroom(top)))
                 return "no_headroom";
             return null;
+        }
+
+        // Chained flights: an end that runs on into another stair meets that stair's nearest end (within 1.5 m); both move
+        // to the point between them, so the two links share one end and routes go straight from one flight to the next.
+        // A joined end with no stair to meet is dropped with its link.
+        private void JoinFlights()
+        {
+            foreach (PendingStair s in _flights)
+            {
+                if (s.JoinBottom)
+                    s.JoinBottom = !Meet(s, top: false);
+                if (s.JoinTop)
+                    s.JoinTop = !Meet(s, top: true);
+            }
+            foreach (PendingStair s in _flights.Where(f => f.JoinBottom || f.JoinTop))
+            {
+                if (s.Ladder)
+                    _ladders--;
+                else
+                    _stairs--;
+                _rejected++;
+                VfhLog.D(LogCat.Nav, "navlinks.piece_rejected", ("board", _nav.BoardId), ("prefab", s.Prefab), ("pos", s.Bottom), ("reason", "runs_onto_nothing_joinable"));
+            }
+            _flights.RemoveAll(s => s.JoinBottom || s.JoinTop);
+        }
+
+        private bool Meet(PendingStair s, bool top)
+        {
+            Vector3 end = top ? s.Top : s.Bottom;
+            PendingStair? best = null;
+            bool bestTop = false;
+            float bestDist = 1.5f;
+            foreach (PendingStair o in _flights)
+            {
+                if (o == s)
+                    continue;
+                foreach (bool oTop in new[] { false, true })
+                {
+                    float d = Vector3.Distance(end, oTop ? o.Top : o.Bottom);
+                    if (d < bestDist)
+                    {
+                        best = o;
+                        bestTop = oTop;
+                        bestDist = d;
+                    }
+                }
+            }
+            if (best == null)
+                return false;
+            Vector3 mid = (end + (bestTop ? best.Top : best.Bottom)) * 0.5f;
+            if (top)
+                s.Top = mid;
+            else
+                s.Bottom = mid;
+            if (bestTop)
+            {
+                best.Top = mid;
+                best.JoinTop = false;
+            }
+            else
+            {
+                best.Bottom = mid;
+                best.JoinBottom = false;
+            }
+            return true;
         }
 
         // A ladder with no walkable surface (a thin collider): its foot on a floor on one side, its top on a floor on another.

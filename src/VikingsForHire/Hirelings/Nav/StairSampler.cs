@@ -66,6 +66,18 @@ namespace VikingsForHire.Hirelings.Nav
             return hit.point.y;
         }
 
+        /// <summary>
+        /// Whether the walkable surface just beyond a stair's end belongs to another piece within a step or so of the end's
+        /// height (another flight starting or ending right there, with no landing between).
+        /// </summary>
+        public static bool OntoOtherPiece(Piece piece, Vector3 p, float height)
+        {
+            if (!Physics.Raycast(new Vector3(p.x, height + 1.5f, p.z), Vector3.down, out RaycastHit hit, 3f, FloorMask, QueryTriggerInteraction.Ignore))
+                return false;
+            Piece? other = hit.collider.GetComponentInParent<Piece>();
+            return other != null && other != piece && hit.normal.y >= 0.5f && Mathf.Abs(hit.point.y - height) <= 1.2f;
+        }
+
         /// <summary>For logs: what the floor check's ray hit (height and how flat), or "nothing".</summary>
         public static string SurfaceBelow(Vector3 p, float expected) =>
             Physics.Raycast(new Vector3(p.x, expected + 1f, p.z), Vector3.down, out RaycastHit hit, 2.5f, FloorMask, QueryTriggerInteraction.Ignore)
