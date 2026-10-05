@@ -272,6 +272,20 @@ namespace VikingsForHire.Hirelings
         public HirelingLevelData LevelData =>
             DataStore.Current.HirelingLevels.FirstOrDefault(l => l.Level == Level) ?? DataStore.Current.HirelingLevels[0];
 
+        private const string PanelHoldRpc = "VFH_PanelHold";
+        private const float PanelHoldSeconds = 3f;
+        private float _panelHoldUntil;
+
+        /// <summary>Someone has this hireling's Shift+E panel open (renewed every second by their game, so it lapses on its own).</summary>
+        public bool PanelHeld => Time.time < _panelHoldUntil;
+
+        /// <summary>From the game with the panel open: hold still (or carry on) on whichever game runs this hireling.</summary>
+        public void HoldForPanel(bool hold)
+        {
+            if (_nview != null && _nview.IsValid())
+                _nview.InvokeRPC(_nview.GetZDO().GetOwner(), PanelHoldRpc, hold);
+        }
+
         /// <summary>Someone has this hireling's cargo open (vanilla syncs the flag through the ZDO).</summary>
         public bool CargoInUse => _cargo != null && (_cargo.IsInUse() || (Zdo != null && Zdo.GetInt(ZDOVars.s_inUse) == 1));
 
@@ -294,6 +308,7 @@ namespace VikingsForHire.Hirelings
             _ai = GetComponent<HirelingAI>();
             _ai.Init(this);
             Net.MutationService.RegisterApply(_nview);
+            _nview.Register<bool>(PanelHoldRpc, (_, hold) => _panelHoldUntil = hold ? Time.time + PanelHoldSeconds : 0f);
             _humanoid.m_onDeath += OnDeath;
             _vis = GetComponent<VisEquipment>();
             _cargo = GetComponentInChildren<Container>(true);

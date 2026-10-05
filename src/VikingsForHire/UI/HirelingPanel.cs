@@ -29,6 +29,7 @@ namespace VikingsForHire.UI
 
         private static HirelingPanel? _instance;
         private Hireling? _hireling;
+        private float _nextHold;
         private RectTransform _content = null!;
         private bool _all;
         private string _shown = "";
@@ -54,6 +55,7 @@ namespace VikingsForHire.UI
             _instance._hireling = h;
             _instance._shown = "";
             _instance._nextRefresh = 0f;
+            _instance._nextHold = 0f;
             _instance.gameObject.SetActive(true);
             GUIManager.BlockInput(true);
             VfhLog.D(LogCat.UI, "orders.open", ("hid", h.Hid));
@@ -66,6 +68,8 @@ namespace VikingsForHire.UI
             _instance!.gameObject.SetActive(false);
             GUIManager.BlockInput(false);
             VfhLog.D(LogCat.UI, "orders.close", ("reason", reason));
+            if (_instance._hireling != null)
+                _instance._hireling.HoldForPanel(false);
             _instance._hireling = null;
         }
 
@@ -95,6 +99,12 @@ namespace VikingsForHire.UI
             {
                 Close(h == null ? "gone" : "walked away");
                 return;
+            }
+            // Keep it standing still while the panel is open (the hold lapses on its own if this game goes away).
+            if (Time.unscaledTime >= _nextHold)
+            {
+                _nextHold = Time.unscaledTime + 1f;
+                h.HoldForPanel(true);
             }
             if (Time.unscaledTime < _nextRefresh)
                 return;

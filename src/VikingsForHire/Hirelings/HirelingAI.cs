@@ -206,13 +206,15 @@ namespace VikingsForHire.Hirelings
                 VfhLog.D(LogCat.Combat, retreat ? "retreat.start" : "retreat.end", ("hid", Hireling.Hid), ("health", Hireling.Humanoid.GetHealthPercentage()));
             }
 
-            // Stand still while someone is using the cargo, so the container doesn't close as they walk off.
-            if (Hireling.CargoInUse)
+            // Stand still while someone is using the cargo (so the container doesn't close as they walk off) or has its
+            // Shift+E panel open.
+            bool cargo = Hireling.CargoInUse;
+            if (cargo || Hireling.PanelHeld)
             {
                 if (!_heldForCargo)
                 {
                     _heldForCargo = true;
-                    VfhLog.D(LogCat.AI, "ai.hold", ("hid", Hireling.Hid), ("reason", "cargo open"));
+                    VfhLog.D(LogCat.AI, "ai.hold", ("hid", Hireling.Hid), ("reason", cargo ? "cargo open" : "panel open"));
                 }
                 StopMoving();
                 Player nearest = Player.GetClosestPlayer(transform.position, 6f);
@@ -223,7 +225,7 @@ namespace VikingsForHire.Hirelings
             if (_heldForCargo)
             {
                 _heldForCargo = false;
-                VfhLog.D(LogCat.AI, "ai.release", ("hid", Hireling.Hid), ("reason", "cargo closed"));
+                VfhLog.D(LogCat.AI, "ai.release", ("hid", Hireling.Hid), ("reason", "cargo or panel closed"));
             }
 
             VfhLog.Guard(LogCat.AI, "ai.tick_failed", () =>
