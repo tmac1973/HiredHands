@@ -24,6 +24,7 @@ namespace VikingsForHire.Compat
             Patch(harmony, "Azumatt.AzuAutoStore", "AzuAutoStore.Util.Boxes", "CanItemBeStored", "Azumatt.AzuAutoStore.yml");
             Patch(harmony, "Azumatt.AzuCraftyBoxes", "AzuCraftyBoxes.Util.Functions.Boxes", "CanItemBePulled", "Azumatt.AzuCraftyBoxes.yml");
             PatchPetPantry(harmony);
+            PatchAzuFeed(harmony);
             PatchCreatureLevelControl(harmony);
             if (Chainloader.PluginInfos.ContainsKey("Spronglehump.PullMats"))
                 Report("PullMats", true, 0, 0, "covered by the AzuCraftyBoxes exclusion");
@@ -67,6 +68,45 @@ namespace VikingsForHire.Compat
             if (patched < wanted)
                 VfhLog.W(LogCat.Compat, "compat.manual_exclusion_needed", ("mod", mod), ("file", yamlFile),
                     ("add", string.Join(" ", ExcludedContainers.Prefabs.Select(p => $"'{p}: {{exclude: [All]}}'"))));
+        }
+
+        /// <summary>
+        /// Food a Steward drops for a tamed animal must stay on the ground until it's eaten: AzuAutoStore would otherwise
+        /// store it in a chest. Its ground-item check skips items marked by the Steward.
+        /// </summary>
+        private static void PatchAzuFeed(Harmony harmony)
+        {
+            if (!Chainloader.PluginInfos.TryGetValue("Azumatt.AzuAutoStore", out var info) || info.Instance == null)
+                return;
+            int patched = 0;
+            try
+            {
+                Type? type = info.Instance.GetType().Assembly.GetType("AzuAutoStore.Util.Functions");
+                MethodInfo? check = type == null ? null : AccessTools.Method(type, "CheckItemDropInstanceAndStore", new[] { typeof(ItemDrop) });
+                if (check != null)
+                {
+                    harmony.Patch(check, prefix: new HarmonyMethod(typeof(CompatPatcher), nameof(FeedPrefix)));
+                    patched++;
+                }
+            }
+            catch (Exception ex)
+            {
+                VfhLog.Exception(LogCat.Compat, "compat.patch_failed", ex, ("mod", "AzuAutoStore feed"));
+            }
+            Report("AzuAutoStore feed", true, patched, 1, patched == 1 ? "ok" : "incomplete: Azu may store food dropped for tamed animals");
+        }
+
+        private static bool FeedPrefix(ItemDrop __0)
+        {
+            try
+            {
+                return __0 == null || __0.m_nview == null || __0.m_nview.GetZDO() == null || !__0.m_nview.GetZDO().GetBool(Hirelings.Work.Steward.AnimalsChore.FeedKey);
+            }
+            catch (Exception e)
+            {
+                VfhLog.PatchFailed("CompatPatcher.FeedPrefix", e);
+                return true;
+            }
         }
 
         /// <summary>PetPantry feeds tamed animals from every player-built container; refusing ours keeps them off the board's food.</summary>

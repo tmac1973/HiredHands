@@ -39,6 +39,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             _chores.Add(new StationsChore(ChoreKind.Stations));
             _chores.Add(new StationsChore(ChoreKind.Mills));
             _chores.Add(new ProducersChore(ChoreKind.Sap));
+            _chores.Add(new AnimalsChore());
         }
 
         public string Name => "Steward";

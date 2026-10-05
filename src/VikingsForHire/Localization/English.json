@@ -92,6 +92,8 @@
   "vfh_steward_load": "Loading $1",
   "vfh_steward_fuel": "Fuelling $1",
   "vfh_steward_collect": "Collecting from $1",
+  "vfh_steward_feed": "Feeding $1",
+  "vfh_need_food": "$1: no food it eats in any chest",
   "vfh_need_fuel": "$1: no $2 in any chest",
   "vfh_steward_idle": "All done",
   "vfh_need_item": "$1: no $2 in any chest",

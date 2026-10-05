@@ -58,3 +58,8 @@ From level 2, a Steward feeds hungry tamed animals inside its work radius. It ta
 
 ## Rollback
 Revert the commit, or set `StewardAnimals = false` on the server. The Azu prefix only affects items marked `vfh_feed`, so reverting it is safe.
+
+## As built
+- **One trip feeds several animals:** every hungry tamed animal in the radius, one item each, nearest first, as far as free cargo slots allow.
+- **While it waits** (up to 15 s) for the animal to eat, waiting counts as progress, so it isn't taken for stuck.
+- **`vfh_t_animals`** puts the boar 20 m from the food chest, beyond PetPantry's reach of it: PetPantry is in the dev profile and would otherwise feed the boar first. It checks `fed_by_steward`, not just hunger. The food chest is registered with AzuAutoStore, so the run also checks that dropped food isn't stored before the boar eats it.

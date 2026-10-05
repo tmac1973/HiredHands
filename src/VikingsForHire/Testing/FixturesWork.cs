@@ -46,6 +46,15 @@ namespace VikingsForHire.Testing
                 GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged producer");
                 return go.GetComponent<ZNetView>().GetZDO().GetInt(ZDOVars.s_level).ToString(CultureInfo.InvariantCulture);
             });
+            Fixtures.Add("tame", "<prefab> [tag] [distance=20] - a tamed, hungry animal (Boar, Wolf…) that far from the board", Tame);
+            TestHarness.RegisterCheck("animal_hungry", "<tag> - whether a tagged tamed animal is hungry", args =>
+                (FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponent<Tameable>() ?? throw new InvalidOperationException("no such tagged animal")).IsHungry() ? "true" : "false");
+            TestHarness.RegisterCheck("fed_by_steward", "<tag> - food items Stewards have dropped for a tagged animal", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged animal");
+                Character c = go.GetComponent<Character>();
+                return (Hirelings.Work.Steward.AnimalsChore.Fed.TryGetValue(c.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
+            });
             Fixtures.Add("station_info", "<prefab> - log the nearest such station's make-up and state (as vfh_station), in step with the test", args => StationInfo(args));
             TestHarness.RegisterCheck("steward_chore", "- the chore the Steward from your last contract is doing now (Fires, Stations…), or none", _ =>
             {
@@ -289,6 +298,22 @@ namespace VikingsForHire.Testing
             yield return null;
             go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_level, level);
             VfhLog.I(LogCat.Test, "fixture.producer", ("prefab", prefab), ("level", level), ("tag", tag));
+            yield return null;
+        }
+
+        private static IEnumerator Tame(string[] args)
+        {
+            string prefab = args.ElementAtOrDefault(0) ?? "Boar";
+            string tag = args.ElementAtOrDefault(1) ?? "";
+            float distance = args.Length > 2 ? float.Parse(args[2], CultureInfo.InvariantCulture) : 20f;
+            HiringBoard board = Board();
+            Vector3 pos = board.transform.position - board.transform.forward * distance;
+            GameObject go = Spawn(prefab, pos, tag);
+            yield return null;
+            Character c = go.GetComponent<Character>() ?? throw new InvalidOperationException($"{prefab} isn't a creature");
+            c.SetTamed(true);
+            go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_tameLastFeeding, 0L);
+            VfhLog.I(LogCat.Test, "fixture.tame", ("prefab", prefab), ("tag", tag), ("hungry", go.GetComponent<Tameable>()?.IsHungry() ?? false));
             yield return null;
         }
 
