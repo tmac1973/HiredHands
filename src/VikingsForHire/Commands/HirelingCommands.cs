@@ -31,6 +31,13 @@ namespace VikingsForHire.Commands
                 }));
             CommandManager.Instance.AddConsoleCommand(new VfhCommand("vfh_kill_hirelings", "[radius=50] - kill hirelings near you", true, args =>
                 VfhCommand.Print($"HiredHands: killed {Kill(args.Length > 0 && float.TryParse(args[0], out float r) ? r : 50f)} hirelings")));
+            CommandManager.Instance.AddConsoleCommand(new VfhCommand("vfh_deliver", "- the nearest hireling takes what it carries to the chests now (as when its cargo is full)", true, _ =>
+            {
+                Hireling h = NearestOrThrow();
+                h.Zdo!.Set(HirelingZdo.DeliverPending, true);
+                VfhLog.I(LogCat.Hireling, "hireling.deliver_now", ("hid", h.Hid));
+                VfhCommand.Print($"HiredHands: {h.DisplayName} is delivering");
+            }));
             DebugCommands.DumpStateSections.Add(Dump);
         }
 
