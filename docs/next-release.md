@@ -9,7 +9,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | Commit | What | Where it runs |
 |---|---|---|
 | d7466ba | Idle hirelings (nothing to do at home, e.g. "Works at home" off and no post) stand at an open-air spot near the board they have a full route to, moving now and then, instead of wandering into buildings and up and down the stairs (Gerd) | the game simulating the hireling |
-| (next) | Low funds map pin said "food for 0 days" while the board's hover said 20: a board loaded in your game now gets its pin from what your game sees in it (as the hover does); the server logs `funds.pin_low` (funds, upkeep, items it read) whenever it calls a board low, to find why its copy was wrong | your game (pins), server (log) |
+| e30b18a | Low funds map pin said "food for 0 days" while the board's hover said 20: a board loaded in your game now gets its pin from what your game sees in it (as the hover does); the server logs `funds.pin_low` (funds, upkeep, items it read) whenever it calls a board low, to find why its copy was wrong | your game (pins), server (log) |
 
 ### To test (batch)
 - [ ] Live server: the low funds pin on a stocked board goes away within a minute of the update (the hover and pin agree). If a pin still disagrees with the hover anywhere, grab the server's `funds.pin_low` line.
