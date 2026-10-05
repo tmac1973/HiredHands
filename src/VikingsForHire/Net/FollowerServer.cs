@@ -124,7 +124,10 @@ namespace VikingsForHire.Net
             pkg.Write(yaw);
             VfhLog.D(LogCat.Follow, "follow.request", ("kind", kind), ("hid", hid), ("quality", quality));
             if (ZNet.instance.IsServer())
+            {
+                pkg.SetPos(0); // read back what was just written (single player, or the host)
                 VfhLog.Guard(LogCat.Follow, "follow.op_failed", () => Handle(ZDOMan.GetSessionID(), pkg));
+            }
             else
                 _rpc.SendPackage(ZRoutedRpc.instance.GetServerPeerID(), pkg);
         }

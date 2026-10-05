@@ -14,7 +14,9 @@ namespace VikingsForHire.Hirelings.Nav
             {
                 try
                 {
-                    Mark(__instance);
+                    // Built or loaded in: a real piece has its ZDO by now (the placement ghost never does).
+                    if (__instance != null && __instance.m_nview != null && __instance.m_nview.GetZDO() != null)
+                        Mark(__instance);
                 }
                 catch (Exception e)
                 {
@@ -30,7 +32,9 @@ namespace VikingsForHire.Hirelings.Nav
             {
                 try
                 {
-                    Mark(__instance);
+                    // Removed: its ZDO is already gone by now, so tell the ghost apart by its layer instead.
+                    if (__instance != null && __instance.gameObject.layer != GhostLayer)
+                        Mark(__instance);
                 }
                 catch (Exception e)
                 {
@@ -39,12 +43,12 @@ namespace VikingsForHire.Hirelings.Nav
             }
         }
 
+        private static readonly int GhostLayer = UnityEngine.LayerMask.NameToLayer("ghost");
+
         private static void Mark(Piece piece)
         {
-            // Not the ghost a player is placing.
-            if (!NavLinkRegistry.Enabled || piece == null || piece.m_nview == null || piece.m_nview.GetZDO() == null)
-                return;
-            NavLinkRegistry.MarkDirty(piece.transform.position);
+            if (NavLinkRegistry.Enabled)
+                NavLinkRegistry.MarkDirty(piece.transform.position);
         }
     }
 }

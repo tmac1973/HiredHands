@@ -13,7 +13,7 @@ namespace VikingsForHire.Hirelings.Nav
     {
         private const float YesSeconds = 30f;
         private const float NoSeconds = 15f;
-        private const int PerFrame = 12;
+        private const int PerFrame = 4; // about 1 ms each: 12 made a 10-13 ms frame when a route was planned
         private const float EndSlackXZ = 1.6f;
         private const float EndSlackY = 0.8f;
 
