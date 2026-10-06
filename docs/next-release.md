@@ -20,10 +20,11 @@ Plan: `plan/steward-chores/`.
 | 60671cf | Sap and honey collected on a trip are always delivered (sap stayed in cargo as eitr refinery supply) | the game simulating the Steward |
 | 15b7aaf | A fermenter without enough cover says so ("needs more walls and a roof round it to brew") instead of being skipped silently | the game simulating the Steward |
 | f0eed65 | The broom in the data file was dropped as an unknown item (the data is checked before the mod's own items are registered); our items and other mods' Jotunn items now count as known | everywhere (data) |
-| 485973d | The Steward's broom: club stats with the game's broom model (cultivator model as fallback); the Steward's weapon in new data files | the Steward |
+| 485973d | The Steward's broom: club stats, the Steward's weapon in new data files | the Steward |
+| (this commit) | The broom is built from simple shapes (wooden handle, straw bristles); the cultivator is left for a Farmer | your game, drawing the Steward |
 
 ### To test (batch)
-- [ ] By hand: the broom. With a fresh data file, or the Steward's `gear` set to `VFH_Broom`, a Steward holds a broom the right way up and swats a Greyling with it; `vfh_broom_info` says which model was used.
+- [ ] By hand: the broom. With a fresh data file, or the Steward's `gear` set to `VFH_Broom`, a Steward holds the homemade broom (wooden handle, straw bristles at the far end, not through its arm) and swats a Greyling with it; `vfh_broom_info` names the materials.
 - [x] Macros: `vfh_test_chain fires chore_urgency` (passed).
 - [x] Macros: `vfh_test_chain beehive sap animals repairs fermenter shield tidy` (all passed, some across reruns).
 - [x] Macros (single player): `vfh_test_chain chore_gate chore_toggle mills azu3 keep1 keep2` (passed; work5 needs AzuAutoStore absent).
