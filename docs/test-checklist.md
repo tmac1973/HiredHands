@@ -310,3 +310,7 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-05 | 5f085ff | VFH-CHORE-8 | SP | Fail | Quiet check counted wild monsters anywhere within the area + 30 m; now only within 30 m of the Steward or the piece |
 | 2026-10-05 | 5f085ff | VFH-CHORE-10 | SP | Fail | Roof check also stopped tapping; now only loading needs the roof |
 | 2026-10-05 | c86af42 | VFH-CHORE-11 | SP | Pass | Empty shield generator fed bones from a chest |
+| 2026-10-05 | 3155baa | VFH-CHORE-8 | SP | Pass | Damaged wall repaired once the nearby Neck and Greyling had gone |
+| 2026-10-05 | 3155baa | VFH-CHORE-6 | SP | Fail | Sap emptied but kept: sap is also eitr refinery fuel, so it counted as supply; trips now deliver what they collected |
+| 2026-10-05 | 60671cf | VFH-CHORE-6 | SP | Pass | Full sap collector emptied, 30 sap in the sap chest |
+| 2026-10-05 | 60671cf | VFH-CHORE-10 | SP | Fail (test) | Tapped and meads stored; not reloaded: cover 0.53 (needs 0.7) with walls on three sides; walls now stacked up to the roof |
