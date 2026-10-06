@@ -68,7 +68,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             foreach (StationState st in states)
             {
                 Smelter s = _byId[st.Id];
-                var noRoom = st.Inputs.Where(i => StorageRoom.NoRoom(ctx.Chests, ProductOf(s, i))).ToList();
+                var noRoom = st.Inputs.Where(i => StorageRoom.NoRoom(ctx.AllChests, ProductOf(s, i))).ToList();
                 if (noRoom.Count == 0)
                     continue;
                 st.Inputs = st.Inputs.Except(noRoom).ToList();

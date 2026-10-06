@@ -16,6 +16,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
         public readonly int Level;
         public readonly JobData Job;
         public readonly List<Container> Chests;
+
+        /// <summary>Every chest in the area, skipped ones too: for counting room (a skip is only about taking from it).</summary>
+        public readonly List<Container> AllChests;
         public readonly int KeepMin;
         private readonly Dictionary<string, int> _available = new();
         private Dictionary<string, int>? _carried;
@@ -27,7 +30,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
             Radius = h.Radius;
             Level = h.Level;
             Job = DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out JobData? j) ? j : new JobData();
-            Chests = ChestFinder.Find(Home, Radius).Where(c => !Reservations.IsSkipped(c)).ToList();
+            AllChests = ChestFinder.Find(Home, Radius);
+            Chests = AllChests.Where(c => !Reservations.IsSkipped(c)).ToList();
             KeepMin = VfhConfig.ChestReserve;
         }
 

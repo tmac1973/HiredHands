@@ -82,7 +82,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 if (u <= 0f || Reservations.IsReservedByOther(x.Comp, ctx.Hireling.Hid) || Reservations.IsSkipped(x.Comp))
                     continue;
                 SmelterDeliveryPolicy.StewardOutputs.Add(x.Item);
-                if (StorageRoom.NoRoom(ctx.Chests, x.Item))
+                if (StorageRoom.NoRoom(ctx.AllChests, x.Item))
                 {
                     Missing ??= ActivityText.Make("$vfh_paused_full", x.Name, StewardSteps.SharedName(x.Item));
                     continue;

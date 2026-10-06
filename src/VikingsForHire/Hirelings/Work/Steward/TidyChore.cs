@@ -42,7 +42,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     continue;
                 if (!stored.Contains(d.m_itemData.m_dropPrefab.name) || d.m_itemData.m_customData.ContainsKey(DropPile.Tag))
                     continue;
-                if (StorageRoom.NoRoom(ctx.Chests, d.m_itemData.m_dropPrefab.name))
+                if (StorageRoom.NoRoom(ctx.AllChests, d.m_itemData.m_dropPrefab.name))
                     continue;
                 ZDO z = d.m_nview.GetZDO();
                 if (z == null || z.GetBool(AnimalsChore.FeedKey) || d.GetTimeSinceSpawned() < minAge)
@@ -127,8 +127,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     noChest[name] = (noChest.TryGetValue(name, out int n) ? n : 0) + 1;
                     continue;
                 }
-                else if (StorageRoom.NoRoom(ctx.Chests, name))
-                    r = "chests full";
+                else if (StorageRoom.NoRoom(ctx.AllChests, name))
+                    r = $"chests full ({name})";
                 else if (d.m_nview.GetZDO()?.GetBool(AnimalsChore.FeedKey) == true)
                     r = "animal food";
                 else if (d.GetTimeSinceSpawned() < minAge)
