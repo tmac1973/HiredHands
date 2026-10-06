@@ -15,7 +15,6 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | fde0b02 | `storage.full` log (once per 5 min per item): when work pauses for a full item, which chests holding it were counted and the room in each (Brand paused the kiln with a coal chest showing 10 free slots) | the game simulating the hireling |
 | e76a316 | The pause counts room in every chest in the area, including chests skipped for a minute after a failed fetch (a skip only stops taking from them); `steward.tidy_left` names the items left because their chests are full | the game simulating the Steward |
 | fc4ddcb | The pause also covers fermenters (a ready mead stays in until its chests have room) and emptying stations that hold their output (spinning wheel, eitr refinery) | the game simulating the Steward |
-| 773a464 | Dev: launch options `-vfh-world`, `-vfh-character`, `-vfh-test` (set as the Gale dev profile's custom arguments) skip the menus into a single-player world and run a test chain | your game (dev only) |
 ### To test (batch)
 - [ ] Macros (single player): `vfh_test_chain board_food loot` (board_food passed 2026-10-06; loot: rerun).
 - [ ] By hand: take a Steward out, fight a few Greylings, park it in Gather Here: it picks up the drops; bring it home, the loot ends up in chests (or the pile) a few minutes later.
