@@ -330,3 +330,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-06 | 5492ffb | VFH-LOOT-1 | SP | Pass | All 12 Wood picked up within 6 s of parking (2.5 m reach) |
 | 2026-10-06 | 33a63fc | VFH-DLV-1, NAVLINK-4, NAVLINK-8, SMELT-4, AZU-3, PAUSE-1, PAUSE-2, CHORE-8, CHORE-13 | SP | Pass | 0.4.4 regression after the delivery approach, pause threshold and repair changes |
 | 2026-10-06 | 33a63fc | VFH-DLV-2 | SP | Fail (test) | Tests overflow to the pile with a full wood chest; since 0.4.2 the woodcutter pauses instead. The macro now turns PauseWhenStorageFull off while it runs |
+| 2026-10-06 | 5ff5b0a | VFH-DLV-2 | SP | Pass | Overflow to the board's pile with the pause off |

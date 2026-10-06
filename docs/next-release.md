@@ -14,7 +14,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | 1a6bc10 | Pause when full: only when the chests holding an item have no room at all (it paused the kiln with 10 coal still fitting: the rule was "less than a stack") | the game simulating the hireling |
 | 1a6bc10 | Repairs: pieces standing in water count as weathered (wear stops at half, like rain); a piece worn again within 10 min of a repair with no monster about since is skipped for an hour (`steward.repair_recurring`): Brand kept swimming out to a pole in the water | the game simulating the Steward |
 ### To test (batch)
-- [ ] Macros (single player), regression: `vfh_test_chain deliver1 deliver2 nav1 nav5 keep1 azu3 pause1 pause2 repairs repairs2`.
+- [x] Macros (single player), regression: `vfh_test_chain deliver1 deliver2 nav1 nav5 keep1 azu3 pause1 pause2 repairs repairs2` (all passed 2026-10-06; deliver2 after its macro fix).
 - [ ] Live server: Brand delivers to the chests under the raised house without `deliver.chest_unreachable`.
 - [ ] Live server: park a Steward in Gather Here after a fight: it collects loot up to 30 m from its spot.
 
