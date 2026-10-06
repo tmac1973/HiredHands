@@ -57,6 +57,9 @@ namespace VikingsForHire.Hirelings.Work
 
         public DeliverBehaviour(IDeliveryPolicy policy) => _policy = policy;
 
+        private readonly Steward.StewardSteps _walk = new();
+        private Container? _walkTo;
+
         public string Name => "Deliver";
         public int Priority => 300;
 
@@ -87,18 +90,25 @@ namespace VikingsForHire.Hirelings.Work
             DepositStep? next = NearestStep(h);
             if (next is DepositStep step && _chests.TryGetValue(step.ChestId, out Container chest) && chest != null)
             {
-                if (Vector3.Distance(ai.transform.position, chest.transform.position) > Reach)
+                if (_walkTo != chest)
+                {
+                    _walkTo = chest;
+                    _walk.Reset();
+                }
+                // To a spot it can stand on within reach of the chest (beside it, or above or in front of a chest tucked
+                // under a raised floor), the way a player would reach it; the chest itself may have no route.
+                if (!_walk.Approach(ai, dt, chest, chest.transform.position))
                 {
                     // Can't get to it (up stairs it can't climb, behind something): use other chests for a while.
-                    if (ai.StuckSeconds(chest.transform.position) > GiveUpSeconds)
+                    if (_walk.SinceProgress > GiveUpSeconds)
                     {
                         _unreachable[step.ChestId] = Time.time + UnreachableSeconds;
                         _plan = null;
                         VfhLog.I(LogCat.Nav, "deliver.chest_unreachable", ("hid", h.Hid), ("chest", chest.transform.position),
                             ("from", ai.transform.position), ("skipFor", UnreachableSeconds));
+                        _walkTo = null;
                         return;
                     }
-                    ai.WalkTo(dt, chest.transform.position, Reach * 0.8f, run: false);
                     return;
                 }
                 ai.Halt();

@@ -10,7 +10,10 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 |---|---|---|
 | 3e51435 | Field looting has its own radius, `LootRadius` (Followers, 30 m), instead of the gatherers' `GatherNearbyRadius` (15 m): Brand picked up some loot and stopped with more lying further out | the owner's game |
 
+| (this commit) | Deliveries walk to a standing spot within reach of the chest (as Steward chores do) instead of the chest itself: chests tucked under a raised floor (reached from the ground in front, or from the floor above) were given up on as unreachable | the game simulating the hireling |
 ### To test (batch)
+- [ ] Macros (single player), delivery regression: `vfh_test_chain deliver1 deliver2 nav1 nav5 keep1 azu3`.
+- [ ] Live server: Brand delivers to the chests under the raised house without `deliver.chest_unreachable`.
 - [ ] Live server: park a Steward in Gather Here after a fight: it collects loot up to 30 m from its spot.
 
 ## 0.4.3 (released 2026-10-06)
