@@ -24,7 +24,20 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
         private static readonly List<KitchenInfo> _all = new();
         private static readonly Dictionary<KitchenInfo, Recipe> _recipes = new();
 
-        public static IReadOnlyList<KitchenInfo> All => _all;
+        public static IReadOnlyList<KitchenInfo> All
+        {
+            get
+            {
+                if (_all.Count == 0 && Time.time >= _nextTry)
+                {
+                    _nextTry = Time.time + 5f; // built when first needed in a world, retried while empty
+                    Build();
+                }
+                return _all;
+            }
+        }
+
+        private static float _nextTry;
 
         public static Recipe? RecipeOf(KitchenInfo info) => _recipes.TryGetValue(info, out Recipe r) ? r : null;
 
@@ -36,8 +49,11 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
 
         public static void Build()
         {
-            if (ObjectDB.instance == null || ZNetScene.instance == null)
+            if (ObjectDB.instance == null || ZNetScene.instance == null || ObjectDB.instance.m_recipes.Count == 0)
+            {
+                VfhLog.D(LogCat.Work, "kitchen.not_ready", ("objectDb", ObjectDB.instance != null), ("scene", ZNetScene.instance != null));
                 return;
+            }
             _all.Clear();
             _recipes.Clear();
             JobData cook = DataStore.Current.Jobs.TryGetValue(JobType.Cook, out JobData? j) ? j : new JobData();

@@ -43,8 +43,27 @@ namespace VikingsForHire.Hirelings.Work.Farm
         private static readonly HashSet<int> _grownHashes = new();
         private static readonly HashSet<int> _saplingHashes = new();
 
-        public static IReadOnlyList<Crop> All => _all;
-        public static IReadOnlyList<CropInfo> Infos => _all.Select(c => c.Info).ToList();
+        public static IReadOnlyList<Crop> All
+        {
+            get
+            {
+                EnsureBuilt();
+                return _all;
+            }
+        }
+
+        public static IReadOnlyList<CropInfo> Infos => All.Select(c => c.Info).ToList();
+
+        private static float _nextTry;
+
+        // Built when first needed in a world (the prefab event can come before the item database is ready), retried every 5 s while empty.
+        private static void EnsureBuilt()
+        {
+            if (_all.Count > 0 || Time.time < _nextTry)
+                return;
+            _nextTry = Time.time + 5f;
+            Build();
+        }
 
         public static void Register()
         {
@@ -52,15 +71,33 @@ namespace VikingsForHire.Hirelings.Work.Farm
             DataStore.Changed += () => VfhLog.Guard(LogCat.Work, "crops.levels_failed", ApplyLevels);
         }
 
-        public static Crop? ByGrown(string prefab) => _byGrown.TryGetValue(prefab, out Crop c) ? c : null;
-        public static Crop? BySapling(string prefab) => _bySapling.TryGetValue(prefab, out Crop c) ? c : null;
-        public static bool IsGrownHash(int prefabHash) => _grownHashes.Contains(prefabHash);
+        public static Crop? ByGrown(string prefab)
+        {
+            EnsureBuilt();
+            return _byGrown.TryGetValue(prefab, out Crop c) ? c : null;
+        }
+
+        public static Crop? BySapling(string prefab)
+        {
+            EnsureBuilt();
+            return _bySapling.TryGetValue(prefab, out Crop c) ? c : null;
+        }
+
+        public static bool IsGrownHash(int prefabHash)
+        {
+            EnsureBuilt();
+            return _grownHashes.Contains(prefabHash);
+        }
+
         public static bool IsSaplingHash(int prefabHash) => _saplingHashes.Contains(prefabHash);
 
         public static void Build()
         {
-            if (ObjectDB.instance == null || ZNetScene.instance == null)
+            if (ObjectDB.instance == null || ZNetScene.instance == null || ObjectDB.instance.GetItemPrefab("Cultivator") == null)
+            {
+                VfhLog.D(LogCat.Work, "crops.not_ready", ("objectDb", ObjectDB.instance != null), ("scene", ZNetScene.instance != null));
                 return;
+            }
             _all.Clear();
             _byGrown.Clear();
             _bySapling.Clear();
