@@ -48,6 +48,16 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                 .Where(s => s != null && s.m_nview != null && s.m_nview.IsValid() && ctx.BoardOwnerMayUse(s.transform.position)).ToList();
         }
 
+        private const float LooseRadius = 6f;
+
+        private static bool LooseNear(CookingStation s)
+        {
+            HashSet<string> outputs = Outputs(s);
+            return ItemDrop.s_instances.Any(d => d != null && d.m_itemData?.m_dropPrefab != null && outputs.Contains(d.m_itemData.m_dropPrefab.name) &&
+                                                 !d.m_itemData.m_customData.ContainsKey(DropPile.Tag) && d.GetTimeSinceSpawned() > 2.0 &&
+                                                 Vector3.Distance(d.transform.position, s.transform.position) < LooseRadius);
+        }
+
         private static HashSet<string> Outputs(CookingStation s)
         {
             var set = new HashSet<string>(s.m_conversion.Where(c => c?.m_to != null).Select(c => c.m_to.name));
@@ -67,8 +77,8 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             bool Near(Component c) => busy == null || Vector3.Distance(c.transform.position, busy.Value) <= KitchenState.StayNear;
             List<CookingStation> stoves = Stoves(ctx);
 
-            // Done or burnt food first, wherever it is in range.
-            foreach (CookingStation s in stoves.Where(s => Near(s) && (KitchenState.HasSlot(s, CookingStation.Status.Done) || KitchenState.HasSlot(s, CookingStation.Status.Burnt))))
+            // Done or burnt food first, wherever it is in range; and cooked food lying by a stove (taking it off throws it).
+            foreach (CookingStation s in stoves.Where(s => Near(s) && (KitchenState.HasSlot(s, CookingStation.Status.Done) || KitchenState.HasSlot(s, CookingStation.Status.Burnt) || LooseNear(s))))
                 jobs.Add(Job(s, 1.0f, VariantTakeOff, ctx, "$vfh_cook_takeoff"));
 
             // Ovens below half fuel, with fuel in the chests.
@@ -200,7 +210,8 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                     if (Time.time < _waitPickup)
                         return ChoreProgress.Running;
                     HashSet<string> outputs = Outputs(s);
-                    int picked = WorkSteps.PickUpDrops(h, s.transform.position, outputs, 3f);
+                    // Taking food off throws it towards the Cook: pick up around the stove and around itself.
+                    int picked = WorkSteps.PickUpDrops(h, s.transform.position, outputs, LooseRadius) + WorkSteps.PickUpDrops(h, h.transform.position, outputs, 4f);
                     foreach (string o in outputs)
                         ChoreDeliveryPolicy.ChoreOutputs.Add(o);
                     TakenOff["any"] = (TakenOff.TryGetValue("any", out int t) ? t : 0) + picked;

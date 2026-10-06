@@ -58,6 +58,7 @@ namespace VikingsForHire.Hirelings.Work
         public DeliverBehaviour(IDeliveryPolicy policy) => _policy = policy;
 
         private readonly Chores.WorkSteps _walk = new();
+        private float _lastTick;
         private Container? _walkTo;
 
         public string Name => "Deliver";
@@ -90,7 +91,10 @@ namespace VikingsForHire.Hirelings.Work
             DepositStep? next = NearestStep(h);
             if (next is DepositStep step && _chests.TryGetValue(step.ChestId, out Container chest) && chest != null)
             {
-                if (_walkTo != chest)
+                // A new chest, or back to delivering after doing something else: the walk starts afresh (its stuck timer too).
+                bool resumed = Time.time - _lastTick > 2f;
+                _lastTick = Time.time;
+                if (_walkTo != chest || resumed)
                 {
                     _walkTo = chest;
                     _walk.Reset();

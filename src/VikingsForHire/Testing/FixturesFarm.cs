@@ -116,6 +116,17 @@ namespace VikingsForHire.Testing
             _fieldW = w;
             _fieldH = h;
             _cropsPlaced = 0;
+            // A clean field: crops left by an earlier test (planted by a Farmer, so not fixture-tagged) go first.
+            var oldPlants = new List<Plant>();
+            var oldPicks = new List<Pickable>();
+            FarmScan.Nearby(_fieldCenter, Mathf.Max(w, h) + 4f, oldPlants, oldPicks);
+            foreach (Component c in oldPlants.Cast<Component>().Concat(oldPicks.Where(p => CropCatalog.ByGrown(Utils.GetPrefabName(p.gameObject)) is Crop cr && !cr.Info.Regrowing)))
+                if (c != null && c.GetComponent<ZNetView>() is ZNetView v && v.IsValid())
+                {
+                    if (!v.IsOwner())
+                        v.ClaimOwnership();
+                    ZNetScene.instance.Destroy(c.gameObject);
+                }
             // Paint it cultivated the way the cultivator does, one terrain patch at a time.
             var settings = new TerrainOp.Settings
             {
