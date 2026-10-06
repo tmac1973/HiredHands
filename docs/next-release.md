@@ -8,7 +8,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
-| (this commit) | Steward chore "Board food" (level 1, toggle in Shift+E, server `StewardBoard`): below `StewardBoardRefillDays` (3) days of upkeep it stocks its own board from the chests up to `StewardBoardFillDays` (7), cheapest food first, only food the board accepts (honours `AllowRawFood`), never the last of a food | the game simulating the Steward |
+| 613aeea | Steward chore "Board food" (level 1, toggle in Shift+E, server `StewardBoard`): below `StewardBoardRefillDays` (3) days of upkeep it stocks its own board from the chests up to `StewardBoardFillDays` (7), cheapest food first, only food the board accepts (honours `AllowRawFood`), never the last of a food | the game simulating the Steward |
 
 ### To test (batch)
 - [ ] Macros (single player): `vfh_test_chain board_food`.
