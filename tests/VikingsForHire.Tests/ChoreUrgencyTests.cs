@@ -15,6 +15,16 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void Board()
+        {
+            Assert.Equal(0f, ChoreUrgency.Board(36, 3, 3));
+            Assert.Equal(0f, ChoreUrgency.Board(0, 0, 3)); // no upkeep to pay
+            Assert.InRange(ChoreUrgency.Board(36, 2, 3), 0.63f, 0.64f);
+            Assert.InRange(ChoreUrgency.Board(36, 0, 3), 0.89f, 0.91f);
+            Assert.True(ChoreUrgency.Board(36, 2, 3) > ChoreUrgency.Tidy());
+        }
+
+        [Fact]
         public void Producers()
         {
             Assert.Equal(0f, ChoreUrgency.Producer(1, 4));

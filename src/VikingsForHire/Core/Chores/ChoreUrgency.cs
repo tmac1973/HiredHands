@@ -46,6 +46,17 @@ namespace VikingsForHire.Core.Chores
         /// <summary>Tidying up: below every other chore's lowest urgency (0.3), so anything else comes first.</summary>
         public static float Tidy() => 0.15f;
 
+        /// <summary>
+        /// The board's food: nothing at or above the refill mark (or with no upkeep to pay), then rising as the days run out,
+        /// from 0.5 just under the mark to 0.9 with none left (above smelting when it's nearly empty).
+        /// </summary>
+        public static float Board(int dailyPoints, int daysLeft, int refillDays)
+        {
+            if (dailyPoints <= 0 || refillDays <= 0 || daysLeft >= refillDays)
+                return 0f;
+            return 0.5f + 0.4f * (1f - System.Math.Max(0, daysLeft) / (float)refillDays);
+        }
+
         /// <summary>A damaged piece: nothing at or above the line, 0.3 + 0.6 × damage below it.</summary>
         public static float Repair(float health, float below)
         {

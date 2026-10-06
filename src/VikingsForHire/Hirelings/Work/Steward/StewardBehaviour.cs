@@ -43,6 +43,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             _chores.Add(new RepairsChore());
             _chores.Add(new FermentersChore());
             _chores.Add(new ShieldsChore());
+            _chores.Add(new BoardChore());
             _chores.Add(new TidyChore());
         }
 
@@ -206,6 +207,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 ChoreKind.Fermenters => VfhConfig.StewardFermenters,
                 ChoreKind.Shields => VfhConfig.StewardShields,
                 ChoreKind.Tidy => VfhConfig.StewardTidy,
+                ChoreKind.Board => VfhConfig.StewardBoard,
                 _ => VfhConfig.StewardRepairs,
             };
             return setting.Value;

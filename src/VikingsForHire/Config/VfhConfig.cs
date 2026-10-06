@@ -59,6 +59,9 @@ namespace VikingsForHire.Config
         public static ConfigEntry<bool> StewardFermenters = null!;
         public static ConfigEntry<bool> StewardShields = null!;
         public static ConfigEntry<bool> StewardTidy = null!;
+        public static ConfigEntry<bool> StewardBoard = null!;
+        public static ConfigEntry<int> StewardBoardRefillDays = null!;
+        public static ConfigEntry<int> StewardBoardFillDays = null!;
         public static ConfigEntry<float> StewardTidyMinSeconds = null!;
         public static ConfigEntry<float> TreeFallCorridorHalfWidth = null!;
         public static ConfigEntry<bool> MinerProtectsTerrain = null!;
@@ -160,6 +163,9 @@ namespace VikingsForHire.Config
             StewardFermenters = Synced(st, "StewardFermenters", true, "Stewards may load empty fermenters with mead bases from chests and tap them when ready.");
             StewardShields = Synced(st, "StewardShields", true, "Stewards may keep shield generators fed with their fuel (bones) from chests.");
             StewardTidy = Synced(st, "StewardTidy", true, "Stewards may pick up items lying on the ground in their work radius and put them in chests that already hold them (only when there's nothing else to do).");
+            StewardBoard = Synced(st, "StewardBoard", true, "Stewards may stock their own board with food from the chests (cheapest first, never the last of a food in a chest).");
+            StewardBoardRefillDays = Synced(st, "StewardBoardRefillDays", 3, "Stock the board when its food lasts fewer than this many days of upkeep.");
+            StewardBoardFillDays = Synced(st, "StewardBoardFillDays", 7, "Stock it up to this many days of upkeep (as far as the board's slots and the chests allow).");
             StewardTidyMinSeconds = Synced(st, "StewardTidyMinSeconds", 60f, "Leave items alone until they've been on the ground this long, so a Steward doesn't grab what a player just dropped.");
             StewardFireRefillFraction = Synced(st, "StewardFireRefillFraction", 0.5f, "Refuel a fire when its fuel is below this fraction of full; it's filled up to full.");
             StewardRepairBelow = Synced(st, "StewardRepairBelow", 0.95f, "Repair pieces below this fraction of full health.");

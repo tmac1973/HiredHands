@@ -62,7 +62,7 @@ A Steward works inside its board's radius from the chests there, taking on more 
 
 | Level | Chores it gains |
 |---|---|
-| 1 | **Fires and lights** (fires, torches, braziers, hot tubs: fuelled when below half), **beehives** (emptied at half full), **tidying up** |
+| 1 | **Fires and lights** (fires, torches, braziers, hot tubs: fuelled when below half), **beehives** (emptied at half full), **tidying up**, **board food** (stocks its board from the chests) |
 | 2 | **Smelters and charcoal kilns** (loaded and fuelled, bars collected), **tamed animals** (fed when hungry) |
 | 3 | **Repairs** of damaged building pieces |
 | 4 | **Fermenters** (loaded with a mead base, tapped when ready) |
@@ -76,10 +76,11 @@ A Steward works inside its board's radius from the chests there, taking on more 
 - **Repairs** follow your rules: a crafting station for the piece in range, ward access, and free as for you. They wait until no enemy has been within 30 m of the Steward or the piece for 20 s. Wood out in the rain without a roof wears down to half health and no further, so the Steward leaves such pieces alone until something takes them below half. It repairs from where a player could (5 m, in sight), and skips a piece it can't get to for 30 minutes ("Repairs: can't get to …").
 - **Tamed animals** get one item they eat, dropped in front of them (AzuAutoStore leaves it alone).
 - **Fermenters** need cover as for you (a roof and mostly walled in); the Steward says when one doesn't have enough instead of loading it.
+- **Board food:** when its board has less than 3 days of upkeep left in food, it brings food from the chests up to 7 days (`StewardBoardRefillDays`, `StewardBoardFillDays`), cheapest food first so your best food stays put, and only food the board accepts (raw food only with `AllowRawFood`).
 - **Tidying up** puts items that have lain on the ground for a minute away in chests that already hold them. It's the last thing it does.
 - **Shift+E** on a Steward lists every chore with its state (on, off, locked until level N, handled by another mod) and switches each one on or off for that Steward. Its hover and the Roster tab say what it's doing ("Fuelling Hearth") or what's missing ("Smelter: no Coal in any chest").
 - **Other mods:** with **PetPantry** (animals eat from chests) the Steward leaves animals alone, and with **Torches Eternal** (fires never burn out) it leaves fires alone.
-- **Server settings** (*10 - Steward*): each chore can be turned off for everyone (`StewardFires`, `StewardBeehives`, `StewardStations`, `StewardMills`, `StewardSap`, `StewardAnimals`, `StewardRepairs`, `StewardFermenters`, `StewardShields`, `StewardTidy`), plus `StewardFireRefillFraction` (0.5), `StewardRepairBelow` (0.95), `StewardRepairQuietSeconds` (20) and `StewardTidyMinSeconds` (60). The levels are `choreLevels` in the data file.
+- **Server settings** (*10 - Steward*): each chore can be turned off for everyone (`StewardFires`, `StewardBeehives`, `StewardStations`, `StewardMills`, `StewardSap`, `StewardAnimals`, `StewardRepairs`, `StewardFermenters`, `StewardShields`, `StewardTidy`, `StewardBoard`), plus `StewardFireRefillFraction` (0.5), `StewardRepairBelow` (0.95), `StewardRepairQuietSeconds` (20) and `StewardTidyMinSeconds` (60). The levels are `choreLevels` in the data file.
 
 **Workers only work while their area is loaded**, i.e. while a player is nearby, as with everything else in Valheim.
 
