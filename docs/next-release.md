@@ -8,7 +8,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
-| (this commit) | Field looting has its own radius, `LootRadius` (Followers, 30 m), instead of the gatherers' `GatherNearbyRadius` (15 m): Brand picked up some loot and stopped with more lying further out | the owner's game |
+| 3e51435 | Field looting has its own radius, `LootRadius` (Followers, 30 m), instead of the gatherers' `GatherNearbyRadius` (15 m): Brand picked up some loot and stopped with more lying further out | the owner's game |
 
 ### To test (batch)
 - [ ] Live server: park a Steward in Gather Here after a fight: it collects loot up to 30 m from its spot.
