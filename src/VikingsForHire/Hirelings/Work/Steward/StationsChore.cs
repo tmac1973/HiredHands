@@ -99,7 +99,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             }
             // With AzuAutoStore, Azu picks up what stations drop, but a station that holds its output inside (spinning
             // wheel, eitr refinery) still needs emptying; then Azu takes it from there.
-            if ((AzuAutoStoreCompat.IsLoaded || ctx.FreeSlots > 0) && stations.FirstOrDefault(s => OutputWaiting(s, AzuAutoStoreCompat.IsLoaded)) is Smelter full)
+            if ((AzuAutoStoreCompat.IsLoaded || ctx.FreeSlots > 0) && stations.FirstOrDefault(s => OutputWaiting(s, AzuAutoStoreCompat.IsLoaded) && !OutputsFull(s, ctx)) is Smelter full)
                 jobs.Add(Job(full, ChoreUrgency.Station(1f, 1f, true, threshold), VariantCollect, ctx, "$vfh_status_collecting"));
 
             if (jobs.Count == 0 && paused != null)
@@ -115,6 +115,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
             }
             return jobs;
         }
+
+        // PauseWhenStorageFull: nowhere to put anything it makes, so what it holds stays in it.
+        private static bool OutputsFull(Smelter s, StewardContext ctx) =>
+            StationSurvey.Outputs(s).All(o => StorageRoom.NoRoom(ctx.AllChests, o));
 
         private static string ProductOf(Smelter s, string input) =>
             s.m_conversion.FirstOrDefault(c => c.m_from != null && c.m_from.gameObject.name == input && c.m_to != null)?.m_to.gameObject.name ?? "";

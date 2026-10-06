@@ -53,6 +53,13 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         private static string[] Meads(Fermenter f) => f.m_conversion.Where(c => c.m_to != null).Select(c => c.m_to.gameObject.name).ToArray();
 
+        // The mead brewing in it (from the base it was loaded with).
+        private static string? MeadOf(Fermenter f)
+        {
+            int content = f.GetContent(); // the base's prefab name hash
+            return content == 0 ? null : f.GetItemConversion(content)?.m_to?.gameObject.name;
+        }
+
         private static int Have(StewardContext ctx, string prefab) => ctx.Available(prefab) + (ctx.Carried.TryGetValue(prefab, out int c) ? c : 0);
 
         public IEnumerable<ChoreJob> Candidates(StewardContext ctx)
@@ -75,6 +82,12 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 if (empty && !Bases(f).Any(b => Have(ctx, b) > 0))
                 {
                     Missing ??= ActivityText.Make("$vfh_need_base", f.m_name);
+                    continue;
+                }
+                // PauseWhenStorageFull: a ready mead keeps inside the fermenter until its chests have room.
+                if (ready && MeadOf(f) is string mead0 && StorageRoom.NoRoom(ctx.AllChests, mead0))
+                {
+                    Missing ??= ActivityText.Make("$vfh_paused_full", f.m_name, StewardSteps.SharedName(mead0));
                     continue;
                 }
                 float u = ChoreUrgency.Fermenter(ready, empty);
