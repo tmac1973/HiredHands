@@ -22,6 +22,12 @@ Run before every release. **Modes:** `SP` = single-player from `vikingsforhire-d
 - **Server-side config:** `.../Valheim dedicated server/BepInEx/config/Spronglehump.HiredHands.cfg`
   and `Spronglehump.HiredHands.yml`.
 
+- **Quick runs (launch options):** in Gale, the dev profile's settings → custom launch arguments (switch them on):
+  `-console -vfh-world testboy -vfh-test loot,board_food`. The game skips the menus and starts that world in single
+  player (`-vfh-character <name>` picks a character; default the last one played), and 10 s after you spawn runs
+  `vfh_test_chain` with those macros. Leave `-vfh-test` out to just land in the world. Only the first visit to the main
+  menu autostarts. Log lines: `autostart.world`, `autostart.tests`, `autostart.failed`.
+
 ## Logs (attach to every bug report)
 
 | Mode | Files |
