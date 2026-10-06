@@ -314,3 +314,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-05 | 3155baa | VFH-CHORE-6 | SP | Fail | Sap emptied but kept: sap is also eitr refinery fuel, so it counted as supply; trips now deliver what they collected |
 | 2026-10-05 | 60671cf | VFH-CHORE-6 | SP | Pass | Full sap collector emptied, 30 sap in the sap chest |
 | 2026-10-05 | 60671cf | VFH-CHORE-10 | SP | Fail (test) | Tapped and meads stored; not reloaded: cover 0.53 (needs 0.7) with walls on three sides; walls now stacked up to the roof |
+| 2026-10-05 | f54b72d | VFH-CHORE-10 | SP | Pass | Ready fermenter tapped, meads stored, then loaded with a mead base from a chest (walls stacked to the roof on three sides) |
