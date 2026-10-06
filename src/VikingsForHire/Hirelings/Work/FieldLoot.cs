@@ -36,7 +36,7 @@ namespace VikingsForHire.Hirelings.Work
             if (Time.time < _scanAt)
                 return false;
             _scanAt = Time.time + ScanSeconds;
-            _drop = Nearest(ai, area.Center, area.Radius);
+            _drop = Nearest(ai, area.Center, Config.VfhConfig.LootRadius.Value);
             _started = Time.time;
             return _drop != null;
         }

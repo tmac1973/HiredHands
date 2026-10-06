@@ -77,6 +77,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> PortalFollowRadius = null!;
         public static ConfigEntry<bool> AllowNonTeleportableThroughPortals = null!;
         public static ConfigEntry<float> GatherNearbyRadius = null!;
+        public static ConfigEntry<float> LootRadius = null!;
         public static ConfigEntry<float> ShipStowRadius = null!;
         public static ConfigEntry<float> OrphanDistance = null!;
         public static ConfigEntry<float> OrphanDistanceSeconds = null!;
@@ -186,6 +187,7 @@ namespace VikingsForHire.Config
             PortalFollowRadius = Synced(f, "PortalFollowRadius", 20f, "Followers within this distance (m) go through a portal with you.");
             AllowNonTeleportableThroughPortals = Synced(f, "AllowNonTeleportableThroughPortals", false, "Followers may carry ore and metals through portals.");
             GatherNearbyRadius = Synced(f, "GatherNearbyRadius", 15f, "Radius (m) around you that Gather Nearby followers work in.");
+            LootRadius = Synced(f, "LootRadius", 30f, "Radius (m) around its spot that a Steward parked in Gather Here picks up loot in.");
             FollowerCatchUpSpeedBonus = Synced(f, "FollowerCatchUpSpeedBonus", 0.25f, "Extra sprint speed (0.25 = +25%) for a follower more than 15 m behind you (twice this beyond 25 m), so it closes the gap even when you sprint with run skill and gear.");
             FollowerCatchUpTeleportDistance = Synced(f, "FollowerCatchUpTeleportDistance", 40f, "A following follower this far behind you (m), or stuck, appears on the ground just behind you, but only while you can't see it (off screen or out of sight). 0 turns catch-up teleports off.");
             FollowerStuckTeleportSeconds = Synced(f, "FollowerStuckTeleportSeconds", 5f, "Seconds a following follower can be stuck (not getting anywhere while it should be moving) before it's allowed to catch up by teleport.");
