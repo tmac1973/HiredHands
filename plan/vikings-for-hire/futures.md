@@ -156,3 +156,29 @@ Tim's idea (2026-10-05): a small in-game panel so testing doesn't mean pasting i
 - **Player toggles:** god mode, ghost mode, fly, kill nearby enemies, time of day, `vfh_debug` categories.
 - **Overlays:** `vfh_navlinks show/hide`.
 - It reuses Hired Hands' existing commands and fixtures, so the panel is only buttons; no test logic is duplicated.
+
+## Combat AI: blocking, dodging and tactics
+Tim's idea (2026-10-06). Today hirelings fight like monsters: walk up, swing (or shoot), and soak the hits; guards' stances only decide *whether* to fight.
+- **Block and dodge for everyone who fights:**
+  - **Block:** a melee hireling with a shield (or a weapon that can block) raises it when an enemy's attack is coming (the enemy's attack animation has started and it's in range and facing us), like a player holding block. A well-timed block parries (vanilla's parry window on `Humanoid.BlockAttack` uses the block timer), so higher levels could get the timing right more often.
+  - **Dodge:** roll out of the way of a big telegraphed attack (a troll's slam, an abomination's sweep, an AoE). Vanilla's dodge roll is player-only, so it's our own: the roll animation, a quick sidestep away from the attack's direction and a short window where hits miss (as the player's dodge i-frames). Stamina could be a cost, as for players.
+  - Both scale with level (reaction time, chance to read the attack) and should be cheap: only checked against enemies already targeting this hireling.
+- **Tactics, chosen per hireling** (Shift+E, beside the stance), so players can tune how each one fights:
+  - **Melee:**
+    - **Tank:** stays in front, blocks most attacks, swings when the enemy is open; draws aggro (enemies prefer it) so it protects the others and the player.
+    - **DPS:** as much damage as possible: power attacks when it can, keeps swinging, blocks only big hits, dodges the deadly ones.
+    - **Hit and run:** gets a couple of hits in, then backs off out of reach while the enemy recovers, and comes back in; good against slow, hard-hitting enemies (trolls).
+  - **Ranged:**
+    - **Stand and shoot:** today's behaviour.
+    - **Kite:** keeps a set distance, stepping back when an enemy closes in, then shooting again.
+    - **Shoot from cover:** finds cover near the fight (a rock, tree, wall or building corner that blocks the line from the enemy), hides behind it, steps out to a spot with a clear shot, shoots, and ducks back. The hard part, but the coolest:
+      - Cover search: sample points around the hireling, keep those where a raycast from the enemy's eye to the hireling's chest is blocked and that the pathfinder can reach; the peek spot is a step or two to the side with a clear line.
+      - Re-evaluate when the enemy moves (cover is relative to the enemy), and give up on cover against several enemies from different sides or flyers (fall back to kiting).
+      - Base fights could use the nav links layer's knowledge of walls and doorways.
+- **Order of work, if we do it:** blocking first (biggest effect on survival, simplest), then tactics for melee (Tank/DPS/Hit and run are mostly timing and distance rules), then Kite, then Shoot from cover as its own phase.
+- **Balance:** watch the balance log (fight length, damage taken per job and level) before and after; blocking alone could make low-level guards far tougher.
+
+## Hirelings passing each other
+Seen on the live server (2026-10-05): two hirelings walking towards each other along a fence line push against each other until one slips past (they're solid to each other, and the game's walking AI doesn't steer round other creatures). It sorts itself out, so it's not urgent.
+- **Keep right:** a hireling that sees another close ahead coming the other way steps half a metre to its right for a moment; both do, so they slide past like people in a corridor.
+- **Pass through as a last resort:** two still pressed together after ~2 s (a gap too narrow to step aside) stop colliding with each other for a second.
