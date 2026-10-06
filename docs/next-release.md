@@ -9,12 +9,12 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | Commit | What | Where it runs |
 |---|---|---|
 | 613aeea | Steward chore "Board food" (level 1, toggle in Shift+E, server `StewardBoard`): below `StewardBoardRefillDays` (3) days of upkeep it stocks its own board from the chests up to `StewardBoardFillDays` (7), cheapest food first, only food the board accepts (honours `AllowRawFood`), never the last of a food | the game simulating the Steward |
-
 | 5b5dedb | A Steward follower in Gather Here picks up loose loot within the gather radius of its spot (nearest first, until cargo is full; not a player's fresh drops, the board's pile or warded items); status "Picking up loot" | the owner's game |
-
+| 80bf330 | Field looting reaches like a player (2.5 m), gives up on an item after 12 s and logs it (`loot.unreachable`) | the owner's game |
 | fde0b02 | `storage.full` log (once per 5 min per item): when work pauses for a full item, which chests holding it were counted and the room in each (Brand paused the kiln with a coal chest showing 10 free slots) | the game simulating the hireling |
 | e76a316 | The pause counts room in every chest in the area, including chests skipped for a minute after a failed fetch (a skip only stops taking from them); `steward.tidy_left` names the items left because their chests are full | the game simulating the Steward |
 | fc4ddcb | The pause also covers fermenters (a ready mead stays in until its chests have room) and emptying stations that hold their output (spinning wheel, eitr refinery) | the game simulating the Steward |
+
 ### To test (batch)
 - [x] Macros (single player): `vfh_test_chain board_food loot` (both passed 2026-10-06).
 - [ ] By hand: take a Steward out, fight a few Greylings, park it in Gather Here: it picks up the drops; bring it home, the loot ends up in chests (or the pile) a few minutes later.
