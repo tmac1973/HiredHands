@@ -327,3 +327,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-06 | 272ebfa | VFH-CHORE-13 | SP | Pass | Rain-worn wall at 70% left alone, repaired at 40%; wall 5 m up repaired from the ground; wall 10 m up never attempted |
 | 2026-10-06 | c79e95e | VFH-CHORE-14 | SP | Pass | Board with a day of food stocked with 5 cooked meat; raw meat left in the chest |
 | 2026-10-06 | c79e95e | VFH-LOOT-1 | SP | Fail | 10 of 12 Wood picked up; 2 left (1.6 m reach, 8 s give-up); reach now 2.5 m, 12 s, give-ups logged (`loot.unreachable`) |
+| 2026-10-06 | 5492ffb | VFH-LOOT-1 | SP | Pass | All 12 Wood picked up within 6 s of parking (2.5 m reach) |
