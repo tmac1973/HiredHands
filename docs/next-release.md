@@ -9,9 +9,11 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | Commit | What | Where it runs |
 |---|---|---|
 | e64878e | `PauseWhenStorageFull` (Work, on): at home, woodcutters and miners leave trees/rocks (and pickups) whose item's chests are full, Stewards stop loading a station whose product has no room, and skip beehives, sap and tidying for full items; status "Paused: no room left for Wood" / "Charcoal kiln: paused, no room left for Coal" | the game simulating the hireling |
+| (this commit) | Command Stone key hints: with the stone in hand the bottom-right hints read Recruit / order (left click), Recall / back to work (right click), Retreat (middle click), Hireling panel (Shift+E) instead of attack/block | your game |
 
 ### To test (batch)
 - [ ] Macros (single player): `vfh_test_chain pause1 pause2` (and still to run: `repairs repairs2`).
+- [ ] By hand: take out the Command Stone: the four hints show (and go back to the normal ones with another weapon).
 - [ ] Live server: fill the coal chests: Brand stops loading the kiln and says why; fill the wood chests: the woodcutter pauses with "Paused: no room left for Wood".
 
 ## 0.4.1 (released 2026-10-05)

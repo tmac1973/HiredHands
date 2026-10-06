@@ -67,10 +67,28 @@ namespace VikingsForHire.Followers
             shared.m_value = 0;
             Borrow(prefab, shared);
             ItemManager.Instance.AddItem(_item);
+            AddKeyHints();
             OurRequirements.Clear();
             foreach (Piece.Requirement r in _item.Recipe!.Recipe.m_resources)
                 OurRequirements.Add(r);
             VfhLog.I(LogCat.Follow, "stone.registered", ("materials", string.Join(",", Materials())));
+        }
+
+        // The hints at the bottom right while the stone is in hand, instead of the club's attack and block. A row's key
+        // shows the button's binding; middle click and Shift+E aren't game buttons, so their key text is a token.
+        private static void AddKeyHints()
+        {
+            KeyHintManager.Instance.AddKeyHint(new KeyHintConfig
+            {
+                Item = PrefabName,
+                ButtonConfigs = new[]
+                {
+                    new ButtonConfig { Name = "Attack", HintToken = "$vfh_hint_order" },
+                    new ButtonConfig { Name = "Block", HintToken = "$vfh_hint_recall" },
+                    new ButtonConfig { Name = "$vfh_key_middle", HintToken = "$vfh_hint_retreat" },
+                    new ButtonConfig { Name = "$vfh_key_shift_e", HintToken = "$vfh_hint_panel" },
+                },
+            });
         }
 
         // Crystal's mesh and icon on the club's hand attachment and dropped model.
