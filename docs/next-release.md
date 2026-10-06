@@ -13,7 +13,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 
 ### To test (batch)
 - [x] Macros (single player): `vfh_test_chain pause1 pause2 repairs repairs2` (all passed 2026-10-06).
-- [ ] By hand: take out the Command Stone: the four hints show (and go back to the normal ones with another weapon).
+- [x] By hand: take out the Command Stone: the four hints show (and go back to the normal ones with another weapon). (Tim, local game, 2026-10-06)
 - [ ] Live server: fill the coal chests: Brand stops loading the kiln and says why; fill the wood chests: the woodcutter pauses with "Paused: no room left for Wood".
 
 ## 0.4.1 (released 2026-10-05)
