@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1
+
+- **Repairs leave rain wear alone.** Rain wears wood without a roof down to half health and no further, so a Steward no longer runs round topping up weathered walls: on such pieces it only repairs damage that takes them below half. Roofed pieces, pieces under a shield and pieces rain doesn't wear are repaired from 95% as before.
+- **Repairs within reach.** A Steward repairs from where a player could (5 m from its eye, nothing in the way), checks it can get there before starting, and skips a piece it can't reach for 30 minutes instead of walking at it again and again. Its status says so ("Repairs: can't get to Wood beam").
+- **Tidying explained in the log:** `steward.tidy_left` (once a minute) lists items lying in a Steward's radius that it leaves and why (no chest holds that item, too new, next to a player, warded, cargo full).
+
 ## 0.4.0
 
 - **The Steward looks after the whole base.** On top of smelting stations it now keeps fires, torches, braziers and hot tubs fuelled, empties beehives and sap collectors, loads windmills and spinning wheels, feeds hungry tamed animals, repairs damaged building pieces, loads and taps fermenters, feeds shield generators, and puts items lying about away in chests that already hold them. Each chore unlocks at a Steward level matching its biome (fires, beehives and tidying at 1; smelters, kilns and animals at 2; repairs at 3; fermenters at 4; blast furnaces, windmills and spinning wheels at 5; eitr refineries and sap at 6; shield generators at 7). It always does the most urgent job first, and tidying last. See *The Steward* in the README.

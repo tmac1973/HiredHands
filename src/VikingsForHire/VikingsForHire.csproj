@@ -10,7 +10,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <OutputPath>bin/$(Configuration)/</OutputPath>
     <!-- Keep in sync with package/manifest.json and Plugin.Version; the Package target checks all three. -->
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../'))</RepoRoot>
   </PropertyGroup>
 
