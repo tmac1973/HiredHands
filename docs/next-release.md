@@ -24,7 +24,7 @@ Plan: `plan/steward-chores/`.
 ### To test (batch)
 - [ ] By hand: the broom. With a fresh data file, or the Steward's `gear` set to `VFH_Broom`, a Steward holds a broom the right way up and swats a Greyling with it; `vfh_broom_info` says which model was used.
 - [x] Macros: `vfh_test_chain fires chore_urgency` (passed).
-- [ ] Macros: `vfh_test_chain beehive sap animals repairs fermenter shield tidy`.
+- [x] Macros: `vfh_test_chain beehive sap animals repairs fermenter shield tidy` (all passed, some across reruns).
 - [x] Macros (single player): `vfh_test_chain chore_gate chore_toggle mills azu3 keep1 keep2` (passed; work5 needs AzuAutoStore absent).
 - [x] By hand: a level 2 Steward's Shift+E panel lists the seven chores. Fires, beehives, stations and animals are on (fires and animals show "handled by TorchesEternal"/"PetPantry" with those mods installed). Mills, sap and repairs show "locked until level 5/6/3". Under Stations: "Blast furnace: locked until level 5, Eitr refinery: locked until level 6". Switching Stations off stops it loading the smelter.
 - [ ] By hand: the Roster tab and hover show what the Steward is doing ("Loading Smelter") or why it's idle ("Smelter: no Coal in any chest", "All done").
