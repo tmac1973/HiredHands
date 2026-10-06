@@ -33,7 +33,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         /// (a switch or a chest): the target itself is inside the object, where the pathfinder can't go. True when close
         /// enough to use it.
         /// </summary>
-        public bool Approach(HirelingAI ai, float dt, Component obj, Vector3 target)
+        public bool Approach(HirelingAI ai, float dt, Component obj, Vector3 target, float reach = PlayerReach)
         {
             float half = Footprint(obj);
             float dist = Utils.DistanceXZ(ai.transform.position, target);
@@ -44,7 +44,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             }
             // Height against the object's base, not the switch (a smelter's ore input is 2 m up): on its floor, not below.
             // Or, like a player's reach, within 3 m of its nearest surface (a wall's upper row, a sconce up high).
-            if ((dist <= half + Reach && Mathf.Abs(ai.transform.position.y - obj.transform.position.y) < 1.8f) || WithinReach(ai, obj))
+            if ((dist <= half + Reach && Mathf.Abs(ai.transform.position.y - obj.transform.position.y) < 1.8f) || WithinReach(ai, obj, reach))
             {
                 _progressAt = Time.time; // working at it counts as progress
                 return true;
@@ -86,21 +86,47 @@ namespace VikingsForHire.Hirelings.Work.Steward
             return ZoneSystem.instance.GetSolidHeight(p);
         }
 
-        private const float PlayerReach = 3f;
+        public const float PlayerReach = 3f;
 
-        private static bool WithinReach(HirelingAI ai, Component obj)
+        /// <summary>A player's hammer reach: 5 m from the eye to what it's aimed at.</summary>
+        public const float HammerReach = 5f;
+
+        private static readonly int SightMask = LayerMask.GetMask("Default", "static_solid", "Default_small", "piece", "terrain", "vehicle");
+
+        /// <summary>
+        /// Whether something is within <paramref name="reach"/> of the hireling's eye (its nearest surface). Beyond a
+        /// close 3 m the line from the eye to it must be clear too, as a player's aim would be.
+        /// </summary>
+        public static bool WithinReach(HirelingAI ai, Component obj, float reach = PlayerReach) => WithinReach(ai.transform.position, obj, reach);
+
+        public static bool WithinReach(Vector3 feet, Component obj, float reach)
         {
-            Vector3 eye = ai.transform.position + Vector3.up * 1.5f;
+            Vector3 eye = feet + Vector3.up * 1.5f;
             foreach (Collider c in obj.GetComponentsInChildren<Collider>())
             {
                 if (!c.enabled || c.isTrigger)
                     continue;
                 // ClosestPoint needs a convex collider; others fall back to their bounds.
                 Vector3 p = c is MeshCollider { convex: false } ? c.bounds.ClosestPoint(eye) : c.ClosestPoint(eye);
-                if (Vector3.Distance(eye, p) <= PlayerReach)
+                float d = Vector3.Distance(eye, p);
+                if (d <= PlayerReach)
+                    return true;
+                if (d <= reach && InSight(eye, p, obj))
                     return true;
             }
             return false;
+        }
+
+        // Nothing but the thing itself between the eye and a point on it.
+        private static bool InSight(Vector3 eye, Vector3 point, Component obj)
+        {
+            Vector3 to = point - eye;
+            float length = to.magnitude;
+            if (length < 0.05f)
+                return true;
+            if (!Physics.Raycast(eye, to / length, out RaycastHit hit, length - 0.05f, SightMask, QueryTriggerInteraction.Ignore))
+                return true;
+            return hit.collider.transform.IsChildOf(obj.transform);
         }
 
         // Half the widest horizontal extent of the object's solid colliders.

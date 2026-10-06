@@ -3,6 +3,17 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.4.1 (unreleased)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (this commit) | Repairs: unroofed pieces worn by rain (it stops at half health) are left alone above 50%; pieces repaired from a player's hammer reach (5 m, in sight); a route is checked before starting; a piece it can't get to is skipped for 30 min and named in the status ("Repairs: can't get to Wood beam") | the game simulating the Steward |
+
+### To test (batch)
+- [ ] Macros (single player): `vfh_test_chain repairs repairs2`.
+- [ ] Live server: switch Brand's Repairs back on: no endless walking at rain-worn walls or the beam by the stake wall; `steward.repair_stuck` lines at most once per piece per 30 min.
+
 ## 0.4.0 (released 2026-10-05): Steward chores
 
 Plan: `plan/steward-chores/`.

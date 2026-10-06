@@ -103,6 +103,7 @@
   "vfh_steward_shield": "Feeding $1",
   "vfh_steward_tidy": "Tidying up",
   "vfh_need_base": "$1: no mead base in any chest",
+  "vfh_repair_unreachable": "Repairs: can't get to $1",
   "vfh_need_cover": "$1: needs more walls and a roof round it to brew",
   "vfh_need_station": "$1: no $2 in range",
   "vfh_steward_wait_enemies": "Repairs: waiting until the enemies are gone",

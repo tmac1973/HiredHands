@@ -73,7 +73,7 @@ A Steward works inside its board's radius from the chests there, taking on more 
 
 - **Most urgent first.** Every few seconds it looks over everything it may do and takes the most urgent job (an empty fire before a half-full smelter, anything before tidying), nearer jobs first when it's close.
 - **From your chests only.** It never takes the last of an item from a chest, and leaves a reserve of chosen items in storage (`keepInStorage`, default 50 Wood). What it collects (bars, honey, sap, meads, flour, thread, tidied items) goes into chests that already hold that item.
-- **Repairs** follow your rules: a crafting station for the piece in range, ward access, and free as for you. They wait until no enemy has been within 30 m of the Steward or the piece for 20 s.
+- **Repairs** follow your rules: a crafting station for the piece in range, ward access, and free as for you. They wait until no enemy has been within 30 m of the Steward or the piece for 20 s. Wood out in the rain without a roof wears down to half health and no further, so the Steward leaves such pieces alone until something takes them below half. It repairs from where a player could (5 m, in sight), and skips a piece it can't get to for 30 minutes ("Repairs: can't get to …").
 - **Tamed animals** get one item they eat, dropped in front of them (AzuAutoStore leaves it alone).
 - **Fermenters** need cover as for you (a roof and mostly walled in); the Steward says when one doesn't have enough instead of loading it.
 - **Tidying up** puts items that have lain on the ground for a minute away in chests that already hold them. It's the last thing it does.

@@ -55,7 +55,7 @@ namespace VikingsForHire.Testing
                 Character c = go.GetComponent<Character>();
                 return (Hirelings.Work.Steward.AnimalsChore.Fed.TryGetValue(c.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
             });
-            Fixtures.Add("damaged", "<prefab> <health 0..1> [tag] [near|far] - a damaged piece 6 m from the board (near: within the base's workbench range) or 28 m out (far: beyond a workbench's 20 m range)", Damaged);
+            Fixtures.Add("damaged", "<prefab> <health 0..1> [tag] [near|far] [high:<m>] - a damaged piece 6 m from the board (near: within the base's workbench range) or 28 m out (far: beyond a workbench's 20 m range), optionally floating that high off the ground", Damaged);
             Fixtures.Add("set_health", "<tag> <health 0..1> - set a tagged piece's health", SetHealth);
             TestHarness.RegisterCheck("piece_health", "<tag> - a tagged piece's health (0..1)", args =>
                 (FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponent<WearNTear>() ?? throw new InvalidOperationException("no such tagged piece"))
@@ -353,15 +353,24 @@ namespace VikingsForHire.Testing
             float health = float.Parse(args.ElementAtOrDefault(1) ?? "0.3", CultureInfo.InvariantCulture);
             string tag = args.ElementAtOrDefault(2) ?? "";
             bool far = args.ElementAtOrDefault(3) == "far";
+            string? high = args.Skip(3).FirstOrDefault(a => a.StartsWith("high:"));
+            float up = high != null ? float.Parse(high.Substring(5), CultureInfo.InvariantCulture) : 0f;
             HiringBoard board = Board();
             Vector3 pos = board.transform.position + board.transform.forward * (far ? 28f : 6f) + board.transform.right * (_fires++ % 3 - 1) * 2.5f;
+            pos.y = ZoneSystem.instance.GetGroundHeight(pos) + up;
             GameObject go = Spawn(prefab, pos, tag);
+            if (up > 0f)
+            {
+                // Spawn puts it on the ground; lift it (and its saved position).
+                go.transform.position = pos;
+                go.GetComponent<ZNetView>().GetZDO().SetPosition(pos);
+            }
             OwnBuilt(go);
             if (go.GetComponent<WearNTear>() is WearNTear wnt)
                 wnt.m_noSupportWear = false;
             yield return null;
             SetHealthOf(go, health);
-            VfhLog.I(LogCat.Test, "fixture.damaged", ("prefab", prefab), ("health", health), ("tag", tag), ("far", far));
+            VfhLog.I(LogCat.Test, "fixture.damaged", ("prefab", prefab), ("health", health), ("tag", tag), ("far", far), ("up", up));
             yield return null;
         }
 
