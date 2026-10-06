@@ -111,6 +111,15 @@ namespace VikingsForHire.Core.Data
         [YamlMember(Description = "Steward only: lowest Steward level for each chore (fires, beehives, stations, mills, sap, animals, repairs) and each station prefab in stations (a station with no entry is level 1). Hireling level is capped by the board's, so these follow board upgrades.")]
         public Dictionary<string, int> ChoreLevels { get; set; } = new();
 
+        [YamlMember(Description = "Farmer only: item a crop yields -> lowest Farmer level that plants or picks it (by biome; an item not listed is level 1).")]
+        public Dictionary<string, int> CropLevels { get; set; } = new();
+
+        [YamlMember(Description = "Cook only: kitchen station prefab -> Cook level for that station's level-1 recipes (a cauldron recipe needing cauldron level N is this + N - 1, up to 8).")]
+        public Dictionary<string, int> StationLevels { get; set; } = new();
+
+        [YamlMember(Description = "Cook only: item -> Cook level, overriding the station rule for that item.")]
+        public Dictionary<string, int> RecipeLevels { get; set; } = new();
+
         [YamlMember(Description = "Smelter only: item prefab -> how many to always leave in storage, counted across all the chests in the work radius (e.g. Wood: 50 so the kiln never burns your last building wood).")]
         public Dictionary<string, int> KeepInStorage { get; set; } = new();
     }

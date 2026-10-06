@@ -110,6 +110,32 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void PreFarmFilesGainTheFarmerAndCook()
+        {
+            // A 0.4 file: no Farmer or Cook job.
+            VfhData old = DefaultData.Create();
+            old.Jobs.Remove(JobType.Farmer);
+            old.Jobs.Remove(JobType.Cook);
+            VfhData data = DataYaml.Deserialize(DataYaml.Serialize(old), out var filled);
+            Assert.True(data.Jobs.ContainsKey(JobType.Farmer));
+            Assert.True(data.Jobs.ContainsKey(JobType.Cook));
+            Assert.Equal(2, data.Jobs[JobType.Farmer].CropLevels["Carrot"]);
+            Assert.Equal(1, data.Jobs[JobType.Cook].StationLevels["piece_cookingstation"]);
+            Assert.Empty(DataValidator.Validate(data));
+        }
+
+        [Fact]
+        public void LevelTablesAreChecked()
+        {
+            VfhData data = DefaultData.Create();
+            data.Jobs[JobType.Farmer].CropLevels["Carrot"] = 9;
+            data.Jobs[JobType.Cook].RecipeLevels["Bread"] = 0;
+            var errors = DataValidator.Validate(data);
+            Assert.Contains(errors, e => e.Contains("cropLevels.Carrot"));
+            Assert.Contains(errors, e => e.Contains("recipeLevels.Bread"));
+        }
+
+        [Fact]
         public void WhatTheFileSaysIsKept()
         {
             string yaml = DataYaml.Serialize(DefaultData.Create()).Replace("    minBoardLevel: 2\n", "    minBoardLevel: 4\n");

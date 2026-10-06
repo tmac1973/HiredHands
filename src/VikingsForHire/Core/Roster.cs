@@ -20,6 +20,7 @@ namespace VikingsForHire.Core
         InsufficientFunds,
         BadLevel,
         BadValue,
+        JobTaken,
     }
 
     /// <summary>One contract on a board: a hireling that's coming, working or on its way out.</summary>
@@ -155,8 +156,14 @@ namespace VikingsForHire.Core
 
         public ContractEntry? ByContract(string id) => Entries.FirstOrDefault(e => e.ContractId == id);
 
+        /// <summary>A one-per-board job (Farmer, Cook) that already has a contract here that isn't on its way out.</summary>
+        public bool JobTaken(JobType job) =>
+            job.OnePerBoard() && Entries.Any(e => e.Job == job && e.State != ContractState.Leaving);
+
         public OpOutcome Post(ContractEntry entry, int cap)
         {
+            if (JobTaken(entry.Job))
+                return OpOutcome.JobTaken;
             if (!HasRoom(cap))
                 return OpOutcome.CapReached;
             entry.State = ContractState.Pending;

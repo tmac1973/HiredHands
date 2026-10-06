@@ -36,6 +36,21 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void OneFarmerAndOneCookPerBoard()
+        {
+            var r = new Roster();
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("f1", JobType.Farmer), 9));
+            Assert.Equal(OpOutcome.JobTaken, r.Post(Entry("f2", JobType.Farmer), 9)); // a pending one counts
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("c1", JobType.Cook), 9));
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("w1"), 9));
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("w2"), 9)); // other jobs aren't limited
+            r.Activate("f1", "hf1");
+            Assert.Equal(OpOutcome.JobTaken, r.Post(Entry("f3", JobType.Farmer), 9));
+            r.Dismiss("hf1");
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("f4", JobType.Farmer), 9)); // one on its way out doesn't
+        }
+
+        [Fact]
         public void ActivateMovesPendingToActive()
         {
             var r = new Roster();

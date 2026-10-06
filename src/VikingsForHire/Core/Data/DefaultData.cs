@@ -88,6 +88,37 @@ namespace VikingsForHire.Core.Data
                         ["shields"] = 7,
                     },
                 },
+                [JobType.Farmer] = new()
+                {
+                    CostMult = 0.9f,
+                    WorkerCombatFactor = 0.3f,
+                    MinBoardLevel = 2,
+                    Gear = Mains("Club", "Club", "Club", "Club", "Club", "Club", "Club", "Club"),
+                    // By biome: the boss that opens the biome where the seed (or the plant) is found.
+                    CropLevels = new Dictionary<string, int>
+                    {
+                        ["Raspberry"] = 1, ["Mushroom"] = 1, ["Dandelion"] = 1,
+                        ["Carrot"] = 2, ["CarrotSeeds"] = 2, ["Blueberries"] = 2, ["Thistle"] = 2, ["MushroomYellow"] = 2,
+                        ["Turnip"] = 3, ["TurnipSeeds"] = 3,
+                        ["Onion"] = 4, ["OnionSeeds"] = 4,
+                        ["Barley"] = 5, ["Flax"] = 5, ["Cloudberry"] = 5,
+                        ["MushroomJotunPuffs"] = 6, ["MushroomMagecap"] = 6,
+                        ["Vineberry"] = 7, ["VineberrySeeds"] = 7, ["Fiddleheadfern"] = 7, ["MushroomSmokePuff"] = 7,
+                        ["OatSeeds"] = 8, ["Kale"] = 8, ["KaleSeeds"] = 8, ["Poteitr"] = 8, ["PoteitrSeeds"] = 8,
+                    },
+                },
+                [JobType.Cook] = new()
+                {
+                    CostMult = 0.9f,
+                    WorkerCombatFactor = 0.3f,
+                    MinBoardLevel = 2,
+                    Gear = Mains("Club", "Club", "Club", "Club", "Club", "Club", "Club", "Club"),
+                    StationLevels = new Dictionary<string, int>
+                    {
+                        ["piece_cookingstation"] = 1, ["piece_cauldron"] = 2, ["piece_cookingstation_iron"] = 3,
+                        ["piece_oven"] = 5, ["piece_preptable"] = 6, ["piece_MeadCauldron"] = 7,
+                    },
+                },
                 [JobType.GuardMelee] = new()
                 {
                     CostMult = 1.3f,

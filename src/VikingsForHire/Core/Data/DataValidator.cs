@@ -64,6 +64,9 @@ namespace VikingsForHire.Core.Data
 
             foreach (KeyValuePair<JobType, JobData> job in data.Jobs)
             {
+                foreach (var table in new[] { ("cropLevels", job.Value.CropLevels), ("stationLevels", job.Value.StationLevels), ("recipeLevels", job.Value.RecipeLevels) })
+                    foreach (KeyValuePair<string, int> c in table.Item2)
+                        if (c.Value < 1 || c.Value > Levels) errors.Add($"jobs.{job.Key}.{table.Item1}.{c.Key} must be 1-{Levels}");
                 foreach (KeyValuePair<string, int> c in job.Value.ChoreLevels)
                 {
                     string p = $"jobs.{job.Key}.choreLevels.{c.Key}";

@@ -54,6 +54,8 @@ namespace VikingsForHire.Board
                         return Done(zdo, null, boardId, op, new OpResult(OpOutcome.BadLevel, "$vfh_op_badlevel"));
                     if (!rules.JobUnlocked(boardLevel, op.Job))
                         return Done(zdo, null, boardId, op, new OpResult(OpOutcome.BadLevel, "$vfh_op_job_locked"));
+                    if (roster.JobTaken(op.Job))
+                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.JobTaken, "$vfh_op_job_taken"));
                     if (!roster.HasRoom(rules.HirelingCap(boardLevel)))
                         return Done(zdo, null, boardId, op, new OpResult(OpOutcome.CapReached, "$vfh_op_cap"));
                     var wallet = new BoardLedger.Wallet(zdo);
