@@ -149,6 +149,9 @@ namespace VikingsForHire.Hirelings
                     Add(new Work.DeliverBehaviour(new Work.GathererDeliveryPolicy()));
                     break;
                 case JobType.Farmer:
+                    Add(Chores = new Work.Chores.ChoreLoop(JobType.Farmer, new Work.Chores.IChore[] { new Work.Farm.HarvestChore() }));
+                    Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));
+                    break;
                 case JobType.Cook:
                     Add(Chores = new Work.Chores.ChoreLoop(hireling.Job, System.Array.Empty<Work.Chores.IChore>()));
                     Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));

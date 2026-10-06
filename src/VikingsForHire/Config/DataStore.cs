@@ -185,6 +185,7 @@ namespace VikingsForHire.Config
         public static bool ItemExists(string prefab) =>
             PrefabManager.Cache.GetPrefab<ItemDrop>(prefab) != null
             || prefab == Hirelings.BroomItem.PrefabName
+            || prefab == Hirelings.Gear.CultivatorItem.PrefabName
             || prefab == Followers.CommandStoneItem.PrefabName
             || prefab == Board.HiringCharter.PrefabName
             || ItemManager.Instance.GetItem(prefab) != null;

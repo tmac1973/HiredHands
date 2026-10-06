@@ -49,6 +49,7 @@ namespace VikingsForHire
             Followers.CommandStoneItem.Register();
             Board.HiringCharter.Register();
             Hirelings.BroomItem.Register();
+            Hirelings.Gear.CultivatorItem.Register();
             Hirelings.Work.Farm.CropCatalog.Register();
             Hirelings.Work.Kitchen.KitchenCatalog.Register();
             Net.FollowerServer.Register();
@@ -77,6 +78,7 @@ namespace VikingsForHire
             FixturesFollow.Register();
             FixturesTravel.Register();
             FixturesNav.Register();
+            FixturesFarm.Register();
 
             SessionInfo.LogHeader("plugin load");
             Log.LogInfo($"{Name} {Version} loaded");

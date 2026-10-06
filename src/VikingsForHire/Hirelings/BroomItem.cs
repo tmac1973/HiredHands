@@ -55,7 +55,7 @@ namespace VikingsForHire.Hirelings
 
         private static void Dress(GameObject prefab)
         {
-            MeshFilter? visual = Visual(prefab);
+            MeshFilter? visual = Gear.HeldModel.Visual(prefab);
             MeshRenderer? renderer = visual != null ? visual.GetComponent<MeshRenderer>() : null;
             if (visual == null || renderer == null)
             {
@@ -64,30 +64,11 @@ namespace VikingsForHire.Hirelings
                 return;
             }
             // Building pieces' textures repeat, so they wrap a made-up shape cleanly; the club's own is laid out for the club.
-            Material wood = PieceMaterial(WoodPrefab, "wood") ?? renderer.sharedMaterial;
-            Material straw = PieceMaterial(StrawPrefab, "straw", "thatch") ?? wood;
-
-            // Point the broom the way the club points from the hand (its head is the far end), at its real size.
-            Mesh club = visual.sharedMesh;
-            int axis = LongestAxis(club.bounds.size);
-            Vector3 along = Axis(axis) * (club.bounds.center[axis] < 0f ? -1f : 1f);
-            Transform t = visual.transform;
-            visual.sharedMesh = Build();
-            renderer.sharedMaterials = new[] { wood, straw };
-            t.localRotation *= Quaternion.FromToRotation(Vector3.up, along);
-            t.localScale = t.localScale / Mathf.Max(0.0001f, MaxScale(t));
+            Material wood = Gear.HeldModel.PieceMaterial(WoodPrefab, "wood") ?? renderer.sharedMaterial;
+            Material straw = Gear.HeldModel.PieceMaterial(StrawPrefab, "straw", "thatch") ?? wood;
+            Vector3 along = Gear.HeldModel.Point(visual, Build(), new[] { wood, straw });
             Source = $"built (wood {wood.name}, bristles {straw.name})";
             VfhLog.I(LogCat.Hireling, "broom.model", ("source", Source), ("clubAxis", along));
-        }
-
-        // A building piece's material, preferring one named like a hint.
-        private static Material? PieceMaterial(string piece, params string[] hints)
-        {
-            GameObject? go = PrefabManager.Cache.GetPrefab<GameObject>(piece);
-            if (go == null)
-                return null;
-            Material[] all = go.GetComponentsInChildren<MeshRenderer>(true).SelectMany(r => r.sharedMaterials).Where(m => m != null).ToArray();
-            return all.FirstOrDefault(m => hints.Any(h => m.name.IndexOf(h, StringComparison.OrdinalIgnoreCase) >= 0)) ?? all.FirstOrDefault();
         }
 
         // Submesh 0 (wood): the handle and the binding. Submesh 1 (straw): the bristles, flat and flaring, ragged at the end.
@@ -151,19 +132,5 @@ namespace VikingsForHire.Hirelings
             }
         }
 
-        // The club's in-hand visual: the biggest mesh under its "attach" transform (or anywhere in it).
-        private static MeshFilter? Visual(GameObject prefab)
-        {
-            Transform? attach = prefab.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == "attach");
-            IEnumerable<MeshFilter> filters = (attach != null ? attach.GetComponentsInChildren<MeshFilter>(true) : prefab.GetComponentsInChildren<MeshFilter>(true))
-                .Where(f => f.sharedMesh != null && f.GetComponent<MeshRenderer>() != null);
-            return filters.OrderByDescending(f => f.sharedMesh.bounds.size.magnitude).FirstOrDefault();
-        }
-
-        private static float MaxScale(Transform t) => Mathf.Max(Mathf.Abs(t.lossyScale.x), Mathf.Max(Mathf.Abs(t.lossyScale.y), Mathf.Abs(t.lossyScale.z)));
-
-        private static int LongestAxis(Vector3 size) => size.x >= size.y && size.x >= size.z ? 0 : size.y >= size.z ? 1 : 2;
-
-        private static Vector3 Axis(int i) => i == 0 ? Vector3.right : i == 1 ? Vector3.up : Vector3.forward;
     }
 }

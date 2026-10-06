@@ -93,7 +93,7 @@ namespace VikingsForHire.Core.Data
                     CostMult = 0.9f,
                     WorkerCombatFactor = 0.3f,
                     MinBoardLevel = 2,
-                    Gear = Mains("Club", "Club", "Club", "Club", "Club", "Club", "Club", "Club"),
+                    Gear = Mains("VFH_Cultivator", "VFH_Cultivator", "VFH_Cultivator", "VFH_Cultivator", "VFH_Cultivator", "VFH_Cultivator", "VFH_Cultivator", "VFH_Cultivator"),
                     // By biome: the boss that opens the biome where the seed (or the plant) is found.
                     CropLevels = new Dictionary<string, int>
                     {
