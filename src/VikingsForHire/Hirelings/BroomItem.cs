@@ -28,7 +28,6 @@ namespace VikingsForHire.Hirelings
         private const float Butt = -0.25f, HandleTop = 1.05f, HandleRadius = 0.022f;
         private const float BindTop = 1.12f, BindRadius = 0.04f;
         private const float BristleEnd = 1.5f;
-        private const int Sides = 10;
 
         private static bool _created;
         private static CustomItem? _item;
@@ -78,9 +77,9 @@ namespace VikingsForHire.Hirelings
             var uvs = new List<Vector2>();
             var wood = new List<int>();
             var straw = new List<int>();
-            Tube(verts, uvs, wood, Butt, HandleTop + 0.02f, new Vector2(HandleRadius, HandleRadius), new Vector2(HandleRadius, HandleRadius), 0f, true, false);
-            Tube(verts, uvs, wood, HandleTop - 0.04f, BindTop, new Vector2(BindRadius, BindRadius * 0.8f), new Vector2(BindRadius, BindRadius * 0.8f), 0f, true, true);
-            Tube(verts, uvs, straw, BindTop - 0.02f, BristleEnd, new Vector2(0.045f, 0.035f), new Vector2(0.17f, 0.05f), 0.05f, false, true);
+            Gear.MeshBuilder.Tube(verts, uvs, wood, Butt, HandleTop + 0.02f, new Vector2(HandleRadius, HandleRadius), new Vector2(HandleRadius, HandleRadius), 0f, true, false);
+            Gear.MeshBuilder.Tube(verts, uvs, wood, HandleTop - 0.04f, BindTop, new Vector2(BindRadius, BindRadius * 0.8f), new Vector2(BindRadius, BindRadius * 0.8f), 0f, true, true);
+            Gear.MeshBuilder.Tube(verts, uvs, straw, BindTop - 0.02f, BristleEnd, new Vector2(0.045f, 0.035f), new Vector2(0.17f, 0.05f), 0.05f, false, true);
             var mesh = new Mesh { name = "vfh_broom" };
             mesh.SetVertices(verts);
             mesh.SetUVs(0, uvs);
@@ -91,46 +90,5 @@ namespace VikingsForHire.Hirelings
             mesh.RecalculateBounds();
             return mesh;
         }
-
-        // An elliptical tube along +y from y0 (radii r0) to y1 (radii r1), capped at either end; jag makes the far rim ragged.
-        private static void Tube(List<Vector3> v, List<Vector2> uv, List<int> tri, float y0, float y1, Vector2 r0, Vector2 r1, float jag, bool cap0, bool cap1)
-        {
-            int ring = v.Count;
-            for (int i = 0; i <= Sides; i++)
-            {
-                float a = i * Mathf.PI * 2f / Sides;
-                float c = Mathf.Cos(a), s = Mathf.Sin(a);
-                float end = y1 - (i % 2 == 1 ? jag : 0f);
-                v.Add(new Vector3(c * r0.x, y0, s * r0.y));
-                uv.Add(new Vector2((float)i / Sides, 0f));
-                v.Add(new Vector3(c * r1.x, end, s * r1.y));
-                uv.Add(new Vector2((float)i / Sides, 1f));
-            }
-            for (int i = 0; i < Sides; i++)
-            {
-                int a0 = ring + i * 2, b0 = a0 + 1, a1 = a0 + 2, b1 = a0 + 3;
-                tri.AddRange(new[] { a0, b0, a1, a1, b0, b1 });
-            }
-            if (cap0)
-                Cap(v, uv, tri, ring, 0, y0, false);
-            if (cap1)
-                Cap(v, uv, tri, ring, 1, y1 - jag * 0.5f, true);
-        }
-
-        private static void Cap(List<Vector3> v, List<Vector2> uv, List<int> tri, int ring, int offset, float y, bool up)
-        {
-            int centre = v.Count;
-            v.Add(new Vector3(0f, y, 0f));
-            uv.Add(new Vector2(0.5f, 0.5f));
-            for (int i = 0; i < Sides; i++)
-            {
-                int a = ring + i * 2 + offset, b = ring + (i + 1) * 2 + offset;
-                if (up)
-                    tri.AddRange(new[] { centre, b, a });
-                else
-                    tri.AddRange(new[] { centre, a, b });
-            }
-        }
-
     }
 }

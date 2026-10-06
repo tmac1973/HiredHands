@@ -153,7 +153,16 @@ namespace VikingsForHire.Hirelings
                     Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));
                     break;
                 case JobType.Cook:
-                    Add(Chores = new Work.Chores.ChoreLoop(hireling.Job, System.Array.Empty<Work.Chores.IChore>()));
+                    Add(Chores = new Work.Chores.ChoreLoop(JobType.Cook, new Work.Chores.IChore[] { new Work.Kitchen.StovesChore() }));
+                    // The farm's seed reserve (and what's planted for seed orders) is never the Cook's to use.
+                    Chores.PrepareContext = ctx =>
+                    {
+                        if (Board.BoardOrders.BoardOf(ctx.Hireling.BoardId) is Board.HiringBoard b)
+                        {
+                            System.Collections.Generic.Dictionary<string, int> keep = Work.Kitchen.KitchenState.Protected(b);
+                            ctx.ExtraReserve = item => keep.TryGetValue(item, out int n) ? n : 0;
+                        }
+                    };
                     Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));
                     break;
                 default:

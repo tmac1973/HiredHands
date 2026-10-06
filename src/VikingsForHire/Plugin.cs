@@ -50,6 +50,7 @@ namespace VikingsForHire
             Board.HiringCharter.Register();
             Hirelings.BroomItem.Register();
             Hirelings.Gear.CultivatorItem.Register();
+            Hirelings.Gear.LadleItem.Register();
             Hirelings.Work.Farm.CropCatalog.Register();
             Hirelings.Work.Farm.FarmState.FreeSpots = Hirelings.Work.Farm.PlantChore.FreeSpots;
             Hirelings.Work.Kitchen.KitchenCatalog.Register();
@@ -80,6 +81,7 @@ namespace VikingsForHire
             FixturesTravel.Register();
             FixturesNav.Register();
             FixturesFarm.Register();
+            FixturesKitchen.Register();
 
             SessionInfo.LogHeader("plugin load");
             Log.LogInfo($"{Name} {Version} loaded");

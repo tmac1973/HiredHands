@@ -112,7 +112,7 @@ namespace VikingsForHire.Core.Data
                     CostMult = 0.9f,
                     WorkerCombatFactor = 0.3f,
                     MinBoardLevel = 2,
-                    Gear = Mains("Club", "Club", "Club", "Club", "Club", "Club", "Club", "Club"),
+                    Gear = Mains("VFH_Ladle", "VFH_Ladle", "VFH_Ladle", "VFH_Ladle", "VFH_Ladle", "VFH_Ladle", "VFH_Ladle", "VFH_Ladle"),
                     StationLevels = new Dictionary<string, int>
                     {
                         ["piece_cookingstation"] = 1, ["piece_cauldron"] = 2, ["piece_cookingstation_iron"] = 3,
