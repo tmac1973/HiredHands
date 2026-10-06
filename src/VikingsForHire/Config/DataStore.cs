@@ -181,7 +181,13 @@ namespace VikingsForHire.Config
             VfhLog.I(LogCat.Data, "data.prefabs_checked", ("unknownItems", warnings.Count));
         }
 
-        public static bool ItemExists(string prefab) => PrefabManager.Cache.GetPrefab<ItemDrop>(prefab) != null;
+        // The data is checked when vanilla prefabs appear, before our own items (and other mods' Jotunn items) may be registered.
+        public static bool ItemExists(string prefab) =>
+            PrefabManager.Cache.GetPrefab<ItemDrop>(prefab) != null
+            || prefab == Hirelings.BroomItem.PrefabName
+            || prefab == Followers.CommandStoneItem.PrefabName
+            || prefab == Board.HiringCharter.PrefabName
+            || ItemManager.Instance.GetItem(prefab) != null;
 
         private static ZPackage BuildPackage()
         {
