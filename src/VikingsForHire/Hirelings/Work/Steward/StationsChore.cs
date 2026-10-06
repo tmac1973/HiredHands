@@ -8,6 +8,8 @@ using VikingsForHire.Core.Chores;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
 
+using VikingsForHire.Hirelings.Work.Chores;
+
 namespace VikingsForHire.Hirelings.Work.Steward
 {
     /// <summary>
@@ -28,7 +30,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private const float ChestSkipSeconds = 60f;
         private const float SettleSeconds = 2f;
 
-        private readonly StewardSteps _walk = new();
+        private readonly WorkSteps _walk = new();
         private readonly HashSet<Smelter> _claimed = new();
         private readonly List<LoadTask> _loads = new();
         private Step _step;
@@ -49,14 +51,14 @@ namespace VikingsForHire.Hirelings.Work.Steward
         public float RestAfter { get; private set; }
 
         /// <summary>This kind's stations in the radius that a Steward of this level may tend.</summary>
-        private List<Smelter> Stations(StewardContext ctx) =>
+        private List<Smelter> Stations(WorkContext ctx) =>
             StationSurvey.Find(ctx.Home, ctx.Radius)
                 .Where(s => ChoreRules.KindOfStation(Utils.GetPrefabName(s.gameObject)) == Kind &&
                             ChoreRules.Unlocked(ctx.Job, ctx.Level, Utils.GetPrefabName(s.gameObject)) &&
                             !Reservations.IsReservedByOther(s, ctx.Hireling.Hid) && !Reservations.IsSkipped(s))
                 .ToList();
 
-        public IEnumerable<ChoreJob> Candidates(StewardContext ctx)
+        public IEnumerable<ChoreJob> Candidates(WorkContext ctx)
         {
             Missing = null;
             Hireling h = ctx.Hireling;
@@ -72,12 +74,12 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 if (noRoom.Count == 0)
                     continue;
                 st.Inputs = st.Inputs.Except(noRoom).ToList();
-                paused ??= ActivityText.Make("$vfh_paused_full", s.m_name, StewardSteps.SharedName(ProductOf(s, noRoom[0])));
+                paused ??= ActivityText.Make("$vfh_paused_full", s.m_name, WorkSteps.SharedName(ProductOf(s, noRoom[0])));
             }
             var wanted = new HashSet<string>(states.SelectMany(s => s.Inputs).Concat(states.Select(s => s.FuelItem)).Where(p => p.Length > 0));
             Dictionary<string, int> stock = wanted.ToDictionary(p => p, ctx.Available);
             float threshold = VfhConfig.SmelterRefillThreshold.Value;
-            _plan = SmelterPlanner.Plan(states, stock, ctx.Carried, threshold, ctx.FreeSlots, StewardSteps.MaxStack);
+            _plan = SmelterPlanner.Plan(states, stock, ctx.Carried, threshold, ctx.FreeSlots, WorkSteps.MaxStack);
             VfhLog.D(LogCat.Smelter, "smelter.plan", ("hid", h.Hid), ("kind", Kind), ("stations", states.Count), ("chests", ctx.Chests.Count),
                 ("loads", string.Join(",", _plan.Loads.Select(l => $"{_byId[l.StationId].name.Replace("(Clone)", "")}:{l.Prefab}x{l.Amount}"))),
                 ("fetch", string.Join(",", _plan.Fetch.Select(f => $"{f.Key}x{f.Value}"))), ("starved", _plan.Starved.Count));
@@ -111,26 +113,26 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 // Ore there (in a chest or already queued) but no fuel: say the fuel; else the first input.
                 bool hasInput = st.Queue > 0 || st.Inputs.Any(i => Have(i) > 0);
                 string need = hasInput && st.FuelItem.Length > 0 ? st.FuelItem : st.Inputs.FirstOrDefault() ?? st.FuelItem;
-                Missing = ActivityText.Make("$vfh_need_item", starved.m_name, StewardSteps.SharedName(need));
+                Missing = ActivityText.Make("$vfh_need_item", starved.m_name, WorkSteps.SharedName(need));
             }
             return jobs;
         }
 
         // PauseWhenStorageFull: nowhere to put anything it makes, so what it holds stays in it.
-        private static bool OutputsFull(Smelter s, StewardContext ctx) =>
+        private static bool OutputsFull(Smelter s, WorkContext ctx) =>
             StationSurvey.Outputs(s).All(o => StorageRoom.NoRoom(ctx.AllChests, o));
 
         private static string ProductOf(Smelter s, string input) =>
             s.m_conversion.FirstOrDefault(c => c.m_from != null && c.m_from.gameObject.name == input && c.m_to != null)?.m_to.gameObject.name ?? "";
 
-        private ChoreJob Job(Smelter s, float urgency, int variant, StewardContext ctx, string label) => new()
+        private ChoreJob Job(Smelter s, float urgency, int variant, WorkContext ctx, string label) => new()
         {
             Kind = Kind, Target = s, Urgency = urgency, Variant = variant,
             Score = ChoreUrgency.Score(urgency, Vector3.Distance(ctx.Position, s.transform.position), ctx.Radius),
             Label = ActivityText.Make(label, s.m_name),
         };
 
-        public void Begin(ChoreJob job, StewardContext ctx)
+        public void Begin(ChoreJob job, WorkContext ctx)
         {
             Hireling h = ctx.Hireling;
             _h = h;
@@ -169,7 +171,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             foreach (LoadTask t in plan.Loads.Where(l => l.StationId == first.StationId).OrderBy(l => l.IsFuel))
             {
                 int room = t.IsFuel ? live.FuelSpace : live.OreSpace;
-                int have = h.CargoInventory!.CountItems(StewardSteps.SharedName(t.Prefab));
+                int have = h.CargoInventory!.CountItems(WorkSteps.SharedName(t.Prefab));
                 int n = Mathf.Min(t.Amount, room, have);
                 if (n > 0)
                     _loads.Add(new LoadTask(t.StationId, t.Prefab, n, t.IsFuel));
@@ -207,7 +209,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 return ChoreProgress.Running;
             ai.Halt();
             ai.Face(chest.transform.position);
-            if (StewardSteps.TakeFromChest(chest, h, _fetch, VfhConfig.ChestReserve) == 0)
+            if (WorkSteps.TakeFromChest(chest, h, _fetch, VfhConfig.ChestReserve) == 0)
                 Reservations.Skip(chest, ChestSkipSeconds); // in use, or nothing we can take after all
             return End(0f);
         }
@@ -228,7 +230,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 return ChoreProgress.Running;
             _nextItemAt = Time.time + ItemSeconds;
 
-            string shared = StewardSteps.SharedName(task.Prefab);
+            string shared = WorkSteps.SharedName(task.Prefab);
             if (h.CargoInventory!.CountItems(shared) <= 0)
             {
                 _loads.RemoveAt(0);
@@ -280,7 +282,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             if (AzuAutoStoreCompat.IsLoaded)
                 return End(0f); // emptied: AzuAutoStore puts the stack away
             Vector3 point = s.m_outputPoint != null ? s.m_outputPoint.position : s.transform.position;
-            int picked = StewardSteps.PickUpDrops(h, point, StationSurvey.Outputs(s), OutputPickupRadius);
+            int picked = WorkSteps.PickUpDrops(h, point, StationSurvey.Outputs(s), OutputPickupRadius);
             VfhLog.I(LogCat.Smelter, "smelter.collected", ("hid", h.Hid), ("station", Utils.GetPrefabName(s.gameObject)), ("n", picked));
             return End(0f);
         }

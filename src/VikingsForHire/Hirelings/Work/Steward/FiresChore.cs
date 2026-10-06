@@ -6,6 +6,8 @@ using VikingsForHire.Core.Chores;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
 
+using VikingsForHire.Hirelings.Work.Chores;
+
 namespace VikingsForHire.Hirelings.Work.Steward
 {
     /// <summary>
@@ -24,7 +26,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         /// <summary>Fuel items Stewards put into each fire since load, by the fire's instance id (for the tests).</summary>
         public static readonly Dictionary<int, int> FuelAdded = new();
 
-        private readonly StewardSteps _walk = new();
+        private readonly WorkSteps _walk = new();
         private readonly List<Fireplace> _route = new();
         private Step _step;
         private string _fuel = "";
@@ -38,7 +40,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         public string? Missing { get; private set; }
         public float RestAfter { get; private set; }
 
-        private static IEnumerable<Fireplace> Fires(StewardContext ctx)
+        private static IEnumerable<Fireplace> Fires(WorkContext ctx)
         {
             var pieces = new List<Piece>();
             Piece.GetAllPiecesInRadius(ctx.Home, ctx.Radius, pieces);
@@ -59,7 +61,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         private static float Urgency(Fireplace f) => ChoreUrgency.Fire(Fuel(f), f.m_maxFuel, VfhConfig.StewardFireRefillFraction.Value);
 
-        public IEnumerable<ChoreJob> Candidates(StewardContext ctx)
+        public IEnumerable<ChoreJob> Candidates(WorkContext ctx)
         {
             Missing = null;
             var jobs = new List<ChoreJob>();
@@ -72,7 +74,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 int have = ctx.Available(fuel) + (ctx.Carried.TryGetValue(fuel, out int c) ? c : 0);
                 if (have <= 0)
                 {
-                    Missing ??= ActivityText.Make("$vfh_need_fuel", f.m_name, StewardSteps.SharedName(fuel));
+                    Missing ??= ActivityText.Make("$vfh_need_fuel", f.m_name, WorkSteps.SharedName(fuel));
                     continue;
                 }
                 jobs.Add(new ChoreJob
@@ -85,7 +87,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             return jobs;
         }
 
-        public void Begin(ChoreJob job, StewardContext ctx)
+        public void Begin(ChoreJob job, WorkContext ctx)
         {
             Hireling h = ctx.Hireling;
             _h = h;
@@ -104,7 +106,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 Reservations.TryReserve(f, h.Hid);
             int want = _route.Sum(f => Mathf.Max(0, Mathf.CeilToInt(f.m_maxFuel - Fuel(f))));
             int carried = ctx.Carried.TryGetValue(_fuel, out int c) ? c : 0;
-            int stack = Mathf.Max(1, StewardSteps.MaxStack(_fuel));
+            int stack = Mathf.Max(1, WorkSteps.MaxStack(_fuel));
             int room = carried % stack == 0 ? ctx.FreeSlots * stack : stack - carried % stack + ctx.FreeSlots * stack;
             _need = Mathf.Min(Mathf.Max(0, want - carried), ctx.Available(_fuel), room);
             _chest = _need > 0 ? ctx.NearestChestWith(new[] { _fuel }) : null;
@@ -132,7 +134,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     return ChoreProgress.Running;
                 ai.Halt();
                 ai.Face(chest.transform.position);
-                if (StewardSteps.TakeFromChest(chest, h, new Dictionary<string, int> { [_fuel] = _need }, VfhConfig.ChestReserve) == 0)
+                if (WorkSteps.TakeFromChest(chest, h, new Dictionary<string, int> { [_fuel] = _need }, VfhConfig.ChestReserve) == 0)
                 {
                     Reservations.Skip(chest, ChestSkipSeconds);
                     return End(h, 1f, ChoreProgress.Failed);
@@ -146,7 +148,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         private ChoreProgress FuelNext(HirelingAI ai, Hireling h, float dt)
         {
-            string shared = StewardSteps.SharedName(_fuel);
+            string shared = WorkSteps.SharedName(_fuel);
             while (_route.Count > 0 && (_route[0] == null || _route[0].m_nview == null || !_route[0].m_nview.IsValid() ||
                                         Mathf.CeilToInt(Fuel(_route[0])) >= _route[0].m_maxFuel))
                 NextFire(h);

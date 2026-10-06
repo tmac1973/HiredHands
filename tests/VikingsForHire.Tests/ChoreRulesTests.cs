@@ -71,5 +71,15 @@ namespace VikingsForHire.Tests
                 Assert.Equal(k, back);
             }
         }
+
+        [Fact]
+        public void EachJobHasItsChores()
+        {
+            Assert.Equal(new[] { ChoreKind.Harvest, ChoreKind.Plant }, ChoreRules.ChoresFor(JobType.Farmer));
+            Assert.Equal(new[] { ChoreKind.Stoves, ChoreKind.Craft }, ChoreRules.ChoresFor(JobType.Cook));
+            Assert.Contains(ChoreKind.Board, ChoreRules.ChoresFor(JobType.Smelter));
+            Assert.DoesNotContain(ChoreKind.Harvest, ChoreRules.ChoresFor(JobType.Smelter));
+            Assert.Empty(ChoreRules.ChoresFor(JobType.Woodcutter));
+        }
     }
 }

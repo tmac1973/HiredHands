@@ -8,6 +8,8 @@ using VikingsForHire.Core.Chores;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
 
+using VikingsForHire.Hirelings.Work.Chores;
+
 namespace VikingsForHire.Hirelings.Work.Steward
 {
     /// <summary>
@@ -22,7 +24,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private const float ChestSkipSeconds = 60f;
         private const int MaxChests = 4;
 
-        private readonly StewardSteps _walk = new();
+        private readonly WorkSteps _walk = new();
         private HiringBoard? _board;
         private Dictionary<string, int> _want = new();
         private Container? _chest;
@@ -33,7 +35,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         public string? Missing { get; private set; }
         public float RestAfter { get; private set; }
 
-        private static HiringBoard? BoardOf(StewardContext ctx) =>
+        private static HiringBoard? BoardOf(WorkContext ctx) =>
             HiringBoard.Loaded.FirstOrDefault(b => b != null && b.Zdo != null && b.Id == ctx.Hireling.BoardId && b.Inventory != null && b.Storage != null);
 
         // Food points a day the roster costs, what the board holds, and how many days that lasts.
@@ -47,7 +49,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         }
 
         // Foods the chests can spare (above reserves) with their points each, cheapest first.
-        private static List<(string Prefab, int Points, int Have)> Foods(StewardContext ctx)
+        private static List<(string Prefab, int Points, int Have)> Foods(WorkContext ctx)
         {
             var seen = new Dictionary<string, int>();
             foreach (Container c in ctx.Chests)
@@ -61,7 +63,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 .ToList();
         }
 
-        public IEnumerable<ChoreJob> Candidates(StewardContext ctx)
+        public IEnumerable<ChoreJob> Candidates(WorkContext ctx)
         {
             Missing = null;
             HiringBoard? board = BoardOf(ctx);
@@ -87,7 +89,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             };
         }
 
-        public void Begin(ChoreJob job, StewardContext ctx)
+        public void Begin(ChoreJob job, WorkContext ctx)
         {
             RestAfter = 0f;
             _walk.Reset();
@@ -104,7 +106,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         }
 
         // Cheapest first until the points are covered, as far as cargo slots go (whole stacks of what it already carries count).
-        private static Dictionary<string, int> Plan(StewardContext ctx, int points)
+        private static Dictionary<string, int> Plan(WorkContext ctx, int points)
         {
             var want = new Dictionary<string, int>();
             int slots = ctx.FreeSlots;
@@ -113,7 +115,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 if (points <= 0)
                     break;
                 int carried = ctx.Carried.TryGetValue(prefab, out int c) ? c : 0;
-                int stack = Mathf.Max(1, StewardSteps.MaxStack(prefab));
+                int stack = Mathf.Max(1, WorkSteps.MaxStack(prefab));
                 int fit = (carried % stack == 0 ? 0 : stack - carried % stack) + slots * stack;
                 int n = Mathf.Min(have - carried, Mathf.Min(fit, Mathf.CeilToInt(points / (float)each)));
                 int total = carried + Mathf.Max(0, n);
@@ -129,11 +131,11 @@ namespace VikingsForHire.Hirelings.Work.Steward
         }
 
         // The nearest chest holding any food still to fetch, up to a few chests a trip.
-        private Container? NextChest(StewardContext ctx)
+        private Container? NextChest(WorkContext ctx)
         {
             if (_chestsVisited >= MaxChests)
                 return null;
-            var short_ = _want.Where(kv => (ctx.Hireling.CargoInventory!.CountItems(StewardSteps.SharedName(kv.Key)) < kv.Value)).Select(kv => kv.Key).ToList();
+            var short_ = _want.Where(kv => (ctx.Hireling.CargoInventory!.CountItems(WorkSteps.SharedName(kv.Key)) < kv.Value)).Select(kv => kv.Key).ToList();
             return short_.Count == 0 ? null : ctx.NearestChestWith(short_);
         }
 
@@ -158,16 +160,16 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 if (!_walk.Approach(ai, dt, chest, chest.transform.position))
                     return ChoreProgress.Running;
                 ai.Halt();
-                var need = _want.ToDictionary(kv => kv.Key, kv => Mathf.Max(0, kv.Value - h.CargoInventory!.CountItems(StewardSteps.SharedName(kv.Key))));
-                if (StewardSteps.TakeFromChest(chest, h, need.Where(kv => kv.Value > 0).ToDictionary(kv => kv.Key, kv => kv.Value), VfhConfig.ChestReserve) == 0)
+                var need = _want.ToDictionary(kv => kv.Key, kv => Mathf.Max(0, kv.Value - h.CargoInventory!.CountItems(WorkSteps.SharedName(kv.Key))));
+                if (WorkSteps.TakeFromChest(chest, h, need.Where(kv => kv.Value > 0).ToDictionary(kv => kv.Key, kv => kv.Value), VfhConfig.ChestReserve) == 0)
                     Reservations.Skip(chest, ChestSkipSeconds);
                 _chestsVisited++;
-                _chest = NextChest(new StewardContext(h));
+                _chest = NextChest(new WorkContext(h));
                 _fetching = _chest != null;
                 _walk.Reset();
                 return ChoreProgress.Running;
             }
-            if (!_want.Keys.Any(p => h.CargoInventory!.CountItems(StewardSteps.SharedName(p)) > 0))
+            if (!_want.Keys.Any(p => h.CargoInventory!.CountItems(WorkSteps.SharedName(p)) > 0))
                 return End(h, 3f);
             if (!_walk.Approach(ai, dt, board, board.transform.position))
                 return ChoreProgress.Running;

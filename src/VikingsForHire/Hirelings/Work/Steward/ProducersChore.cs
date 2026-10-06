@@ -5,6 +5,8 @@ using VikingsForHire.Core.Chores;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
 
+using VikingsForHire.Hirelings.Work.Chores;
+
 namespace VikingsForHire.Hirelings.Work.Steward
 {
     /// <summary>
@@ -18,7 +20,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private const float PickupDelay = 0.6f;
         private const float PickupRadius = 2.5f;
 
-        private readonly StewardSteps _walk = new();
+        private readonly WorkSteps _walk = new();
         private readonly List<Producer> _route = new();
         private float _extractedAt = -1f;
         private int _picked;
@@ -41,7 +43,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         public string? Missing { get; private set; }
         public float RestAfter { get; private set; }
 
-        private IEnumerable<Producer> Producers(StewardContext ctx)
+        private IEnumerable<Producer> Producers(WorkContext ctx)
         {
             var pieces = new List<Piece>();
             Piece.GetAllPiecesInRadius(ctx.Home, ctx.Radius, pieces);
@@ -72,7 +74,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             return null;
         }
 
-        public IEnumerable<ChoreJob> Candidates(StewardContext ctx)
+        public IEnumerable<ChoreJob> Candidates(WorkContext ctx)
         {
             Missing = null;
             var jobs = new List<ChoreJob>();
@@ -81,10 +83,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 float u = ChoreUrgency.Producer(x.Level, x.Max);
                 if (u <= 0f || Reservations.IsReservedByOther(x.Comp, ctx.Hireling.Hid) || Reservations.IsSkipped(x.Comp))
                     continue;
-                SmelterDeliveryPolicy.StewardOutputs.Add(x.Item);
+                ChoreDeliveryPolicy.ChoreOutputs.Add(x.Item);
                 if (StorageRoom.NoRoom(ctx.AllChests, x.Item))
                 {
-                    Missing ??= ActivityText.Make("$vfh_paused_full", x.Name, StewardSteps.SharedName(x.Item));
+                    Missing ??= ActivityText.Make("$vfh_paused_full", x.Name, WorkSteps.SharedName(x.Item));
                     continue;
                 }
                 // No chest holds it yet: it still gets emptied (to the pile), and the status says where to put it.
@@ -94,13 +96,13 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     Kind = Kind, Target = x.Comp, Urgency = u,
                     Score = ChoreUrgency.Score(u, Vector3.Distance(ctx.Position, x.Comp.transform.position), ctx.Radius),
                     Label = home ? ActivityText.Make("$vfh_steward_collect", x.Name)
-                        : ActivityText.Make("$vfh_need_room", x.Name, StewardSteps.SharedName(x.Item)),
+                        : ActivityText.Make("$vfh_need_room", x.Name, WorkSteps.SharedName(x.Item)),
                 });
             }
             return jobs;
         }
 
-        public void Begin(ChoreJob job, StewardContext ctx)
+        public void Begin(ChoreJob job, WorkContext ctx)
         {
             Hireling h = ctx.Hireling;
             RestAfter = 0f;
@@ -154,7 +156,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             }
             if (Time.time - _extractedAt < PickupDelay)
                 return ChoreProgress.Running;
-            int picked = StewardSteps.PickUpDrops(h, x.SpawnAt, new HashSet<string> { x.Item }, PickupRadius);
+            int picked = WorkSteps.PickUpDrops(h, x.SpawnAt, new HashSet<string> { x.Item }, PickupRadius);
             _picked += picked;
             VfhLog.D(LogCat.Smelter, "steward.collected", ("hid", h.Hid), ("kind", Kind), ("item", x.Item), ("n", picked));
             Next(h);

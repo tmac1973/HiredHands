@@ -6,6 +6,8 @@ using VikingsForHire.Core.Chores;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
 
+using VikingsForHire.Hirelings.Work.Chores;
+
 namespace VikingsForHire.Hirelings.Work.Steward
 {
     /// <summary>
@@ -23,7 +25,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private const float ChestSkipSeconds = 60f;
         private const float PickupDelay = 0.8f;
 
-        private readonly StewardSteps _walk = new();
+        private readonly WorkSteps _walk = new();
         private Step _step;
         private Fermenter? _fermenter;
         private string _base = "";
@@ -35,7 +37,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         public string? Missing { get; private set; }
         public float RestAfter { get; private set; }
 
-        private static IEnumerable<Fermenter> Fermenters(StewardContext ctx)
+        private static IEnumerable<Fermenter> Fermenters(WorkContext ctx)
         {
             var pieces = new List<Piece>();
             Piece.GetAllPiecesInRadius(ctx.Home, ctx.Radius, pieces);
@@ -60,9 +62,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
             return content == 0 ? null : f.GetItemConversion(content)?.m_to?.gameObject.name;
         }
 
-        private static int Have(StewardContext ctx, string prefab) => ctx.Available(prefab) + (ctx.Carried.TryGetValue(prefab, out int c) ? c : 0);
+        private static int Have(WorkContext ctx, string prefab) => ctx.Available(prefab) + (ctx.Carried.TryGetValue(prefab, out int c) ? c : 0);
 
-        public IEnumerable<ChoreJob> Candidates(StewardContext ctx)
+        public IEnumerable<ChoreJob> Candidates(WorkContext ctx)
         {
             Missing = null;
             var jobs = new List<ChoreJob>();
@@ -87,14 +89,14 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 // PauseWhenStorageFull: a ready mead keeps inside the fermenter until its chests have room.
                 if (ready && MeadOf(f) is string mead0 && StorageRoom.NoRoom(ctx.AllChests, mead0))
                 {
-                    Missing ??= ActivityText.Make("$vfh_paused_full", f.m_name, StewardSteps.SharedName(mead0));
+                    Missing ??= ActivityText.Make("$vfh_paused_full", f.m_name, WorkSteps.SharedName(mead0));
                     continue;
                 }
                 float u = ChoreUrgency.Fermenter(ready, empty);
                 if (u <= 0f)
                     continue;
                 foreach (string mead in Meads(f))
-                    SmelterDeliveryPolicy.StewardOutputs.Add(mead);
+                    ChoreDeliveryPolicy.ChoreOutputs.Add(mead);
                 jobs.Add(new ChoreJob
                 {
                     Kind = Kind, Target = f, Urgency = u, Variant = ready ? VariantTap : VariantLoad,
@@ -105,7 +107,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             return jobs;
         }
 
-        public void Begin(ChoreJob job, StewardContext ctx)
+        public void Begin(ChoreJob job, WorkContext ctx)
         {
             RestAfter = 0f;
             _walk.Reset();
@@ -149,7 +151,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     if (!_walk.Approach(ai, dt, chest, chest.transform.position))
                         return ChoreProgress.Running;
                     ai.Halt();
-                    if (StewardSteps.TakeFromChest(chest, h, new Dictionary<string, int> { [_base] = 1 }, VfhConfig.ChestReserve) == 0)
+                    if (WorkSteps.TakeFromChest(chest, h, new Dictionary<string, int> { [_base] = 1 }, VfhConfig.ChestReserve) == 0)
                     {
                         Reservations.Skip(chest, ChestSkipSeconds);
                         return End(h, 1f, ChoreProgress.Failed);
@@ -166,7 +168,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     ai.Face(f.transform.position);
                     if (f.GetStatus() != Fermenter.Status.Empty)
                         return End(h, 0f);
-                    string shared = StewardSteps.SharedName(_base);
+                    string shared = WorkSteps.SharedName(_base);
                     if (h.CargoInventory!.CountItems(shared) <= 0)
                         return End(h, 0f, ChoreProgress.Failed);
                     if (Time.time < _nextLoad)
@@ -196,7 +198,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     if (Time.time - _tappedAt < PickupDelay + f.m_tapDelay)
                         return ChoreProgress.Running;
                     Vector3 at = f.m_outputPoint != null ? f.m_outputPoint.position : f.transform.position;
-                    int picked = StewardSteps.PickUpDrops(h, at, new HashSet<string>(Meads(f)), 3f);
+                    int picked = WorkSteps.PickUpDrops(h, at, new HashSet<string>(Meads(f)), 3f);
                     VfhLog.D(LogCat.Smelter, "steward.ferment_tap", ("hid", h.Hid), ("picked", picked));
                     return End(h, 0f);
                 }

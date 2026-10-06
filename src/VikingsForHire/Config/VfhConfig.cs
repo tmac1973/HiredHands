@@ -60,6 +60,10 @@ namespace VikingsForHire.Config
         public static ConfigEntry<bool> StewardShields = null!;
         public static ConfigEntry<bool> StewardTidy = null!;
         public static ConfigEntry<bool> StewardBoard = null!;
+        public static ConfigEntry<bool> FarmerHarvest = null!;
+        public static ConfigEntry<bool> FarmerPlant = null!;
+        public static ConfigEntry<bool> CookStoves = null!;
+        public static ConfigEntry<bool> CookCraft = null!;
         public static ConfigEntry<int> StewardBoardRefillDays = null!;
         public static ConfigEntry<int> StewardBoardFillDays = null!;
         public static ConfigEntry<float> StewardTidyMinSeconds = null!;
@@ -167,6 +171,11 @@ namespace VikingsForHire.Config
             StewardBoard = Synced(st, "StewardBoard", true, "Stewards may stock their own board with food from the chests (cheapest first, never the last of a food in a chest).");
             StewardBoardRefillDays = Synced(st, "StewardBoardRefillDays", 3, "Stock the board when its food lasts fewer than this many days of upkeep.");
             StewardBoardFillDays = Synced(st, "StewardBoardFillDays", 7, "Stock it up to this many days of upkeep (as far as the board's slots and the chests allow).");
+            const string fc = "11 - Farmer and Cook";
+            FarmerHarvest = Synced(fc, "FarmerHarvest", true, "Farmers may harvest ripe crops (always) and regrowing plants such as berry bushes (while an order for them is short).");
+            FarmerPlant = Synced(fc, "FarmerPlant", true, "Farmers may plant on cultivated ground to fill the board's farm orders.");
+            CookStoves = Synced(fc, "CookStoves", true, "Cooks may run cooking stations and ovens to fill the board's kitchen orders.");
+            CookCraft = Synced(fc, "CookCraft", true, "Cooks may craft at the cauldron, food preparation table and mead ketill to fill the board's kitchen orders.");
             StewardTidyMinSeconds = Synced(st, "StewardTidyMinSeconds", 60f, "Leave items alone until they've been on the ground this long, so a Steward doesn't grab what a player just dropped.");
             StewardFireRefillFraction = Synced(st, "StewardFireRefillFraction", 0.5f, "Refuel a fire when its fuel is below this fraction of full; it's filled up to full.");
             StewardRepairBelow = Synced(st, "StewardRepairBelow", 0.95f, "Repair pieces below this fraction of full health.");

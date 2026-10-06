@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace VikingsForHire.Hirelings.Work.Steward
+namespace VikingsForHire.Hirelings.Work.Chores
 {
     /// <summary>
     /// Walking up to things for a chore (one per chore: it remembers its spot and progress) and the small shared steps:
     /// taking items from a chest, picking up dropped items.
     /// </summary>
-    internal sealed class StewardSteps
+    internal sealed class WorkSteps
     {
         public const float Reach = 2.2f;
 

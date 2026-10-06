@@ -18,6 +18,10 @@ namespace VikingsForHire.Core.Chores
         Shields,
         Tidy,
         Board,
+        Harvest,
+        Plant,
+        Stoves,
+        Craft,
     }
 
     /// <summary>The stable keys chores go by in data files (choreLevels) and in a contract's skip list ("chore:fires").</summary>
@@ -38,6 +42,10 @@ namespace VikingsForHire.Core.Chores
             [ChoreKind.Shields] = "shields",
             [ChoreKind.Tidy] = "tidy",
             [ChoreKind.Board] = "board",
+            [ChoreKind.Harvest] = "harvest",
+            [ChoreKind.Plant] = "plant",
+            [ChoreKind.Stoves] = "stoves",
+            [ChoreKind.Craft] = "craft",
         };
 
         public static IReadOnlyList<ChoreKind> All { get; } = Enum.GetValues(typeof(ChoreKind)).Cast<ChoreKind>().ToList();

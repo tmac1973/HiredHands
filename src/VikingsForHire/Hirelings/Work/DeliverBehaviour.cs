@@ -57,7 +57,7 @@ namespace VikingsForHire.Hirelings.Work
 
         public DeliverBehaviour(IDeliveryPolicy policy) => _policy = policy;
 
-        private readonly Steward.StewardSteps _walk = new();
+        private readonly Chores.WorkSteps _walk = new();
         private Container? _walkTo;
 
         public string Name => "Deliver";

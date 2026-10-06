@@ -10,14 +10,14 @@ using VikingsForHire.Core.Data;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
 
-namespace VikingsForHire.Hirelings.Work.Steward
+namespace VikingsForHire.Hirelings.Work.Chores
 {
     /// <summary>
-    /// The Steward's work: every few seconds it asks each chore it may do (unlocked at its level, switched on for it,
+    /// A worker's chores (the Steward's, the Farmer's, the Cook's): every few seconds it asks each chore it may do (unlocked at its level, switched on for it,
     /// allowed on the server, not done by another mod) what needs doing, and does the best-scoring job: the most urgent,
     /// the nearer of two equal ones. A job runs until it's done or fails, then it looks again.
     /// </summary>
-    internal sealed class StewardBehaviour : IHirelingBehaviour
+    internal sealed class ChoreLoop : IHirelingBehaviour
     {
         private const float SurveySeconds = 3f;
         private const int FailuresBeforeSkip = 3;
@@ -32,22 +32,22 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private float _nextRecheck;
         private float _nextSurvey;
 
-        public StewardBehaviour()
+        private readonly JobType _jobType;
+        private readonly string _log;
+        private readonly LogCat _cat;
+
+        public ChoreLoop(JobType job, IEnumerable<IChore> chores)
         {
-            _chores.Add(new FiresChore());
-            _chores.Add(new ProducersChore(ChoreKind.Beehives));
-            _chores.Add(new StationsChore(ChoreKind.Stations));
-            _chores.Add(new StationsChore(ChoreKind.Mills));
-            _chores.Add(new ProducersChore(ChoreKind.Sap));
-            _chores.Add(new AnimalsChore());
-            _chores.Add(new RepairsChore());
-            _chores.Add(new FermentersChore());
-            _chores.Add(new ShieldsChore());
-            _chores.Add(new BoardChore());
-            _chores.Add(new TidyChore());
+            _jobType = job;
+            _chores.AddRange(chores);
+            _log = job == JobType.Smelter ? "steward" : job.ToString().ToLowerInvariant();
+            _cat = job == JobType.Smelter ? LogCat.Smelter : LogCat.Work;
         }
 
-        public string Name => "Steward";
+        /// <summary>Lets a job's own state into every survey (the farm plan's seed reserve).</summary>
+        public System.Action<WorkContext>? PrepareContext { get; set; }
+
+        public string Name => _jobType == JobType.Smelter ? "Steward" : _jobType.ToString();
         public int Priority => 200;
 
         /// <summary>The chore it's doing right now (for the tests), or null.</summary>
@@ -111,7 +111,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             {
                 _failures.Remove(id);
             }
-            VfhLog.I(LogCat.Smelter, "steward.job", ("hid", h.Hid), ("kind", _job.Kind), ("target", TargetName(_job)), ("result", p),
+            VfhLog.I(_cat, $"{_log}.job", ("hid", h.Hid), ("kind", _job.Kind), ("target", TargetName(_job)), ("result", p),
                 ("secs", System.Math.Round(Time.time - _jobStarted, 1)));
             _nextSurvey = Time.time + System.Math.Max(_current.RestAfter, 0.25f);
             _current = null;
@@ -123,7 +123,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
             _nextSurvey = Time.time + SurveySeconds;
             if (h.CargoInventory == null)
                 return;
-            var ctx = new StewardContext(h);
+            var ctx = new WorkContext(h);
+            PrepareContext?.Invoke(ctx);
             HashSet<ChoreKind> off = ChoreRules.ChoresOff(h.Zdo?.GetString(HirelingZdo.SkipItems));
             var best = (Job: (ChoreJob?)null, Chore: (IChore?)null);
             var skipped = new List<string>();
@@ -144,7 +145,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     if (best.Job == null || j.Score > best.Job.Score + 0.0001f)
                         best = (j, chore);
             }
-            VfhLog.D(LogCat.Smelter, "steward.survey", ("hid", h.Hid), ("level", ctx.Level), ("candidates", string.Join(",", counts)),
+            VfhLog.D(_cat, $"{_log}.survey", ("hid", h.Hid), ("level", ctx.Level), ("candidates", string.Join(",", counts)),
                 ("skipped", string.Join(",", skipped)), ("missing", missing ?? ""), ("winner", best.Job == null ? "none" : $"{best.Job.Kind}:{TargetName(best.Job)}"),
                 ("score", best.Job?.Score ?? 0f));
 
@@ -157,7 +158,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     h.LeftoverSince = Time.time;
                 else if (!carrying)
                     h.LeftoverSince = 0f;
-                h.SetActivity(missing ?? "$vfh_steward_idle");
+                h.SetActivity(missing ?? (_jobType == JobType.Smelter ? "$vfh_steward_idle" : $"$vfh_{_log}_idle"));
                 return;
             }
             _current = best.Chore;
@@ -165,14 +166,14 @@ namespace VikingsForHire.Hirelings.Work.Steward
             _jobStarted = Time.time;
             _lastTick = Time.time;
             h.SetActivity(best.Job.Label);
-            VfhLog.I(LogCat.Smelter, "steward.job", ("hid", h.Hid), ("kind", best.Job.Kind), ("target", TargetName(best.Job)), ("result", "start"),
+            VfhLog.I(_cat, $"{_log}.job", ("hid", h.Hid), ("kind", best.Job.Kind), ("target", TargetName(best.Job)), ("result", "start"),
                 ("score", System.Math.Round(best.Job.Score, 2)));
             _current.Begin(best.Job, ctx);
         }
 
         private static string? WhyNot(ChoreKind kind, Hireling h)
         {
-            JobData job = DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out JobData? j) ? j : new JobData();
+            JobData job = DataStore.Current.Jobs.TryGetValue(h.Job, out JobData? j) ? j : new JobData();
             if (!ServerAllows(kind))
                 return "server";
             if (ChoreRules.ChoresOff(h.Zdo?.GetString(HirelingZdo.SkipItems)).Contains(kind))
@@ -183,7 +184,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         }
 
         /// <summary>Why a chore is out for this Steward right now (null: it may do it).</summary>
-        public static string? WhyNot(ChoreKind kind, StewardContext ctx, HashSet<ChoreKind> off)
+        public static string? WhyNot(ChoreKind kind, WorkContext ctx, HashSet<ChoreKind> off)
         {
             if (!ServerAllows(kind))
                 return "server";
@@ -208,6 +209,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 ChoreKind.Shields => VfhConfig.StewardShields,
                 ChoreKind.Tidy => VfhConfig.StewardTidy,
                 ChoreKind.Board => VfhConfig.StewardBoard,
+                ChoreKind.Harvest => VfhConfig.FarmerHarvest,
+                ChoreKind.Plant => VfhConfig.FarmerPlant,
+                ChoreKind.Stoves => VfhConfig.CookStoves,
+                ChoreKind.Craft => VfhConfig.CookCraft,
                 _ => VfhConfig.StewardRepairs,
             };
             return setting.Value;
@@ -217,7 +222,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private void Stop(Hireling h, string why)
         {
             if (_current != null)
-                VfhLog.D(LogCat.Smelter, "steward.stop", ("hid", h.Hid), ("kind", _current.Kind), ("why", why));
+                VfhLog.D(_cat, $"{_log}.stop", ("hid", h.Hid), ("kind", _current.Kind), ("why", why));
             foreach (IChore chore in _chores)
                 chore.Abort(h);
             _current = null;

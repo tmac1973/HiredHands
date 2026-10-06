@@ -91,8 +91,8 @@ namespace VikingsForHire.Hirelings
         /// <summary>A Steward's field looting in Gather Here (Stewards only).</summary>
         public Work.FieldLoot? Loot { get; private set; }
 
-        /// <summary>The Steward's chore loop (Stewards only).</summary>
-        public Work.Steward.StewardBehaviour? Steward { get; private set; }
+        /// <summary>The chore loop of a Steward, Farmer or Cook (null for other jobs).</summary>
+        public Work.Chores.ChoreLoop? Chores { get; private set; }
 
         /// <summary>
         /// Where this hireling may gather right now: the board's area while working; around a harvest order's target;
@@ -140,13 +140,18 @@ namespace VikingsForHire.Hirelings
                     Add(new Work.DeliverBehaviour(new Work.GathererDeliveryPolicy()));
                     break;
                 case JobType.Smelter:
-                    Add(Steward = new Work.Steward.StewardBehaviour());
+                    Add(Chores = new Work.Chores.ChoreLoop(JobType.Smelter, Work.Steward.StewardChores.All()));
                     Loot = new Work.FieldLoot();
-                    Add(new Work.DeliverBehaviour(new Work.SmelterDeliveryPolicy()));
+                    Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));
                     break;
                 case JobType.Miner:
                     Add(Gather = new Work.GatherBehaviour(new Work.MinerProfile(hireling)));
                     Add(new Work.DeliverBehaviour(new Work.GathererDeliveryPolicy()));
+                    break;
+                case JobType.Farmer:
+                case JobType.Cook:
+                    Add(Chores = new Work.Chores.ChoreLoop(hireling.Job, System.Array.Empty<Work.Chores.IChore>()));
+                    Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));
                     break;
                 default:
                     Add(new Work.DeliverBehaviour(new Work.OnRequestDeliveryPolicy()));

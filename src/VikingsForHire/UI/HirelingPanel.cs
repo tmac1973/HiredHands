@@ -110,7 +110,7 @@ namespace VikingsForHire.UI
             if (Time.unscaledTime < _nextRefresh)
                 return;
             _nextRefresh = Time.unscaledTime + 0.3f;
-            string signature = $"{h.Mode}|{h.FollowMode}|{h.Stance}|{h.HasPost}|{_all}|{h.DisplayName}|{h.Zdo.GetString(HirelingZdo.SkipItems)}|{h.WorksAtHome}|{h.IsParked}|{h.Level}|{(h.Job == JobType.Smelter ? h.Zdo.GetString(HirelingZdo.Activity) : "")}";
+            string signature = $"{h.Mode}|{h.FollowMode}|{h.Stance}|{h.HasPost}|{_all}|{h.DisplayName}|{h.Zdo.GetString(HirelingZdo.SkipItems)}|{h.WorksAtHome}|{h.IsParked}|{h.Level}|{(ChoreRules.ChoresFor(h.Job).Count > 0 ? h.Zdo.GetString(HirelingZdo.Activity) : "")}";
             if (signature == _shown)
                 return;
             _shown = signature;
@@ -169,13 +169,13 @@ namespace VikingsForHire.UI
                 y -= 55f;
             }
 
-            // Stewards: each chore with its toggle, or why it can't be switched on; then what it's doing.
-            if (h.Job == JobType.Smelter && DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out JobData? steward))
+            // Stewards, Farmers, Cooks: each chore with its toggle, or why it can't be switched on; then what it's doing.
+            if (ChoreRules.ChoresFor(h.Job).Count > 0 && DataStore.Current.Jobs.TryGetValue(h.Job, out JobData? steward))
             {
                 PanelUi.Text(t, "$vfh_orders_chores", -170f, y, 140f, 18, TextAnchor.MiddleLeft);
                 HashSet<ChoreKind> off = ChoreRules.ChoresOff(h.Zdo?.GetString(HirelingZdo.SkipItems));
                 y -= 30f;
-                foreach (ChoreKind kind in ChoreKeys.All)
+                foreach (ChoreKind kind in ChoreRules.ChoresFor(h.Job))
                 {
                     string name = Localization.instance.Localize("$vfh_chore_" + ChoreKeys.Key(kind));
                     string? state = LockedState(kind, steward, h.Level);
@@ -198,7 +198,7 @@ namespace VikingsForHire.UI
                     }
                 }
                 y -= 10f;
-                string doing = Hirelings.Work.Steward.ActivityText.Show(h.Zdo?.GetString(HirelingZdo.Activity) ?? "");
+                string doing = Hirelings.Work.Chores.ActivityText.Show(h.Zdo?.GetString(HirelingZdo.Activity) ?? "");
                 if (doing.Length > 0)
                 {
                     PanelUi.Text(t, doing, 0f, y, 440f, 15, color: PanelUi.Dim);
@@ -266,7 +266,7 @@ namespace VikingsForHire.UI
         // A chore that can't be switched on for this Steward: off on the server, done by another mod, or not unlocked yet.
         private static string? LockedState(ChoreKind kind, JobData steward, int level)
         {
-            if (!Hirelings.Work.Steward.StewardBehaviour.ServerAllows(kind))
+            if (!Hirelings.Work.Chores.ChoreLoop.ServerAllows(kind))
                 return Localization.instance.Localize("$vfh_chore_state_disabled");
             if (Compat.StewardCompat.HandledBy(kind) is string mod)
                 return Localization.instance.Localize("$vfh_chore_state_handled", mod);

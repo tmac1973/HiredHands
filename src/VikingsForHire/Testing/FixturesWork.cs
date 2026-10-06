@@ -86,7 +86,7 @@ namespace VikingsForHire.Testing
             TestHarness.RegisterCheck("steward_chore", "- the chore the Steward from your last contract is doing now (Fires, Stations…), or none", _ =>
             {
                 Hirelings.Hireling h = Posted();
-                return h.Ai?.Steward?.Doing?.ToString() ?? "none";
+                return h.Ai?.Chores?.Doing?.ToString() ?? "none";
             });
 
             TestHarness.RegisterCheck("chest", "<tag> <item|free_slots> - count of an item in a tagged chest, or its free slots", args =>

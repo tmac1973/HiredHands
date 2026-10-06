@@ -6,6 +6,8 @@ using VikingsForHire.Core.Chores;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
 
+using VikingsForHire.Hirelings.Work.Chores;
+
 namespace VikingsForHire.Hirelings.Work.Steward
 {
     /// <summary>
@@ -27,7 +29,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         /// <summary>Food Stewards have dropped for each animal since load, by its instance id (for the tests).</summary>
         public static readonly Dictionary<int, int> Fed = new();
 
-        private readonly StewardSteps _walk = new();
+        private readonly WorkSteps _walk = new();
         private readonly List<(Character Animal, string Food)> _route = new();
         private Step _step;
         private Dictionary<string, int> _fetch = new();
@@ -39,7 +41,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         public string? Missing { get; private set; }
         public float RestAfter { get; private set; }
 
-        private static IEnumerable<(Character Animal, string[] Foods)> Hungry(StewardContext ctx)
+        private static IEnumerable<(Character Animal, string[] Foods)> Hungry(WorkContext ctx)
         {
             foreach (Character c in Character.GetAllCharacters())
             {
@@ -55,10 +57,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
             }
         }
 
-        private static string? FoodFor(StewardContext ctx, string[] foods) =>
+        private static string? FoodFor(WorkContext ctx, string[] foods) =>
             foods.FirstOrDefault(f => (ctx.Carried.TryGetValue(f, out int c) ? c : 0) > 0) ?? foods.FirstOrDefault(f => ctx.Available(f) > 0);
 
-        public IEnumerable<ChoreJob> Candidates(StewardContext ctx)
+        public IEnumerable<ChoreJob> Candidates(WorkContext ctx)
         {
             Missing = null;
             var jobs = new List<ChoreJob>();
@@ -82,7 +84,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             return jobs;
         }
 
-        public void Begin(ChoreJob job, StewardContext ctx)
+        public void Begin(ChoreJob job, WorkContext ctx)
         {
             Hireling h = ctx.Hireling;
             RestAfter = 0f;
@@ -133,7 +135,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     return ChoreProgress.Running;
                 ai.Halt();
                 ai.Face(chest.transform.position);
-                if (StewardSteps.TakeFromChest(chest, h, _fetch, VfhConfig.ChestReserve) == 0)
+                if (WorkSteps.TakeFromChest(chest, h, _fetch, VfhConfig.ChestReserve) == 0)
                 {
                     Reservations.Skip(chest, ChestSkipSeconds);
                     return End(h, 1f, ChoreProgress.Failed);
@@ -161,7 +163,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     return ChoreProgress.Running;
                 ai.Halt();
                 ai.Face(animal.transform.position);
-                string shared = StewardSteps.SharedName(food);
+                string shared = WorkSteps.SharedName(food);
                 GameObject? prefab = ObjectDB.instance.GetItemPrefab(food);
                 if (prefab == null || h.CargoInventory!.CountItems(shared) <= 0)
                 {

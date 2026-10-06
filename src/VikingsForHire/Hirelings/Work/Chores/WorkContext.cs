@@ -5,10 +5,10 @@ using VikingsForHire.Config;
 using VikingsForHire.Core;
 using VikingsForHire.Core.Data;
 
-namespace VikingsForHire.Hirelings.Work.Steward
+namespace VikingsForHire.Hirelings.Work.Chores
 {
-    /// <summary>What a survey knows about the Steward and its base, built once per survey and shared by every chore.</summary>
-    internal sealed class StewardContext
+    /// <summary>What a survey knows about the worker (Steward, Farmer, Cook) and its base, built once per survey and shared by every chore.</summary>
+    internal sealed class WorkContext
     {
         public readonly Hireling Hireling;
         public readonly Vector3 Home;
@@ -22,14 +22,19 @@ namespace VikingsForHire.Hirelings.Work.Steward
         public readonly int KeepMin;
         private readonly Dictionary<string, int> _available = new();
         private Dictionary<string, int>? _carried;
+        private readonly Dictionary<string, int> _baseReserve;
 
-        public StewardContext(Hireling h)
+        /// <summary>An extra amount of an item every worker leaves in the chests (the farm's seed reserve, for the Farmer's produce planting and the Cook).</summary>
+        public System.Func<string, int>? ExtraReserve { get; set; }
+
+        public WorkContext(Hireling h)
         {
             Hireling = h;
             Home = h.Home;
             Radius = h.Radius;
             Level = h.Level;
-            Job = DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out JobData? j) ? j : new JobData();
+            Job = DataStore.Current.Jobs.TryGetValue(h.Job, out JobData? j) ? j : new JobData();
+            _baseReserve = DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out JobData? s) ? s.KeepInStorage : new Dictionary<string, int>();
             AllChests = ChestFinder.Find(Home, Radius);
             Chests = AllChests.Where(c => !Reservations.IsSkipped(c)).ToList();
             KeepMin = VfhConfig.ChestReserve;
@@ -71,7 +76,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 total += inChest;
                 above += System.Math.Max(0, inChest - KeepMin);
             }
-            if (Job.KeepInStorage.TryGetValue(prefab, out int keep))
+            // The base's reserves (the Steward's keepInStorage, e.g. Wood 50) hold for every worker, plus this job's own and any extra.
+            int keep = System.Math.Max(Job.KeepInStorage.TryGetValue(prefab, out int own) ? own : 0, _baseReserve.TryGetValue(prefab, out int b) ? b : 0)
+                       + (ExtraReserve?.Invoke(prefab) ?? 0);
+            if (keep > 0)
                 above = System.Math.Min(above, System.Math.Max(0, total - keep));
             _available[prefab] = above;
             return above;

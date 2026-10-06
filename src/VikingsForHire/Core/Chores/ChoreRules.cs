@@ -34,6 +34,15 @@ namespace VikingsForHire.Core.Chores
             return levels.Count == 0 ? int.MaxValue : levels.Min();
         }
 
+        /// <summary>The chores a job does, in the Shift+E panel's order (none for jobs without a chore loop).</summary>
+        public static IReadOnlyList<ChoreKind> ChoresFor(JobType job) => job switch
+        {
+            JobType.Smelter => ChoreKeys.All.Where(k => k < ChoreKind.Harvest).ToList(),
+            JobType.Farmer => new[] { ChoreKind.Harvest, ChoreKind.Plant },
+            JobType.Cook => new[] { ChoreKind.Stoves, ChoreKind.Craft },
+            _ => Array.Empty<ChoreKind>(),
+        };
+
         /// <summary>The chores switched off in a contract's skip list.</summary>
         public static HashSet<ChoreKind> ChoresOff(string? skipItems)
         {

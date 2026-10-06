@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace VikingsForHire.Hirelings.Work.Steward
+namespace VikingsForHire.Hirelings.Work.Chores
 {
     /// <summary>
     /// Status lines with arguments, stored in the hireling's ZDO as "token|arg|arg" (each part a localization token or

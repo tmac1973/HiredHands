@@ -6,6 +6,8 @@ using VikingsForHire.Core.Chores;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
 
+using VikingsForHire.Hirelings.Work.Chores;
+
 namespace VikingsForHire.Hirelings.Work.Steward
 {
     /// <summary>
@@ -21,7 +23,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private const float PlayerClearance = 3f;
         private const float StuckSeconds = 15f;
 
-        private readonly StewardSteps _walk = new();
+        private readonly WorkSteps _walk = new();
         private readonly List<ItemDrop> _spots = new();
         private HashSet<string> _kinds = new();
         private int _picked;
@@ -30,10 +32,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
         public string? Missing { get; private set; }
         public float RestAfter { get; private set; }
 
-        private static HashSet<string> Stored(StewardContext ctx) =>
+        private static HashSet<string> Stored(WorkContext ctx) =>
             new(ctx.Chests.SelectMany(c => c.GetInventory().GetAllItems()).Where(i => i.m_dropPrefab != null).Select(i => i.m_dropPrefab.name));
 
-        private static IEnumerable<ItemDrop> Litter(StewardContext ctx, HashSet<string> stored)
+        private static IEnumerable<ItemDrop> Litter(WorkContext ctx, HashSet<string> stored)
         {
             float minAge = VfhConfig.StewardTidyMinSeconds.Value;
             foreach (ItemDrop d in ItemDrop.s_instances)
@@ -54,7 +56,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         }
 
         // Inside the area, under a ward the board's owner may use, not at a player's feet (they may want it back).
-        private static bool Tidyable(ItemDrop d, StewardContext ctx)
+        private static bool Tidyable(ItemDrop d, WorkContext ctx)
         {
             Vector3 p = d.transform.position;
             return Utils.DistanceXZ(p, ctx.Home) <= ctx.Radius && Player.GetClosestPlayer(p, PlayerClearance) == null && ctx.BoardOwnerMayUse(p);
@@ -68,12 +70,12 @@ namespace VikingsForHire.Hirelings.Work.Steward
                    _ctx != null && Tidyable(d, _ctx);
         }
 
-        private StewardContext? _ctx;
+        private WorkContext? _ctx;
 
         private float _explainedAt = -999f;
         private const float ExplainEvery = 60f;
 
-        public IEnumerable<ChoreJob> Candidates(StewardContext ctx)
+        public IEnumerable<ChoreJob> Candidates(WorkContext ctx)
         {
             Missing = null;
             HashSet<string> stored = Stored(ctx);
@@ -102,7 +104,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         }
 
         // Items lying in the radius that it leaves, and why (at most once a minute, only when there are some).
-        private void Explain(StewardContext ctx, HashSet<string> stored, string why)
+        private void Explain(WorkContext ctx, HashSet<string> stored, string why)
         {
             if (Time.time - _explainedAt < ExplainEvery)
                 return;
@@ -151,7 +153,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 ("noChestHolds", string.Join(", ", noChest.OrderByDescending(kv => kv.Value).Take(8).Select(kv => $"{kv.Key} x{kv.Value}"))));
         }
 
-        public void Begin(ChoreJob job, StewardContext ctx)
+        public void Begin(ChoreJob job, WorkContext ctx)
         {
             RestAfter = 0f;
             _walk.Reset();
@@ -191,7 +193,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             if (!_walk.Approach(ai, dt, spot, spot.transform.position))
                 return ChoreProgress.Running;
             ai.Halt();
-            int n = StewardSteps.PickUpDrops(h, spot.transform.position, _kinds, PickupRadius, Sweepable);
+            int n = WorkSteps.PickUpDrops(h, spot.transform.position, _kinds, PickupRadius, Sweepable);
             _picked += n;
             VfhLog.D(LogCat.Smelter, "steward.tidy", ("hid", h.Hid), ("at", spot != null ? spot.transform.position : Vector3.zero), ("picked", n));
             if (_spots.Count > 0)

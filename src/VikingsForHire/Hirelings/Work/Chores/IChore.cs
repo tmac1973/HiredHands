@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using VikingsForHire.Core.Chores;
 
-namespace VikingsForHire.Hirelings.Work.Steward
+namespace VikingsForHire.Hirelings.Work.Chores
 {
     internal enum ChoreProgress
     {
@@ -33,12 +33,12 @@ namespace VikingsForHire.Hirelings.Work.Steward
         ChoreKind Kind { get; }
 
         /// <summary>Jobs that need doing now, scored. Sets <see cref="Missing"/> when something needs doing but can't be.</summary>
-        IEnumerable<ChoreJob> Candidates(StewardContext ctx);
+        IEnumerable<ChoreJob> Candidates(WorkContext ctx);
 
         /// <summary>Why the chore has nothing it can do although something needs doing (a label), or null.</summary>
         string? Missing { get; }
 
-        void Begin(ChoreJob job, StewardContext ctx);
+        void Begin(ChoreJob job, WorkContext ctx);
 
         ChoreProgress Tick(HirelingAI ai, float dt);
 

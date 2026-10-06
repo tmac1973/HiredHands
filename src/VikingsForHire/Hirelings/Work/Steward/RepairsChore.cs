@@ -6,6 +6,8 @@ using VikingsForHire.Core.Chores;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
 
+using VikingsForHire.Hirelings.Work.Chores;
+
 namespace VikingsForHire.Hirelings.Work.Steward
 {
     /// <summary>
@@ -27,7 +29,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private static readonly Dictionary<int, (bool Ok, float At)> _routes = new();
         private static readonly Dictionary<int, string> _unreachable = new();
 
-        private readonly StewardSteps _walk = new();
+        private readonly WorkSteps _walk = new();
         private WearNTear? _piece;
         private float _lastEnemySeen = -999f;
         private float _waitLoggedAt = -999f;
@@ -39,7 +41,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         // Monsters about: any enemy of the Steward's (monsters only: the players' side counts deer and wild boar as
         // enemies too, and they never attack). Listed once per survey.
-        private static List<Vector3> Monsters(StewardContext ctx)
+        private static List<Vector3> Monsters(WorkContext ctx)
         {
             Humanoid me = ctx.Hireling.Humanoid;
             var found = new List<Vector3>();
@@ -59,7 +61,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         }
 
         // Not while a fight is on: no monster within 30 m of the Steward or of the piece, for a while after the last one.
-        private bool Quiet(StewardContext ctx, List<Vector3> monsters, Vector3 piece)
+        private bool Quiet(WorkContext ctx, List<Vector3> monsters, Vector3 piece)
         {
             if (monsters.Any(m => Vector3.Distance(m, ctx.Position) < EnemyRange || Vector3.Distance(m, piece) < EnemyRange))
             {
@@ -97,7 +99,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         // A spot it can walk to within hammer reach of the piece (or it's there already). Cached a minute per piece, and at
         // most a few new route checks per survey (each asks the pathfinder).
-        private static bool? Reachable(StewardContext ctx, WearNTear wnt, ref int checks)
+        private static bool? Reachable(WorkContext ctx, WearNTear wnt, ref int checks)
         {
             int id = wnt.GetInstanceID();
             if (_routes.TryGetValue(id, out var known) && Time.time - known.At < RouteCacheSeconds)
@@ -106,7 +108,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 return null; // not checked yet: a later survey will
             checks++;
             HirelingAI ai = ctx.Hireling.Ai;
-            bool ok = StewardSteps.WithinReach(ai, wnt, StewardSteps.HammerReach);
+            bool ok = WorkSteps.WithinReach(ai, wnt, WorkSteps.HammerReach);
             if (!ok)
             {
                 Vector3 c = wnt.transform.position;
@@ -117,7 +119,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     {
                         Vector3 spot = c + Quaternion.Euler(0f, i * 45f, 0f) * Vector3.forward * r;
                         spot.y = ZoneSystem.instance.GetSolidHeight(spot);
-                        ok = StewardSteps.WithinReach(spot, wnt, StewardSteps.HammerReach) && ai.CanReach(spot);
+                        ok = WorkSteps.WithinReach(spot, wnt, WorkSteps.HammerReach) && ai.CanReach(spot);
                     }
                 }
             }
@@ -125,7 +127,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             return ok;
         }
 
-        public IEnumerable<ChoreJob> Candidates(StewardContext ctx)
+        public IEnumerable<ChoreJob> Candidates(WorkContext ctx)
         {
             Missing = null;
             float below = VfhConfig.StewardRepairBelow.Value;
@@ -195,7 +197,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             return jobs;
         }
 
-        public void Begin(ChoreJob job, StewardContext ctx)
+        public void Begin(ChoreJob job, WorkContext ctx)
         {
             RestAfter = 1f; // a short pause between repairs, so it looks like work
             _walk.Reset();
@@ -218,7 +220,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 _unreachable[wnt.GetInstanceID()] = stuckOn != null ? stuckOn.m_name : Utils.GetPrefabName(wnt.gameObject);
                 return End(h, ChoreProgress.Failed);
             }
-            if (!_walk.Approach(ai, dt, wnt, wnt.transform.position, StewardSteps.HammerReach))
+            if (!_walk.Approach(ai, dt, wnt, wnt.transform.position, WorkSteps.HammerReach))
                 return ChoreProgress.Running;
             ai.Halt();
             ai.Face(wnt.transform.position + Vector3.up);

@@ -94,7 +94,7 @@ namespace VikingsForHire.Hirelings.Work
             {
                 h.NoTargets = true;
                 h.SetActivity(_fullItems.Count > 0
-                    ? Steward.ActivityText.Make("$vfh_status_storage_full", string.Join(", ", _fullItems.Select(Steward.StewardSteps.SharedName)))
+                    ? Chores.ActivityText.Make("$vfh_status_storage_full", string.Join(", ", _fullItems.Select(Chores.WorkSteps.SharedName)))
                     : "$vfh_status_no_targets");
                 VfhLog.I(LogCat.Work, "work.no_targets", ("hid", h.Hid), ("job", h.Job), ("radius", _area.Radius), ("center", _area.Center), ("skipped", why));
             }
