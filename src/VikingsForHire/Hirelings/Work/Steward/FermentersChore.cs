@@ -67,6 +67,11 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 bool ready = status == Fermenter.Status.Ready;
                 // Out in the open it never brews (vanilla keeps resetting it): don't load it; the player has to roof it over.
                 bool empty = status == Fermenter.Status.Empty && !f.m_exposed && f.m_hasRoof;
+                if (status == Fermenter.Status.Empty && !empty)
+                {
+                    Missing ??= ActivityText.Make("$vfh_need_cover", f.m_name);
+                    continue;
+                }
                 if (empty && !Bases(f).Any(b => Have(ctx, b) > 0))
                 {
                     Missing ??= ActivityText.Make("$vfh_need_base", f.m_name);
