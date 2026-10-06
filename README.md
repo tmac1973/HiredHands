@@ -1,6 +1,6 @@
 # Hired Hands
 
-Build a **Hiring Board** at your base and post contracts to hire wandering vikings. They chop wood, mine, look after your base (fires, smelters, beehives, animals, repairs and more) and guard it. Hire them for coins (level 1 for food: there are hardly any coins in the Meadows) and feed them every day. Upgrade the board with boss trophies to hire better vikings and more of them. Craft a **Command Stone** to take them out with you: they follow you through portals and dungeons and aboard ships, gather and fight on your orders, and find their own way home.
+Build a **Hiring Board** at your base and post contracts to hire wandering vikings. They chop wood, mine, farm, cook, look after your base (fires, smelters, beehives, animals, repairs and more) and guard it. Hire them for coins (level 1 for food: there are hardly any coins in the Meadows) and feed them every day. Upgrade the board with boss trophies to hire better vikings and more of them. Craft a **Command Stone** to take them out with you: they follow you through portals and dungeons and aboard ships, gather and fight on your orders, and find their own way home.
 
 Works in single-player and on dedicated servers. Every client and the server need the mod.
 
@@ -45,6 +45,8 @@ Works in single-player and on dedicated servers. Every client and the server nee
 | Woodcutter | Fells trees in its radius, clears the fallen logs and stumps, picks up wood, resin and seeds | Fells trees away from your buildings and leaves trees right next to them alone. Axe tier rises with level (stone, flint, bronze…), which decides what it can cut |
 | Miner | Mines copper, tin, rocks and boulders, ore before stone | Needs a level 2 board. Leaves rocks touching your builds alone and never digs near your buildings; out in the field it digs down to ore buried up to 1.5 m deep (but never digs up a deposit nobody has found, like a hidden silver vein). Pickaxe tier rises with level |
 | Steward (was the Smelter) | Looks after the base: fires, beehives, smelting stations, mills, animals, repairs and more (see *The Steward* below) | Armed with a broom. Still `Smelter` in the data file and commands |
+| Farmer | Plants and harvests your cultivated field to the board's orders (see *The Farmer and the Cook* below) | Needs a level 2 board; one per board. Carries a cultivator |
+| Cook | Cooks on your spits and in your oven, crafts at the cauldron, prep table and mead ketill, to the board's orders | Needs a level 2 board; one per board. Carries a ladle |
 | Guard (melee) | Patrols the radius and fights | Stances: Passive, Defensive, Aggressive |
 | Guard (ranged) | Same, with a bow | |
 
@@ -84,6 +86,24 @@ A Steward works inside its board's radius from the chests there, taking on more 
 - **Server settings** (*10 - Steward*): each chore can be turned off for everyone (`StewardFires`, `StewardBeehives`, `StewardStations`, `StewardMills`, `StewardSap`, `StewardAnimals`, `StewardRepairs`, `StewardFermenters`, `StewardShields`, `StewardTidy`, `StewardBoard`), plus `StewardFireRefillFraction` (0.5), `StewardRepairBelow` (0.95), `StewardRepairQuietSeconds` (20) and `StewardTidyMinSeconds` (60). The levels are `choreLevels` in the data file.
 
 **Workers only work while their area is loaded**, i.e. while a player is nearby, as with everything else in Valheim.
+
+## The Farmer and the Cook
+
+Both work to the board's **Orders** tab: a list of "keep at least X of this in the chests" orders. Add one with *Add farm order* or *Add kitchen order* (the list shows what your Farmer or Cook can make at its level), set the target with - / + (Shift for steps of 1), move orders up or down, pause or remove them. Orders are worked top to bottom; **seed orders always come first**. "Have" counts the chests in the board's area (above their reserves) plus what's growing in the field.
+
+**The Farmer** works the ground **you** cultivated inside its radius (bring your own cultivator; it never tills new ground):
+- It **harvests every ripe crop** and puts the harvest in chests that hold it, and picks **berry bushes, mushrooms and other regrowing plants** (wild, or planted with PlantEverything) only while an order for them is short. It never plants bushes. Stones, flint and branches are never picked.
+- It **plants** for the orders: a seed order ("keep 20 carrot seeds") plants carrots to grow seeds; a produce order ("keep 50 carrots") plants the seeds **above** the seed order's target, so your seed stock is never planted away. Barley, flax and oats replant from their own harvest.
+- Rows: it plants on a grid at the crop's spacing, lined up with the plants already there (with **PlantEasily**, at PlantEasily's spacing, and it harvests within PlantEasily's harvest radius). It only plants where the game would let the plant grow (cultivated, the right biome, open sky, room around it), so nothing it plants withers.
+- Crops unlock by level with their biome (`cropLevels` in the data file): carrots and Black Forest plants at 2, turnips 3, onions 4, barley, flax and cloudberries 5, Mistlands mushrooms 6, Ashlands plants 7, Deep North crops 8. `vfh_crops` lists what it knows.
+
+**The Cook** uses the kitchen you built in its radius:
+- **Spits and the oven:** it loads raw food for short orders, keeps the oven fuelled with wood, and takes food off as soon as it's done. While its food is cooking it stays near the stoves, so nothing burns.
+- **Cauldron, food preparation table, mead ketill:** it crafts what the station offers at its upgrade level, like you: fire under the cauldron and ketill, a roof over the prep table. When an order needs something it can make first (bread needs dough), it makes that and carries it straight on.
+- Ingredients come from the chests above their reserves; it never uses what a seed order keeps, nor the produce the Farmer needs to grow seeds. Its status says what's missing ("Carrot soup: needs 2 more Carrot").
+- Recipes unlock by the station: spits 1, cauldron 2 (+1 per cauldron upgrade level), iron spit 3, oven 5, prep table 6, mead ketill 7 (`stationLevels`, with per-item `recipeLevels`). `vfh_recipes` lists them.
+
+Both have Shift+E chore toggles (Harvesting / Planting, Spits and ovens / Cauldron…) and server settings in *11 - Farmer and Cook* (`FarmerHarvest`, `FarmerPlant`, `CookStoves`, `CookCraft`). The Steward's Board food chore puts the Cook's food on the board, so a base can feed its own hirelings.
 
 ## Followers: the Command Stone
 
@@ -161,7 +181,7 @@ A board hires up to its own level. Higher-level hirelings have more health and a
 
 Two files in `BepInEx/config`, both synced from the server and only editable there in multiplayer:
 
-- **`Spronglehump.HiredHands.cfg`**: rules and behaviour, in sections *General* (raw food, permadeath, respawn, graves), *Base* (what counts as a base, board spacing), *Hiring* (arrival delay, unpaid days, low funds warnings and map pins), *Work* (tree and rock safety distances, terrain protection and field digging, gathering noise, smelter refill threshold, chest minimums), *Steward* (chores on or off, refill and repair thresholds), *Followers* (portal and ship radius, catch-up, when lost followers go home, trip times), *Combat*, *Balance log* and *Debug*.
+- **`Spronglehump.HiredHands.cfg`**: rules and behaviour, in sections *General* (raw food, permadeath, respawn, graves), *Base* (what counts as a base, board spacing), *Hiring* (arrival delay, unpaid days, low funds warnings and map pins), *Work* (tree and rock safety distances, terrain protection and field digging, gathering noise, smelter refill threshold, chest minimums), *Steward* (chores on or off, refill and repair thresholds), *Farmer and Cook* (chores on or off), *Followers* (portal and ship radius, catch-up, when lost followers go home, trip times), *Combat*, *Balance log* and *Debug*.
 - **`Spronglehump.HiredHands.yml`**: the data tables: board levels and their upgrade costs, hireling levels (health, armour, cargo slots and weight, hire fee and upkeep in food and coins), per-job settings (cost multiplier, pickup list, what gatherers can be told to gather, gear by level, minimum board level, work-radius multiplier, steward stations and reserves), raw foods, names. Edits are picked up live. An invalid file is rejected with a log message and the defaults are used. **Updating the mod doesn't change values already in this file**: new settings are added with their defaults, but changed defaults (like 0.2.1's coin-only hiring and food-only upkeep) only reach a server when you edit the file or delete it to get a fresh one.
 
 ```yaml
@@ -179,12 +199,13 @@ jobs:
     pickupItems: [Stone, CopperOre, TinOre, ...]
 ```
 
-## AzuAutoStore, AzuCraftyBoxes, PullMats, PetPantry, Torches Eternal
+## AzuAutoStore, AzuCraftyBoxes, PullMats, PetPantry, Torches Eternal, PlantEverything, PlantEasily
 
 - The board's funds and hirelings' cargo are excluded from AzuAutoStore and AzuCraftyBoxes (and so from PullMats), so they never take your hireling money or cargo.
 - With AzuCraftyBoxes, **board upgrades take their materials from nearby chests** too (your inventory first, then the chests CraftyBoxes lets you pull from within its own range of the board). The Upgrade tab counts them ("Requires (counting nearby chests)"). Turn it off for yourself with `UpgradeFromNearbyChests` in the *Hiring* section of the cfg.
 - With AzuAutoStore, stewards leave bars and other station output for Azu to store into a chest that already holds it (seed one bar into a chest). Stations that keep their output inside, like the spinning wheel, are still emptied by the Steward.
 - With PetPantry the Steward doesn't feed animals; with Torches Eternal it doesn't fuel fires (the Shift+E chore list says "handled by PetPantry/TorchesEternal").
+- With PlantEverything, the Farmer picks the bushes and other plants you planted with it (for short orders); with PlantEasily, its rows use PlantEasily's spacing and it harvests within PlantEasily's harvest radius.
 
 ## Balance log (for server owners)
 
@@ -196,7 +217,7 @@ Logs go to `BepInEx/LogOutput.log` and `BepInEx/HiredHands.log`, one line per ev
 
 ## Coming next
 
-Ideas being considered: a Cook and a Farmer working to production orders ("keep 40 cooked meat"), woodcutters replanting, meal plans (more food for stronger hirelings), a scout. Balance tuning from the balance logs.
+Ideas being considered: smarter fighting (blocking, dodging, and tactics such as tank, hit and run, or shooting from cover), woodcutters replanting, meal plans (more food for stronger hirelings), a scout. Balance tuning from the balance logs.
 
 ## License
 

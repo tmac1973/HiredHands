@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.0
+
+- **Farmer.** A new job (board level 2, one per board) that works the ground you cultivated in its radius, holding a cultivator. It harvests every ripe crop and puts the harvest away, picks berry bushes and other regrowing plants while an order wants them (never planting bushes), and plants to the board's orders in tidy rows lined up with your own, only where the plant can grow. Crops unlock with their biome (`cropLevels`). Works with PlantEverything (its bushes and plants) and PlantEasily (its spacing and harvest radius).
+- **Cook.** A new job (board level 2, one per board) that uses the kitchen you built, holding a homemade ladle: it cooks on spits and in the oven (fuelling it, staying near so nothing burns) and crafts at the cauldron, food preparation table and mead ketill, like a player (station level, fire, roof). It makes an intermediate when it needs one (dough, then bread). Recipes unlock by station (`stationLevels`, `recipeLevels`).
+- **Production orders.** The board's new **Orders** tab: "keep at least X in stock" orders for the Farmer and the Cook, worked top to bottom with seed orders first. A seed order is also a reserve: those seeds are never planted for produce and never used by the Cook (nor the produce the Farmer needs to grow them).
+- **Server settings** *11 - Farmer and Cook*: `FarmerHarvest`, `FarmerPlant`, `CookStoves`, `CookCraft`. Debug: `vfh_crops`, `vfh_recipes`.
+- **Looting Stewards reach further:** a Steward in Gather Here picks up loot within `LootRadius` (Followers, 30 m) of its spot, instead of the gatherers' 15 m.
+- **Chests under raised floors:** hirelings deliver to a chest from a spot within reach of it (as a player would), instead of trying to walk to the chest itself and giving up.
+- **Pausing when chests are full** now waits until there's no room at all (10 more coal fitting no longer pauses the kiln).
+- **Repairs** leave pieces standing in water above half health (water wears them like rain), and skip for an hour a piece that's worn again soon after a repair with no enemy about (weak support), instead of going back to it over and over.
+- **Data file:** the Farmer and Cook jobs and their level tables are added to existing files automatically. 0.4 builds reject a file with them, so everyone moves to 0.5 together.
+
 ## 0.4.3
 
 - **Stewards stock the board with food.** A new level 1 chore, "Board food" (its own toggle in Shift+E; server setting `StewardBoard`): when a Steward's board has less than 3 days of upkeep left in food, it brings food from the chests up to 7 days (`StewardBoardRefillDays`, `StewardBoardFillDays`). Cheapest food first, as the board pays upkeep, so your best food stays in the chests; only food the board accepts (raw food only with `AllowRawFood`); never the last of a food in a chest.
