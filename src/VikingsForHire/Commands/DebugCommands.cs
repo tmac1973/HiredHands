@@ -59,6 +59,19 @@ namespace VikingsForHire.Commands
                 VfhLog.I(LogCat.Core, "mark", ("text", text));
                 VfhCommand.Print($"HiredHands: marked '{text}'");
             }));
+            Add(new VfhCommand("vfh_crops", "- list the crops a Farmer knows (sapling, seed, yield, level)", false, _ =>
+            {
+                foreach (Hirelings.Work.Farm.Crop c in Hirelings.Work.Farm.CropCatalog.All.OrderBy(c => c.Info.Level).ThenBy(c => c.Info.Yields))
+                    VfhCommand.Print(c.Info.Regrowing
+                        ? $"  L{c.Info.Level} {c.Info.Yields} x{c.Info.YieldPerPlant}: regrowing {c.Info.Plant}"
+                        : $"  L{c.Info.Level} {c.Info.Yields} x{c.Info.YieldPerPlant}: plant {c.Info.Plant} with {c.Info.ConsumesAmount} {c.Info.Consumes} (biome {c.Biome}, radius {c.GrowRadius:0.0})");
+            }));
+            Add(new VfhCommand("vfh_recipes", "- list what a Cook can make (station, inputs, level)", false, _ =>
+            {
+                foreach (Core.Orders.KitchenInfo k in Hirelings.Work.Kitchen.KitchenCatalog.All.OrderBy(k => k.Level).ThenBy(k => k.Output))
+                    VfhCommand.Print($"  L{k.Level} {k.Output} x{k.OutputAmount} at {k.Station}" + (k.StationLevelNeeded > 1 ? $" (level {k.StationLevelNeeded})" : "") +
+                                     ": " + string.Join(", ", k.Inputs.Select(i => $"{i.Value} {i.Key}")));
+            }));
             Add(new VfhCommand("vfh_dump_data", "- print the data tables in effect (server's when connected)", false, _ => DumpData()));
             Add(new VfhCommand("vfh_perf", "- hireling AI and Harmony patch cost on this machine (rolling 10 s window)", false, _ =>
             {

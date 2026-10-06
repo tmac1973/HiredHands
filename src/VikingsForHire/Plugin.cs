@@ -49,6 +49,8 @@ namespace VikingsForHire
             Followers.CommandStoneItem.Register();
             Board.HiringCharter.Register();
             Hirelings.BroomItem.Register();
+            Hirelings.Work.Farm.CropCatalog.Register();
+            Hirelings.Work.Kitchen.KitchenCatalog.Register();
             Net.FollowerServer.Register();
             Telemetry.BalanceLog.Register();
             Board.LowFunds.Register();

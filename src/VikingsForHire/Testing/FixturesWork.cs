@@ -83,6 +83,23 @@ namespace VikingsForHire.Testing
                                                       Utils.DistanceXZ(d.transform.position, at) <= radius).Sum(d => d.m_itemData.m_stack).ToString(CultureInfo.InvariantCulture);
             });
             Fixtures.Add("station_info", "<prefab> - log the nearest such station's make-up and state (as vfh_station), in step with the test", args => StationInfo(args));
+            TestHarness.RegisterCheck("crop_known", "<item> - true when a crop (planted or regrowing) yields this item", args =>
+                Hirelings.Work.Farm.CropCatalog.All.Any(c => c.Info.Yields == (args.ElementAtOrDefault(0) ?? "")).ToString().ToLowerInvariant());
+            TestHarness.RegisterCheck("recipe_known", "<item> - true when a Cook knows a way to make this item", args =>
+                Hirelings.Work.Kitchen.KitchenCatalog.All.Any(k => k.Output == (args.ElementAtOrDefault(0) ?? "")).ToString().ToLowerInvariant());
+            TestHarness.RegisterCheck("stock", "<item> [chests|growing] - the nearest board's stock of an item as orders count it (chests above reserves + growing)", args =>
+            {
+                HiringBoard board = Board();
+                Hirelings.Work.Stock s = Hirelings.Work.StockCounter.Count(board.transform.position, new Core.LevelRules(Config.DataStore.Current).MaxWorkRadius(board.Level));
+                string item = args.ElementAtOrDefault(0) ?? "";
+                int n = args.ElementAtOrDefault(1) switch
+                {
+                    "chests" => s.Chests.TryGetValue(item, out int c) ? c : 0,
+                    "growing" => s.Growing.TryGetValue(item, out int g) ? g : 0,
+                    _ => s.Have(item),
+                };
+                return n.ToString(CultureInfo.InvariantCulture);
+            });
             TestHarness.RegisterCheck("steward_chore", "- the chore the Steward from your last contract is doing now (Fires, Stations…), or none", _ =>
             {
                 Hirelings.Hireling h = Posted();
