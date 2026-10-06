@@ -8,7 +8,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
-| (this commit) | Repairs: unroofed pieces worn by rain (it stops at half health) are left alone above 50%; pieces repaired from a player's hammer reach (5 m, in sight); a route is checked before starting; a piece it can't get to is skipped for 30 min and named in the status ("Repairs: can't get to Wood beam") | the game simulating the Steward |
+| 3fe5c40 | Repairs: unroofed pieces worn by rain (it stops at half health) are left alone above 50%; pieces repaired from a player's hammer reach (5 m, in sight); a route is checked before starting; a piece it can't get to is skipped for 30 min and named in the status ("Repairs: can't get to Wood beam") | the game simulating the Steward |
 
 ### To test (batch)
 - [ ] Macros (single player): `vfh_test_chain repairs repairs2`.
