@@ -68,15 +68,25 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         private StewardContext? _ctx;
 
+        private float _explainedAt = -999f;
+        private const float ExplainEvery = 60f;
+
         public IEnumerable<ChoreJob> Candidates(StewardContext ctx)
         {
             Missing = null;
+            HashSet<string> stored = Stored(ctx);
             if (ctx.FreeSlots <= 0)
+            {
+                Explain(ctx, stored, "cargo full");
                 return Enumerable.Empty<ChoreJob>();
-            ItemDrop? nearest = Litter(ctx, Stored(ctx)).Where(d => !Reservations.IsSkipped(d))
+            }
+            ItemDrop? nearest = Litter(ctx, stored).Where(d => !Reservations.IsSkipped(d))
                 .OrderBy(d => Vector3.Distance(ctx.Position, d.transform.position)).FirstOrDefault();
             if (nearest == null)
+            {
+                Explain(ctx, stored, "");
                 return Enumerable.Empty<ChoreJob>();
+            }
             float u = ChoreUrgency.Tidy();
             return new[]
             {
@@ -87,6 +97,54 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     Label = "$vfh_steward_tidy",
                 },
             };
+        }
+
+        // Items lying in the radius that it leaves, and why (at most once a minute, only when there are some).
+        private void Explain(StewardContext ctx, HashSet<string> stored, string why)
+        {
+            if (Time.time - _explainedAt < ExplainEvery)
+                return;
+            float minAge = VfhConfig.StewardTidyMinSeconds.Value;
+            var reasons = new Dictionary<string, int>();
+            var noChest = new Dictionary<string, int>();
+            int total = 0;
+            foreach (ItemDrop d in ItemDrop.s_instances)
+            {
+                if (d == null || d.m_nview == null || !d.m_nview.IsValid() || d.m_itemData?.m_dropPrefab == null)
+                    continue;
+                Vector3 p = d.transform.position;
+                if (Utils.DistanceXZ(p, ctx.Home) > ctx.Radius)
+                    continue;
+                total++;
+                string name = d.m_itemData.m_dropPrefab.name;
+                string r;
+                if (d.m_itemData.m_customData.ContainsKey(DropPile.Tag))
+                    r = "board pile";
+                else if (!stored.Contains(name))
+                {
+                    noChest[name] = (noChest.TryGetValue(name, out int n) ? n : 0) + 1;
+                    continue;
+                }
+                else if (d.m_nview.GetZDO()?.GetBool(AnimalsChore.FeedKey) == true)
+                    r = "animal food";
+                else if (d.GetTimeSinceSpawned() < minAge)
+                    r = "too new";
+                else if (Player.GetClosestPlayer(p, PlayerClearance) != null)
+                    r = "by a player";
+                else if (!ctx.BoardOwnerMayUse(p))
+                    r = "warded";
+                else if (Reservations.IsSkipped(d))
+                    r = "skipped after a failed pickup";
+                else
+                    r = why.Length > 0 ? why : "takeable";
+                reasons[r] = (reasons.TryGetValue(r, out int m) ? m : 0) + 1;
+            }
+            if (total == 0)
+                return;
+            _explainedAt = Time.time;
+            VfhLog.I(LogCat.Smelter, "steward.tidy_left", ("hid", ctx.Hireling.Hid), ("onGround", total), ("freeSlots", ctx.FreeSlots),
+                ("why", string.Join(", ", reasons.Select(kv => $"{kv.Key} x{kv.Value}"))),
+                ("noChestHolds", string.Join(", ", noChest.OrderByDescending(kv => kv.Value).Take(8).Select(kv => $"{kv.Key} x{kv.Value}"))));
         }
 
         public void Begin(ChoreJob job, StewardContext ctx)
