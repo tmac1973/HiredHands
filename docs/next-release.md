@@ -12,7 +12,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | d0b9674 | Command Stone key hints: with the stone in hand the bottom-right hints read Recruit / order (left click), Recall / back to work (right click), Retreat (middle click), Hireling panel (Shift+E) instead of attack/block | your game |
 
 ### To test (batch)
-- [ ] Macros (single player): `vfh_test_chain pause1 pause2` (and still to run: `repairs repairs2`).
+- [x] Macros (single player): `vfh_test_chain pause1 pause2 repairs repairs2` (all passed 2026-10-06).
 - [ ] By hand: take out the Command Stone: the four hints show (and go back to the normal ones with another weapon).
 - [ ] Live server: fill the coal chests: Brand stops loading the kiln and says why; fill the wood chests: the woodcutter pauses with "Paused: no room left for Wood".
 
@@ -25,7 +25,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | 4b459db | `steward.tidy_left` (once a minute, when items lie in the radius and none is taken): how many, free cargo slots, why each is left, and which items no chest holds | the game simulating the Steward |
 
 ### To test (batch)
-- [ ] Macros (single player): `vfh_test_chain repairs repairs2`.
+- [x] Macros (single player): `vfh_test_chain repairs repairs2` (passed 2026-10-06).
 - [ ] Live server: switch Brand's Repairs back on: no endless walking at rain-worn walls or the beam by the stake wall; `steward.repair_stuck` lines at most once per piece per 30 min.
 
 ## 0.4.0 (released 2026-10-05): Steward chores
