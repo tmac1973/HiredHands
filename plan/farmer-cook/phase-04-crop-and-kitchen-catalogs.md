@@ -46,3 +46,7 @@ At runtime, learn every crop and every kitchen recipe/conversion from the game's
 
 ## Rollback
 Revert the commit; only debug commands use it until phase 05.
+
+## As built
+- Wild regrowing plants are only crops when their item is food or listed in `cropLevels` (so surtling core stands and the like aren't).
+- Crops and pickables near a board are found through the loaded ZDOs by prefab hash (`FarmScan`), not a physics query.

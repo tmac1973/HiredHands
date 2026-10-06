@@ -46,3 +46,8 @@ The Farmer plants: it asks the `FarmPlanner` what the orders need, fetches seeds
 
 ## Rollback
 Revert the commit; the Farmer harvests only (phase 06).
+
+## As built
+- Crops take 4000–5000 s to grow, more than `skip_time` allows (it stays under a day so no upkeep is charged), so the tests use a new fixture, `grow_all`, which replaces every growing crop near the board with its ripe pickable.
+- No separate shield/temperature check: the crop's biome check covers it (no vanilla crop grows in the cold biomes).
+- `vfh_t_farm_seeds` uses a seed order of 4 (not 6) so the first seed harvest leaves seeds above the reserve for carrots (two seed carrots give 6 seeds; with the per-chest minimum of 1, 2 are spare).

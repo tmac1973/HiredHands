@@ -40,3 +40,6 @@ The Steward's tested chore loop (survey every few seconds, most urgent job first
 
 ## Rollback
 Revert the commit (a pure move/rename plus wiring); later phases depend on it, so revert them first.
+
+## As built
+- The base's reserves (the Steward's `keepInStorage`, e.g. Wood 50) apply to every worker's `Available`, so the Cook doesn't burn the base's last building wood in the oven. `ExtraReserve` is set for the Cook (the farm's protected items); the Farmer doesn't need it, since its planner already limits planting to seeds above the reserve.
