@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2
+
+- **Workers pause when the chests are full** (server setting `PauseWhenStorageFull`, on). At home, when the chests that hold an item (the ones they deliver to) have less than a stack of room left, work that only makes more of it stops until there's room again: woodcutters leave trees for that wood, miners rocks for that ore, and Stewards stop loading a station whose product has no room (a charcoal kiln when the coal chests are full) and skip beehives, sap and tidying for full items. The status says why ("Paused: no room left for Wood", "Charcoal kiln: paused, no room left for Coal"). Orders and work out in the field aren't paused, and items no chest holds still go to the board's pile. Turn it off to keep working regardless.
+- **Command Stone key hints.** With the stone in hand, the hints at the bottom right show its controls: Recruit / order (left click), Recall / back to work (right click), Retreat (middle click), Hireling panel (Shift+E).
+
 ## 0.4.1
 
 - **Repairs leave rain wear alone.** Rain wears wood without a roof down to half health and no further, so a Steward no longer runs round topping up weathered walls: on such pieces it only repairs damage that takes them below half. Roofed pieces, pieces under a shield and pieces rain doesn't wear are repaired from 95% as before.
