@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.3
+
+- **Stewards stock the board with food.** A new level 1 chore, "Board food" (its own toggle in Shift+E; server setting `StewardBoard`): when a Steward's board has less than 3 days of upkeep left in food, it brings food from the chests up to 7 days (`StewardBoardRefillDays`, `StewardBoardFillDays`). Cheapest food first, as the board pays upkeep, so your best food stays in the chests; only food the board accepts (raw food only with `AllowRawFood`); never the last of a food in a chest.
+- **Stewards loot in the field.** Take a Steward along with the Command Stone and park it in **Gather here**: it picks up loot lying around its spot (monster drops, trophies, coins…), nearest first, until its cargo is full. It leaves what a player has only just dropped, the board's pile and anything under a ward you can't open. Back home it puts the loot away like other leftovers.
+- **Pausing when chests are full, more fixes:** room is counted in every chest in the area (a chest skipped for a minute after a failed fetch was left out, so a Steward could pause the kiln with room in a coal chest); fermenters keep a ready mead until its chests have room, and stations that hold their output (spinning wheel, eitr refinery) aren't emptied when there's nowhere to put it.
+- **Logs:** `storage.full` names the chests a pause counted and the room in each; `steward.tidy_left` names items left because their chests are full; `loot.unreachable` when a looting Steward gives up on an item.
+
 ## 0.4.2
 
 - **Workers pause when the chests are full** (server setting `PauseWhenStorageFull`, on). At home, when the chests that hold an item (the ones they deliver to) have less than a stack of room left, work that only makes more of it stops until there's room again: woodcutters leave trees for that wood, miners rocks for that ore, and Stewards stop loading a station whose product has no room (a charcoal kiln when the coal chests are full) and skip beehives, sap and tidying for full items. The status says why ("Paused: no room left for Wood", "Charcoal kiln: paused, no room left for Coal"). Orders and work out in the field aren't paused, and items no chest holds still go to the board's pile. Turn it off to keep working regardless.
