@@ -3,7 +3,7 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## 0.4.0 (unreleased): Steward chores
+## 0.4.0 (released 2026-10-05): Steward chores
 
 Plan: `plan/steward-chores/`.
 
