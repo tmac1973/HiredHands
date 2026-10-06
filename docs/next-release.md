@@ -3,20 +3,33 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## 0.4.4 (unreleased)
+## 0.5.0 (unreleased): Farmer, Cook and production orders
+
+Plan: `plan/farmer-cook/`. Includes the held 0.4.4 fixes (first four rows).
 
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
-| 3e51435 | Field looting has its own radius, `LootRadius` (Followers, 30 m), instead of the gatherers' `GatherNearbyRadius` (15 m): Brand picked up some loot and stopped with more lying further out | the owner's game |
+| 3e51435 | Field looting has its own radius, `LootRadius` (Followers, 30 m), instead of the gatherers' `GatherNearbyRadius` (15 m) | the owner's game |
+| d600744 | Deliveries walk to a standing spot within reach of the chest instead of the chest itself (chests tucked under a raised floor) | the game simulating the hireling |
+| 1a6bc10 | Pause when full only when the chests holding an item have no room at all; repairs leave pieces in water above half health and skip pieces that keep wearing for an hour | the game simulating the hireling |
+| e9c22bd | Farmer and Cook jobs (board level 2, one of each per board), `cropLevels` / `stationLevels` / `recipeLevels` in the data file | everywhere (data, rules) |
+| b3d19f0 | Production orders and the farm and kitchen planners (seed cycle, seed reserve, what the Cook may use, dough-then-bread chaining) | everywhere (pure logic, unit-tested) |
+| 0b1c6ff | The Steward's chore loop shared by Steward, Farmer and Cook; server toggles `FarmerHarvest`, `FarmerPlant`, `CookStoves`, `CookCraft` | the game simulating the hireling |
+| 34348fc | Crops (cultivator saplings, PlantEverything's and wild regrowing plants) and kitchen recipes read from the game; `vfh_crops`, `vfh_recipes` | everywhere |
+| 96b6223 | Orders tab on the board (add, target, reorder, pause, remove), saved on the board through its owner | your game; the board's owner applies |
+| 4215729 | Farmer with a cultivator: harvests ripe crops (always) and bushes for short orders, area harvest | the game simulating the Farmer |
+| cdba9c6 | Farmer plants in rows on free cultivated ground for the orders (seed orders first, seeds below the reserve never planted for produce) | the game simulating the Farmer |
+| ce0b397 | Cook with a ladle: spits and the oven (takes food off before it burns, fuels the oven, stays near while food cooks) | the game simulating the Cook |
+| 1a8d9f2 | Cook crafts at the cauldron, prep table and mead ketill (station level, fire, roof as a player), carries dough straight to the oven | the game simulating the Cook |
 
-| d600744 | Deliveries walk to a standing spot within reach of the chest (as Steward chores do) instead of the chest itself: chests tucked under a raised floor (reached from the ground in front, or from the floor above) were given up on as unreachable | the game simulating the hireling |
-| 1a6bc10 | Pause when full: only when the chests holding an item have no room at all (it paused the kiln with 10 coal still fitting: the rule was "less than a stack") | the game simulating the hireling |
-| 1a6bc10 | Repairs: pieces standing in water count as weathered (wear stops at half, like rain); a piece worn again within 10 min of a repair with no monster about since is skipped for an hour (`steward.repair_recurring`): Brand kept swimming out to a pole in the water | the game simulating the Steward |
 ### To test (batch)
-- [x] Macros (single player), regression: `vfh_test_chain deliver1 deliver2 nav1 nav5 keep1 azu3 pause1 pause2 repairs repairs2` (all passed 2026-10-06; deliver2 after its macro fix).
-- [ ] Live server: Brand delivers to the chests under the raised house without `deliver.chest_unreachable`.
-- [ ] Live server: park a Steward in Gather Here after a fight: it collects loot up to 30 m from its spot.
+- [ ] Macros (single player, add PlantEverything and PlantEasily to `vikingsforhire-dev` first): `vfh_test_chain catalog orders farm_harvest farm_bush farm_seeds farm_rows cook_spit cook_oven cook_cauldron cook_chain cook_protect`.
+- [ ] Macros (single player), Steward regression after the shared loop: `vfh_test_chain chore_gate chore_toggle fires beehive animals repairs repairs2 fermenter shield tidy board_food loot pause1 pause2`, then `deliver1 deliver2 nav1 nav5 keep1 azu3`.
+- [ ] Local dedicated server, from a client: `vfh_test_chain orders farm_harvest cook_spit`.
+- [ ] By hand: hire a Farmer (holds a cultivator) and a Cook (holds a ladle); a second Farmer is refused; the Orders tab adds, reorders, pauses and removes orders; `vfh_crops` / `vfh_recipes` list what you'd expect (with PlantEverything: raspberry bushes etc. as regrowing).
+- [ ] By hand (live mod set copy): a Farmer on a real field with a seed order and a produce order; PlantEasily rows match yours; a Cook on spits and a cauldron for half an hour; no `lvl=E`.
+- [ ] Live server (carried over from 0.4.4): Brand delivers to the chests under the raised house without `deliver.chest_unreachable`; a Steward in Gather Here collects loot up to 30 m out.
 
 ## 0.4.3 (released 2026-10-06)
 
