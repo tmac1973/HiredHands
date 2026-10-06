@@ -23,7 +23,7 @@ namespace VikingsForHire.UI
 
         private static BoardPanel? _instance;
 
-        private readonly List<IBoardTab> _tabs = new() { new ContractsTab(), new RosterTab(), new UpgradeTab() };
+        private readonly List<IBoardTab> _tabs = new() { new ContractsTab(), new RosterTab(), new OrdersTab(), new UpgradeTab() };
         private readonly List<Button> _tabButtons = new();
         private HiringBoard? _board;
         private RectTransform _content = null!;

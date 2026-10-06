@@ -131,6 +131,27 @@ namespace VikingsForHire.Board
                     result = new OpResult(OpOutcome.Ok);
                     break;
                 }
+                case RosterOpType.Orders:
+                {
+                    // Orders don't touch the roster: apply to their own key and stop here.
+                    Core.Orders.OrderList list = Core.Orders.OrderList.Parse(zdo.GetString(BoardZdo.Orders));
+                    bool ok = op.Edit switch
+                    {
+                        OrderEdit.Add => list.Add(op.OrderItem, (Core.Orders.OrderKind)op.OrderKind, op.OrderTarget),
+                        OrderEdit.Remove => list.Remove(op.OrderItem),
+                        OrderEdit.Up => list.Move(op.OrderItem, -1),
+                        OrderEdit.Down => list.Move(op.OrderItem, 1),
+                        OrderEdit.Target => list.SetTarget(op.OrderItem, op.OrderTarget),
+                        OrderEdit.Pause => list.SetPaused(op.OrderItem, op.OrderPaused),
+                        OrderEdit.Clear => ClearOrders(list),
+                        _ => false,
+                    };
+                    if (!ok)
+                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.BadValue));
+                    zdo.Set(BoardZdo.Orders, list.Serialize());
+                    VfhLog.I(LogCat.Roster, "orders.edit", ("board", boardId), ("edit", op.Edit), ("item", op.OrderItem), ("target", op.OrderTarget), ("count", list.Orders.Count));
+                    return Done(zdo, null, boardId, op, new OpResult(OpOutcome.Ok));
+                }
                 case RosterOpType.SetGather:
                 {
                     OpOutcome o = roster.SetGather(op.Hid, op.SkipItems, op.NoHomeWork);
@@ -201,6 +222,12 @@ namespace VikingsForHire.Board
             {
                 Mode = HirelingMode.Leaving, LeavingSince = (long)ZNet.instance.GetTimeSeconds(), Status = status,
             });
+
+        private static bool ClearOrders(Core.Orders.OrderList list)
+        {
+            list.Orders.Clear();
+            return true;
+        }
 
         private static OpResult Done(ZDO zdo, Roster? roster, string boardId, RosterOp op, OpResult result)
         {

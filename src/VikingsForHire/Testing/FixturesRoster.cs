@@ -24,6 +24,23 @@ namespace VikingsForHire.Testing
             Fixtures.Add("board_clear", "- empty the nearest board's storage", _ => BoardClear());
             Fixtures.Add("post", "<job> <level> [radius=20] [free] - post a contract on the nearest board (pays like the panel, or nothing with free) and wait for the answer", Post);
             Fixtures.Add("contract", "<cancel|dismiss|promote> - act on the contract last posted, through the real op", Contract);
+            Fixtures.Add("order", "<add|remove|clear> [item] [target] [seed|crop|kitchen] - edit the nearest board's production orders (through its owner, like the Orders tab)", Order);
+            TestHarness.RegisterCheck("order", "<item> <target|paused|position|kind> - an order on the nearest board (position 1-based in work order; none when absent)", args =>
+            {
+                Core.Orders.OrderList list = BoardOrders.For(FixturesWork.Board());
+                string item = args.ElementAtOrDefault(0) ?? "";
+                Core.Orders.ProductionOrder? o = list.Find(item);
+                if (o == null)
+                    return "none";
+                return (args.ElementAtOrDefault(1) ?? "target") switch
+                {
+                    "paused" => o.Paused.ToString().ToLowerInvariant(),
+                    "position" => (list.Orders.Where(x => x.Kind == Core.Orders.OrderKind.Seed).Concat(list.Orders.Where(x => x.Kind != Core.Orders.OrderKind.Seed))
+                        .ToList().IndexOf(o) + 1).ToString(CultureInfo.InvariantCulture),
+                    "kind" => o.Kind.ToString(),
+                    _ => o.Target.ToString(CultureInfo.InvariantCulture),
+                };
+            });
             Fixtures.Add("skip_time", "<seconds> - move the world clock on (up to 1500 s, under a day so no upkeep is charged): stations, fermenters and beehives catch up as after sleeping", SkipTime);
             Fixtures.Add("skip_days", "<n> - advance the clock n days (like skiptime 1800) and let the board charge upkeep", SkipDays);
             Fixtures.Add("cfg_set", "<key> <value> - set a config value (stays set: put it back after the test)", CfgSet);
@@ -222,6 +239,29 @@ namespace VikingsForHire.Testing
             entry.BoxedValue = BepInEx.Configuration.TomlTypeConverter.ConvertToValue(args.ElementAtOrDefault(1) ?? "", entry.SettingType);
             VfhLog.I(LogCat.Test, "fixture.cfg_set", ("key", entry.Definition.Key), ("value", VfhConfig.EffectiveValue(entry)));
             yield return null;
+        }
+
+        private static IEnumerator Order(string[] args)
+        {
+            HiringBoard board = FixturesWork.Board();
+            string what = args.ElementAtOrDefault(0) ?? "";
+            string item = args.ElementAtOrDefault(1) ?? "";
+            int target = int.TryParse(args.ElementAtOrDefault(2), NumberStyles.Integer, CultureInfo.InvariantCulture, out int t) ? t : 20;
+            Core.Orders.OrderKind kind = (args.ElementAtOrDefault(3) ?? "crop") switch
+            {
+                "seed" => Core.Orders.OrderKind.Seed,
+                "kitchen" => Core.Orders.OrderKind.Kitchen,
+                _ => Core.Orders.OrderKind.Crop,
+            };
+            switch (what)
+            {
+                case "add": BoardOrders.Submit(board, OrderEdit.Add, item, kind, target); break;
+                case "remove": BoardOrders.Submit(board, OrderEdit.Remove, item); break;
+                case "clear": BoardOrders.Submit(board, OrderEdit.Clear, ""); break;
+                default: throw new InvalidOperationException("order add|remove|clear");
+            }
+            VfhLog.I(LogCat.Test, "fixture.order", ("what", what), ("item", item), ("target", target), ("kind", kind));
+            yield return new WaitForSeconds(0.5f); // the edit goes through the board's owner
         }
     }
 }

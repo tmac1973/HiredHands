@@ -291,6 +291,11 @@ namespace VikingsForHire.Tests
             op.Write(w);
             Assert.Equivalent(op, RosterOp.Read(new R(w.Stream.ToArray())));
 
+            var orders = new RosterOp { Type = RosterOpType.Orders, Edit = OrderEdit.Pause, OrderItem = "CarrotSeeds", OrderKind = 0, OrderTarget = 12, OrderPaused = true };
+            var wo = new W();
+            orders.Write(wo);
+            Assert.Equivalent(orders, RosterOp.Read(new R(wo.Stream.ToArray())));
+
             var h = new HirelingOp { Mode = HirelingMode.Leaving, LeavingSince = 99, Status = "$x" };
             var w2 = new W();
             h.Write(w2);

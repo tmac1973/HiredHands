@@ -17,7 +17,7 @@ namespace VikingsForHire.Board
         public static readonly System.Collections.Generic.Dictionary<string, string> BoardOfHid = new();
 
         /// <summary>Outcome of the last op this client submitted (for tests).</summary>
-        public static string LastOutcome { get; private set; } = "none";
+        public static string LastOutcome { get; internal set; } = "none";
 
         public static void Post(HiringBoard board, JobType job, int level, float radius, Stance stance, Action<OpResult>? done = null, bool free = false)
         {

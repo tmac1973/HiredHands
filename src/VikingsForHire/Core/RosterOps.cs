@@ -14,6 +14,19 @@ namespace VikingsForHire.Core
         SetPost = 8,
         Rename = 9,
         SetGather = 10,
+        Orders = 11,
+    }
+
+    /// <summary>An edit to the board's production orders (RosterOpType.Orders).</summary>
+    public enum OrderEdit
+    {
+        Add = 0,
+        Remove = 1,
+        Up = 2,
+        Down = 3,
+        Target = 4,
+        Pause = 5,
+        Clear = 6,
     }
 
     /// <summary>A change to a board's roster, as sent over the network to whoever owns the board.</summary>
@@ -35,6 +48,13 @@ namespace VikingsForHire.Core
         /// <summary>SetGather: items switched off, and whether it stays idle at home.</summary>
         public string SkipItems { get; set; } = "";
         public bool NoHomeWork { get; set; }
+
+        /// <summary>Orders: the edit, the item, its kind (Core.Orders.OrderKind) and the target or paused state.</summary>
+        public OrderEdit Edit { get; set; }
+        public string OrderItem { get; set; } = "";
+        public int OrderKind { get; set; }
+        public int OrderTarget { get; set; }
+        public bool OrderPaused { get; set; }
 
         public void Write(IPackageWriter w)
         {
@@ -58,6 +78,11 @@ namespace VikingsForHire.Core
             }
             w.Write(SkipItems);
             w.Write(NoHomeWork ? 1 : 0);
+            w.Write((int)Edit);
+            w.Write(OrderItem);
+            w.Write(OrderKind);
+            w.Write(OrderTarget);
+            w.Write(OrderPaused ? 1 : 0);
         }
 
         public static RosterOp Read(IPackageReader r)
@@ -67,6 +92,11 @@ namespace VikingsForHire.Core
                 op.Post = new GuardPost { X = r.ReadSingle(), Y = r.ReadSingle(), Z = r.ReadSingle(), Yaw = r.ReadSingle() };
             op.SkipItems = r.ReadString();
             op.NoHomeWork = r.ReadInt() == 1;
+            op.Edit = (OrderEdit)r.ReadInt();
+            op.OrderItem = r.ReadString();
+            op.OrderKind = r.ReadInt();
+            op.OrderTarget = r.ReadInt();
+            op.OrderPaused = r.ReadInt() == 1;
             return op;
         }
 
