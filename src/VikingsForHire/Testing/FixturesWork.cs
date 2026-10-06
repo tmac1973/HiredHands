@@ -65,6 +65,12 @@ namespace VikingsForHire.Testing
             Fixtures.Add("litter", "<item> <count> [tag] - drop items 10 m from the board, already on the ground long enough to be tidied", Litter);
             TestHarness.RegisterCheck("fermenter_status", "<tag> - Empty, Fermenting, Exposed or Ready", args =>
                 (FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<global::Fermenter>() ?? throw new InvalidOperationException("no such tagged fermenter")).GetStatus().ToString());
+            TestHarness.RegisterCheck("fermenter_cover", "<tag> - a tagged fermenter's cover (0..1, it needs 0.7) and whether it has a roof, as the game measures them", args =>
+            {
+                global::Fermenter f = FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<global::Fermenter>() ?? throw new InvalidOperationException("no such tagged fermenter");
+                Cover.GetCoverForPoint(f.m_roofCheckPoint.position, out float cover, out bool roof);
+                return $"{cover.ToString("0.00", CultureInfo.InvariantCulture)} roof={roof} exposed={f.m_exposed} hasRoof={f.m_hasRoof}";
+            });
             TestHarness.RegisterCheck("shield_fuel", "<tag> - a tagged shield generator's fuel", args =>
                 (FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<ShieldGenerator>() ?? throw new InvalidOperationException("no such tagged generator"))
                     .GetFuel().ToString("0.0", CultureInfo.InvariantCulture));

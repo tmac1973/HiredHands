@@ -21,6 +21,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private readonly StewardSteps _walk = new();
         private readonly List<Producer> _route = new();
         private float _extractedAt = -1f;
+        private int _picked;
 
         /// <summary>A beehive or a sap collector, read the same way.</summary>
         private sealed class Producer
@@ -111,6 +112,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             foreach (Producer x in _route)
                 Reservations.TryReserve(x.Comp, h.Hid);
             h.HoldDeliveries = true;
+            _picked = 0;
         }
 
         public ChoreProgress Tick(HirelingAI ai, float dt)
@@ -148,6 +150,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             if (Time.time - _extractedAt < PickupDelay)
                 return ChoreProgress.Running;
             int picked = StewardSteps.PickUpDrops(h, x.SpawnAt, new HashSet<string> { x.Item }, PickupRadius);
+            _picked += picked;
             VfhLog.D(LogCat.Smelter, "steward.collected", ("hid", h.Hid), ("kind", Kind), ("item", x.Item), ("n", picked));
             Next(h);
             // Cargo full: deliver what it has (the delivery rule) and come back for the rest later.
@@ -168,6 +171,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private ChoreProgress End(Hireling h, float rest, ChoreProgress result = ChoreProgress.Done)
         {
             h.HoldDeliveries = false;
+            // Put it all away now. Sap is also refinery fuel, so the delivery rule alone would keep it as supply.
+            if (_picked > 0 && h.Zdo != null)
+                h.Zdo.Set(HirelingZdo.DeliverPending, true);
+            _picked = 0;
             foreach (Producer x in _route.Where(x => x.Comp != null))
                 Reservations.Release(x.Comp, h.Hid);
             _route.Clear();
