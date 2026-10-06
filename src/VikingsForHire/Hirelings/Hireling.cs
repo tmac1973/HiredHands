@@ -112,6 +112,9 @@ namespace VikingsForHire.Hirelings
         /// <summary>Set while a Steward collects from several producers in one trip: deliver once at the end, not after each.</summary>
         public bool HoldDeliveries { get; set; }
 
+        /// <summary>A chore is carrying supplies it fetched (seeds, ingredients, board food): deliver nothing until it's done, full cargo or not.</summary>
+        public bool FetchingSupplies { get; set; }
+
         /// <summary>
         /// Armor applied to incoming hits: the real armor of the worn set (as a player in that gear would have) plus the
         /// level's bonus. Vanilla only applies body armor to players, so DamagePatches applies this itself.

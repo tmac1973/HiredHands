@@ -138,6 +138,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                 _item = _task.Info.Inputs.Keys.First();
                 _count = Mathf.Min(_task.Batches, KitchenState.FreeSlots(_station));
             }
+            h.FetchingSupplies = true;
             int carried = ctx.Carried.TryGetValue(_item, out int c) ? c : 0;
             int need = Mathf.Min(_count - carried, ctx.Available(_item));
             if (need > 0)
@@ -206,12 +207,12 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                     if (picked > 0 && h.Zdo != null)
                         h.Zdo.Set(HirelingZdo.DeliverPending, true);
                     VfhLog.D(LogCat.Work, "cook.takeoff", ("hid", h.Hid), ("station", Utils.GetPrefabName(s.gameObject)), ("picked", picked));
-                    return End(h, 0.5f);
+                    return End(h, 0.5f, picked > 0 ? ChoreProgress.Done : ChoreProgress.Failed);
                 case VariantFuel:
                 {
                     string shared = WorkSteps.SharedName(_item);
-                    if (_done >= _count || h.CargoInventory!.CountItems(shared) <= 0)
-                        return End(h, 0.5f);
+                    if (_done >= _count || h.CargoInventory!.CountItems(shared) <= 0 || s.GetFuel() >= s.m_maxFuel - 1)
+                        return End(h, 0.5f, _done > 0 ? ChoreProgress.Done : ChoreProgress.Failed);
                     h.CargoInventory.RemoveItem(shared, 1);
                     s.m_nview.InvokeRPC("RPC_AddFuel");
                     _done++;
@@ -220,10 +221,12 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                 default:
                 {
                     string shared = WorkSteps.SharedName(_item);
-                    if (_done >= _count || h.CargoInventory!.CountItems(shared) <= 0 || !KitchenState.Heated(s))
+                    if (!s.m_nview.IsOwner())
+                        s.m_nview.ClaimOwnership(); // so the slot fills here and now, and the free-slot check below is current
+                    if (_done >= _count || h.CargoInventory!.CountItems(shared) <= 0 || !KitchenState.Heated(s) || KitchenState.FreeSlots(s) <= 0)
                     {
                         KitchenState.Unpin(h.Hid); // a pinned follow-up (dough into the oven) is done now
-                        return End(h, 0.5f);
+                        return End(h, 0.5f, _done > 0 ? ChoreProgress.Done : ChoreProgress.Failed);
                     }
                     h.CargoInventory.RemoveItem(shared, 1);
                     s.m_nview.InvokeRPC("RPC_AddItem", _item, false);
@@ -238,6 +241,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
         private ChoreProgress End(Hireling h, float rest, ChoreProgress result = ChoreProgress.Done)
         {
             h.HoldDeliveries = false;
+            h.FetchingSupplies = false;
             if (BoardOrders.BoardOf(h.BoardId) is HiringBoard board)
                 KitchenState.Forget(board, h.Hid);
             _station = null;

@@ -24,6 +24,9 @@ namespace VikingsForHire.Hirelings.Work
         private static readonly List<Plant> Plants = new();
         private static readonly List<Pickable> Pickables = new();
 
+        /// <summary>Count afresh next time (after planting, harvesting or cooking changed things).</summary>
+        public static void Forget() => Cache.Clear();
+
         public static Stock Count(Vector3 home, float radius)
         {
             if (Cache.TryGetValue((home, radius), out var hit) && Time.time - hit.At < CacheSeconds)
@@ -43,7 +46,8 @@ namespace VikingsForHire.Hirelings.Work
                     stock.Chests[k.Key] = System.Math.Min(stock.Chests[k.Key], System.Math.Max(0, total[k.Key] - k.Value));
 
             FarmScan.Nearby(home, radius, Plants, Pickables);
-            foreach (Plant p in Plants)
+            // Only plants that are growing: one that can't (too hot, no sun…) will wither, so it doesn't count.
+            foreach (Plant p in Plants.Where(p => p.GetStatus() == Plant.Status.Healthy))
                 if (CropCatalog.BySapling(Utils.GetPrefabName(p.gameObject)) is Crop crop)
                     Add(stock.Growing, crop);
             foreach (Pickable p in Pickables)

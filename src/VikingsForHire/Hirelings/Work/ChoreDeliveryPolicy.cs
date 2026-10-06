@@ -16,7 +16,7 @@ namespace VikingsForHire.Hirelings.Work
         public static readonly System.Collections.Generic.HashSet<string> ChoreOutputs = new();
 
         public bool NeedsDelivery(Hireling h) =>
-            h.CargoInventory != null && !(h.HoldDeliveries && h.CargoInventory.NrOfItems() < h.CargoSlots) && h.CargoInventory.GetAllItems().Any(i => i.m_dropPrefab != null && Delivers(h, i.m_dropPrefab.name));
+            h.CargoInventory != null && !h.FetchingSupplies && !(h.HoldDeliveries && h.CargoInventory.NrOfItems() < h.CargoSlots) && h.CargoInventory.GetAllItems().Any(i => i.m_dropPrefab != null && Delivers(h, i.m_dropPrefab.name));
 
         public bool Delivers(Hireling h, string prefab) =>
             h.DeliverPending || StationSurvey.Products().Contains(prefab) || (ChoreOutputs.Contains(prefab) && !StationSurvey.Consumed().Contains(prefab)) || LeftoversExpired(h);

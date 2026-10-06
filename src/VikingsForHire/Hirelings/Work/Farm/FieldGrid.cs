@@ -75,6 +75,8 @@ namespace VikingsForHire.Hirelings.Work.Farm
             var key = (crop.Info.Plant, home, radius);
             if (Cache.TryGetValue(key, out var hit) && Time.time - hit.At < CacheSeconds)
                 return hit.Spots;
+            foreach (Vector3Int expired in Avoided.Where(kv => kv.Value < Time.time).Select(kv => kv.Key).ToList())
+                Avoided.Remove(expired);
             Grid g = For(crop, home, radius, fallbackRow);
             var spots = new List<Vector3>();
             int n = Mathf.CeilToInt(radius * 2f / g.Spacing) + 2;
@@ -97,13 +99,33 @@ namespace VikingsForHire.Hirelings.Work.Farm
 
         public static void Forget() => Cache.Clear();
 
+        private const float AvoidSeconds = 600f;
+        private static readonly Dictionary<Vector3Int, float> Avoided = new();
+
+        private static Vector3Int Cell(Vector3 p) => new(Mathf.RoundToInt(p.x * 4f), 0, Mathf.RoundToInt(p.z * 4f));
+
+        /// <summary>A spot the Farmer couldn't get to: left out for 10 minutes.</summary>
+        public static void Avoid(Vector3 p)
+        {
+            Avoided[Cell(p)] = Time.time + AvoidSeconds;
+            Cache.Clear();
+        }
+
         /// <summary>Whether the game would let this crop grow here (checked again just before planting).</summary>
         public static bool IsFree(Crop crop, Vector3 p, long owner)
         {
+            if (Avoided.TryGetValue(Cell(p), out float until) && until > Time.time)
+                return false;
             Heightmap? hm = Heightmap.FindHeightmap(p);
             if (hm == null || (crop.NeedCultivated && !hm.IsCultivated(p)))
                 return false;
-            if (WorldGenerator.instance != null && (WorldGenerator.instance.GetBiome(p) & crop.Biome) == 0)
+            Heightmap.Biome biome = WorldGenerator.instance != null ? WorldGenerator.instance.GetBiome(p) : crop.Biome;
+            if ((biome & crop.Biome) == 0)
+                return false;
+            // As the plant's own health check: too hot in the Ashlands, too cold in the Mountains and Deep North, unless a shield covers it.
+            bool hot = biome == Heightmap.Biome.AshLands && !crop.TolerateHeat;
+            bool cold = (biome == Heightmap.Biome.Mountain || biome == Heightmap.Biome.DeepNorth) && !crop.TolerateCold;
+            if ((hot || cold) && !ShieldGenerator.IsInsideShield(p))
                 return false;
             // The plant's own checks: nothing solid within its grow radius, open sky above.
             int hits = Physics.OverlapSphereNonAlloc(p, crop.GrowRadius, Hits, SpaceMask);

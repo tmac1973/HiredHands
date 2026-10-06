@@ -110,7 +110,7 @@ namespace VikingsForHire.Tests
             new KitchenInfo { Output = "Bread", Station = "piece_oven", Kind = StationKind.Stove, Inputs = new() { ["BreadDough"] = 1 }, Level = 5 },
         };
 
-        private static readonly HashSet<string> AllStations = new() { "piece_cookingstation", "piece_cauldron", "piece_preptable", "piece_oven" };
+        private static readonly Dictionary<string, int> AllStations = new() { ["piece_cookingstation"] = 1, ["piece_cauldron"] = 1, ["piece_preptable"] = 1, ["piece_oven"] = 1 };
 
         [Fact]
         public void CooksTheFirstShortOrder()
@@ -142,7 +142,7 @@ namespace VikingsForHire.Tests
             Assert.Equal("Bread", r.Task.Then!.Info.Output);
             Assert.Equal(2, r.Task.Then.Batches);
             Assert.Equal("$vfh_need_cook_level|Bread|5", KitchenPlanner.Next(Kitchen, l, D(("BreadDough", 5)), D(), 4, AllStations).Missing);
-            Assert.Equal("$vfh_need_kitchen|Bread", KitchenPlanner.Next(Kitchen, l, D(("BreadDough", 5)), D(), 6, new HashSet<string>()).Missing);
+            Assert.Equal("$vfh_need_kitchen|Bread", KitchenPlanner.Next(Kitchen, l, D(("BreadDough", 5)), D(), 6, new Dictionary<string, int>()).Missing);
         }
     }
 }

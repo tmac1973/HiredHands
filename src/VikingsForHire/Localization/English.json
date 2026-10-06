@@ -125,7 +125,7 @@
   "vfh_need_field": "No free cultivated ground",
   "vfh_need_farmer_level": "$1: needs a level $2 Farmer",
   "vfh_need_cook_level": "$1: needs a level $2 Cook",
-  "vfh_need_kitchen": "$1: no station here makes it",
+  "vfh_need_kitchen": "$1: no station here can make it now (fire, roof, free slot or upgrade level)",
   "vfh_need_ingredient": "$1: needs $2 more $3",
   "vfh_farmer_idle": "Field tended",
   "vfh_farmer_harvest": "Harvesting $1",

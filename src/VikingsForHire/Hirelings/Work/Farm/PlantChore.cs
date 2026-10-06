@@ -72,7 +72,8 @@ namespace VikingsForHire.Hirelings.Work.Farm
             {
                 new ChoreJob
                 {
-                    Kind = Kind, Target = board, Urgency = u,
+                    // The Farmer itself, not the board: a failure skips its own planting, never the board (the Steward stocks it).
+                    Kind = Kind, Target = ctx.Hireling, Urgency = u,
                     Score = ChoreUrgency.Score(u, Vector3.Distance(ctx.Position, board.transform.position), ctx.Radius),
                     Label = ActivityText.Make("$vfh_farmer_plant", WorkSteps.SharedName(info.Consumes)),
                 },
@@ -86,7 +87,12 @@ namespace VikingsForHire.Hirelings.Work.Farm
             _spots.Clear();
             _planted = 0;
             _progressAt = Time.time;
-            _board = (HiringBoard)job.Target;
+            _board = BoardOrders.BoardOf(ctx.Hireling.BoardId);
+            if (_board == null)
+            {
+                _count = 0;
+                return;
+            }
             _owner = DoorRules.BoardOwner(_board.Id);
             FarmPlan plan = FarmState.For(_board);
             (CropInfo info, int count) = plan.Plant[0];
@@ -97,7 +103,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
                 return;
             }
             Hireling h = ctx.Hireling;
-            h.HoldDeliveries = true;
+            h.FetchingSupplies = true;
             int each = Mathf.Max(1, info.ConsumesAmount);
             int carried = ctx.Carried.TryGetValue(info.Consumes, out int c) ? c : 0;
             int stack = Mathf.Max(1, WorkSteps.MaxStack(info.Consumes));
@@ -147,7 +153,8 @@ namespace VikingsForHire.Hirelings.Work.Farm
             {
                 if (Time.time - _progressAt > StuckSeconds)
                 {
-                    _spots.RemoveAt(0); // can't get to this one; try the next
+                    FieldGrid.Avoid(spot); // can't get to this one: left alone for a while; try the next
+                    _spots.RemoveAt(0);
                     _progressAt = Time.time;
                     return ChoreProgress.Running;
                 }
@@ -198,7 +205,9 @@ namespace VikingsForHire.Hirelings.Work.Farm
 
         private ChoreProgress End(Hireling h, float rest, ChoreProgress result = ChoreProgress.Done)
         {
-            h.HoldDeliveries = false;
+            h.FetchingSupplies = false;
+            if (_planted == 0 && result == ChoreProgress.Done)
+                result = ChoreProgress.Failed; // nothing planted: count it, so a job that can't be done gets set aside
             if (_planted > 0 && _board != null)
             {
                 FarmState.Invalidate(_board);

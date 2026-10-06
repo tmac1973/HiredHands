@@ -160,6 +160,22 @@ namespace VikingsForHire.Hirelings.Work.Chores
             return moved;
         }
 
+        /// <summary>
+        /// Adds items to cargo; whatever doesn't fit is dropped at the hireling's feet. Counted before and after, since the
+        /// game's AddItem can add part of an amount (topping up stacks) and still report failure.
+        /// </summary>
+        public static void AddToCargo(Hireling h, GameObject prefab, int amount)
+        {
+            if (h.CargoInventory == null || amount <= 0)
+                return;
+            string shared = prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+            int before = h.CargoInventory.CountItems(shared);
+            h.CargoInventory.AddItem(prefab, amount);
+            int left = amount - (h.CargoInventory.CountItems(shared) - before);
+            if (left > 0)
+                ItemDrop.DropItem(prefab.GetComponent<ItemDrop>().m_itemData.Clone(), left, h.transform.position + h.transform.forward * 0.5f + Vector3.up * 0.3f, Quaternion.identity);
+        }
+
         /// <summary>Picks up dropped items of these kinds near a point into cargo, as far as cargo allows. Returns how many.</summary>
         public static int PickUpDrops(Hireling h, Vector3 around, ICollection<string> prefabs, float radius, System.Func<ItemDrop, bool>? only = null)
         {

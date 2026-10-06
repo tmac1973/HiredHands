@@ -164,17 +164,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
                     items.Add((extra.m_dropPrefab, extra.m_stack));
             foreach ((GameObject prefab, int amount) in items)
             {
-                int left = amount;
-                while (left > 0)
-                {
-                    int chunk = Mathf.Min(left, Mathf.Max(1, prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_maxStackSize));
-                    if (!h.CargoInventory!.AddItem(prefab, chunk))
-                    {
-                        ItemDrop.DropItem(prefab.GetComponent<ItemDrop>().m_itemData.Clone(), left, h.transform.position + h.transform.forward * 0.5f + Vector3.up * 0.3f, Quaternion.identity);
-                        break;
-                    }
-                    left -= chunk;
-                }
+                WorkSteps.AddToCargo(h, prefab, amount);
                 Harvested[prefab.name] = (Harvested.TryGetValue(prefab.name, out int t) ? t : 0) + amount;
                 ChoreDeliveryPolicy.ChoreOutputs.Add(prefab.name);
             }

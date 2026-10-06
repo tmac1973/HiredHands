@@ -46,15 +46,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
         {
             if (s.GetLevel() < info.StationLevelNeeded)
                 return ActivityText.Make("$vfh_need_station_level", WorkSteps.SharedName(info.Output), info.StationLevelNeeded.ToString(), s.m_name);
-            if (s.m_craftRequireFire && !EffectArea.IsPointPlus025InsideBurningArea(s.transform.position))
-                return ActivityText.Make("$vfh_need_fire", s.m_name);
-            if (s.m_craftRequireRoof)
-            {
-                Cover.GetCoverForPoint(s.m_roofCheckPoint != null ? s.m_roofCheckPoint.position : s.transform.position, out float cover, out bool roof, 0.5f);
-                if (!roof || cover < 0.7f)
-                    return ActivityText.Make("$vfh_need_roof", s.m_name);
-            }
-            return null;
+            return KitchenState.CraftBlocked(s);
         }
 
         public IEnumerable<ChoreJob> Candidates(WorkContext ctx)
@@ -118,7 +110,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                 _batches = 0;
                 return;
             }
-            ctx.Hireling.HoldDeliveries = true;
+            ctx.Hireling.FetchingSupplies = true;
             // As many batches as the cargo can hold the ingredients (and the result) for.
             _batches = _task.Batches;
             while (_batches > 1 && SlotsFor(_task.Info, _batches, ctx) > ctx.FreeSlots)
@@ -194,8 +186,8 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             foreach (KeyValuePair<string, int> kv in info.Inputs)
                 h.CargoInventory!.RemoveItem(WorkSteps.SharedName(kv.Key), kv.Value);
             GameObject? output = ObjectDB.instance.GetItemPrefab(info.Output);
-            if (output != null && !h.CargoInventory!.AddItem(output, info.OutputAmount))
-                ItemDrop.DropItem(output.GetComponent<ItemDrop>().m_itemData.Clone(), info.OutputAmount, h.transform.position + h.transform.forward * 0.5f + Vector3.up * 0.3f, Quaternion.identity);
+            if (output != null)
+                WorkSteps.AddToCargo(h, output, info.OutputAmount);
             s.m_craftItemEffects.Create(s.transform.position, Quaternion.identity);
             Crafted[info.Output] = (Crafted.TryGetValue(info.Output, out int n) ? n : 0) + info.OutputAmount;
             VfhLog.I(LogCat.Work, "cook.craft", ("hid", h.Hid), ("item", info.Output), ("station", Utils.GetPrefabName(s.gameObject)), ("level", s.GetLevel()));
@@ -203,7 +195,9 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
 
         private ChoreProgress End(Hireling h, float rest, ChoreProgress result = ChoreProgress.Done)
         {
-            h.HoldDeliveries = false;
+            h.FetchingSupplies = false;
+            if (_made == 0 && result == ChoreProgress.Done)
+                result = ChoreProgress.Failed; // nothing made: count it, so a job that can't be done gets set aside
             if (_made > 0 && _task != null)
             {
                 if (_task.Then != null)

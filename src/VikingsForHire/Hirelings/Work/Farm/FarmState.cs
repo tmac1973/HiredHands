@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using VikingsForHire.Board;
 using VikingsForHire.Core;
@@ -25,12 +26,21 @@ namespace VikingsForHire.Hirelings.Work.Farm
             Stock stock = BoardOrders.Stock(board);
             int level = BoardOrders.WorkerLevel(board, JobType.Farmer);
             Dictionary<string, int> spots = FreeSpots?.Invoke(board) ?? new Dictionary<string, int>();
-            FarmPlan plan = FarmPlanner.Plan(CropCatalog.Infos, BoardOrders.For(board), stock.Chests, stock.Growing, level, spots);
+            // What the Farmer carries (seeds fetched, a harvest not yet put away) counts as stock too.
+            var have = new Dictionary<string, int>(stock.Chests);
+            foreach (Hireling h in Hireling.Loaded.Where(h => h != null && h.Job == JobType.Farmer && h.BoardId == board.Id && h.CargoInventory != null))
+                foreach (ItemDrop.ItemData i in h.CargoInventory!.GetAllItems().Where(i => i.m_dropPrefab != null))
+                    have[i.m_dropPrefab.name] = (have.TryGetValue(i.m_dropPrefab.name, out int n) ? n : 0) + i.m_stack;
+            FarmPlan plan = FarmPlanner.Plan(CropCatalog.Infos, BoardOrders.For(board), have, stock.Growing, level, spots);
             Plans[board.Id] = (Time.time, plan);
             return plan;
         }
 
         /// <summary>Forget a board's plan (after planting or picking, so the next survey sees the change).</summary>
-        public static void Invalidate(HiringBoard board) => Plans.Remove(board.Id);
+        public static void Invalidate(HiringBoard board)
+        {
+            Plans.Remove(board.Id);
+            StockCounter.Forget();
+        }
     }
 }

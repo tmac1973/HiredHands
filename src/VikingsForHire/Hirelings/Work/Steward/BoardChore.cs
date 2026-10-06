@@ -95,7 +95,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             _walk.Reset();
             _board = (HiringBoard)job.Target;
             _chestsVisited = 0;
-            ctx.Hireling.HoldDeliveries = true;
+            ctx.Hireling.FetchingSupplies = true;
             (int daily, int funds, _) = Stock(_board);
             int points = Mathf.Max(0, VfhConfig.StewardBoardFillDays.Value * daily - funds);
             _want = Plan(ctx, points);
@@ -186,7 +186,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         private ChoreProgress End(Hireling h, float rest, ChoreProgress result = ChoreProgress.Done)
         {
-            h.HoldDeliveries = false;
+            h.FetchingSupplies = false;
             _board = null;
             _chest = null;
             _fetching = false;

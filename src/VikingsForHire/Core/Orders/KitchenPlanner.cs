@@ -20,7 +20,7 @@ namespace VikingsForHire.Core.Orders
     public static class KitchenPlanner
     {
         public static KitchenResult Next(IReadOnlyList<KitchenInfo> infos, OrderList orders, IReadOnlyDictionary<string, int> stock,
-            IReadOnlyDictionary<string, int> protectedItems, int level, ICollection<string> stations)
+            IReadOnlyDictionary<string, int> protectedItems, int level, IReadOnlyDictionary<string, int> stations)
         {
             var result = new KitchenResult();
             int Stock(string item) => stock.TryGetValue(item, out int n) ? n : 0;
@@ -32,7 +32,7 @@ namespace VikingsForHire.Core.Orders
                 if (shortBy <= 0)
                     continue;
                 List<KitchenInfo> makesIt = infos.Where(i => i.Output == order.Item).ToList();
-                List<KitchenInfo> makers = makesIt.Where(i => i.Level <= level && stations.Contains(i.Station))
+                List<KitchenInfo> makers = makesIt.Where(i => i.Level <= level && i.Inputs.Count > 0 && Usable(i, stations))
                     .OrderBy(i => i.Kind == StationKind.Stove ? 0 : 1).ToList();
                 if (makers.Count == 0)
                 {
@@ -51,9 +51,11 @@ namespace VikingsForHire.Core.Orders
                         return result;
                     }
                     // One step of chaining: make the first missing input first, if its own inputs are there.
-                    KeyValuePair<string, int> missing = maker.Inputs.First(kv => Avail(kv.Key) < kv.Value);
+                    KeyValuePair<string, int> missing = maker.Inputs.FirstOrDefault(kv => Avail(kv.Key) < kv.Value);
+                    if (missing.Key == null)
+                        continue;
                     int want = missing.Value * needed - Avail(missing.Key);
-                    KitchenInfo? sub = infos.Where(i => i.Output == missing.Key && i.Level <= level && stations.Contains(i.Station) && Possible(i, Avail) > 0)
+                    KitchenInfo? sub = infos.Where(i => i.Output == missing.Key && i.Level <= level && Usable(i, stations) && Possible(i, Avail) > 0)
                         .OrderBy(i => i.Kind == StationKind.Stove ? 0 : 1).FirstOrDefault();
                     if (sub != null)
                     {
@@ -72,6 +74,10 @@ namespace VikingsForHire.Core.Orders
             }
             return result;
         }
+
+        // A station of the right kind is usable now, at the level the recipe needs.
+        private static bool Usable(KitchenInfo info, IReadOnlyDictionary<string, int> stations) =>
+            stations.TryGetValue(info.Station, out int stationLevel) && stationLevel >= info.StationLevelNeeded;
 
         // How many batches the inputs on hand allow.
         private static int Possible(KitchenInfo info, Func<string, int> avail) =>

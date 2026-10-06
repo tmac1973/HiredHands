@@ -70,6 +70,8 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                     StationLevelNeeded = Mathf.Max(1, r.m_minStationLevel),
                     Level = Level(r.m_item.name, StationLevel(station) + Mathf.Max(1, r.m_minStationLevel) - 1),
                 };
+                if (info.Inputs.Count == 0)
+                    continue; // a modded recipe with only per-level amounts: nothing to make it from at quality 1
                 _all.Add(info);
                 _recipes[info] = r;
             }
