@@ -15,7 +15,7 @@ namespace VikingsForHire.Hirelings.Work
     internal static class StorageRoom
     {
         /// <summary>
-        /// True when at least one chest holds the item and, between them, they have room for less than one stack of it.
+        /// True when at least one chest holds the item and none of them has room for even one more.
         /// An item no chest holds isn't "full": it has no home yet and goes to the board's pile, as before.
         /// </summary>
         private static readonly Dictionary<string, float> LoggedAt = new();
@@ -43,7 +43,7 @@ namespace VikingsForHire.Hirelings.Work
                 home = true;
                 int here = held.Sum(i => System.Math.Max(0, i.m_shared.m_maxStackSize - i.m_stack)) + inv.GetEmptySlots() * stack;
                 room += here;
-                if (room >= stack)
+                if (room > 0)
                     return false;
                 counted.Add($"{Utils.GetPrefabName(c!.transform.root.gameObject)}@{c.transform.position.x:0},{c.transform.position.z:0} room={here} slotsFree={inv.GetEmptySlots()}");
             }

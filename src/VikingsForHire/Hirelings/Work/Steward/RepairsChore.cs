@@ -84,7 +84,16 @@ namespace VikingsForHire.Hirelings.Work.Steward
         /// weather (it would be worn again by the next shower), so it's left; below half something else did it.
         /// </summary>
         public static bool Weathered(WearNTear wnt, float health) =>
-            health >= RainWearFloor && wnt.m_noRoofWear && !wnt.HaveRoof() && !ShieldGenerator.IsInsideShield(wnt.transform.position);
+            health >= RainWearFloor && wnt.m_noRoofWear && !ShieldGenerator.IsInsideShield(wnt.transform.position) &&
+            (wnt.IsUnderWater() || !wnt.HaveRoof()); // standing in water wears it like rain
+
+        /// <summary>Damaged again this soon after a repair: something keeps wearing it (weak support, water…).</summary>
+        public const float RecurringWithin = 600f;
+        /// <summary>A piece that keeps wearing is left this long.</summary>
+        public const float RecurringSkipSeconds = 3600f;
+
+        private static readonly Dictionary<int, float> _repairedAt = new();
+        private static float _monstersSeenAt = -999f;
 
         // A spot it can walk to within hammer reach of the piece (or it's there already). Cached a minute per piece, and at
         // most a few new route checks per survey (each asks the pathfinder).
@@ -135,6 +144,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
             if (damaged.Count == 0)
                 return jobs;
             List<Vector3> monsters = Monsters(ctx);
+            if (monsters.Count > 0)
+                _monstersSeenAt = Time.time;
             foreach ((Piece p, WearNTear wnt, float health) in damaged)
             {
                 if (!Quiet(ctx, monsters, p.transform.position))
@@ -150,6 +161,16 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 }
                 if (Reservations.IsReservedByOther(wnt, ctx.Hireling.Hid) || !ctx.BoardOwnerMayUse(p.transform.position))
                     continue;
+                // Worn again soon after a repair with no monster about since: not an attack, something keeps wearing it.
+                if (_repairedAt.TryGetValue(wnt.GetInstanceID(), out float last) && Time.time - last < RecurringWithin && _monstersSeenAt < last)
+                {
+                    VfhLog.I(LogCat.Smelter, "steward.repair_recurring", ("hid", ctx.Hireling.Hid), ("piece", Utils.GetPrefabName(wnt.gameObject)),
+                        ("pos", wnt.transform.position), ("health", System.Math.Round(health, 2)), ("minSinceRepair", System.Math.Round((Time.time - last) / 60f, 1)),
+                        ("skipMin", RecurringSkipSeconds / 60f));
+                    _repairedAt.Remove(wnt.GetInstanceID());
+                    Reservations.Skip(wnt, RecurringSkipSeconds);
+                    continue;
+                }
                 bool? reachable = Reachable(ctx, wnt, ref routeChecks);
                 if (reachable == null)
                     continue;
@@ -208,6 +229,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             float before = wnt.GetHealthPercentage();
             if (wnt.Repair() && p != null)
                 p.m_placeEffect.Create(p.transform.position, p.transform.rotation);
+            _repairedAt[wnt.GetInstanceID()] = Time.time;
             VfhLog.D(LogCat.Smelter, "steward.repair", ("hid", h.Hid), ("piece", Utils.GetPrefabName(wnt.gameObject)), ("before", System.Math.Round(before, 2)));
             return End(h, ChoreProgress.Done);
         }
