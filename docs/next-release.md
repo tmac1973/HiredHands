@@ -10,8 +10,11 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 |---|---|---|
 | 613aeea | Steward chore "Board food" (level 1, toggle in Shift+E, server `StewardBoard`): below `StewardBoardRefillDays` (3) days of upkeep it stocks its own board from the chests up to `StewardBoardFillDays` (7), cheapest food first, only food the board accepts (honours `AllowRawFood`), never the last of a food | the game simulating the Steward |
 
+| (this commit) | A Steward follower in Gather Here picks up loose loot within the gather radius of its spot (nearest first, until cargo is full; not a player's fresh drops, the board's pile or warded items); status "Picking up loot" | the owner's game |
+
 ### To test (batch)
-- [ ] Macros (single player): `vfh_test_chain board_food`.
+- [ ] Macros (single player): `vfh_test_chain board_food loot`.
+- [ ] By hand: take a Steward out, fight a few Greylings, park it in Gather Here: it picks up the drops; bring it home, the loot ends up in chests (or the pile) a few minutes later.
 - [ ] Live server: Brand's board below 3 days of food (or `StewardBoardRefillDays` raised): he fetches cooked food and puts it on the board; status "Stocking the board with food"; your best food left alone.
 
 ## 0.4.2 (released 2026-10-06)

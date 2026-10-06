@@ -79,6 +79,25 @@ namespace VikingsForHire.Followers
                 }
             }
 
+            // A Steward parked in Gather Here picks up loot lying around its spot.
+            if (!retreat && ai.Loot != null && h.FollowMode == FollowMode.GatherHere && ai.Order == null && ai.WorkArea != null)
+            {
+                if (h.CargoFull)
+                {
+                    TellFull(h);
+                }
+                else
+                {
+                    _toldFull = false;
+                    if (ai.Loot.Wants(ai))
+                    {
+                        Show(h, "$vfh_status_looting");
+                        ai.Loot.Tick(ai, dt);
+                        return;
+                    }
+                }
+            }
+
             if (h.FollowMode != FollowMode.Follow && !retreat)
             {
                 Show(h, h.CargoFull && h.FollowMode == FollowMode.GatherHere ? "$vfh_status_cargo_full" : "$vfh_status_staying");

@@ -88,6 +88,9 @@ namespace VikingsForHire.Hirelings
         /// <summary>The job's gathering behaviour (woodcutters, miners), which Follow drives in the field.</summary>
         public Work.GatherBehaviour? Gather { get; private set; }
 
+        /// <summary>A Steward's field looting in Gather Here (Stewards only).</summary>
+        public Work.FieldLoot? Loot { get; private set; }
+
         /// <summary>The Steward's chore loop (Stewards only).</summary>
         public Work.Steward.StewardBehaviour? Steward { get; private set; }
 
@@ -138,6 +141,7 @@ namespace VikingsForHire.Hirelings
                     break;
                 case JobType.Smelter:
                     Add(Steward = new Work.Steward.StewardBehaviour());
+                    Loot = new Work.FieldLoot();
                     Add(new Work.DeliverBehaviour(new Work.SmelterDeliveryPolicy()));
                     break;
                 case JobType.Miner:

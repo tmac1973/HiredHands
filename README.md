@@ -77,6 +77,7 @@ A Steward works inside its board's radius from the chests there, taking on more 
 - **Tamed animals** get one item they eat, dropped in front of them (AzuAutoStore leaves it alone).
 - **Fermenters** need cover as for you (a roof and mostly walled in); the Steward says when one doesn't have enough instead of loading it.
 - **Board food:** when its board has less than 3 days of upkeep left in food, it brings food from the chests up to 7 days (`StewardBoardRefillDays`, `StewardBoardFillDays`), cheapest food first so your best food stays put, and only food the board accepts (raw food only with `AllowRawFood`).
+- **In the field:** a Steward you take along with the Command Stone and park in **Gather here** picks up loot lying around its spot (monster drops, trophies, coins), until its cargo is full. Back home it puts it away like other leftovers.
 - **Tidying up** puts items that have lain on the ground for a minute away in chests that already hold them. It's the last thing it does.
 - **Shift+E** on a Steward lists every chore with its state (on, off, locked until level N, handled by another mod) and switches each one on or off for that Steward. Its hover and the Roster tab say what it's doing ("Fuelling Hearth") or what's missing ("Smelter: no Coal in any chest").
 - **Other mods:** with **PetPantry** (animals eat from chests) the Steward leaves animals alone, and with **Torches Eternal** (fires never burn out) it leaves fires alone.
