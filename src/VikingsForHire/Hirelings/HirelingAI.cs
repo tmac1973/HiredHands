@@ -153,7 +153,7 @@ namespace VikingsForHire.Hirelings
                     Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));
                     break;
                 case JobType.Cook:
-                    Add(Chores = new Work.Chores.ChoreLoop(JobType.Cook, new Work.Chores.IChore[] { new Work.Kitchen.StovesChore() }));
+                    Add(Chores = new Work.Chores.ChoreLoop(JobType.Cook, new Work.Chores.IChore[] { new Work.Kitchen.StovesChore(), new Work.Kitchen.CraftChore() }));
                     // The farm's seed reserve (and what's planted for seed orders) is never the Cook's to use.
                     Chores.PrepareContext = ctx =>
                     {

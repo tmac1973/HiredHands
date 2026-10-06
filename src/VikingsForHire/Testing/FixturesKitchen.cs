@@ -18,6 +18,15 @@ namespace VikingsForHire.Testing
         public static void Register()
         {
             Fixtures.Add("stove", "<prefab> [lit] [fuel <n>] [tag] - a cooking station over a campfire (lit: fuelled) or an oven with n wood (default 5), beside the nearest board", Stove);
+            Fixtures.Add("craftstation", "<prefab> [level] [tag] - a cauldron or mead ketill over a lit campfire, or a prep table, beside the nearest board; level adds that many of its extensions", CraftStation);
+            TestHarness.RegisterCheck("crafted_by_cook", "<item> - how many of an item Cooks have crafted since login", args =>
+                (CraftChore.Crafted.TryGetValue(args.ElementAtOrDefault(0) ?? "", out int n) ? n : 0).ToString(CultureInfo.InvariantCulture));
+            TestHarness.RegisterCheck("status_has", "<posted> <text> - true when the status line of the hireling from your last contract contains the text", args =>
+            {
+                Hirelings.Hireling h = FixturesWork.Posted();
+                string shown = Hirelings.Work.Chores.ActivityText.Show(h.Zdo?.GetString(Hirelings.HirelingZdo.Activity) ?? "");
+                return (shown.IndexOf(string.Join(" ", args.Skip(1)), StringComparison.OrdinalIgnoreCase) >= 0).ToString().ToLowerInvariant();
+            });
             TestHarness.RegisterCheck("stove_slots", "<tag> <empty|cooking|done|burnt> - how many of a tagged stove's slots are in that state", args =>
             {
                 CookingStation s = Tagged(args.ElementAtOrDefault(0));
@@ -83,6 +92,34 @@ namespace VikingsForHire.Testing
                     f.m_nview.GetZDO().Set(ZDOVars.s_fuel, f.m_maxFuel);
             }
             VfhLog.I(LogCat.Test, "fixture.stove", ("prefab", prefab), ("lit", lit), ("fuel", fuel), ("tag", tag));
+            yield return new WaitForSeconds(1f);
+        }
+
+        private static IEnumerator CraftStation(string[] args)
+        {
+            string prefab = args.ElementAtOrDefault(0) ?? "piece_cauldron";
+            int level = int.TryParse(args.ElementAtOrDefault(1), NumberStyles.Integer, CultureInfo.InvariantCulture, out int l) ? l : 1;
+            string tag = args.Skip(1).LastOrDefault(a => !int.TryParse(a, out _)) ?? "";
+            Vector3 p = NextSpot();
+            GameObject go = FixturesWork.Spawn(prefab, p, tag);
+            FixturesWork.OwnBuilt(go);
+            CraftingStation s = go.GetComponentInChildren<CraftingStation>() ?? throw new InvalidOperationException($"{prefab} isn't a crafting station");
+            if (s.m_craftRequireFire)
+            {
+                GameObject fire = FixturesWork.Spawn("fire_pit", p, "");
+                FixturesWork.OwnBuilt(fire);
+                if (fire.GetComponent<Fireplace>() is Fireplace f)
+                    f.m_nview.GetZDO().Set(ZDOVars.s_fuel, f.m_maxFuel);
+            }
+            // Its extensions (upgrades), set round it within their range.
+            var extensions = ZNetScene.instance.m_prefabs.Where(x => x != null && x.GetComponent<StationExtension>() is StationExtension e &&
+                                                                     e.m_craftingStation != null && e.m_craftingStation.m_name == s.m_name).Take(level - 1).ToList();
+            for (int i = 0; i < extensions.Count; i++)
+            {
+                Vector3 at = p + Quaternion.Euler(0f, 60f * i, 0f) * Vector3.forward * 2.5f;
+                FixturesWork.OwnBuilt(FixturesWork.Spawn(extensions[i].name, at, ""));
+            }
+            VfhLog.I(LogCat.Test, "fixture.craftstation", ("prefab", prefab), ("extensions", extensions.Count), ("tag", tag));
             yield return new WaitForSeconds(1f);
         }
     }

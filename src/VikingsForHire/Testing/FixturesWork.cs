@@ -298,7 +298,7 @@ namespace VikingsForHire.Testing
             yield return null;
         }
 
-        private static Hirelings.Hireling Posted()
+        internal static Hirelings.Hireling Posted()
         {
             string hid = BoardContracts.LastPostedHid;
             return Hirelings.Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == hid) ?? throw new InvalidOperationException("the posted hireling isn't loaded");
