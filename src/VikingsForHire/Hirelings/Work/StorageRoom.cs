@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using VikingsForHire.Config;
+using VikingsForHire.Core.Diagnostics;
+using VikingsForHire.Diagnostics;
 
 namespace VikingsForHire.Hirelings.Work
 {
@@ -15,6 +18,9 @@ namespace VikingsForHire.Hirelings.Work
         /// True when at least one chest holds the item and, between them, they have room for less than one stack of it.
         /// An item no chest holds isn't "full": it has no home yet and goes to the board's pile, as before.
         /// </summary>
+        private static readonly Dictionary<string, float> LoggedAt = new();
+        private const float LogEvery = 300f;
+
         public static bool NoRoom(IEnumerable<Container> chests, string item)
         {
             if (!VfhConfig.PauseWhenStorageFull.Value || string.IsNullOrEmpty(item) || ObjectDB.instance == null)
@@ -25,6 +31,7 @@ namespace VikingsForHire.Hirelings.Work
             int stack = System.Math.Max(1, drop.m_itemData.m_shared.m_maxStackSize);
             bool home = false;
             int room = 0;
+            var counted = new List<string>();
             foreach (Container c in chests)
             {
                 Inventory? inv = c != null ? c.GetInventory() : null;
@@ -34,9 +41,18 @@ namespace VikingsForHire.Hirelings.Work
                 if (held.Count == 0)
                     continue;
                 home = true;
-                room += held.Sum(i => System.Math.Max(0, i.m_shared.m_maxStackSize - i.m_stack)) + inv.GetEmptySlots() * stack;
+                int here = held.Sum(i => System.Math.Max(0, i.m_shared.m_maxStackSize - i.m_stack)) + inv.GetEmptySlots() * stack;
+                room += here;
                 if (room >= stack)
                     return false;
+                counted.Add($"{Utils.GetPrefabName(c!.transform.root.gameObject)}@{c.transform.position.x:0},{c.transform.position.z:0} room={here} slotsFree={inv.GetEmptySlots()}");
+            }
+            // Paused: say which chests were counted (once every few minutes per item), so a chest that "has room" but
+            // wasn't counted (out of the radius, open, private) can be found.
+            if (home && (!LoggedAt.TryGetValue(item, out float at) || Time.time - at > LogEvery))
+            {
+                LoggedAt[item] = Time.time;
+                VfhLog.I(LogCat.Work, "storage.full", ("item", item), ("stack", stack), ("chests", string.Join(" | ", counted)));
             }
             return home;
         }
