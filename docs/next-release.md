@@ -22,6 +22,7 @@ Plan: `plan/farmer-cook/`. Includes the held 0.4.4 fixes (first four rows).
 | cdba9c6 | Farmer plants in rows on free cultivated ground for the orders (seed orders first, seeds below the reserve never planted for produce) | the game simulating the Farmer |
 | ce0b397 | Cook with a ladle: spits and the oven (takes food off before it burns, fuels the oven, stays near while food cooks) | the game simulating the Cook |
 | 1a8d9f2 | Cook crafts at the cauldron, prep table and mead ketill (station level, fire, roof as a player), carries dough straight to the oven | the game simulating the Cook |
+| 448994e | Review fixes before the first run: jobs that can't be done are set aside, unreachable planting spots avoided for 10 min, fetched seeds/ingredients/board food never delivered back mid-job, food cooking and items carried count as stock, only usable stations (fire, roof, free slot, level) planned, crops not planted where too hot or cold, no duplicated items on full cargo, no raw food lost on a full stove | as above |
 
 ### To test (batch)
 - [ ] Macros (single player, add PlantEverything and PlantEasily to `vikingsforhire-dev` first): `vfh_test_chain catalog orders farm_harvest farm_bush farm_seeds farm_rows cook_spit cook_oven cook_cauldron cook_chain cook_protect`.
