@@ -23,21 +23,32 @@ namespace VikingsForHire.Hirelings.Gear
 
         /// <summary>
         /// Puts <paramref name="mesh"/> in the visual's place. Its far end is where its bounds' centre lies along its longest
-        /// axis. <paramref name="length"/>: the size to show it at along that axis (null: the mesh is already in metres).
+        /// axis (<paramref name="reverse"/>: the other end). <paramref name="length"/>: the size to show it at along that axis
+        /// (null: the mesh is already in metres). <paramref name="grip"/>: where the hand holds it, as a fraction of its length
+        /// from the near end (null: at the mesh's own origin, as for the models built here).
         /// </summary>
-        public static Vector3 Point(MeshFilter visual, Mesh mesh, Material[] materials, float? length = null)
+        public static Vector3 Point(MeshFilter visual, Mesh mesh, Material[] materials, float? length = null, bool reverse = false, float? grip = null)
         {
             Mesh club = visual.sharedMesh;
             int clubAxis = LongestAxis(club.bounds.size);
             Vector3 along = Axis(clubAxis) * (club.bounds.center[clubAxis] < 0f ? -1f : 1f);
             int meshAxis = LongestAxis(mesh.bounds.size);
-            Vector3 meshDir = Axis(meshAxis) * (mesh.bounds.center[meshAxis] < 0f ? -1f : 1f);
+            Vector3 meshDir = Axis(meshAxis) * (mesh.bounds.center[meshAxis] < 0f ? -1f : 1f) * (reverse ? -1f : 1f);
             Transform t = visual.transform;
+            Vector3 origin = t.localPosition;
             visual.sharedMesh = mesh;
             visual.GetComponent<MeshRenderer>().sharedMaterials = materials;
             t.localRotation *= Quaternion.FromToRotation(meshDir, along);
             float scale = length is float l ? l / Mathf.Max(0.01f, mesh.bounds.size[meshAxis]) : 1f;
             t.localScale = t.localScale / Mathf.Max(0.0001f, MaxScale(t)) * scale;
+            if (grip is float g)
+            {
+                // The point to hold, in the mesh: from the near end, g of the way along. Put it where the club's grip was.
+                float size = mesh.bounds.size[meshAxis];
+                Vector3 nearEnd = mesh.bounds.center - meshDir * (size / 2f);
+                Vector3 hold = nearEnd + meshDir * (size * g);
+                t.localPosition = origin - t.localRotation * Vector3.Scale(t.localScale, hold);
+            }
             return along;
         }
 

@@ -37,7 +37,8 @@ namespace VikingsForHire.Hirelings.Gear
                 VfhLog.W(LogCat.Hireling, "cultivator.model", ("source", "club (no cultivator model found)"));
                 return;
             }
-            HeldModel.Point(visual, mesh, materials, Length);
+            // The cultivator's own model runs from the tines to the handle: hold it near the handle's end, tines out.
+            HeldModel.Point(visual, mesh, materials, Length, reverse: true, grip: 0.15f);
             VfhLog.I(LogCat.Hireling, "cultivator.model", ("mesh", mesh.name));
         }
     }
