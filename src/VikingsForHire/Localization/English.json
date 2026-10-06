@@ -127,6 +127,7 @@
   "vfh_need_ingredient": "$1: needs $2 more $3",
   "vfh_farmer_idle": "Field tended",
   "vfh_farmer_harvest": "Harvesting $1",
+  "vfh_farmer_plant": "Planting $1",
   "vfh_cook_idle": "Kitchen tidy",
   "vfh_chore_harvest": "Harvesting",
   "vfh_chore_plant": "Planting",

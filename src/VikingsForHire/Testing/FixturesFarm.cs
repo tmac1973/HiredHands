@@ -27,6 +27,7 @@ namespace VikingsForHire.Testing
             Fixtures.Add("field", "<w> <h> [tag] - cultivate a w x h m patch 8 m in front of the nearest board (the cultivator's paint)", Field);
             Fixtures.Add("crop", "<sapling> <n> [ripe] [tag] - plant n of a crop in a row on the field (ripe: the grown crop instead); the first gets the tag", Crop);
             Fixtures.Add("bush", "<pickable> [tag] - a ripe regrowing plant (RaspberryBush…) at the field's edge", Bush);
+            Fixtures.Add("piece", "<prefab> <x> <z> <height> - a piece at an offset (m, along the rows / across) from the field's centre, that high off the ground", PlacePiece);
             Fixtures.Add("grow_all", "- every growing crop within 40 m of the board ripens now (as if its grow time had passed)", GrowAll);
 
             TestHarness.RegisterCheck("ripe_crops", "[radius=40] - ripe planted crops within that distance of the nearest board", args =>
@@ -39,6 +40,31 @@ namespace VikingsForHire.Testing
             TestHarness.RegisterCheck("picked", "<tag> - true when a tagged pickable has been picked", args =>
                 ((FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponent<Pickable>() ?? throw new InvalidOperationException("no such tagged pickable"))
                     .m_picked).ToString().ToLowerInvariant());
+            TestHarness.RegisterCheck("plant_spacing_ok", "<sapling> - true when no two such plants near the board are closer than the Farmer's spacing (minus 5 cm)", args =>
+            {
+                string sapling = args.ElementAtOrDefault(0) ?? "";
+                Crop crop = CropCatalog.BySapling(sapling) ?? throw new InvalidOperationException($"{sapling} isn't a known crop");
+                List<Vector3> at = Near(sapling);
+                float min = PlantMods.CropSpacing(crop.GrowRadius) - 0.05f;
+                for (int i = 0; i < at.Count; i++)
+                    for (int j = i + 1; j < at.Count; j++)
+                        if (Utils.DistanceXZ(at[i], at[j]) < min)
+                            return "false";
+                return "true";
+            });
+            TestHarness.RegisterCheck("grid_aligned", "<sapling> - true when every such plant near the board sits within 10 cm of the Farmer's grid", args =>
+            {
+                string sapling = args.ElementAtOrDefault(0) ?? "";
+                Crop crop = CropCatalog.BySapling(sapling) ?? throw new InvalidOperationException($"{sapling} isn't a known crop");
+                HiringBoard board = FixturesWork.Board();
+                FieldGrid.Grid g = FieldGrid.For(crop, board.transform.position, 40f, board.transform.right);
+                return Near(sapling).All(p => g.Offset(p) <= 0.1f).ToString().ToLowerInvariant();
+            });
+            TestHarness.RegisterCheck("plants_under_roof", "- growing crops near the board with something solid above them", _ =>
+                Count(Array.Empty<string>(), (plants, picks) => plants.Count(p => Physics.Raycast(p.transform.position + Vector3.up * 0.1f, Vector3.up, 100f,
+                    LayerMask.GetMask("Default", "static_solid", "piece")))));
+            TestHarness.RegisterCheck("planted", "<sapling> - how many of a sapling Farmers have planted since login", args =>
+                (PlantChore.Planted.TryGetValue(args.ElementAtOrDefault(0) ?? "", out int n) ? n : 0).ToString(CultureInfo.InvariantCulture));
             TestHarness.RegisterCheck("harvested", "<item> - how many of an item Farmers have harvested since login", args =>
                 (HarvestChore.Harvested.TryGetValue(args.ElementAtOrDefault(0) ?? "", out int n) ? n : 0).ToString(CultureInfo.InvariantCulture));
         }
@@ -50,6 +76,32 @@ namespace VikingsForHire.Testing
             var picks = new List<Pickable>();
             FarmScan.Nearby(FixturesWork.Board().transform.position, radius, plants, picks);
             return count(plants, picks).ToString(CultureInfo.InvariantCulture);
+        }
+
+        private static List<Vector3> Near(string sapling)
+        {
+            var plants = new List<Plant>();
+            var picks = new List<Pickable>();
+            FarmScan.Nearby(FixturesWork.Board().transform.position, 40f, plants, picks);
+            return plants.Where(p => Utils.GetPrefabName(p.gameObject) == sapling).Select(p => p.transform.position).ToList();
+        }
+
+        private static IEnumerator PlacePiece(string[] args)
+        {
+            string prefab = args.ElementAtOrDefault(0) ?? "wood_roof";
+            float x = float.Parse(args.ElementAtOrDefault(1) ?? "0", CultureInfo.InvariantCulture);
+            float z = float.Parse(args.ElementAtOrDefault(2) ?? "0", CultureInfo.InvariantCulture);
+            float up = float.Parse(args.ElementAtOrDefault(3) ?? "2", CultureInfo.InvariantCulture);
+            Vector3 p = _fieldCenter + _fieldRow * x + _fieldAcross * z;
+            p.y = ZoneSystem.instance.GetGroundHeight(p) + up;
+            GameObject go = FixturesWork.Spawn(prefab, p, "");
+            go.transform.position = p;
+            go.GetComponent<ZNetView>().GetZDO().SetPosition(p);
+            FixturesWork.OwnBuilt(go);
+            if (go.GetComponent<WearNTear>() is WearNTear wnt)
+                wnt.m_noSupportWear = false;
+            VfhLog.I(LogCat.Test, "fixture.piece", ("prefab", prefab), ("at", p));
+            yield return null;
         }
 
         private static IEnumerator Field(string[] args)
