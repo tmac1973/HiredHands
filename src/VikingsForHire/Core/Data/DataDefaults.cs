@@ -55,6 +55,13 @@ namespace VikingsForHire.Core.Data
                     steward.Stations.Add(mill);
                     filled.Add($"jobs.Smelter.stations+{mill}");
                 }
+                // The old default, a plain club at every level, becomes the broom; gear an owner chose is kept.
+                if (steward.Gear.Count > 0 && steward.Gear.All(g => g.Main == "Club" && string.IsNullOrEmpty(g.Offhand) && string.IsNullOrEmpty(g.Ammo) && string.IsNullOrEmpty(g.Sidearm)))
+                {
+                    foreach (WeaponSetData g in steward.Gear)
+                        g.Main = "VFH_Broom";
+                    filled.Add("jobs.Smelter.gear=VFH_Broom");
+                }
             }
         }
 

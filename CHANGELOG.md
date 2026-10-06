@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0
+
+- **The Steward looks after the whole base.** On top of smelting stations it now keeps fires, torches, braziers and hot tubs fuelled, empties beehives and sap collectors, loads windmills and spinning wheels, feeds hungry tamed animals, repairs damaged building pieces, loads and taps fermenters, feeds shield generators, and puts items lying about away in chests that already hold them. Each chore unlocks at a Steward level matching its biome (fires, beehives and tidying at 1; smelters, kilns and animals at 2; repairs at 3; fermenters at 4; blast furnaces, windmills and spinning wheels at 5; eitr refineries and sap at 6; shield generators at 7). It always does the most urgent job first, and tidying last. See *The Steward* in the README.
+- **Level 1 Stewards no longer smelt:** smelters and charcoal kilns need level 2 (blast furnaces 5, eitr refineries 6). Promote a level 1 Steward that runs your smelter.
+- **Per-Steward chore list.** Shift+E on a Steward lists every chore with its state (on, off, locked until level N, handled by another mod, off on this server) and switches each one on or off. The hover and the Roster tab say what it's doing or what's missing ("Smelter: no Coal in any chest").
+- **Steps aside for other mods:** with PetPantry it leaves animals alone, with Torches Eternal it leaves fires alone. Food it drops for an animal is kept out of AzuAutoStore's reach. With AzuAutoStore, stations that hold their output inside (the spinning wheel) are still emptied.
+- **The Steward carries a broom** (club stats). New server settings section *10 - Steward*: each chore on or off for everyone, fire refill fraction, repair threshold, repair quiet time, and how long items lie on the ground before they're tidied.
+- **Data file:** new `choreLevels` under the Steward (`Smelter`) job. An older file gains it automatically, with the windmill and spinning wheel added to its `stations` and the Steward's old club changed to the broom (gear you chose yourself is kept). 0.3 builds reject a file with it, so everyone moves to 0.4 together.
+- **Fix:** items from this mod or other Jotunn mods in the data file's `gear` were thrown out as unknown at startup.
+
 ## 0.3.0
 
 - **Hirelings find their way through your buildings.** Inside a hiring board's area, the board scans for doors and for anything that climbs from one floor to another (stairs, stepladders, modded stairs and ladders, recognised by their shape). When the game's walking map can't get a hireling somewhere (a chest upstairs, a closed room), it routes through those: it opens the door, steps through and closes it behind, walks up the stairs, and hops to the top of a ladder it can't climb. It replans around a locked door or a removed stair. Followers follow you through the house and upstairs the same way while you're both at a base. Server settings `BaseNavLinks` (on; off is the 0.2 behaviour) and `HirelingsCloseDoors` (on).

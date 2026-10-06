@@ -22,6 +22,7 @@ Plan: `plan/steward-chores/`.
 | f0eed65 | The broom in the data file was dropped as an unknown item (the data is checked before the mod's own items are registered); our items and other mods' Jotunn items now count as known | everywhere (data) |
 | 485973d | The Steward's broom: club stats, the Steward's weapon in new data files | the Steward |
 | 4c5ad0d | The broom is built from simple shapes (wooden handle, straw bristles); the cultivator is left for a Farmer | your game, drawing the Steward |
+| (this commit) | Older data files: the Steward's old default club becomes the broom (chosen gear kept); README Steward section, CHANGELOG, version 0.4.0 | everywhere (data) |
 
 ### To test (batch)
 - [x] By hand: the broom (looks great, 2026-10-05). With a fresh data file, or the Steward's `gear` set to `VFH_Broom`, a Steward holds the homemade broom (wooden handle, straw bristles at the far end, not through its arm) and swats a Greyling with it; `vfh_broom_info` names the materials.
@@ -29,7 +30,7 @@ Plan: `plan/steward-chores/`.
 - [x] Macros: `vfh_test_chain beehive sap animals repairs fermenter shield tidy` (all passed, some across reruns).
 - [x] Macros (single player): `vfh_test_chain chore_gate chore_toggle mills azu3 keep1 keep2` (passed; work5 needs AzuAutoStore absent).
 - [x] By hand: a level 2 Steward's Shift+E panel lists the seven chores. Fires, beehives, stations and animals are on (fires and animals show "handled by TorchesEternal"/"PetPantry" with those mods installed). Mills, sap and repairs show "locked until level 5/6/3". Under Stations: "Blast furnace: locked until level 5, Eitr refinery: locked until level 6". Switching Stations off stops it loading the smelter.
-- [ ] By hand: the Roster tab and hover show what the Steward is doing ("Loading Smelter") or why it's idle ("Smelter: no Coal in any chest", "All done").
+- [ ] Dedicated server (Tim, after publishing): a Steward at a real base; the full single-player run is skipped. The Roster tab and hover show what the Steward is doing ("Loading Smelter") or why it's idle ("Smelter: no Coal in any chest", "All done").
 
 ## 0.3.0 (released 2026-10-05): base nav links
 

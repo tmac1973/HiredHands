@@ -49,3 +49,7 @@ The overview's success criteria, one by one, through steps 1–3 and the live se
 ## Rollback
 - **Quick:** server settings `Steward*` off per chore.
 - **Full downgrade to 0.3.0:** everyone together, after deleting the `choreLevels:` block from `Spronglehump.HiredHands.yml`. Stewards' `chore:` skip entries are ignored by 0.3.
+
+## As built
+- **Testing:** every chore macro passed in single player during phases 02–08 (VFH-CHORE-1…12, VFH-BROOM-1 by hand). Tim skipped the full single-player and local dedicated server runs and tests 0.4.0 on the live dedicated server after publishing it.
+- **Older data files** also get the broom: a pre-0.4 file whose Steward has the old default (a plain club at every level) is switched to `VFH_Broom`; any other gear is kept.

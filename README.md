@@ -1,6 +1,6 @@
 # Hired Hands
 
-Build a **Hiring Board** at your base and post contracts to hire wandering vikings. They chop wood, mine, keep your smelters and kilns fed, and guard your base. Hire them for coins (level 1 for food: there are hardly any coins in the Meadows) and feed them every day. Upgrade the board with boss trophies to hire better vikings and more of them. Craft a **Command Stone** to take them out with you: they follow you through portals and dungeons and aboard ships, gather and fight on your orders, and find their own way home.
+Build a **Hiring Board** at your base and post contracts to hire wandering vikings. They chop wood, mine, look after your base (fires, smelters, beehives, animals, repairs and more) and guard it. Hire them for coins (level 1 for food: there are hardly any coins in the Meadows) and feed them every day. Upgrade the board with boss trophies to hire better vikings and more of them. Craft a **Command Stone** to take them out with you: they follow you through portals and dungeons and aboard ships, gather and fight on your orders, and find their own way home.
 
 Works in single-player and on dedicated servers. Every client and the server need the mod.
 
@@ -9,7 +9,7 @@ Works in single-player and on dedicated servers. Every client and the server nee
 - BepInExPack Valheim
 - Jotunn 2.30+
 - YamlDotNet (ValheimModding)
-- Optional: AzuAutoStore. Stewards then leave finished bars for AzuAutoStore to store (see below).
+- Optional: AzuAutoStore, AzuCraftyBoxes, PetPantry, Torches Eternal (see below).
 
 ## Getting started
 
@@ -44,7 +44,7 @@ Works in single-player and on dedicated servers. Every client and the server nee
 |---|---|---|
 | Woodcutter | Fells trees in its radius, clears the fallen logs and stumps, picks up wood, resin and seeds | Fells trees away from your buildings and leaves trees right next to them alone. Axe tier rises with level (stone, flint, bronze…), which decides what it can cut |
 | Miner | Mines copper, tin, rocks and boulders, ore before stone | Needs a level 2 board. Leaves rocks touching your builds alone and never digs near your buildings; out in the field it digs down to ore buried up to 1.5 m deep (but never digs up a deposit nobody has found, like a hidden silver vein). Pickaxe tier rises with level |
-| Steward (was the Smelter) | Keeps smelters, kilns, blast furnaces and eitr refineries in its radius stocked from your chests | Tops a station up when it's below half full. Never takes the last of an item from a chest, and leaves a reserve of chosen items in storage (`keepInStorage`, default 50 Wood). Without AzuAutoStore it also collects the bars. Still `Smelter` in the data file and commands |
+| Steward (was the Smelter) | Looks after the base: fires, beehives, smelting stations, mills, animals, repairs and more (see *The Steward* below) | Armed with a broom. Still `Smelter` in the data file and commands |
 | Guard (melee) | Patrols the radius and fights | Stances: Passive, Defensive, Aggressive |
 | Guard (ranged) | Same, with a bow | |
 
@@ -55,6 +55,31 @@ Woodcutters and miners work twice the board's radius. Everyone defends themselve
 **Deliveries.** Gatherers deliver each item type only to a chest that **already holds** that item (they never mix items into other chests), nearest first. Whatever doesn't fit is left in front of the board. Put one of an item in a chest to make it the home for that item.
 
 **Doors.** Hirelings open doors in their way and close them behind themselves (never in a player's face). They only use doors the board's owner may use under wards, never locked doors, and don't wander through doors when idle. `HirelingsOpenDoors` turns this off.
+
+## The Steward
+
+A Steward works inside its board's radius from the chests there, taking on more chores as it levels up. Each chore unlocks with the biome whose boss makes its resources available:
+
+| Level | Chores it gains |
+|---|---|
+| 1 | **Fires and lights** (fires, torches, braziers, hot tubs: fuelled when below half), **beehives** (emptied at half full), **tidying up** |
+| 2 | **Smelters and charcoal kilns** (loaded and fuelled, bars collected), **tamed animals** (fed when hungry) |
+| 3 | **Repairs** of damaged building pieces |
+| 4 | **Fermenters** (loaded with a mead base, tapped when ready) |
+| 5 | **Blast furnaces, windmills and spinning wheels** |
+| 6 | **Eitr refineries, sap collectors** |
+| 7 | **Shield generators** (fed bones) |
+| 8 | nothing new; more health and cargo |
+
+- **Most urgent first.** Every few seconds it looks over everything it may do and takes the most urgent job (an empty fire before a half-full smelter, anything before tidying), nearer jobs first when it's close.
+- **From your chests only.** It never takes the last of an item from a chest, and leaves a reserve of chosen items in storage (`keepInStorage`, default 50 Wood). What it collects (bars, honey, sap, meads, flour, thread, tidied items) goes into chests that already hold that item.
+- **Repairs** follow your rules: a crafting station for the piece in range, ward access, and free as for you. They wait until no enemy has been within 30 m of the Steward or the piece for 20 s.
+- **Tamed animals** get one item they eat, dropped in front of them (AzuAutoStore leaves it alone).
+- **Fermenters** need cover as for you (a roof and mostly walled in); the Steward says when one doesn't have enough instead of loading it.
+- **Tidying up** puts items that have lain on the ground for a minute away in chests that already hold them. It's the last thing it does.
+- **Shift+E** on a Steward lists every chore with its state (on, off, locked until level N, handled by another mod) and switches each one on or off for that Steward. Its hover and the Roster tab say what it's doing ("Fuelling Hearth") or what's missing ("Smelter: no Coal in any chest").
+- **Other mods:** with **PetPantry** (animals eat from chests) the Steward leaves animals alone, and with **Torches Eternal** (fires never burn out) it leaves fires alone.
+- **Server settings** (*10 - Steward*): each chore can be turned off for everyone (`StewardFires`, `StewardBeehives`, `StewardStations`, `StewardMills`, `StewardSap`, `StewardAnimals`, `StewardRepairs`, `StewardFermenters`, `StewardShields`, `StewardTidy`), plus `StewardFireRefillFraction` (0.5), `StewardRepairBelow` (0.95), `StewardRepairQuietSeconds` (20) and `StewardTidyMinSeconds` (60). The levels are `choreLevels` in the data file.
 
 **Workers only work while their area is loaded**, i.e. while a player is nearby, as with everything else in Valheim.
 
@@ -134,7 +159,7 @@ A board hires up to its own level. Higher-level hirelings have more health and a
 
 Two files in `BepInEx/config`, both synced from the server and only editable there in multiplayer:
 
-- **`Spronglehump.HiredHands.cfg`**: rules and behaviour, in sections *General* (raw food, permadeath, respawn, graves), *Base* (what counts as a base, board spacing), *Hiring* (arrival delay, unpaid days, low funds warnings and map pins), *Work* (tree and rock safety distances, terrain protection and field digging, gathering noise, smelter refill threshold, chest minimums), *Followers* (portal and ship radius, catch-up, when lost followers go home, trip times), *Combat*, *Balance log* and *Debug*.
+- **`Spronglehump.HiredHands.cfg`**: rules and behaviour, in sections *General* (raw food, permadeath, respawn, graves), *Base* (what counts as a base, board spacing), *Hiring* (arrival delay, unpaid days, low funds warnings and map pins), *Work* (tree and rock safety distances, terrain protection and field digging, gathering noise, smelter refill threshold, chest minimums), *Steward* (chores on or off, refill and repair thresholds), *Followers* (portal and ship radius, catch-up, when lost followers go home, trip times), *Combat*, *Balance log* and *Debug*.
 - **`Spronglehump.HiredHands.yml`**: the data tables: board levels and their upgrade costs, hireling levels (health, armour, cargo slots and weight, hire fee and upkeep in food and coins), per-job settings (cost multiplier, pickup list, what gatherers can be told to gather, gear by level, minimum board level, work-radius multiplier, steward stations and reserves), raw foods, names. Edits are picked up live. An invalid file is rejected with a log message and the defaults are used. **Updating the mod doesn't change values already in this file**: new settings are added with their defaults, but changed defaults (like 0.2.1's coin-only hiring and food-only upkeep) only reach a server when you edit the file or delete it to get a fresh one.
 
 ```yaml
@@ -152,11 +177,12 @@ jobs:
     pickupItems: [Stone, CopperOre, TinOre, ...]
 ```
 
-## AzuAutoStore, AzuCraftyBoxes, PullMats
+## AzuAutoStore, AzuCraftyBoxes, PullMats, PetPantry, Torches Eternal
 
 - The board's funds and hirelings' cargo are excluded from AzuAutoStore and AzuCraftyBoxes (and so from PullMats), so they never take your hireling money or cargo.
 - With AzuCraftyBoxes, **board upgrades take their materials from nearby chests** too (your inventory first, then the chests CraftyBoxes lets you pull from within its own range of the board). The Upgrade tab counts them ("Requires (counting nearby chests)"). Turn it off for yourself with `UpgradeFromNearbyChests` in the *Hiring* section of the cfg.
-- With AzuAutoStore, stewards never collect bars: Azu stores them into a chest that already holds that bar. Seed one bar into a chest.
+- With AzuAutoStore, stewards leave bars and other station output for Azu to store into a chest that already holds it (seed one bar into a chest). Stations that keep their output inside, like the spinning wheel, are still emptied by the Steward.
+- With PetPantry the Steward doesn't feed animals; with Torches Eternal it doesn't fuel fires (the Shift+E chore list says "handled by PetPantry/TorchesEternal").
 
 ## Balance log (for server owners)
 
@@ -168,7 +194,7 @@ Logs go to `BepInEx/LogOutput.log` and `BepInEx/HiredHands.log`, one line per ev
 
 ## Coming next
 
-Ideas being considered: the Steward taking on repairs and base chores, a Cook and a Farmer working to production orders ("keep 40 cooked meat"), woodcutters replanting, meal plans (more food for stronger hirelings), a scout. Balance tuning from the balance logs.
+Ideas being considered: a Cook and a Farmer working to production orders ("keep 40 cooked meat"), woodcutters replanting, meal plans (more food for stronger hirelings), a scout. Balance tuning from the balance logs.
 
 ## License
 

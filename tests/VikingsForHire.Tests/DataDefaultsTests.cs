@@ -85,6 +85,8 @@ namespace VikingsForHire.Tests
             // A 0.3 file: no choreLevels, and stations without the windmill and spinning wheel.
             VfhData old = DefaultData.Create();
             old.Jobs[JobType.Smelter].Stations.RemoveAll(s => s == "windmill" || s == "piece_spinningwheel");
+            foreach (WeaponSetData g in old.Jobs[JobType.Smelter].Gear)
+                g.Main = "Club";
             string full = DataYaml.Serialize(old);
             int start = full.IndexOf("    choreLevels:", full.IndexOf("  Smelter:"));
             int end = full.IndexOf("    keepInStorage:", start);
@@ -92,6 +94,13 @@ namespace VikingsForHire.Tests
             Assert.Contains("windmill", data.Jobs[JobType.Smelter].Stations);
             Assert.Contains("piece_spinningwheel", data.Jobs[JobType.Smelter].Stations);
             Assert.Empty(DataValidator.Validate(data));
+            Assert.All(data.Jobs[JobType.Smelter].Gear, g => Assert.Equal("VFH_Broom", g.Main));
+
+            // A 0.3 file whose owner armed the Steward keeps that gear.
+            string armed = DataYaml.Serialize(old).Replace("main: Club", "main: SwordIron");
+            int s2 = armed.IndexOf("    choreLevels:", armed.IndexOf("  Smelter:"));
+            int e2 = armed.IndexOf("    keepInStorage:", s2);
+            Assert.All(DataYaml.Deserialize(armed.Remove(s2, e2 - s2), out _).Jobs[JobType.Smelter].Gear, g => Assert.Equal("SwordIron", g.Main));
 
             // A 0.4 file whose owner took the windmill out keeps it out.
             VfhData owner = DefaultData.Create();
