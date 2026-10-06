@@ -3,6 +3,17 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.4.2 (unreleased)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (this commit) | `PauseWhenStorageFull` (Work, on): at home, woodcutters and miners leave trees/rocks (and pickups) whose item's chests are full, Stewards stop loading a station whose product has no room, and skip beehives, sap and tidying for full items; status "Paused: no room left for Wood" / "Charcoal kiln: paused, no room left for Coal" | the game simulating the hireling |
+
+### To test (batch)
+- [ ] Macros (single player): `vfh_test_chain pause1 pause2` (and still to run: `repairs repairs2`).
+- [ ] Live server: fill the coal chests: Brand stops loading the kiln and says why; fill the wood chests: the woodcutter pauses with "Paused: no room left for Wood".
+
 ## 0.4.1 (released 2026-10-05)
 
 ### Fixed or added

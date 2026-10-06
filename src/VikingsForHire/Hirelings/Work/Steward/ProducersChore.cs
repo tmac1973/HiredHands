@@ -82,6 +82,11 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 if (u <= 0f || Reservations.IsReservedByOther(x.Comp, ctx.Hireling.Hid) || Reservations.IsSkipped(x.Comp))
                     continue;
                 SmelterDeliveryPolicy.StewardOutputs.Add(x.Item);
+                if (StorageRoom.NoRoom(ctx.Chests, x.Item))
+                {
+                    Missing ??= ActivityText.Make("$vfh_paused_full", x.Name, StewardSteps.SharedName(x.Item));
+                    continue;
+                }
                 // No chest holds it yet: it still gets emptied (to the pile), and the status says where to put it.
                 bool home = ctx.Chests.Any(c => c.GetInventory().GetAllItems().Any(i => i.m_dropPrefab != null && i.m_dropPrefab.name == x.Item));
                 jobs.Add(new ChoreJob

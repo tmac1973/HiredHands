@@ -52,7 +52,7 @@ Woodcutters and miners work twice the board's radius. Everyone defends themselve
 
 **What to gather.** Shift+E on a woodcutter or miner switches items on and off (Wood, Fine wood, Core wood…; Stone, Copper, Tin…). Each tree or rock counts as its best drop, so with Wood off a woodcutter still fells birches for their fine wood, and with Stone off a miner takes only the copper from a deposit and leaves the stone on the ground. **Works at home: off** keeps a gatherer from touching anything inside its board's area (for bases with decorative trees and rocks); it still works in the field with you.
 
-**Deliveries.** Gatherers deliver each item type only to a chest that **already holds** that item (they never mix items into other chests), nearest first. Whatever doesn't fit is left in front of the board. Put one of an item in a chest to make it the home for that item.
+**Deliveries.** Gatherers deliver each item type only to a chest that **already holds** that item (they never mix items into other chests), nearest first. Whatever doesn't fit is left in front of the board. Put one of an item in a chest to make it the home for that item. **When those chests are full, work on that item pauses** (`PauseWhenStorageFull`, on): a woodcutter leaves trees for that wood, a miner that ore, a Steward stops loading a kiln whose coal has no room; the status says "Paused: no room left for Wood", and work picks up again once there's room.
 
 **Doors.** Hirelings open doors in their way and close them behind themselves (never in a player's face). They only use doors the board's owner may use under wards, never locked doors, and don't wander through doors when idle. `HirelingsOpenDoors` turns this off.
 

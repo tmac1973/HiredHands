@@ -63,6 +63,17 @@ namespace VikingsForHire.Hirelings.Work.Steward
             List<Smelter> stations = Stations(ctx);
             _byId = stations.ToDictionary(StationSurvey.Id);
             List<StationState> states = stations.Select(s => StationSurvey.State(s, ctx.Position)).ToList();
+            // PauseWhenStorageFull: inputs whose product has no room left aren't loaded (a kiln stops when the coal chests are full).
+            string? paused = null;
+            foreach (StationState st in states)
+            {
+                Smelter s = _byId[st.Id];
+                var noRoom = st.Inputs.Where(i => StorageRoom.NoRoom(ctx.Chests, ProductOf(s, i))).ToList();
+                if (noRoom.Count == 0)
+                    continue;
+                st.Inputs = st.Inputs.Except(noRoom).ToList();
+                paused ??= ActivityText.Make("$vfh_paused_full", s.m_name, StewardSteps.SharedName(ProductOf(s, noRoom[0])));
+            }
             var wanted = new HashSet<string>(states.SelectMany(s => s.Inputs).Concat(states.Select(s => s.FuelItem)).Where(p => p.Length > 0));
             Dictionary<string, int> stock = wanted.ToDictionary(p => p, ctx.Available);
             float threshold = VfhConfig.SmelterRefillThreshold.Value;
@@ -91,7 +102,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
             if ((AzuAutoStoreCompat.IsLoaded || ctx.FreeSlots > 0) && stations.FirstOrDefault(s => OutputWaiting(s, AzuAutoStoreCompat.IsLoaded)) is Smelter full)
                 jobs.Add(Job(full, ChoreUrgency.Station(1f, 1f, true, threshold), VariantCollect, ctx, "$vfh_status_collecting"));
 
-            if (jobs.Count == 0 && _plan.Starved.Count > 0 && _byId.TryGetValue(_plan.Starved[0], out Smelter starved))
+            if (jobs.Count == 0 && paused != null)
+                Missing = paused;
+            else if (jobs.Count == 0 && _plan.Starved.Count > 0 && _byId.TryGetValue(_plan.Starved[0], out Smelter starved))
             {
                 StationState st = states.First(s => s.Id == _plan.Starved[0]);
                 int Have(string p) => ctx.Available(p) + (ctx.Carried.TryGetValue(p, out int c) ? c : 0);
@@ -102,6 +115,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
             }
             return jobs;
         }
+
+        private static string ProductOf(Smelter s, string input) =>
+            s.m_conversion.FirstOrDefault(c => c.m_from != null && c.m_from.gameObject.name == input && c.m_to != null)?.m_to.gameObject.name ?? "";
 
         private ChoreJob Job(Smelter s, float urgency, int variant, StewardContext ctx, string label) => new()
         {

@@ -93,7 +93,9 @@ namespace VikingsForHire.Hirelings.Work
             if (!h.NoTargets)
             {
                 h.NoTargets = true;
-                h.SetActivity("$vfh_status_no_targets");
+                h.SetActivity(_fullItems.Count > 0
+                    ? Steward.ActivityText.Make("$vfh_status_storage_full", string.Join(", ", _fullItems.Select(Steward.StewardSteps.SharedName)))
+                    : "$vfh_status_no_targets");
                 VfhLog.I(LogCat.Work, "work.no_targets", ("hid", h.Hid), ("job", h.Job), ("radius", _area.Radius), ("center", _area.Center), ("skipped", why));
             }
             _rescanAt = Time.time + RescanNoTargets;
@@ -269,6 +271,7 @@ namespace VikingsForHire.Hirelings.Work
 
         private bool FindTarget(Hireling h, Vector3 near, out string why)
         {
+            _fullItems.Clear();
             var reasons = new Dictionary<string, int>();
             int candidates = 0;
             string? example = null;
@@ -283,6 +286,7 @@ namespace VikingsForHire.Hirelings.Work
                 candidates++;
                 string? skip = h.Ai.Order is { } order && !order.Allows(c) ? "not part of the order"
                     : h.Ai.Order == null && SwitchedOff(h, c) is string off ? $"{off} switched off"
+                    : NoRoomFor(h, c) is string full ? $"no room for {full}"
                     : Reservations.IsSkipped(c) ? "skipped after a failed approach"
                     : Reservations.IsReservedByOther(c, h.Hid) ? "claimed by another hireling"
                     : !_profile.IsValid(c, h, out string reason) ? reason
@@ -321,6 +325,38 @@ namespace VikingsForHire.Hirelings.Work
             return true;
         }
 
+        private readonly HashSet<string> _fullItems = new();
+        private List<Container>? _homeChests;
+        private float _homeChestsAt = -999f;
+        private const float HomeChestsSeconds = 10f;
+
+        // Only at home, on its own account: an order, or work out in the field with its owner, isn't paused.
+        private bool AtHome(Hireling h) => h.Ai.Order == null && Utils.DistanceXZ(_area.Center, h.Home) < 1f;
+
+        private List<Container> HomeChests(Hireling h)
+        {
+            if (_homeChests == null || Time.time - _homeChestsAt > HomeChestsSeconds)
+            {
+                _homeChests = ChestFinder.Find(h.Home, h.Radius);
+                _homeChestsAt = Time.time;
+            }
+            return _homeChests;
+        }
+
+        // PauseWhenStorageFull: the item this tree or rock counts as, when the chests for it are full.
+        private string? NoRoomFor(Hireling h, Component target)
+        {
+            if (!Config.VfhConfig.PauseWhenStorageFull.Value || !AtHome(h))
+                return null;
+            IEnumerable<string> yield = _profile.Yield(target);
+            string? primary = DataStore.Current.Jobs.TryGetValue(h.Job, out JobData? job) ? GatherRules.Primary(yield, job.GatherToggles) : null;
+            primary ??= yield.FirstOrDefault();
+            if (primary == null || !StorageRoom.NoRoom(HomeChests(h), primary))
+                return null;
+            _fullItems.Add(primary);
+            return primary;
+        }
+
         // The "what to gather" setting: the item this tree or rock counts as, if it's switched off.
         private string? SwitchedOff(Hireling h, Component target)
         {
@@ -335,6 +371,8 @@ namespace VikingsForHire.Hirelings.Work
         {
             HashSet<string> wanted = new(_profile.PickupItems);
             wanted.ExceptWith(h.SkipItems); // switched off: left on the ground
+            if (Config.VfhConfig.PauseWhenStorageFull.Value && AtHome(h))
+                wanted.RemoveWhere(i => StorageRoom.NoRoom(HomeChests(h), i)); // nowhere to put it: left too
             Vector3 me = h.transform.position;
             Vector3 anchor = _anchor != Vector3.zero ? _anchor : me;
             ItemDrop? best = null;
