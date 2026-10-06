@@ -16,9 +16,9 @@ namespace VikingsForHire.Hirelings.Work
         private const float MinAge = 5f;              // let a fight's drops settle, and a player pick up their own
         private const float PlayerDropAge = 20f;      // ... or longer, when it's at a player's feet
         private const float PlayerNear = 2f;
-        private const float Reach = 1.6f;
+        private const float Reach = 2.5f;             // about a player's reach to pick something up
         private const float ReachUp = 2.5f;
-        private const float GiveUp = 8f;
+        private const float GiveUp = 12f;
 
         private ItemDrop? _drop;
         private float _started;
@@ -87,11 +87,13 @@ namespace VikingsForHire.Hirelings.Work
             {
                 if (Time.time - _started > GiveUp)
                 {
+                    VfhLog.I(LogCat.Follow, "loot.unreachable", ("hid", h.Hid), ("item", drop.m_itemData.m_dropPrefab.name),
+                        ("pos", drop.transform.position), ("me", ai.transform.position));
                     _unreachable.Add(drop);
                     _drop = null;
                     return;
                 }
-                ai.WalkTo(dt, drop.transform.position, Reach * 0.6f, run: false);
+                ai.WalkTo(dt, drop.transform.position, 1f, run: false);
                 return;
             }
             if (!drop.m_nview.IsOwner())
