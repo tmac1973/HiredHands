@@ -178,7 +178,7 @@ Tim's idea (2026-10-06). Today hirelings fight like monsters: walk up, swing (or
 - **Order of work, if we do it:** blocking first (biggest effect on survival, simplest), then tactics for melee (Tank/DPS/Hit and run are mostly timing and distance rules), then Kite, then Shoot from cover as its own phase.
 - **Balance:** watch the balance log (fight length, damage taken per job and level) before and after; blocking alone could make low-level guards far tougher.
 
-## Hirelings passing each other
+## Hirelings passing each other (done for 0.6.0: keep right, pass through after 2 s; `HirelingsPassEachOther`)
 Seen on the live server (2026-10-05): two hirelings walking towards each other along a fence line push against each other until one slips past (they're solid to each other, and the game's walking AI doesn't steer round other creatures). It sorts itself out, so it's not urgent.
 - **Keep right:** a hireling that sees another close ahead coming the other way steps half a metre to its right for a moment; both do, so they slide past like people in a corridor.
 - **Pass through as a last resort:** two still pressed together after ~2 s (a gap too narrow to step aside) stop colliding with each other for a second.

@@ -129,6 +129,7 @@ namespace VikingsForHire.Hirelings
             Nav.LegOracle.Agent = m_pathAgentType;
             Threats = new ThreatScanner(this);
             Add(new IdleBehaviour());
+            Add(new TestWalkBehaviour());
             Add(new LeaveBehaviour());
             Add(new GuardPatrolBehaviour());
             Add(new PostBehaviour());

@@ -43,6 +43,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> ThreatScanIntervalSeconds = null!;
         public static ConfigEntry<float> TreeSafetyDistanceFromPieces = null!;
         public static ConfigEntry<bool> WoodcuttersPlantTrees = null!;
+        public static ConfigEntry<bool> HirelingsPassEachOther = null!;
         public static ConfigEntry<bool> HirelingsOpenDoors = null!;
         public static ConfigEntry<bool> HirelingsCloseDoors = null!;
         public static ConfigEntry<bool> BaseNavLinks = null!;
@@ -183,6 +184,7 @@ namespace VikingsForHire.Config
             StewardRepairQuietSeconds = Synced(st, "StewardRepairQuietSeconds", 20f, "No repairs until this long after the last enemy was seen within 30 m of the Steward or the piece.");
             StewardIgnoreOtherMods = Synced(st, "StewardIgnoreOtherMods", false, "Testing: behave as if PetPantry and Torches Eternal weren't installed (so the Steward feeds animals and fuels fires anyway).");
             BaseNavLinks = Synced(w, "BaseNavLinks", true, "Inside a hiring board's area, hirelings route through doors and up stairs and ladders found in your buildings (modded pieces too, by their shape). Off: the 0.2 door and stairs handling.");
+            HirelingsPassEachOther = Synced(w, "HirelingsPassEachOther", true, "Hirelings meeting head-on keep to their right to pass each other, and two wedged together for a couple of seconds pass through each other briefly.");
             WoodcuttersPlantTrees = Synced(w, "WoodcuttersPlantTrees", true, "Woodcutters plant trees from the seeds in the chests on free spots in tree patches (the Tree patch sign) inside their work radius.");
             TreeSafetyDistanceFromPieces = Synced(w, "TreeSafetyDistanceFromPieces", 6f, "Woodcutters skip trees with a player-built piece this close to the trunk (m).");
             TreeFallCorridorHalfWidth = Synced(w, "TreeFallCorridorHalfWidth", 4f, "Woodcutters fell a tree only in a direction where no player-built piece lies within the tree's height and this far either side of the fall line (m). If no direction is clear, the tree is left standing.");

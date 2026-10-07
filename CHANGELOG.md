@@ -2,6 +2,7 @@
 
 ## 0.6.0 (unreleased)
 
+- **Hirelings pass each other.** Two meeting head-on (along a fence, in a doorway) each keep to their right and slide past; two still wedged together after a couple of seconds pass through each other briefly. Server setting `HirelingsPassEachOther` (Work).
 - **Tree patches: woodcutters replant.** A new **Tree patch** sign (hammer, Misc, 2 Wood), placed inside a hiring board's area, marks a woodlot; Shift+E sets its radius and what to plant. Woodcutters plant its free spots from the seeds in your chests, only kinds their axe can fell, where they'll grow and can later be felled, and fell the grown trees as usual. Server setting `WoodcuttersPlantTrees` (Work).
 
 ## 0.5.0

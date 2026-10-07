@@ -15,9 +15,11 @@ Plan: `plan/tree-patches/overview.md`.
 | f120e07 | The tree patch sign stands on its own (the wall sign it's made from collapsed without support) | everywhere |
 | 881bdd1 | A patch set to Any plants only from ordinary tree seeds; PlantEverything's ancient (Ancient seed) and Ygga (Sap) trees only when chosen by name | the game simulating the woodcutter |
 | cc40a2f | Test cleanup empties cargo before killing hirelings (no graves or pins from test runs) | tests |
+| (this commit) | Hirelings meeting head-on keep right and slide past; wedged for 2 s, they pass through each other for a moment (`HirelingsPassEachOther`); `vfh_t_pass` corridor test | the game simulating the hirelings |
 
 ### To test (batch)
 - [x] Macro (single player): `vfh_test_chain tree_patch` (passed 2026-10-06).
+- [ ] Macro (single player): `vfh_test_chain pass`.
 - [x] Sign stays standing (Tim, 2026-10-06).
 - [ ] By hand: build a Tree patch sign (only inside a board's area: outside it the ghost is red and placing says so); Shift+E changes radius and kind; looking at it draws the circle; a woodcutter plants it from seeds in a chest and later fells the grown trees.
 

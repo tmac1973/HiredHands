@@ -25,6 +25,16 @@ namespace VikingsForHire.Testing
             Fixtures.Add("flatten", "<radius=22> - level the ground around you to the height under your feet and remove rocks, trees, bushes and stumps there (test worlds only)", Flatten);
             Fixtures.Add("roof_over", "<prefab> [walls] - a thatch roof (3x3 wood_roof pieces), and with walls three sides of walls stacked up to the roof (the east open), over the nearest such station, e.g. a spinning wheel, which only works under a roof", RoofOver);
             Fixtures.Add("nav_links", "<on|off> - turn BaseNavLinks on or off here (single player only; end the macro with nav_links on)", NavLinks);
+            Fixtures.Add("pass_test", "<length=12> <width=1.4> - a walled corridor beside the nearest board with a woodcutter at each end, each sent to the other end", PassTest);
+            Fixtures.Add("pass_clear", "- stop the pass_test walks", _ =>
+            {
+                Hirelings.TestWalkBehaviour.Targets.Clear();
+                return ResetStats();
+            });
+            TestHarness.RegisterCheck("pass_done", "- true when both pass_test hirelings reached the other end", _ =>
+                (Hirelings.TestWalkBehaviour.Targets.Count == 2 && Hirelings.TestWalkBehaviour.Targets.All(kv =>
+                    Hirelings.Hireling.Loaded.Find(h => h != null && h.Hid == kv.Key) is Hirelings.Hireling h && Utils.DistanceXZ(h.transform.position, kv.Value) <= 1.2f))
+                .ToString().ToLowerInvariant());
             Fixtures.Add("nav_stats_reset", "- start counting stair hops from zero", _ => ResetStats());
 
             TestHarness.RegisterCheck("navlinks_hops", "- hops to a stair's far end since nav_stats_reset", _ => (LinkNavigator.Hops - _hopsAtReset).ToString(CultureInfo.InvariantCulture));
@@ -281,6 +291,32 @@ namespace VikingsForHire.Testing
             }
             VfhLog.I(LogCat.Test, "fixture.roof_over", ("prefab", prefab), ("height", y), ("walls", walls));
             yield return new WaitForSeconds(1f);
+        }
+
+        // Two woodcutters meet head-on in a corridor just wider than one of them: each must get to the other's end.
+        private static IEnumerator PassTest(string[] args)
+        {
+            float length = float.Parse(args.ElementAtOrDefault(0) ?? "12", CultureInfo.InvariantCulture);
+            float width = float.Parse(args.ElementAtOrDefault(1) ?? "1.4", CultureInfo.InvariantCulture);
+            HiringBoard board = FixturesWork.Board();
+            Vector3 Ground(Vector3 p) => new(p.x, ZoneSystem.instance.GetGroundHeight(p), p.z);
+            Vector3 along = board.transform.right;
+            Vector3 across = board.transform.forward;
+            Vector3 mid = board.transform.position + across * 8f;
+            for (float d = -length / 2f + 1f; d <= length / 2f - 1f + 0.01f; d += 2f)
+                foreach (int side in new[] { -1, 1 })
+                    Place("woodwall", Ground(mid + along * d + across * side * (width / 2f + 0.15f)), across, "");
+            Vector3 a = Ground(mid - along * (length / 2f - 0.5f));
+            Vector3 b = Ground(mid + along * (length / 2f - 0.5f));
+            Hirelings.TestWalkBehaviour.Targets.Clear();
+            Commands.HirelingCommands.Spawn(new[] { "Woodcutter", "1", "1" }, a);
+            string hidA = Commands.HirelingCommands.LastSpawned.FirstOrDefault() ?? "";
+            Commands.HirelingCommands.Spawn(new[] { "Woodcutter", "1", "1" }, b);
+            string hidB = Commands.HirelingCommands.LastSpawned.FirstOrDefault() ?? "";
+            yield return new WaitForSeconds(3f); // let them load in
+            Hirelings.TestWalkBehaviour.Targets[hidA] = b;
+            Hirelings.TestWalkBehaviour.Targets[hidB] = a;
+            VfhLog.I(LogCat.Test, "fixture.pass_test", ("a", hidA), ("b", hidB), ("length", length), ("width", width));
         }
 
         private static int _hopsAtReset;
