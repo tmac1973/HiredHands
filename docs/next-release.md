@@ -5,7 +5,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 
 ## 0.6.0 (unreleased)
 
-Plan: `plan/tree-patches/overview.md`.
+Plans: `plan/tree-patches/overview.md`, `plan/combat-ai/overview.md` (blocking and dodging).
 
 ### Fixed or added
 | Commit | What | Where it runs |
@@ -17,12 +17,14 @@ Plan: `plan/tree-patches/overview.md`.
 | cc40a2f | Test cleanup empties cargo before killing hirelings (no graves or pins from test runs) | tests |
 | 6161f02 | Hirelings meeting head-on keep right and slide past; wedged for 2 s, they pass through each other for a moment (`HirelingsPassEachOther`); `vfh_t_pass` corridor test | the game simulating the hirelings |
 | d8502e9…8aa9922 | Passing tuned with the corridor test: no sidestep with a wall just to the right; pass through when getting nowhere (under 0.5 m a second) with another hireling within 2.5 m; `PassSideRoom` (1.2 m), `PassThroughAfter` (1.5 s) | the game simulating the hirelings |
+| f95f9f2 | Combat 1/6: hirelings in a fight notice swings coming at them (when they land, how hard after armor, area or not) with a per-level read chance (`readChance`, `parryChance`, `dodgeChance`, `dodgeCooldown` in the levels table); `BlockAndDodge` setting. Nothing reacts yet | the game simulating the hireling |
 
 ### To test (batch)
 - [x] Macro (single player): `vfh_test_chain tree_patch` (passed 2026-10-06).
 - [x] Macro (single player): `vfh_test_chain pass` (10 runs, 5–9 s, no jams, 2026-10-07).
 - [x] Sign stays standing (Tim, 2026-10-06).
 - [x] By hand: build a Tree patch sign only inside a board's area (outside it the ghost is red and placing says so). Tested by Tim 2026-10-07.
+- [ ] Macro (single player): `vfh_test_chain read1 read2`; in HiredHands.log (Combat at Debug) the level 8 guard's `defense.read` lines are 85-100% `read=true`, Greydwarf Brute swings `timed=true` with `in=` 0.2-1.0 s.
 - [ ] By hand: on a Tree patch sign, Shift+E changes radius and kind; looking at it draws the circle; a woodcutter plants it from seeds in a chest and later fells the grown trees.
 
 ## 0.5.0 (released 2026-10-06): Farmer, Cook and production orders

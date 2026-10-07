@@ -190,3 +190,16 @@ The reason:
 - `DataStore` writes the default data file on first run whenever there isn't one, so any install that ran this build
   has `readChance`, `parryChance`, `dodgeChance` and `dodgeCooldown` in its file.
 - Keeping the fields lets those files go on loading.
+
+## Implementation notes (as built, f95f9f2)
+- **The test fixture** is the existing `cfg_set <key> <value>` rather than a new `set_cfg`. Later phases' rows use
+  `cfg_set` too.
+- **The weapon** comes from the attacker's synced right-hand item (`ZDOVars.s_rightItem`, then
+  `ObjectDB.GetItemPrefab`), not by matching animator state names. Monsters equip the weapon of the attack they're
+  making, and the ZDO value is the same on every machine. The fallback is `GetCurrentWeapon()`, then a damage of 0.
+- **The hit event** is `Hit` or `OnAttackTrigger`: `CharacterAnimEvent` has both.
+- **Older data files:** `DataYaml`'s `FillMissing` already fills keys missing from list entries (levels) from the
+  shipped defaults, so no extra loader code was needed. A unit test covers a 0.5.0-style file.
+- **VFH-READ-1** uses three waves of 2 Greydwarf Brutes and asserts `reads >= 6`. A level 8 guard kills plain
+  Greydwarfs too fast to collect 20 reads in one row. The 85–100% read rate is checked in `HiredHands.log` across the
+  run instead.
