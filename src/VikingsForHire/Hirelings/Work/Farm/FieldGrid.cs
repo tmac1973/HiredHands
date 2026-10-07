@@ -58,7 +58,9 @@ namespace VikingsForHire.Hirelings.Work.Farm
             if (placed.Count == 0)
                 return new Grid(home, row.sqrMagnitude > 0.5f ? row : Vector3.right, spacing);
             Vector3 origin = placed.OrderBy(p => Utils.DistanceXZ(p, home)).First();
-            Vector3? neighbour = placed.Where(p => p != origin && Utils.DistanceXZ(p, origin) < spacing * 2.5f).OrderBy(p => Utils.DistanceXZ(p, origin)).Cast<Vector3?>().FirstOrDefault();
+            // A neighbour straight along a row (about one spacing away), never a diagonal one: lining up with a diagonal would
+            // turn the grid 45° and put new plants between the old rows.
+            Vector3? neighbour = placed.Where(p => p != origin && Utils.DistanceXZ(p, origin) < spacing * 1.2f).OrderBy(p => Utils.DistanceXZ(p, origin)).Cast<Vector3?>().FirstOrDefault();
             if (neighbour is Vector3 n)
             {
                 Vector3 d = n - origin;

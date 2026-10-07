@@ -49,7 +49,7 @@ namespace VikingsForHire.Testing
                 for (int i = 0; i < at.Count; i++)
                     for (int j = i + 1; j < at.Count; j++)
                         if (Utils.DistanceXZ(at[i], at[j]) < min)
-                            return "false";
+                            return $"false ({Utils.DistanceXZ(at[i], at[j]):0.00} m between {at[i]} and {at[j]})";
                 return "true";
             });
             TestHarness.RegisterCheck("grid_aligned", "<sapling> - true when every such plant near the board sits within 10 cm of the Farmer's grid", args =>
@@ -58,7 +58,8 @@ namespace VikingsForHire.Testing
                 Crop crop = CropCatalog.BySapling(sapling) ?? throw new InvalidOperationException($"{sapling} isn't a known crop");
                 HiringBoard board = FixturesWork.Board();
                 FieldGrid.Grid g = FieldGrid.For(crop, board.transform.position, 40f, board.transform.right);
-                return Near(sapling).All(p => g.Offset(p) <= 0.1f).ToString().ToLowerInvariant();
+                Vector3? off = Near(sapling).Where(p => g.Offset(p) > 0.1f).Cast<Vector3?>().FirstOrDefault();
+                return off == null ? "true" : $"false ({off} is {g.Offset(off.Value):0.00} m off the grid at {g.Origin}, row {g.Row})";
             });
             TestHarness.RegisterCheck("plants_under_roof", "- growing crops near the board with something solid above them", _ =>
                 Count(Array.Empty<string>(), (plants, picks) => plants.Count(p => Physics.Raycast(p.transform.position + Vector3.up * 0.1f, Vector3.up, 100f,
