@@ -10,7 +10,7 @@ Plan: `plan/tree-patches/overview.md`.
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
-| (this commit) | Tree patch sign (inside a board's area; Shift+E: radius, kind; hover shows saplings/trees and draws the circle); woodcutters plant its free spots from seeds in the chests (kinds their axe can fell, clear of buildings), felling grown trees as usual; `WoodcuttersPlantTrees` | your game (sign); the game simulating the woodcutter |
+| 6641ffc | Tree patch sign (inside a board's area; Shift+E: radius, kind; hover shows saplings/trees and draws the circle); woodcutters plant its free spots from seeds in the chests (kinds their axe can fell, clear of buildings), felling grown trees as usual; `WoodcuttersPlantTrees` | your game (sign); the game simulating the woodcutter |
 
 ### To test (batch)
 - [ ] Macro (single player): `vfh_test_chain tree_patch`.
