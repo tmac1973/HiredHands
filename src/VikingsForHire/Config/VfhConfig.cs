@@ -108,6 +108,7 @@ namespace VikingsForHire.Config
 
         // 8 - Combat
         public static ConfigEntry<float> MeleeAttackCooldown = null!;
+        public static ConfigEntry<bool> BlockAndDodge = null!;
         public static ConfigEntry<float> RangedAttackCooldown = null!;
 
         // 6 - Controls (local). The board panel is Shift+E: Valheim's alt-interact, so it follows the game's own bindings.
@@ -225,6 +226,7 @@ namespace VikingsForHire.Config
             BalanceLogMaxMB = _file.Bind("9 - Balance log", "BalanceLogMaxMB", 20, "Server: total size (MB) of the balance log files kept; the oldest days are deleted beyond it.");
 
             MeleeAttackCooldown = Synced("8 - Combat", "MeleeAttackCooldown", 1.2f, "Seconds between a hireling's melee swings.");
+            BlockAndDodge = Synced("8 - Combat", "BlockAndDodge", true, "Hirelings watch for attacks coming at them: guards with shields raise them in time (and parry when well timed), and anyone fighting rolls out of the way of hits that would hurt a lot. Off: the 0.5.0 fighting (shield up once a swing is under way, no dodging).");
             RangedAttackCooldown = Synced("8 - Combat", "RangedAttackCooldown", 2.5f, "Seconds between an archer's shots (at least the bow's draw time plus a beat).");
 
             LogToFile = config.Bind("7 - Debug", "LogToFile", true, "Also write log lines to BepInEx/HiredHands.log.");

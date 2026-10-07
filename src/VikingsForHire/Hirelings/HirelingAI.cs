@@ -26,6 +26,14 @@ namespace VikingsForHire.Hirelings
         private float _runBoostUntil;
 
         public ThreatScanner Threats { get; private set; } = null!;
+
+        /// <summary>Attacks seen coming at it (BlockAndDodge).</summary>
+        public AttackReader Reader { get; private set; } = null!;
+        public IReadOnlyList<IncomingAttack> Incoming => Reader.Incoming;
+        public DefenseStats Defense { get; } = new();
+
+        /// <summary>When it last took damage (Time.time).</summary>
+        public float LastHitTime { get; private set; } = -999f;
         public Stance Stance => (Stance)(Hireling.Zdo?.GetInt(HirelingZdo.Stance) ?? 0);
         public Character? CombatTarget => _combat?.Target;
 
@@ -128,6 +136,7 @@ namespace VikingsForHire.Hirelings
             Hireling = hireling;
             Nav.LegOracle.Agent = m_pathAgentType;
             Threats = new ThreatScanner(this);
+            Reader = new AttackReader(this);
             Add(new IdleBehaviour());
             Add(new TestWalkBehaviour());
             Add(new LeaveBehaviour());
@@ -177,6 +186,7 @@ namespace VikingsForHire.Hirelings
             Add(_combat);
             hireling.Humanoid.m_onDamaged += (damage, attacker) =>
             {
+                LastHitTime = Time.time;
                 Threats.OnDamaged(attacker);
                 _combat.OnHit();
                 RetreatHit();
@@ -227,6 +237,7 @@ namespace VikingsForHire.Hirelings
             UpdateRegeneration(dt);
             Regenerate(dt);
             Threats.Tick(VfhConfig.ThreatScanIntervalSeconds.Value);
+            Reader.Tick();
             bool retreat = StanceRules.ShouldRetreat(Stance, Hireling.Job.IsGuard(), Hireling.Humanoid.GetHealthPercentage(), Retreating);
             if (retreat != Retreating)
             {

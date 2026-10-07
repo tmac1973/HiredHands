@@ -28,6 +28,16 @@ namespace VikingsForHire.Testing
             Fixtures.Add("stance", "<last|all> <stance> - set the stance of the last spawned hireling (or all nearby)", SetStance);
             Fixtures.Add("wait", "<seconds> - pause the test run", args => Wait(float.Parse(args.ElementAtOrDefault(0) ?? "1", CultureInfo.InvariantCulture)));
 
+            Fixtures.Add("enemy_level", "<prefab> <stars> - give the nearest enemy of that kind that many stars (level = stars + 1)", EnemyLevel);
+            TestHarness.RegisterCheck("defense", "<last|all> <reads|misses|blocks|parries|dodges|dodged_hits> - blocking/dodging counters since the hireling loaded (all: summed over hirelings within 50 m)", args =>
+            {
+                string counter = args.ElementAtOrDefault(1) ?? "reads";
+                var targets = args.ElementAtOrDefault(0) == "all"
+                    ? Hireling.Loaded.Where(h => h != null && Vector3.Distance(h.transform.position, Player.m_localPlayer.transform.position) < 50f).ToList()
+                    : new[] { Last() }.ToList();
+                return targets.Sum(h => h.Ai.Defense.Get(counter)).ToString();
+            });
+
             TestHarness.RegisterCheck("enemies_alive", "<radius=40> - hostile creatures alive near you", args =>
             {
                 float r = args.Length > 0 ? float.Parse(args[0], CultureInfo.InvariantCulture) : 40f;
@@ -92,6 +102,19 @@ namespace VikingsForHire.Testing
             }
             VfhLog.I(LogCat.Test, "fixture.kill_enemies", ("killed", n));
             yield return new WaitForSeconds(1f);
+        }
+
+        private static IEnumerator EnemyLevel(string[] args)
+        {
+            string prefab = args.ElementAtOrDefault(0) ?? throw new ArgumentException("usage: enemy_level <prefab> <stars>");
+            int stars = int.Parse(args.ElementAtOrDefault(1) ?? "1", CultureInfo.InvariantCulture);
+            Vector3 me = Player.m_localPlayer.transform.position;
+            Character c = Hostiles(80f).Where(x => Utils.GetPrefabName(x.gameObject) == prefab)
+                              .OrderBy(x => Vector3.Distance(x.transform.position, me)).FirstOrDefault()
+                          ?? throw new InvalidOperationException($"no {prefab} nearby");
+            c.SetLevel(stars + 1);
+            VfhLog.I(LogCat.Test, "fixture.enemy_level", ("prefab", prefab), ("stars", stars), ("level", c.GetLevel()));
+            yield return null;
         }
 
         private static IEnumerator SetStance(string[] args)

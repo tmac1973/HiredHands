@@ -191,7 +191,17 @@ namespace VikingsForHire.Core.Data
             Level = level, Health = health, Armor = armor, ArmorBonus = level <= 1 ? 0 : level - 1, GuardDamageMult = guardMult, GatherMult = gatherMult, CargoSlots = slots,
             CargoWeight = 300f + 25f * (level - 1), // like a player's 300, a little more with experience (475 at level 8)
             HireFood = hireFood, HireCoins = hireCoins, UpkeepFood = upkeepFood, UpkeepCoins = upkeepCoins,
+            ReadChance = ReadChances[level - 1], ParryChance = ParryChances[level - 1], DodgeChance = DodgeChances[level - 1],
+            DodgeCooldown = DodgeCooldowns[level - 1],
         };
+
+        // Blocking and dodging by level (0.6.0): level 1 sees about half of the attacks coming and seldom parries; level 8
+        // sees nearly all, parries most and rolls again after 2 s.
+        private static readonly float[] ReadChances = { 0.50f, 0.57f, 0.63f, 0.70f, 0.76f, 0.83f, 0.89f, 0.95f };
+        private static readonly float[] ParryChances = { 0.15f, 0.23f, 0.31f, 0.39f, 0.46f, 0.54f, 0.62f, 0.70f };
+        private static readonly float[] DodgeChances = { 0.30f, 0.37f, 0.44f, 0.51f, 0.59f, 0.66f, 0.73f, 0.80f };
+        private static readonly float[] DodgeCooldowns = { 6.0f, 5.4f, 4.9f, 4.3f, 3.7f, 3.1f, 2.6f, 2.0f };
+
 
         private static ArmorSetData Armor(int level, string helmet, string chest, string legs) =>
             new() { Level = level, Helmet = helmet, Chest = chest, Legs = legs };

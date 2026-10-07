@@ -32,6 +32,8 @@ namespace VikingsForHire.Core.Data
                 if (h.CargoWeight < 0) errors.Add($"{p}.cargoWeight must be 0 (no limit) or more");
                 if (h.ArmorBonus < 0 || h.GuardDamageMult < 0 || h.GatherMult < 0) errors.Add($"{p} has a negative stat");
                 if (h.HireFood < 0 || h.HireCoins < 0 || h.UpkeepFood < 0 || h.UpkeepCoins < 0) errors.Add($"{p} has a negative price");
+                if (!InUnit(h.ReadChance) || !InUnit(h.ParryChance) || !InUnit(h.DodgeChance)) errors.Add($"{p}: readChance, parryChance and dodgeChance must be 0-1");
+                if (h.DodgeCooldown < 0) errors.Add($"{p}.dodgeCooldown must be 0 or more");
             }
 
             CheckSequence(errors, "armorSets", data.ArmorSets.Select(a => a.Level).ToList(), Levels);
@@ -170,5 +172,7 @@ namespace VikingsForHire.Core.Data
             warnings.Add($"{name}: unknown item {value}, using '{replacement}'");
             return replacement;
         }
+
+        private static bool InUnit(float v) => v >= 0f && v <= 1f;
     }
 }
