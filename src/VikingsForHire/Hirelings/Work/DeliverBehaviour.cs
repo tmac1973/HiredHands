@@ -23,7 +23,7 @@ namespace VikingsForHire.Hirelings.Work
         private const float MaxCarrySeconds = 600f;
 
         public bool NeedsDelivery(Hireling h) =>
-            h.CargoFull || h.NoTargets || (h.CarryingSince > 0f && Time.time - h.CarryingSince > MaxCarrySeconds);
+            !h.FetchingSupplies && (h.CargoFull || h.NoTargets || (h.CarryingSince > 0f && Time.time - h.CarryingSince > MaxCarrySeconds));
 
         public bool Delivers(Hireling h, string prefab) => true;
     }

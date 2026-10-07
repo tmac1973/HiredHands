@@ -3,6 +3,19 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.6.0 (unreleased)
+
+Plan: `plan/tree-patches/overview.md`.
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (this commit) | Tree patch sign (inside a board's area; Shift+E: radius, kind; hover shows saplings/trees and draws the circle); woodcutters plant its free spots from seeds in the chests (kinds their axe can fell, clear of buildings), felling grown trees as usual; `WoodcuttersPlantTrees` | your game (sign); the game simulating the woodcutter |
+
+### To test (batch)
+- [ ] Macro (single player): `vfh_test_chain tree_patch`.
+- [ ] By hand: build a Tree patch sign (only inside a board's area: outside it the ghost is red and placing says so); Shift+E changes radius and kind; looking at it draws the circle; a woodcutter plants it from seeds in a chest and later fells the grown trees.
+
 ## 0.5.0 (released 2026-10-06): Farmer, Cook and production orders
 
 Plan: `plan/farmer-cook/`. Includes the held 0.4.4 fixes (first four rows).

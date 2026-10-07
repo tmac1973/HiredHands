@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0 (unreleased)
+
+- **Tree patches: woodcutters replant.** A new **Tree patch** sign (hammer, Misc, 2 Wood), placed inside a hiring board's area, marks a woodlot; Shift+E sets its radius and what to plant. Woodcutters plant its free spots from the seeds in your chests, only kinds their axe can fell, where they'll grow and can later be felled, and fell the grown trees as usual. Server setting `WoodcuttersPlantTrees` (Work).
+
 ## 0.5.0
 
 - **Farmer.** A new job (board level 2, one per board) that works the ground you cultivated in its radius, holding a cultivator. It harvests every ripe crop and puts the harvest away, picks berry bushes and other regrowing plants while an order wants them (never planting bushes), and plants to the board's orders in tidy rows lined up with your own, only where the plant can grow. Crops unlock with their biome (`cropLevels`). Works with PlantEverything (its bushes and plants) and PlantEasily (its spacing and harvest radius).

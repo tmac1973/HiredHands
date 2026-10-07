@@ -140,7 +140,9 @@ namespace VikingsForHire.Hirelings.Work
 
         private static Vector3 Flat(Vector3 v) => new(v.x, 0f, v.z);
 
-        private static bool IsPlayerPiece(Piece p) => p != null && p.GetCreator() != 0L && p.GetComponent<Hireling>() == null;
+        // Saplings and the tree patch sign aren't buildings a falling tree could hurt.
+        private static bool IsPlayerPiece(Piece p) => p != null && p.GetCreator() != 0L && p.GetComponent<Hireling>() == null &&
+                                                       p.GetComponent<Trees.TreePatch>() == null && p.GetComponent<Plant>() == null;
 
         private static Piece? ClosestPiece(Vector3 at, float radius)
         {

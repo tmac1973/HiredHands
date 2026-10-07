@@ -28,6 +28,11 @@ namespace VikingsForHire.Testing
             Fixtures.Add("crop", "<sapling> <n> [ripe] [tag] - plant n of a crop in a row on the field (ripe: the grown crop instead); the first gets the tag", Crop);
             Fixtures.Add("bush", "<pickable> [tag] - a ripe regrowing plant (RaspberryBush…) at the field's edge", Bush);
             Fixtures.Add("piece", "<prefab> <x> <z> <height> - a piece at an offset (m, along the rows / across) from the field's centre, that high off the ground", PlacePiece);
+            Fixtures.Add("tree_patch", "<radius> [kind|any] [tag] [distance=20] - a tree patch sign that far in front of the nearest board (kind: a sapling prefab, e.g. Beech_Sapling)", TreePatchFixture);
+            TestHarness.RegisterCheck("patch_saplings", "<tag> - saplings inside a tagged tree patch", args => Patch(args).Count().Saplings.ToString(CultureInfo.InvariantCulture));
+            TestHarness.RegisterCheck("patch_trees", "<tag> - grown trees inside a tagged tree patch", args => Patch(args).Count().Trees.ToString(CultureInfo.InvariantCulture));
+            TestHarness.RegisterCheck("trees_planted", "- saplings woodcutters have planted since login", _ =>
+                Hirelings.Work.Trees.PlantTreesBehaviour.Planted.ToString(CultureInfo.InvariantCulture));
             Fixtures.Add("grow_all", "- every growing crop within 40 m of the board ripens now (as if its grow time had passed)", GrowAll);
 
             TestHarness.RegisterCheck("ripe_crops", "[radius=40] - ripe planted crops within that distance of the nearest board", args =>
@@ -103,6 +108,24 @@ namespace VikingsForHire.Testing
                 wnt.m_noSupportWear = false;
             VfhLog.I(LogCat.Test, "fixture.piece", ("prefab", prefab), ("at", p));
             yield return null;
+        }
+
+        private static Hirelings.Work.Trees.TreePatch Patch(string[] args) =>
+            FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponent<Hirelings.Work.Trees.TreePatch>() ?? throw new InvalidOperationException("no such tagged tree patch");
+
+        private static IEnumerator TreePatchFixture(string[] args)
+        {
+            float radius = float.Parse(args.ElementAtOrDefault(0) ?? "6", CultureInfo.InvariantCulture);
+            string kind = args.ElementAtOrDefault(1) ?? "any";
+            string tag = args.ElementAtOrDefault(2) ?? "";
+            float distance = float.TryParse(args.ElementAtOrDefault(3), NumberStyles.Float, CultureInfo.InvariantCulture, out float d) ? d : 20f;
+            HiringBoard board = FixturesWork.Board();
+            Vector3 p = board.transform.position + board.transform.forward * distance;
+            GameObject go = FixturesWork.Spawn(Hirelings.Work.Trees.TreePatchPiece.PrefabName, p, tag);
+            FixturesWork.OwnBuilt(go);
+            yield return null;
+            go.GetComponent<Hirelings.Work.Trees.TreePatch>().Set(radius, kind == "any" ? "" : kind);
+            VfhLog.I(LogCat.Test, "fixture.tree_patch", ("at", p), ("radius", radius), ("kind", kind), ("tag", tag));
         }
 
         private static IEnumerator Field(string[] args)
@@ -194,6 +217,19 @@ namespace VikingsForHire.Testing
             var picks = new List<Pickable>();
             FarmScan.Nearby(FixturesWork.Board().transform.position, 40f, plants, picks);
             int grown = 0;
+            // Tree saplings too (they're not crops), anywhere within 40 m of the board.
+            foreach (Plant p in Object.FindObjectsByType<Plant>(FindObjectsSortMode.None).Where(p => p != null &&
+                         Hirelings.Work.Trees.TreeCatalog.BySapling(Utils.GetPrefabName(p.gameObject)) != null &&
+                         Vector3.Distance(p.transform.position, FixturesWork.Board().transform.position) < 40f).ToList())
+            {
+                Hirelings.Work.Trees.TreeKind kind = Hirelings.Work.Trees.TreeCatalog.BySapling(Utils.GetPrefabName(p.gameObject))!;
+                Vector3 at = p.transform.position;
+                if (!p.m_nview.IsOwner())
+                    p.m_nview.ClaimOwnership();
+                ZNetScene.instance.Destroy(p.gameObject);
+                FixturesWork.Spawn(kind.Grown, at, "");
+                grown++;
+            }
             foreach (Plant p in plants)
             {
                 if (CropCatalog.BySapling(Utils.GetPrefabName(p.gameObject)) is not Crop crop)

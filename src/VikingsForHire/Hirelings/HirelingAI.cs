@@ -137,6 +137,7 @@ namespace VikingsForHire.Hirelings
             {
                 case JobType.Woodcutter:
                     Add(Gather = new Work.GatherBehaviour(new Work.WoodcutterProfile()));
+                    Add(new Work.Trees.PlantTreesBehaviour());
                     Add(new Work.DeliverBehaviour(new Work.GathererDeliveryPolicy()));
                     break;
                 case JobType.Smelter:
