@@ -25,8 +25,8 @@ Plan: `plan/farmer-cook/`. Includes the held 0.4.4 fixes (first four rows).
 | 448994e | Review fixes before the first run: jobs that can't be done are set aside, unreachable planting spots avoided for 10 min, fetched seeds/ingredients/board food never delivered back mid-job, food cooking and items carried count as stock, only usable stations (fire, roof, free slot, level) planned, crops not planted where too hot or cold, no duplicated items on full cargo, no raw food lost on a full stove | as above |
 
 ### To test (batch)
-- [ ] Macros (single player, add PlantEverything and PlantEasily to `vikingsforhire-dev` first): `vfh_test_chain catalog orders farm_harvest farm_bush farm_seeds farm_rows cook_spit cook_oven cook_cauldron cook_chain cook_protect`.
-- [ ] Macros (single player), Steward regression after the shared loop: `vfh_test_chain chore_gate chore_toggle fires beehive animals repairs repairs2 fermenter shield tidy board_food loot pause1 pause2`, then `deliver1 deliver2 nav1 nav5 keep1 azu3`.
+- [x] Macros (single player, with PlantEverything and PlantEasily): `vfh_test_chain catalog orders farm_harvest farm_bush farm_seeds farm_rows cook_spit cook_oven cook_cauldron cook_chain cook_protect` (all passed 2026-10-06, after fixes).
+- [x] Macros (single player), Steward regression after the shared loop (all passed 2026-10-06): `vfh_test_chain chore_gate chore_toggle fires beehive animals repairs repairs2 fermenter shield tidy board_food loot pause1 pause2`, then `deliver1 deliver2 nav1 nav5 keep1 azu3`.
 - [ ] Local dedicated server, from a client: `vfh_test_chain orders farm_harvest cook_spit`.
 - [ ] By hand: hire a Farmer (holds a cultivator) and a Cook (holds a ladle); a second Farmer is refused; the Orders tab adds, reorders, pauses and removes orders; `vfh_crops` / `vfh_recipes` list what you'd expect (with PlantEverything: raspberry bushes etc. as regrowing).
 - [ ] By hand (live mod set copy): a Farmer on a real field with a seed order and a produce order; PlantEasily rows match yours; a Cook on spits and a cauldron for half an hour; no `lvl=E`.
