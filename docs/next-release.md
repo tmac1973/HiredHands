@@ -3,7 +3,7 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## 0.5.0 (unreleased): Farmer, Cook and production orders
+## 0.5.0 (released 2026-10-06): Farmer, Cook and production orders
 
 Plan: `plan/farmer-cook/`. Includes the held 0.4.4 fixes (first four rows).
 
