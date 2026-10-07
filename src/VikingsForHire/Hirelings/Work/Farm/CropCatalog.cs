@@ -25,6 +25,9 @@ namespace VikingsForHire.Hirelings.Work.Farm
         public bool NeedCultivated { get; set; } = true;
         public bool TolerateCold { get; set; }
         public bool TolerateHeat { get; set; }
+
+        /// <summary>A wild regrowing plant (not one the cultivator plants): unlisted, it waits for the last level.</summary>
+        public bool Wild { get; set; }
     }
 
     /// <summary>
@@ -115,7 +118,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
             foreach (GameObject go in ZNetScene.instance.m_prefabs.Where(p => p != null && !_byGrown.ContainsKey(p.name)))
                 if (go.GetComponent<Pickable>() is Pickable pick && pick.m_respawnTimeMinutes > 0f && go.GetComponent<Plant>() == null &&
                     pick.m_itemPrefab != null && (IsFood(pick.m_itemPrefab) || farmer.CropLevels.ContainsKey(pick.m_itemPrefab.name)))
-                    AddRegrowing(go, pick);
+                    AddRegrowing(go, pick, wild: true);
             ApplyLevels();
             _grownHashes.Clear();
             _saplingHashes.Clear();
@@ -164,7 +167,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
             _bySapling[go.name] = crop;
         }
 
-        private static void AddRegrowing(GameObject go, Pickable pick)
+        private static void AddRegrowing(GameObject go, Pickable pick, bool wild = false)
         {
             if (pick.m_itemPrefab == null || NotCrops.Contains(pick.m_itemPrefab.name) || _byGrown.ContainsKey(go.name))
                 return;
@@ -172,6 +175,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
             {
                 Prefab = go,
                 GrownPrefab = go.name,
+                Wild = wild,
                 Info = new CropInfo
                 {
                     Plant = go.name,
@@ -187,8 +191,10 @@ namespace VikingsForHire.Hirelings.Work.Farm
         private static void ApplyLevels()
         {
             JobData farmer = DataStore.Current.Jobs.TryGetValue(JobType.Farmer, out JobData? j) ? j : new JobData();
+            // Listed: that level. Unlisted: 1 for crops the cultivator plants (modded ones), the last level for wild plants, so
+            // new content (Deep North berries and the like) doesn't turn up before its biome.
             foreach (Crop c in _all)
-                c.Info.Level = farmer.CropLevels.TryGetValue(c.Info.Yields, out int l) ? l : 1;
+                c.Info.Level = farmer.CropLevels.TryGetValue(c.Info.Yields, out int l) ? l : c.Wild ? 8 : 1;
         }
     }
 }

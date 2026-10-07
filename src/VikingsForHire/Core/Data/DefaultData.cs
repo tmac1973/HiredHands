@@ -104,7 +104,7 @@ namespace VikingsForHire.Core.Data
                         ["Barley"] = 5, ["Flax"] = 5, ["Cloudberry"] = 5,
                         ["MushroomJotunPuffs"] = 6, ["MushroomMagecap"] = 6,
                         ["Vineberry"] = 7, ["VineberrySeeds"] = 7, ["Fiddleheadfern"] = 7, ["MushroomSmokePuff"] = 7,
-                        ["OatSeeds"] = 8, ["Kale"] = 8, ["KaleSeeds"] = 8, ["Poteitr"] = 8, ["PoteitrSeeds"] = 8,
+                        ["OatSeeds"] = 8, ["Kale"] = 8, ["KaleSeeds"] = 8, ["Poteitr"] = 8, ["PoteitrSeeds"] = 8, ["Lingonberry"] = 8,
                     },
                 },
                 [JobType.Cook] = new()
