@@ -348,3 +348,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-06 | ce7dc01 | VFH-FARM-4 | SP | Pass | Rows line up with the existing row at the crop's spacing, none under the roof |
 | 2026-10-06 | 96d261b | VFH-CHORE-1, 2, 4, 5, 7, 8, 10, 11, 12, 13, 14, LOOT-1, PAUSE-1, PAUSE-2, DLV-1, DLV-2, NAVLINK-4, NAVLINK-8, SMELT-4, AZU-3 | SP | Pass | Steward and delivery regression on the shared chore loop (0.5.0) |
 | 2026-10-06 | 830d3d1 | VFH-ORDER-1, FARM-1, COOK-1 | D | Pass | From a client of the local dedicated server: orders through the server, harvesting and spits on objects the server owns; no errors on the server |
+| 2026-10-06 | f120e07 | VFH-TREE-1 | SP | Pass | 4 beech saplings planted from a chest, left standing, felled once grown, and the freed spots replanted (beech and fir); the patch sign now stands on its own |

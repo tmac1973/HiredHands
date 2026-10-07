@@ -11,9 +11,12 @@ Plan: `plan/tree-patches/overview.md`.
 | Commit | What | Where it runs |
 |---|---|---|
 | 6641ffc | Tree patch sign (inside a board's area; Shift+E: radius, kind; hover shows saplings/trees and draws the circle); woodcutters plant its free spots from seeds in the chests (kinds their axe can fell, clear of buildings), felling grown trees as usual; `WoodcuttersPlantTrees` | your game (sign); the game simulating the woodcutter |
+| d87d581 | Woodcutters never fell saplings (a growing plant is a tree-type destructible) | the game simulating the woodcutter |
+| f120e07 | The tree patch sign stands on its own (the wall sign it's made from collapsed without support) | everywhere |
+| cc40a2f | Test cleanup empties cargo before killing hirelings (no graves or pins from test runs) | tests |
 
 ### To test (batch)
-- [ ] Macro (single player): `vfh_test_chain tree_patch`.
+- [x] Macro (single player): `vfh_test_chain tree_patch` (passed 2026-10-06).
 - [ ] By hand: build a Tree patch sign (only inside a board's area: outside it the ghost is red and placing says so); Shift+E changes radius and kind; looking at it draws the circle; a woodcutter plants it from seeds in a chest and later fells the grown trees.
 
 ## 0.5.0 (released 2026-10-06): Farmer, Cook and production orders
