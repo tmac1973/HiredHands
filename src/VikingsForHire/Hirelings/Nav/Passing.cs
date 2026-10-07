@@ -22,13 +22,21 @@ namespace VikingsForHire.Hirelings.Nav
         private const float SidestepAngle = 45f;
         private const float PressedDistance = 0.9f;
         private const float PressedSeconds = 2f;
+        private const float PressedSecondsNarrow = 1f; // no room to step aside: pass through sooner
+        private const float SideRoom = 0.7f;
+        private static readonly int WallMask = LayerMask.GetMask("Default", "static_solid", "piece", "terrain");
         private const float PassThroughSeconds = 1.5f;
 
         private sealed class State
         {
             public float SidestepUntil;
             public float PressedSince = -1f;
+            public bool Narrow;
         }
+
+        // Something solid just to the right (a corridor wall): stepping aside would only press into it.
+        private static bool WallOnRight(Vector3 at, Vector3 heading) =>
+            Physics.Raycast(at + Vector3.up * 0.8f, Quaternion.Euler(0f, 90f, 0f) * heading, SideRoom, WallMask, QueryTriggerInteraction.Ignore);
 
         private static readonly Dictionary<HirelingAI, State> States = new();
         private static readonly List<(Collider A, Collider B, float Until)> Ignored = new();
@@ -71,8 +79,10 @@ namespace VikingsForHire.Hirelings.Nav
                 }
                 if (ahead != null && Time.time >= st.SidestepUntil)
                 {
-                    st.SidestepUntil = Time.time + SidestepSeconds;
-                    VfhLog.T(LogCat.AI, "nav.pass", ("hid", ai.Hireling.Hid), ("other", ahead.Hid));
+                    st.Narrow = WallOnRight(me, heading);
+                    if (!st.Narrow)
+                        st.SidestepUntil = Time.time + SidestepSeconds;
+                    VfhLog.T(LogCat.AI, "nav.pass", ("hid", ai.Hireling.Hid), ("other", ahead.Hid), ("narrow", st.Narrow));
                 }
                 if (Time.time < st.SidestepUntil)
                     dir = Quaternion.Euler(0f, SidestepAngle, 0f) * dir; // to our right
@@ -83,7 +93,7 @@ namespace VikingsForHire.Hirelings.Nav
                 {
                     if (st.PressedSince < 0f)
                         st.PressedSince = Time.time;
-                    else if (Time.time - st.PressedSince > PressedSeconds)
+                    else if (Time.time - st.PressedSince > (st.Narrow ? PressedSecondsNarrow : PressedSeconds))
                     {
                         PassThrough(ai.Hireling, pressed);
                         st.PressedSince = -1f;
