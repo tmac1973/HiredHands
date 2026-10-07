@@ -11,13 +11,16 @@ using UnityEngine.UI;
 namespace VikingsForHire.UI
 {
     /// <summary>
-    /// The board's management panel (Shift+E): Contracts, Roster and Upgrade tabs. One instance, created on first use.
+    /// The board's management panel (Shift+E): Contracts, Roster, Orders and Upgrade tabs. One instance, created on first use.
     /// It follows its board live (re-checking twice a second) and closes on Esc, the close button, walking away or the
     /// board disappearing.
     /// </summary>
     internal sealed class BoardPanel : MonoBehaviour
     {
         private const float OpenRange = 5f;
+        // Wide enough for four tabs (Contracts, Roster, Orders, Upgrade), centred whatever their number.
+        private const float PanelWidth = 900f;
+        private const float TabSpacing = 210f;
         private const float CloseRange = 6f;
         private const float RefreshSeconds = 0.5f;
 
@@ -68,7 +71,7 @@ namespace VikingsForHire.UI
         private static BoardPanel Create()
         {
             GameObject root = GUIManager.Instance.CreateWoodpanel(GUIManager.CustomGUIFront.transform,
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, 720f, 560f, false);
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, PanelWidth, 560f, false);
             root.name = "VFH_BoardPanel";
             BoardPanel panel = root.AddComponent<BoardPanel>();
 
@@ -76,7 +79,7 @@ namespace VikingsForHire.UI
             for (int i = 0; i < panel._tabs.Count; i++)
             {
                 int index = i;
-                panel._tabButtons.Add(PanelUi.Button(root.transform, panel._tabs[i].Title, -220f + i * 220f, -95f, 200f, 40f,
+                panel._tabButtons.Add(PanelUi.Button(root.transform, panel._tabs[i].Title, (i - (panel._tabs.Count - 1) / 2f) * TabSpacing, -95f, TabSpacing - 20f, 40f,
                     () => panel.SelectTab(index)));
             }
             panel._content = PanelUi.Fill(root.transform, "content");
