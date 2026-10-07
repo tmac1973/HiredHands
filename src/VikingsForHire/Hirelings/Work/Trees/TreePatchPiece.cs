@@ -53,6 +53,9 @@ namespace VikingsForHire.Hirelings.Work.Trees
             Piece piece = prefab.GetComponent<Piece>();
             piece.m_groundPiece = true;
             piece.m_allowedInDungeons = false;
+            // A sign on its own stick stands by itself: the wall sign it's made from would collapse without a wall.
+            if (prefab.GetComponent<WearNTear>() is WearNTear wnt)
+                wnt.m_noSupportWear = false;
             BuildModel(prefab);
             prefab.AddComponent<TreePatch>();
             PieceManager.Instance.AddPiece(_piece);
