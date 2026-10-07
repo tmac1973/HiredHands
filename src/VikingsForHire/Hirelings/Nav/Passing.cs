@@ -21,9 +21,7 @@ namespace VikingsForHire.Hirelings.Nav
         private const float SidestepSeconds = 0.8f;
         private const float SidestepAngle = 45f;
         private const float PressedDistance = 0.9f;
-        private const float PressedSeconds = 2f;
         private const float PressedSecondsNarrow = 1f; // no room to step aside: pass through sooner
-        private const float SideRoom = 0.7f;
         private static readonly int WallMask = LayerMask.GetMask("Default", "static_solid", "piece", "terrain");
         private const float PassThroughSeconds = 1.5f;
 
@@ -36,7 +34,7 @@ namespace VikingsForHire.Hirelings.Nav
 
         // Something solid just to the right (a corridor wall): stepping aside would only press into it.
         private static bool WallOnRight(Vector3 at, Vector3 heading) =>
-            Physics.Raycast(at + Vector3.up * 0.8f, Quaternion.Euler(0f, 90f, 0f) * heading, SideRoom, WallMask, QueryTriggerInteraction.Ignore);
+            Physics.Raycast(at + Vector3.up * 0.8f, Quaternion.Euler(0f, 90f, 0f) * heading, VfhConfig.PassSideRoom.Value, WallMask, QueryTriggerInteraction.Ignore);
 
         private static readonly Dictionary<HirelingAI, State> States = new();
         private static readonly List<(Collider A, Collider B, float Until)> Ignored = new();
@@ -93,7 +91,7 @@ namespace VikingsForHire.Hirelings.Nav
                 {
                     if (st.PressedSince < 0f)
                         st.PressedSince = Time.time;
-                    else if (Time.time - st.PressedSince > (st.Narrow ? PressedSecondsNarrow : PressedSeconds))
+                    else if (Time.time - st.PressedSince > (st.Narrow ? PressedSecondsNarrow : VfhConfig.PassThroughAfter.Value))
                     {
                         PassThrough(ai.Hireling, pressed);
                         st.PressedSince = -1f;
