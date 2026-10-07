@@ -22,7 +22,8 @@ Plan: `plan/tree-patches/overview.md`.
 - [x] Macro (single player): `vfh_test_chain tree_patch` (passed 2026-10-06).
 - [x] Macro (single player): `vfh_test_chain pass` (10 runs, 5–9 s, no jams, 2026-10-07).
 - [x] Sign stays standing (Tim, 2026-10-06).
-- [ ] By hand: build a Tree patch sign (only inside a board's area: outside it the ghost is red and placing says so); Shift+E changes radius and kind; looking at it draws the circle; a woodcutter plants it from seeds in a chest and later fells the grown trees.
+- [x] By hand: build a Tree patch sign only inside a board's area (outside it the ghost is red and placing says so). Tested by Tim 2026-10-07.
+- [ ] By hand: on a Tree patch sign, Shift+E changes radius and kind; looking at it draws the circle; a woodcutter plants it from seeds in a chest and later fells the grown trees.
 
 ## 0.5.0 (released 2026-10-06): Farmer, Cook and production orders
 
