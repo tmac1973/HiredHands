@@ -21,6 +21,13 @@ namespace VikingsForHire.Hirelings.Work.Trees
 
         /// <summary>The axe tier it takes to fell the grown tree.</summary>
         public int ToolTier;
+
+        /// <summary>
+        /// Planted from an ordinary tree seed, so a patch set to "Any" may use it. Kinds planted from something precious
+        /// (PlantEverything's ancient tree from Ancient seeds, the Elder's summoning item; the Ygga tree from Sap) are only
+        /// planted when a patch asks for them by name.
+        /// </summary>
+        public bool CommonSeed => TreeCatalog.CommonSeeds.Contains(Seed);
     }
 
     /// <summary>
@@ -29,6 +36,8 @@ namespace VikingsForHire.Hirelings.Work.Trees
     /// </summary>
     internal static class TreeCatalog
     {
+        public static readonly HashSet<string> CommonSeeds = new() { "BeechSeeds", "BirchSeeds", "Acorn", "FirCone", "PineCone" };
+
         private static readonly List<TreeKind> _all = new();
         private static readonly HashSet<int> _saplingHashes = new();
         private static float _nextTry;

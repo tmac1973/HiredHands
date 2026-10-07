@@ -163,7 +163,7 @@
   "vfh_patch_plants": "Plants: $1, $2 m around",
   "vfh_patch_count": "$1 saplings, $2 grown trees",
   "vfh_patch_settings": "Settings",
-  "vfh_patch_any": "Any that grows here",
+  "vfh_patch_any": "Any common tree that grows here",
   "vfh_patch_radius": "Radius",
   "vfh_patch_kind": "Plant",
   "vfh_patch_hint": "Woodcutters whose work radius covers the sign plant from the seeds in the chests (only trees their axe can fell). Grown trees are felled as usual.",

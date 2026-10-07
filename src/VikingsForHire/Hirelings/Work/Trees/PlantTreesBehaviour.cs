@@ -59,7 +59,7 @@ namespace VikingsForHire.Hirelings.Work.Trees
             _owner = DoorRules.BoardOwner(h.BoardId);
             foreach (TreePatch patch in TreePatch.Within(h.Home, h.Radius))
             {
-                IEnumerable<TreeKind> kinds = TreeCatalog.All.Where(k => k.ToolTier <= h.ToolTier && (patch.Kind.Length == 0 || patch.Kind == k.SaplingName));
+                IEnumerable<TreeKind> kinds = TreeCatalog.All.Where(k => k.ToolTier <= h.ToolTier && (patch.Kind.Length == 0 ? k.CommonSeed : patch.Kind == k.SaplingName));
                 foreach (TreeKind kind in kinds.OrderByDescending(k => ctx.Available(k.Seed)))
                 {
                     int carried = ctx.Carried.TryGetValue(kind.Seed, out int c) ? c : 0;
