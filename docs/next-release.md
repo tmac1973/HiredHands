@@ -27,7 +27,7 @@ Plan: `plan/farmer-cook/`. Includes the held 0.4.4 fixes (first four rows).
 ### To test (batch)
 - [x] Macros (single player, with PlantEverything and PlantEasily): `vfh_test_chain catalog orders farm_harvest farm_bush farm_seeds farm_rows cook_spit cook_oven cook_cauldron cook_chain cook_protect` (all passed 2026-10-06, after fixes).
 - [x] Macros (single player), Steward regression after the shared loop (all passed 2026-10-06): `vfh_test_chain chore_gate chore_toggle fires beehive animals repairs repairs2 fermenter shield tidy board_food loot pause1 pause2`, then `deliver1 deliver2 nav1 nav5 keep1 azu3`.
-- [ ] Local dedicated server, from a client: `vfh_test_chain orders farm_harvest cook_spit`.
+- [x] Local dedicated server, from a client: `vfh_test_chain orders farm_harvest cook_spit` (passed 2026-10-06, no server errors).
 - [ ] By hand: hire a Farmer (holds a cultivator) and a Cook (holds a ladle); a second Farmer is refused; the Orders tab adds, reorders, pauses and removes orders; `vfh_crops` / `vfh_recipes` list what you'd expect (with PlantEverything: raspberry bushes etc. as regrowing).
 - [ ] By hand (live mod set copy): a Farmer on a real field with a seed order and a produce order; PlantEasily rows match yours; a Cook on spits and a cauldron for half an hour; no `lvl=E`.
 - [ ] Live server (carried over from 0.4.4): Brand delivers to the chests under the raised house without `deliver.chest_unreachable`; a Steward in Gather Here collects loot up to 30 m out.
