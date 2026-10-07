@@ -46,8 +46,20 @@ namespace VikingsForHire.Hirelings.Work.Trees
             Zdo.Set(KindKey, kind);
         }
 
-        /// <summary>Saplings and grown trees inside the patch.</summary>
+        private (int Saplings, int Trees) _count;
+        private float _countedAt = -999f;
+
+        /// <summary>Saplings and grown trees inside the patch (counted at most once a second: the hover asks every frame).</summary>
         public (int Saplings, int Trees) Count()
+        {
+            if (Time.time - _countedAt < 1f)
+                return _count;
+            _countedAt = Time.time;
+            _count = CountNow();
+            return _count;
+        }
+
+        private (int Saplings, int Trees) CountNow()
         {
             int saplings = 0, trees = 0;
             float r2 = Radius * Radius;
