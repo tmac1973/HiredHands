@@ -344,3 +344,4 @@ If a row fails: fix it, rerun that row in every listed mode, then rerun SCAFFOLD
 | 2026-10-06 | 5ff5b0a | VFH-DLV-2 | SP | Pass | Overflow to the board's pile with the pause off |
 | 2026-10-06 | 0a0cfd2 | VFH-FARM-0, ORDER-1, FARM-1, FARM-2, FARM-3, COOK-1, COOK-2, COOK-3, COOK-4, COOK-5 | SP | Pass | Farmer and Cook first runs (after the catalog, delivery-timer and stove-pickup fixes); world with 3x drops |
 | 2026-10-06 | 0a0cfd2 | VFH-FARM-4 | SP | Fail | Rows: plants too close / off the grid; the grid lined up with a diagonal neighbour (now only row neighbours) |
+| 2026-10-06 | ce7dc01 | VFH-FARM-4 | SP | Pass | Rows line up with the existing row at the crop's spacing, none under the roof |
