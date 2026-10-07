@@ -18,9 +18,15 @@ namespace VikingsForHire.Testing
             Fixtures.Add("hirelings", "<job> <level> <n=1> - spawn hirelings 4m ahead, linked to the nearest board", Hirelings);
             Fixtures.Add("snapshot_test", "- run vfh_snapshot_test on the nearest hireling and wait for it", _ => SnapshotTest.Run(HirelingCommands.NearestOrThrow()));
             Fixtures.Add("cargo_put", "<item> <stacks> [per stack] - move stacks of an item (full ones unless given) from you into the nearest hireling's cargo, like the UI", CargoPut);
-            Fixtures.Add("kill_hirelings", "<radius=50> - kill hirelings near you", args =>
+            Fixtures.Add("kill_hirelings", "<radius=50> [graves] - kill hirelings near you; their cargo is emptied first (no graves or map pins) unless 'graves'", args =>
             {
-                HirelingCommands.Kill(args.Length > 0 && float.TryParse(args[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float r) ? r : 50f);
+                float radius = args.Length > 0 && float.TryParse(args[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float r) ? r : 50f;
+                // Test cleanup: an emptied hireling leaves no grave, so test runs don't pile up graves and their map pins.
+                if (!args.Contains("graves") && Player.m_localPlayer != null)
+                    foreach (Hireling h in Hireling.Loaded.Where(h => h != null && h.CargoInventory != null &&
+                                                                     Vector3.Distance(h.transform.position, Player.m_localPlayer.transform.position) <= radius))
+                        h.CargoInventory!.RemoveAll();
+                HirelingCommands.Kill(radius);
                 return Wait(1f);
             });
 
