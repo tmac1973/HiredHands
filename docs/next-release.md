@@ -16,10 +16,11 @@ Plan: `plan/tree-patches/overview.md`.
 | 881bdd1 | A patch set to Any plants only from ordinary tree seeds; PlantEverything's ancient (Ancient seed) and Ygga (Sap) trees only when chosen by name | the game simulating the woodcutter |
 | cc40a2f | Test cleanup empties cargo before killing hirelings (no graves or pins from test runs) | tests |
 | 6161f02 | Hirelings meeting head-on keep right and slide past; wedged for 2 s, they pass through each other for a moment (`HirelingsPassEachOther`); `vfh_t_pass` corridor test | the game simulating the hirelings |
+| d8502e9…8aa9922 | Passing tuned with the corridor test: no sidestep with a wall just to the right; pass through when getting nowhere (under 0.5 m a second) with another hireling within 2.5 m; `PassSideRoom` (1.2 m), `PassThroughAfter` (1.5 s) | the game simulating the hirelings |
 
 ### To test (batch)
 - [x] Macro (single player): `vfh_test_chain tree_patch` (passed 2026-10-06).
-- [ ] Macro (single player): `vfh_test_chain pass`.
+- [x] Macro (single player): `vfh_test_chain pass` (10 runs, 5–9 s, no jams, 2026-10-07).
 - [x] Sign stays standing (Tim, 2026-10-06).
 - [ ] By hand: build a Tree patch sign (only inside a board's area: outside it the ghost is red and placing says so); Shift+E changes radius and kind; looking at it draws the circle; a woodcutter plants it from seeds in a chest and later fells the grown trees.
 
