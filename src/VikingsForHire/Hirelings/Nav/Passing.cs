@@ -20,7 +20,6 @@ namespace VikingsForHire.Hirelings.Nav
         private const float Lane = 0.9f;          // how far to the side it can be and still be in the way
         private const float SidestepSeconds = 0.8f;
         private const float SidestepAngle = 45f;
-        private const float PressedDistance = 0.9f;
         private const float PressedSecondsNarrow = 1f; // no room to step aside: pass through sooner
         private static readonly int WallMask = LayerMask.GetMask("Default", "static_solid", "piece", "terrain");
         private const float PassThroughSeconds = 1.5f;
@@ -30,6 +29,9 @@ namespace VikingsForHire.Hirelings.Nav
             public float SidestepUntil;
             public float PressedSince = -1f;
             public bool Narrow;
+            public Vector3 SampledPos;
+            public float SampledAt = -1f;
+            public float Moved = 99f;
         }
 
         // Something solid just to the right (a corridor wall): stepping aside would only press into it.
@@ -63,8 +65,8 @@ namespace VikingsForHire.Hirelings.Nav
                     float dist = to.magnitude;
                     if (dist > LookAhead || Mathf.Abs(other.transform.position.y - me.y) > 1.5f)
                         continue;
-                    if (dist < PressedDistance)
-                        pressed = other;
+                    if (pressed == null || dist < Vector3.Distance(pressed.transform.position, me))
+                        pressed = other; // the nearest one about, in case we get nowhere
                     float along = Vector3.Dot(to, heading);
                     float side = Vector3.Cross(heading, to).y; // > 0: to our left
                     if (along <= 0f || Mathf.Abs(side) > Lane)
@@ -85,8 +87,15 @@ namespace VikingsForHire.Hirelings.Nav
                 if (Time.time < st.SidestepUntil)
                     dir = Quaternion.Euler(0f, SidestepAngle, 0f) * dir; // to our right
 
-                // Wedged against another one, getting nowhere: let them pass through each other for a moment.
-                bool stuck = ai.Hireling.Humanoid.GetVelocity().sqrMagnitude < 0.09f;
+                // Getting nowhere with another one close by (wedged together, or blocking the way): let the two pass through each
+                // other for a moment. "Nowhere" is under half a metre in the last second, so jostling in place still counts.
+                if (Time.time - st.SampledAt >= 1f)
+                {
+                    st.Moved = Utils.DistanceXZ(me, st.SampledPos);
+                    st.SampledPos = me;
+                    st.SampledAt = Time.time;
+                }
+                bool stuck = st.Moved < 0.5f;
                 if (pressed != null && stuck)
                 {
                     if (st.PressedSince < 0f)
