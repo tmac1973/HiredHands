@@ -2,7 +2,7 @@
 
 Ideas for after the 16-phase plan. None of these are scheduled. Each needs its own planning pass before it's built.
 
-## Woodcutters replant
+## Woodcutters replant (done in 0.6.0: tree patch signs, plan/tree-patches/)
 Woodcutters already pick up the seeds and cones trees drop (BeechSeeds, FirCone, PineCone, BirchSeeds, Acorn are in the default pickup list). The idea: higher-level woodcutters also **plant** them, so a managed forest regrows inside the work radius.
 - Level-gated in the job table (e.g. a `plantFromLevel` value; planting from level 3 is a reasonable default).
 - Plant the matching sapling with the vanilla cultivator rules (biome, spacing, open ground), keeping clear of buildings and of other saplings.
@@ -13,7 +13,7 @@ Woodcutters already pick up the seeds and cones trees drop (BeechSeeds, FirCone,
 Hirelings use creature pathfinding, which treats a closed door as a wall, so chests and stations behind a door are unreachable (the smelter skips the chest; gatherers drop at the board). Planned for 0.1.1: when a hireling's route is blocked and a door piece is within a couple of metres on the way, it opens it (Door.Interact as a Humanoid), walks through and closes it behind itself. Respect wards (only doors the board's owner could open) and never leave a door open. Test row VFH-NAV-2.
 
 
-## Farmer (wanted, design open)
+## Farmer (done in 0.5.0, plan/farmer-cook/)
 Works to quotas set with the production orders below ("keep 50 carrots", "keep 100 barley"): it replants what's needed to meet them and leaves the rest of the field to you.
 A farmer role is a priority once the basics work, but how it should behave isn't settled. Questions to answer in its planning pass, with possible answers:
 - **What does it farm?** Only fields the player has already cultivated (simplest; the player stays in charge of the layout), or does it also cultivate new ground inside a marked area?
@@ -24,7 +24,7 @@ A farmer role is a priority once the basics work, but how it should behave isn't
 - **Level gating:** higher levels could handle later crops (Barley and Flax are Plains crops), farm a bigger field, or tend more plants per trip.
 - **Animals:** out of scope at first (tending chickens or lox could be its own later role).
 
-## Steward (the Smelter, renamed and widened; the rename is done in 0.2.1)
+## Steward (done: renamed in 0.2.1, base chores in 0.4.0, plan/steward-chores/)
 The Smelter becomes the **Steward**: the hireling that keeps the base running.
 - **Keeps stations fed** (what the Smelter does today): smelters, kilns, blast furnaces, eitr refineries, with the same reserves and chest rules.
 - **Repairs** (see Repairs below for the rules): damaged pieces near a workbench or forge of the right type, worst first, after fights rather than during them.
@@ -37,7 +37,7 @@ The Smelter becomes the **Steward**: the hireling that keeps the base running.
 - **Rename only on the surface:** `JobType.Smelter` stays as the enum value and data key (it's saved in worlds and in everyone's YAML), and only the shown name, description and hover change. If the data key ever has to change, `DataDefaults` would need to accept the old key.
 - **Level gating:** higher levels unlock more chores or a bigger radius, the way gatherers get better tools.
 
-## Production orders ("make until you have X")
+## Production orders (done in 0.5.0: the board's Orders tab, keep-in-stock only)
 A RimWorld-style bill list on crafting stations, so the Cook and the Farmer have quotas to keep filled instead of the player micromanaging them.
 - **Where:** a small "Orders" panel on a station (cauldron, cooking station, oven, fermenter, and for the Farmer the cultivated field or a seed chest), opened from the station's hover with a key, as the Shift+E panel is for hirelings.
 - **Two kinds of order** per recipe:
@@ -49,20 +49,20 @@ A RimWorld-style bill list on crafting stations, so the Cook and the Farmer have
 - **Saved on the station's ZDO**, so the orders survive restarts and anyone with ward access sees and edits the same list.
 - **Feeds the board:** "Keep X cooked meat" pairs naturally with the board's food: a Cook can keep the board's funds stocked from the base's own food chain (as a later option, since it changes the economy).
 
-## Cook
+## Cook (done in 0.5.0)
 Runs the kitchen against the production orders above.
 - Cooking station and iron cooking station: puts raw meat and fish on, takes the cooked food off before it burns.
 - Cauldron, oven, fermenter: crafts the recipes the orders ask for, fetches the ingredients, delivers the results to chests that hold that item (the usual delivery rule).
 - Level gating: higher levels cook faster and handle more stations at once; later stations (oven, fermenter) could need a higher board level.
 
-## Repairs
+## Repairs (done in 0.4.0 as a Steward chore)
 One hireling job (or a perk of a higher-level job) repairs damaged building pieces inside its work radius.
 - **Who:** a dedicated Builder/Carpenter role, or a perk for higher-level Guards, who'd naturally patrol the base and patch it up after raids.
 - **Rules to match vanilla:** vanilla repair is free but needs a hammer and a crafting station in range. The hireling should follow the same rule (only pieces within range of a workbench/forge/etc. of the right type), so it can't repair anything a player couldn't.
 - **Pace and priority:** repair a piece every few seconds, worst-damaged first, and not while enemies are near (repairs after the fight, not during).
 - **Compat:** Tim's server runs Azumatt AzuAreaRepair; check how it repairs so the two don't fight over the same pieces.
 
-## Forager
+## Forager (mostly covered: the Farmer picks bushes and mushrooms for orders, a Steward in Gather Here loots)
 Picks berries, mushrooms, thistle and the like in the work radius.
 
 ## Cargo weight limit (done in 0.2.1: 300 + 25 per level)
@@ -96,7 +96,7 @@ A hireling sent out to find things and report back, instead of the player wander
 - **Balance:** long cooldowns and costs so it doesn't replace exploring, and no finding things a player couldn't (e.g. respect the vanilla "location must be discovered" rules for things like the trader, or only reveal coarse areas).
 - Not sure how this would work given the server doesn't process areas that don't have a player in it. would have to look into that. 
 - 
-## Guard posts (stand watch instead of patrolling)
+## Guard posts (done in 0.2.0: posts set with the stone or Shift+E)
 Let guards and archers hold a chosen spot instead of walking the work radius.
 - **Setting the spot:** a small "guard post" build piece (or a marker placed from the board) that a guard is assigned to in the Roster tab; or, with the Command Stone, aim at a spot and order "stand watch here".
 - **Behaviour:** stand at the post facing outward (or the way the post faces), engage by stance as usual, then walk back to the post after a fight. Archers would suit walls and towers: a post on a rampart gives them height and cover.
