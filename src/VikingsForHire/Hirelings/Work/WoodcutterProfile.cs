@@ -29,8 +29,9 @@ namespace VikingsForHire.Hirelings.Work
                 Component? c = (Component?)Hits[i].GetComponentInParent<TreeBase>() ?? Hits[i].GetComponentInParent<TreeLog>();
                 if (c == null)
                 {
+                    // Stumps and the like; never a sapling (a growing Plant is a Tree-type Destructible too).
                     Destructible d = Hits[i].GetComponentInParent<Destructible>();
-                    if (d != null && d.m_destructibleType == DestructibleType.Tree)
+                    if (d != null && d.m_destructibleType == DestructibleType.Tree && d.GetComponent<Plant>() == null)
                         c = d;
                 }
                 if (c != null && seen.Add(c))
