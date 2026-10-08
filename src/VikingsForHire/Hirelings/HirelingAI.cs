@@ -567,8 +567,9 @@ namespace VikingsForHire.Hirelings
                 return;
             _regenTimer = 0f;
             Humanoid h = Hireling.Humanoid;
-            if (m_timeSinceHurt > 10f && h.GetHealth() < h.GetMaxHealth())
-                h.Heal(h.GetMaxHealth() * 0.01f, showText: false);
+            float rate = Mathf.Clamp(VfhConfig.HealthRegen.Value, 0f, 3f);
+            if (rate > 0f && m_timeSinceHurt > 10f && h.GetHealth() < h.GetMaxHealth())
+                h.Heal(h.GetMaxHealth() * 0.01f * rate, showText: false);
         }
     }
 }

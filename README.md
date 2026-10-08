@@ -82,6 +82,9 @@ Guards patrol and fight by stance; everyone else defends themselves, weakly, and
   - **Veteran:** they parry most swings and roll often.
 
   The preset scales the whole levels table, so higher levels stay better than lower ones.
+- **Healing.** A hireling that hasn't been hit for 10 s heals 1% of its health every 2 s, a full heal in about 3.5
+  minutes. `HealthRegen` (Combat, server-synced) scales that: 0.5 is about 7 minutes, 0 means no healing of their own
+  (only the game's slow trickle), and the maximum is 3.
 
 ## The Steward
 
