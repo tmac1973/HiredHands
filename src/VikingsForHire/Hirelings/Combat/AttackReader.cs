@@ -108,7 +108,7 @@ namespace VikingsForHire.Hirelings.Combat
                     // state has no hit event; the strike state does: now its hit time is known.
                     if (!same.Timed && c.m_animator != null && AttackEstimate.SecondsToHit(c.m_animator) is float toHit)
                     {
-                        same.HitTime = now + toHit;
+                        same.HitTime = now + toHit + HitTiming.Offset(same.TimingKey);
                         same.Timed = true;
                         same.BlockPlanned = false; // plan again with the real time
                         same.DodgeDecided = false;
@@ -218,6 +218,23 @@ namespace VikingsForHire.Hirelings.Combat
                 _ai.Defense.Misses++;
         }
 
+        /// <summary>A close hit from <paramref name="attacker"/> landed (or was blocked) now: learn how far off its read was.</summary>
+        public void ObserveHit(Character? attacker)
+        {
+            if (attacker == null)
+                return;
+            float now = Time.time;
+            IncomingAttack? best = null;
+            foreach (IncomingAttack a in _incoming)
+                if (a.Projectile == null && a.Attacker == attacker && a.Timed && !a.Observed && Mathf.Abs(now - a.HitTime) < 1.5f &&
+                    (best == null || Mathf.Abs(now - a.HitTime) < Mathf.Abs(now - best.HitTime)))
+                    best = a;
+            if (best == null)
+                return;
+            best.Observed = true;
+            HitTiming.Learn(best.TimingKey, now - best.HitTime);
+        }
+
         private IncomingAttack? SwingPending(Character c, float now)
         {
             foreach (IncomingAttack a in _incoming)
@@ -254,6 +271,9 @@ namespace VikingsForHire.Hirelings.Combat
                 From = from,
                 Weapon = weapon?.m_name ?? "",
             };
+            a.TimingKey = HitTiming.Key(attacker, a.Weapon);
+            if (a.Timed)
+                a.HitTime += HitTiming.Offset(a.TimingKey);
             Insert(a);
             Count(a);
             VfhLog.D(LogCat.Combat, "defense.read", ("hid", h.Hid), ("attacker", attacker.m_name), ("weapon", a.Weapon), ("dmg", a.Damage),

@@ -47,6 +47,10 @@ namespace VikingsForHire.Hirelings.Combat
 
         public string Weapon = "";
 
+        /// <summary>HitTiming key (creature/weapon) and whether a landed hit has been matched to this read yet.</summary>
+        public string TimingKey = "";
+        public bool Observed;
+
         // The block controller's plan (guards with shields): planned once; RaiseAt/LowerAt NaN when no raise is planned
         // (not read, untimed, or it rolls instead).
         public bool BlockPlanned;

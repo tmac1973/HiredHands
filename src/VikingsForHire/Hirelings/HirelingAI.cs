@@ -192,6 +192,7 @@ namespace VikingsForHire.Hirelings
             {
                 LastHitTime = Time.time;
                 Dodge.OnDamaged();
+                Reader.ObserveHit(attacker);
                 Threats.OnDamaged(attacker);
                 _combat.OnHit();
                 RetreatHit();

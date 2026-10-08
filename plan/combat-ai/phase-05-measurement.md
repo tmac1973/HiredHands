@@ -129,3 +129,17 @@ The same report reads the live server's log after release.
 ## Rollback
 Revert the commit. Fight records go back to the 0.5.0 fields. The report script ignores missing fields, so older or
 newer logs read either way. The matchup rows are test-only.
+
+## Implementation notes (as built)
+- **The A/B run is a script, `scripts/defense-ab.sh [runs]`,** rather than a test-chain macro (a macro running other
+  macro chains doesn't nest). It:
+  1. turns `BalanceLog` on and flattens the spot;
+  2. sets `BlockAndDodge` off, runs `defm1..defm4` × runs and the `VFH-DEF-DONE` marker;
+  3. does the same with the setting on;
+  4. waits 70 s for the balance log to flush.
+- **The rows** are `vfh_t_defm1`..`vfh_t_defm4`. Each starts with `ghost on` and `clear_area 40`, and waits with
+  `vfh_wait_until <secs> fight_over == true`.
+- **Test kills are left out.** Damage of 1e6 or more is the test cleanup killing a hireling, and `BalanceFights.Taken`
+  ignores it.
+- **`--compare-defense` counts by run.** Each matchup run is one hireling, so the report adds up that hid's fight
+  records into one run.

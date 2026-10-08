@@ -48,15 +48,78 @@ def table(title, header, rows):
         print(fmt.format(*r))
 
 
+# The shipped blocking/dodging chances by level (Core/Data/DefaultData.cs), for --compare-defense.
+DEFENSE_TABLE = {
+    1: (0.50, 0.15, 0.30), 2: (0.57, 0.23, 0.37), 3: (0.63, 0.31, 0.44), 4: (0.70, 0.39, 0.51),
+    5: (0.76, 0.46, 0.59), 6: (0.83, 0.54, 0.66), 7: (0.89, 0.62, 0.73), 8: (0.95, 0.70, 0.80),
+}
+MIN_ROLLS = 30  # a rate is judged only with at least this many rolls
+
+
+def rate(wins, rolls, expected):
+    """Observed rate against the table, or n/a when there are too few rolls to judge."""
+    if rolls < MIN_ROLLS:
+        return f"n/a (n={rolls})"
+    r = wins / rolls
+    flag = "" if abs(r - expected) <= 0.12 else " !"
+    return f"{100 * r:.0f}% vs {100 * expected:.0f}% (n={rolls}){flag}"
+
+
+def compare_defense(fights):
+    """Phase 05 of plan/combat-ai: each hireling (one per matchup run) is a run; off against on per matchup."""
+    runs = collections.defaultdict(list)
+    for f in fights:
+        if "defense" in f:
+            runs[f["hid"]].append(f)
+    groups = collections.defaultdict(list)
+    for hid, fs in runs.items():
+        first = fs[0]
+        stars = max(f.get("elvl", 1) for f in fs) - 1  # tests may add stars after the first swing
+        key = (first["job"], first["lvl"], first["enemy"] + ("*" * stars), first["defense"])
+        groups[key].append(fs)
+    matchups = sorted({k[:3] for k in groups})
+    out = []
+    for job, lvl, enemy in matchups:
+        read_x, parry_x, dodge_x = DEFENSE_TABLE.get(lvl, (0, 0, 0))
+        for mode in ("off", "on"):
+            rs = groups.get((job, lvl, enemy, mode), [])
+            if not rs:
+                continue
+            n = len(rs)
+            taken = [sum(f["taken"] for f in fs) / max(1.0, fs[0]["hpMax"]) for fs in rs]
+            died = sum(any(f["outcome"] == "died" for f in fs) for fs in rs)
+            won = sum(fs[-1]["outcome"] == "kill" and not any(f["outcome"] == "died" for f in fs) for fs in rs)
+            secs = [sum(f["secs"] for f in fs) for fs in rs]
+            tot = collections.Counter()
+            for fs in rs:
+                for f in fs:
+                    for k in ("reads", "misses", "blocks", "parries", "parryRolls", "parryWins", "projReads", "projBlocks",
+                              "dodges", "dodgedHits", "dodgeRolls", "dodgeWins"):
+                        tot[k] += f.get(k, 0)
+            out.append((job, lvl, enemy, mode, n, f"{100 * avg(taken):.0f}%", f"{100 * statistics.median(taken):.0f}%", pct(won, n), pct(died, n),
+                        f"{avg(secs):.0f}s",
+                        rate(tot["reads"], tot["reads"] + tot["misses"], read_x) if mode == "on" else f"reads {tot['reads']}",
+                        rate(tot["parryWins"], tot["parryRolls"], parry_x) if mode == "on" else f"rolls {tot['parryRolls']}",
+                        rate(tot["dodgeWins"], tot["dodgeRolls"], dodge_x) if mode == "on" else f"dodges {tot['dodges']}",
+                        f"{tot['blocks']}/{tot['parries']}", f"{tot['dodges']}/{tot['dodgedHits']}"))
+    table("Blocking and dodging: off against on (one row per matchup and mode; rates vs the levels table, ! = more than 12 points off)",
+          ["job", "lvl", "enemy", "mode", "runs", "taken", "median", "won", "died", "length", "read rate", "parry roll", "dodge roll",
+           "blocks/parries", "dodges/missed"], out)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("folder")
     ap.add_argument("--since-day", type=int, default=0, help="only in-game days from this one on")
     ap.add_argument("--min-fights", type=int, default=3, help="hide job/enemy pairs with fewer fights")
+    ap.add_argument("--compare-defense", action="store_true", help="only the blocking/dodging off-against-on comparison (fights with a defense field)")
     a = ap.parse_args()
     rows = load(a.folder, a.since_day)
     if not rows:
         sys.exit(f"no records in {a.folder}")
+    if a.compare_defense:
+        compare_defense([r for r in rows if r.get("type") == "fight"])
+        return
     by = collections.defaultdict(list)
     for r in rows:
         by[r["type"]].append(r)

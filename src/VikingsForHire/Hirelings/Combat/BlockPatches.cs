@@ -27,6 +27,8 @@ namespace VikingsForHire.Hirelings.Combat
             if (!__result || Hireling.Of(__instance) is not Hireling h || h.Ai == null)
                 return;
             h.Ai.Defense.Blocks++;
+            if (!hit.m_ranged)
+                h.Ai.Reader.ObserveHit(attacker);
             if (hit.m_ranged)
                 h.Ai.Defense.ProjBlocks++;
             bool parry = __state && !__instance.IsStaggering();

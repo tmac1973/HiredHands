@@ -157,7 +157,11 @@ Tim's idea (2026-10-05): a small in-game panel so testing doesn't mean pasting i
 - **Overlays:** `vfh_navlinks show/hide`.
 - It reuses Hired Hands' existing commands and fixtures, so the panel is only buttons; no test logic is duplicated.
 
-## Combat AI: blocking, dodging and tactics
+## Combat AI: blocking, dodging and tactics (blocking and dodging done for 0.6.0: `plan/combat-ai/`; tactics still open)
+Done in 0.6.0: every hireling reads attacks coming at it (`AttackReader`/`Incoming`: hit time, damage after armor, area,
+projectiles in flight); guards block and parry, everyone dodges, by level; `BlockAndDodge`. Tactics below can build on
+`Incoming` (e.g. Tank holds the shield up, Hit and run backs off after a read swing, Kite steps back when a read melee
+attack is on its way).
 Tim's idea (2026-10-06). Today hirelings fight like monsters: walk up, swing (or shoot), and soak the hits; guards' stances only decide *whether* to fight.
 - **Block and dodge for everyone who fights:**
   - **Block:** a melee hireling with a shield (or a weapon that can block) raises it when an enemy's attack is coming (the enemy's attack animation has started and it's in range and facing us), like a player holding block. A well-timed block parries (vanilla's parry window on `Humanoid.BlockAttack` uses the block timer), so higher levels could get the timing right more often.

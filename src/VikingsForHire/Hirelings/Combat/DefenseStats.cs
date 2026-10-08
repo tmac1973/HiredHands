@@ -16,6 +16,17 @@ namespace VikingsForHire.Hirelings.Combat
         public int DodgeWins { get; set; }
         public int DodgedHits { get; set; }
 
+        public DefenseStats Snapshot() => (DefenseStats)MemberwiseClone();
+
+        /// <summary>What happened since <paramref name="before"/> (a snapshot), as balance log fields.</summary>
+        public (string, object?)[] Since(DefenseStats before) => new (string, object?)[]
+        {
+            ("reads", Reads - before.Reads), ("misses", Misses - before.Misses), ("blocks", Blocks - before.Blocks),
+            ("parries", Parries - before.Parries), ("parryRolls", ParryRolls - before.ParryRolls), ("parryWins", ParryWins - before.ParryWins),
+            ("projReads", ProjReads - before.ProjReads), ("projBlocks", ProjBlocks - before.ProjBlocks), ("dodges", Dodges - before.Dodges),
+            ("dodgedHits", DodgedHits - before.DodgedHits), ("dodgeRolls", DodgeRolls - before.DodgeRolls), ("dodgeWins", DodgeWins - before.DodgeWins),
+        };
+
         public int Get(string counter) => counter switch
         {
             "reads" => Reads,

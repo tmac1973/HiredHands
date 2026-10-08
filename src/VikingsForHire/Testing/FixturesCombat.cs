@@ -41,6 +41,9 @@ namespace VikingsForHire.Testing
                 return targets.Sum(h => h.Ai.Defense.Get(counter)).ToString();
             });
 
+            TestHarness.RegisterCheck("fight_over", "- true when no enemy is alive within 40 m of you, or no hireling is", _ =>
+                !Hostiles(40f).Any() || !Hireling.Loaded.Any(h => h != null && !h.Humanoid.IsDead()) ? "true" : "false");
+
             TestHarness.RegisterCheck("enemies_alive", "<radius=40> - hostile creatures alive near you", args =>
             {
                 float r = args.Length > 0 ? float.Parse(args[0], CultureInfo.InvariantCulture) : 40f;
