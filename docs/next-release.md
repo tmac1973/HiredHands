@@ -20,6 +20,26 @@ Plans: `plan/tree-patches/overview.md`, `plan/combat-ai/overview.md` (blocking a
 | f95f9f2 | Combat 1/6: hirelings in a fight notice swings coming at them (when they land, how hard after armor, area or not) with a per-level read chance (`readChance`, `parryChance`, `dodgeChance`, `dodgeCooldown` in the levels table); `BlockAndDodge` setting. Nothing reacts yet | the game simulating the hireling |
 
 | f8e249e | Combat 2–4/6: guards with shields raise them in time for swings and projectiles they see coming (a well-timed one parries: "Parry!", the attacker staggers); any hireling rolls out of the way of a hit that would take over a quarter of its health or explodes (cooldown by level). The 0.5.0 late block hardly ever fired (guards were nearly always mid-swing) | the game simulating the hireling |
+| 4d7731f | Combat 5/6: hit times learnt from hits that land (Troll swings were read up to a second late); fight records in the balance log carry blocks, parries and dodges; `scripts/defense-ab.sh` + `balance-report.py --compare-defense` | the game simulating the hireling; tests |
+### Blocking and dodging measured (2026-10-08, single player, `scripts/defense-ab.sh 5`, plus 8 more archer runs each way)
+Damage taken per fight (share of max health) is lower with `BlockAndDodge` on for the melee guards and the archer, with every
+fight still won; the woodcutter is unchanged (no troll hit is over a quarter of its health, and it has no shield, so it
+neither rolls nor blocks: as designed). Read rates match the levels table; parry and dodge roll rates had too few rolls to
+judge (n < 30): check by eye.
+
+```
+job          lvl  enemy            mode  runs  taken  median  won   died  length  read rate          parry roll  dodge roll  blocks/parries  dodges/missed
+-----------  ---  ---------------  ----  ----  -----  ------  ----  ----  ------  -----------------  ----------  ----------  --------------  -------------
+GuardMelee   1    Greydwarf        off   5     42%    42%     100%    0%  24s     reads 0            rolls 0     dodges 0    2/2             0/0          
+GuardMelee   1    Greydwarf        on    5     36%    33%     100%    0%  27s     51% vs 50% (n=72)  n/a (n=23)  n/a (n=0)   12/2            0/0          
+GuardMelee   3    Troll            off   5     65%    72%     100%    0%  30s     reads 0            rolls 0     dodges 0    2/2             0/0          
+GuardMelee   3    Troll            on    5     54%    50%     100%    0%  34s     62% vs 63% (n=56)  n/a (n=23)  n/a (n=1)   14/9            0/0          
+GuardRanged  4    Draugr_Ranged**  off   13    23%    0%      100%    0%  14s     reads 0            rolls 0     dodges 0    0/0             0/0          
+GuardRanged  4    Draugr_Ranged**  on    13    13%    0%      100%    0%  21s     n/a (n=19)         n/a (n=0)   n/a (n=1)   0/0             1/1          
+Woodcutter   5    Troll            off   5     25%    24%     100%    0%  38s     reads 0            rolls 0     dodges 0    0/0             0/0          
+Woodcutter   5    Troll            on    5     27%    26%     100%    0%  41s     79% vs 76% (n=73)  n/a (n=0)   n/a (n=0)   0/0             0/0
+```
+
 ### To test (batch)
 - [x] Macro (single player): `vfh_test_chain tree_patch` (passed 2026-10-06).
 - [x] Macro (single player): `vfh_test_chain pass` (10 runs, 5–9 s, no jams, 2026-10-07).

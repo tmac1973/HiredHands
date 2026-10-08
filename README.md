@@ -60,6 +60,23 @@ Woodcutters and miners work twice the board's radius. Everyone defends themselve
 
 **Doors.** Hirelings open doors in their way and close them behind themselves (never in a player's face). They only use doors the board's owner may use under wards, never locked doors, and don't wander through doors when idle. `HirelingsOpenDoors` turns this off.
 
+## How hirelings fight
+
+Guards patrol and fight by stance; everyone else defends themselves, weakly, and flees or defends by stance. Since
+0.6.0 they also **see attacks coming**:
+
+- **Blocking.** A guard with a shield raises it just before a swing it saw coming lands, and turns into arrows,
+  thrown rocks and spears flying at it. A well-timed block is a **parry** ("Parry!" pops up): it blocks with extra force
+  and staggers the attacker, as yours does. A swing the guard didn't see coming lands, or gets a late block at best.
+- **Dodging.** Any hireling in a fight (guards, archers, workers) rolls out of the way of a hit that would take more
+  than a quarter of its health, or of an explosion: the player's roll, and the hit misses while it lasts. Only towards
+  safe ground (no ledges, no deep water, nothing in the way), and not again straight away.
+- **Levels.** Higher levels see more attacks coming, parry more often, dodge more often and roll again sooner. Level 1
+  sees about half of the attacks, parries a few and rolls again after 6 s; level 8 sees nearly all, parries most and
+  rolls again after 2 s. The numbers are in the data file's levels table (`readChance`, `parryChance`, `dodgeChance`,
+  `dodgeCooldown`).
+- `BlockAndDodge` (Combat, server-synced) turns it all off: hirelings fight as in 0.5.0.
+
 ## The Steward
 
 A Steward works inside its board's radius from the chests there, taking on more chores as it levels up. Each chore unlocks with the biome whose boss makes its resources available:
