@@ -9,7 +9,7 @@ using UnityEngine;
 namespace VikingsForHire.Hirelings.Combat
 {
     /// <summary>
-    /// Any hireling rolling out of the way of an attack it saw coming that would hurt a lot (BlockAndDodge): over a quarter
+    /// Any hireling rolling out of the way of an attack it saw coming that would hurt a lot (CombatSkill): over a quarter
     /// of its health after armor (and after its shield, if it was going to block), or an area attack. Limited by the
     /// level's dodge chance and cooldown, and only towards safe ground (no drops, deep water or walls). The roll is the
     /// player's: animation, root motion and invincibility (DodgePatches). Decided right after the block controller plans,
@@ -52,7 +52,7 @@ namespace VikingsForHire.Hirelings.Combat
         {
             float now = Time.time;
             UpdateRoll(now);
-            if (!VfhConfig.BlockAndDodge.Value)
+            if (!VfhConfig.CombatSkillOn)
             {
                 _pending = null; // a roll under way finishes; no new ones
                 return;
@@ -76,7 +76,7 @@ namespace VikingsForHire.Hirelings.Combat
                 string? why = null;
                 if (!DefenseRules.WouldHurtALot(DamageLeft(a), Me.GetHealth(), a.Area))
                     why = "small";
-                else if (_pending != null || _rolling || !DefenseRules.DodgeReady(now, _lastDodge, level.DodgeCooldown))
+                else if (_pending != null || _rolling || !DefenseRules.DodgeReady(now, _lastDodge, CombatSkills.Cooldown(VfhConfig.CombatSkill.Value, level.DodgeCooldown)))
                     why = "cooldown";
                 else if (!Me.IsOnGround() || Me.IsAttached() || Me.IsSwimming())
                     why = "state";
@@ -85,7 +85,7 @@ namespace VikingsForHire.Hirelings.Combat
                 else
                 {
                     _ai.Defense.DodgeRolls++;
-                    if (!DefenseRules.Roll(level.DodgeChance, Random.value))
+                    if (!DefenseRules.Roll(VfhConfig.SkillChance(CombatSkillKind.Dodge, level.DodgeChance), Random.value))
                         why = "roll";
                     else
                     {

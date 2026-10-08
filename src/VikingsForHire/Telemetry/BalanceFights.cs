@@ -85,9 +85,9 @@ namespace VikingsForHire.Telemetry
                 ("biome", Biome(h.transform.position)), ("secs", Time.time - f.Start), ("dealt", f.Dealt), ("taken", f.Taken),
                 ("hitsDealt", f.HitsDealt), ("hitsTaken", f.HitsTaken), ("outcome", killed ? "kill" : me.IsDead() ? "died" : why),
             };
-            // Blocking and dodging during this fight (0.6.0), and whether it was on.
+            // Blocking and dodging during this fight (0.6.0), and the CombatSkill preset.
             fields.AddRange(h.Ai.Defense.Since(f.Defense));
-            fields.Add(("defense", Config.VfhConfig.BlockAndDodge.Value ? "on" : "off"));
+            fields.Add(("defense", Config.VfhConfig.CombatSkill.Value.ToString().ToLowerInvariant())); // off, green, trained, veteran
             BalanceLog.Record("fight", fields.ToArray());
         }
 

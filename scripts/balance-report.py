@@ -54,6 +54,13 @@ DEFENSE_TABLE = {
     5: (0.76, 0.46, 0.59), 6: (0.83, 0.54, 0.66), 7: (0.89, 0.62, 0.73), 8: (0.95, 0.70, 0.80),
 }
 MIN_ROLLS = 30  # a rate is judged only with at least this many rolls
+# CombatSkill presets (Core/CombatSkill.cs): chance multiplier, capped at 0.95; "on" is a pre-preset record (Trained).
+PRESETS = {"off": 0.0, "green": 0.6, "trained": 1.0, "on": 1.0, "veteran": 1.3}
+
+
+def scaled(chance, mode):
+    m = PRESETS.get(mode, 1.0)
+    return chance if m == 1.0 else min(0.95, chance * m)
 
 
 def rate(wins, rolls, expected):
@@ -66,7 +73,7 @@ def rate(wins, rolls, expected):
 
 
 def compare_defense(fights):
-    """Phase 05 of plan/combat-ai: each hireling (one per matchup run) is a run; off against on per matchup."""
+    """Phase 05 of plan/combat-ai: each hireling (one per matchup run) is a run; the presets side by side per matchup."""
     runs = collections.defaultdict(list)
     for f in fights:
         if "defense" in f:
@@ -81,7 +88,7 @@ def compare_defense(fights):
     out = []
     for job, lvl, enemy in matchups:
         read_x, parry_x, dodge_x = DEFENSE_TABLE.get(lvl, (0, 0, 0))
-        for mode in ("off", "on"):
+        for mode in ("off", "green", "trained", "on", "veteran"):
             rs = groups.get((job, lvl, enemy, mode), [])
             if not rs:
                 continue
@@ -98,11 +105,11 @@ def compare_defense(fights):
                         tot[k] += f.get(k, 0)
             out.append((job, lvl, enemy, mode, n, f"{100 * avg(taken):.0f}%", f"{100 * statistics.median(taken):.0f}%", pct(won, n), pct(died, n),
                         f"{avg(secs):.0f}s",
-                        rate(tot["reads"], tot["reads"] + tot["misses"], read_x) if mode == "on" else f"reads {tot['reads']}",
-                        rate(tot["parryWins"], tot["parryRolls"], parry_x) if mode == "on" else f"rolls {tot['parryRolls']}",
-                        rate(tot["dodgeWins"], tot["dodgeRolls"], dodge_x) if mode == "on" else f"dodges {tot['dodges']}",
+                        rate(tot["reads"], tot["reads"] + tot["misses"], scaled(read_x, mode)) if mode != "off" else f"reads {tot['reads']}",
+                        rate(tot["parryWins"], tot["parryRolls"], scaled(parry_x, mode)) if mode != "off" else f"rolls {tot['parryRolls']}",
+                        rate(tot["dodgeWins"], tot["dodgeRolls"], scaled(dodge_x, mode)) if mode != "off" else f"dodges {tot['dodges']}",
                         f"{tot['blocks']}/{tot['parries']}", f"{tot['dodges']}/{tot['dodgedHits']}"))
-    table("Blocking and dodging: off against on (one row per matchup and mode; rates vs the levels table, ! = more than 12 points off)",
+    table("Blocking and dodging by CombatSkill preset (one row per matchup and preset; rates vs the levels table scaled by the preset, ! = more than 12 points off)",
           ["job", "lvl", "enemy", "mode", "runs", "taken", "median", "won", "died", "length", "read rate", "parry roll", "dodge roll",
            "blocks/parries", "dodges/missed"], out)
 
@@ -112,7 +119,7 @@ def main():
     ap.add_argument("folder")
     ap.add_argument("--since-day", type=int, default=0, help="only in-game days from this one on")
     ap.add_argument("--min-fights", type=int, default=3, help="hide job/enemy pairs with fewer fights")
-    ap.add_argument("--compare-defense", action="store_true", help="only the blocking/dodging off-against-on comparison (fights with a defense field)")
+    ap.add_argument("--compare-defense", action="store_true", help="only the blocking/dodging comparison by CombatSkill preset (fights with a defense field)")
     a = ap.parse_args()
     rows = load(a.folder, a.since_day)
     if not rows:

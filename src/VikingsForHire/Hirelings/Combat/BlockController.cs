@@ -8,7 +8,7 @@ using UnityEngine;
 namespace VikingsForHire.Hirelings.Combat
 {
     /// <summary>
-    /// A guard with a shield blocking on time (BlockAndDodge). For each attack the reader saw coming: roll the parry
+    /// A guard with a shield blocking on time (CombatSkill). For each attack the reader saw coming: roll the parry
     /// chance once and raise the shield just before the hit (0.15 s: inside vanilla's timed-block window, a parry) or a
     /// little earlier (0.45 s: a plain block). Attacks it didn't see get the 0.5.0 late block: shield up once the swing is
     /// under way. Plan() runs before the dodge controller (which may take an attack over), Act() after it.
@@ -38,7 +38,7 @@ namespace VikingsForHire.Hirelings.Combat
         public bool HasShield => Me.GetLeftItem() is ItemDrop.ItemData left && left.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Shield;
 
         /// <summary>Whether the controller is in charge of the shield (setting on and a shield in hand).</summary>
-        public bool On => VfhConfig.BlockAndDodge.Value && HasShield;
+        public bool On => VfhConfig.CombatSkillOn && HasShield;
 
         public void Plan()
         {
@@ -64,7 +64,7 @@ namespace VikingsForHire.Hirelings.Combat
                     VfhLog.D(LogCat.Combat, "defense.block_skipped", ("hid", _ai.Hireling.Hid), ("why", "turn"));
                     continue; // left to the late block (if it ends up in front)
                 }
-                bool parry = DefenseRules.Roll(level.ParryChance, Random.value);
+                bool parry = DefenseRules.Roll(VfhConfig.SkillChance(CombatSkillKind.Parry, level.ParryChance), Random.value);
                 a.ParryWon = parry;
                 _ai.Defense.ParryRolls++;
                 if (parry)

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace VikingsForHire.Hirelings.Combat
 {
     /// <summary>
-    /// Counts a hireling's blocks and parries (both with BlockAndDodge on and off, for comparing), and shows "Parry!" over
+    /// Counts a hireling's blocks and parries (whatever the CombatSkill preset, Off included, for comparing), and shows "Parry!" over
     /// it for everyone nearby. Vanilla's BlockAttack does the blocking itself; it runs inside Character.RPC_Damage on the
     /// hireling's owner, the machine running its AI.
     /// </summary>

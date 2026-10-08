@@ -79,6 +79,9 @@ A morale role that raises the base's comfort level while it's on duty near playe
 - Balance: cap the bonus (e.g. +1 to +3 comfort) so it can't stack past what a well-built base offers; one jester per board.
 
 ## Wizards and healers (higher levels)
+(2026-10-08) Combat proficiency presets (`CombatSkill`, 0.6.0) are built to cover casters too: each preset scales a set
+of named skills (seeing attacks coming, parrying, dodging today; aiming spells, timing heals, etc. later), so a caster
+adds its skills to the same presets instead of a new setting.
 Support roles unlocked at higher board levels, since magic belongs to the later biomes.
 - **Healer:** heals hurt players, hirelings and tames near it, out of combat or during it from range; higher levels heal more and faster. Could use vanilla staff effects (e.g. the Staff of Protection / healing visuals) for the look.
 - **Wizard:** a ranged magic guard using the Mistlands staves (fire/ice/lightning) as its gear, with eitr standing in for ammo in the same way archers have endless arrows. Strong against groups but fragile up close.
@@ -181,6 +184,26 @@ Tim's idea (2026-10-06). Today hirelings fight like monsters: walk up, swing (or
       - Base fights could use the nav links layer's knowledge of walls and doorways.
 - **Order of work, if we do it:** blocking first (biggest effect on survival, simplest), then tactics for melee (Tank/DPS/Hit and run are mostly timing and distance rules), then Kite, then Shoot from cover as its own phase.
 - **Balance:** watch the balance log (fight length, damage taken per job and level) before and after; blocking alone could make low-level guards far tougher.
+
+## Rancher (Tim's idea, 2026-10-08; details to work out)
+A hireling that manages the base's farm animals (boars, wolves, lox, chickens…), mostly for meat:
+- **Slaughters for meat** to orders like the Farmer's and Cook's ("keep at least 20 raw meat"), but **leaves enough to
+  breed**: a breeding stock per kind (how many, males and females), never a tame the player has named, maybe the oldest
+  or the lowest-star first.
+- **Feeds them** (from chests or troughs; PetPantry is already supported for the Steward) so they stay tame and breed.
+- Probably a board level 2+ job, one per board, chores on the existing chore loop. To decide: pens (keep animals inside
+  walls?), what counts as "the herd" (tames inside the board's area?), and what it carries (a knife? a club?).
+
+## Separate caps for combat and non-combat hirelings (Tim's idea, 2026-10-08; scaling to work out)
+Today each board level has one `hirelingCap` (2, 3, 4, 5, 6, 7, 8, 10). Split it in two so a base can be **fully
+automated early** (workers) without an **army late** (combat):
+- `workerCap` grows quickly: e.g. level 1: 2, level 2: 4, then +1 or +2 a level.
+- `combatCap` grows slowly: e.g. level 1: 1, then +1 only every couple of levels (2 at level 3…), ending at a handful.
+- **Combat** is guards (melee, ranged) and later casters; everything else is a worker, and the one-per-board rules
+  (Steward, Farmer, Cook, later Rancher) stay as they are. Followers count against their job's cap.
+- **Existing worlds:** hirelings already over a new cap stay; the cap only blocks new contracts. Older data files get
+  both caps filled from the defaults (`hirelingCap` kept for files that still have it, ignored once split).
+- **UI:** the Contracts tab shows both counts ("Combat 1/1 · Workers 2/4"); hover and messages say which cap is full.
 
 ## Hirelings passing each other (done for 0.6.0: keep right, pass through after 2 s; `HirelingsPassEachOther`)
 Seen on the live server (2026-10-05): two hirelings walking towards each other along a fence line push against each other until one slips past (they're solid to each other, and the game's walking AI doesn't steer round other creatures). It sorts itself out, so it's not urgent.

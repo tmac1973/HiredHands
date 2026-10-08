@@ -110,7 +110,7 @@ namespace VikingsForHire.Hirelings.Combat
             ai.Face(target.GetCenterPoint());
             // Swing whenever the swing is ready; raise the shield only in between. Blocking first meant a guard facing
             // a fast or busy enemy (nearly always mid-attack) held its shield up and never hit back.
-            // With BlockAndDodge a ready swing waits (up to a second) for a block that's about to go up: swinging drops
+            // With CombatSkill on a ready swing waits (up to a second) for a block that's about to go up: swinging drops
             // the shield. The block controller raises and lowers it.
             bool blockOwned = ai.Block.On;
             if (Time.time < _nextAttack)

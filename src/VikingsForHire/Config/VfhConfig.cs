@@ -108,7 +108,13 @@ namespace VikingsForHire.Config
 
         // 8 - Combat
         public static ConfigEntry<float> MeleeAttackCooldown = null!;
-        public static ConfigEntry<bool> BlockAndDodge = null!;
+        public static ConfigEntry<CombatSkillPreset> CombatSkill = null!;
+
+        /// <summary>Blocking and dodging on (any preset but Off).</summary>
+        public static bool CombatSkillOn => CombatSkills.On(CombatSkill.Value);
+
+        /// <summary>A level's chance for a combat skill under the server's preset.</summary>
+        public static float SkillChance(CombatSkillKind kind, float levelChance) => CombatSkills.Chance(CombatSkill.Value, kind, levelChance);
         public static ConfigEntry<float> RangedAttackCooldown = null!;
 
         // 6 - Controls (local). The board panel is Shift+E: Valheim's alt-interact, so it follows the game's own bindings.
@@ -226,7 +232,7 @@ namespace VikingsForHire.Config
             BalanceLogMaxMB = _file.Bind("9 - Balance log", "BalanceLogMaxMB", 20, "Server: total size (MB) of the balance log files kept; the oldest days are deleted beyond it.");
 
             MeleeAttackCooldown = Synced("8 - Combat", "MeleeAttackCooldown", 1.2f, "Seconds between a hireling's melee swings.");
-            BlockAndDodge = Synced("8 - Combat", "BlockAndDodge", true, "Hirelings watch for attacks coming at them: guards with shields raise them in time (and parry when well timed), and anyone fighting rolls out of the way of hits that would hurt a lot. Off: the 0.5.0 fighting (shield up once a swing is under way, no dodging).");
+            CombatSkill = Synced("8 - Combat", "CombatSkill", CombatSkillPreset.Trained, "How good hirelings are at seeing attacks coming, blocking (guards with shields; well timed blocks parry) and rolling out of the way of big hits. Off: the 0.5.0 fighting (no blocking on purpose, no dodging). Green: now and then. Trained: as measured for 0.6.0. Veteran: parry most swings, roll often. Scales the levels table (readChance, parryChance, dodgeChance, dodgeCooldown in the data file).");
             RangedAttackCooldown = Synced("8 - Combat", "RangedAttackCooldown", 2.5f, "Seconds between an archer's shots (at least the bow's draw time plus a beat).");
 
             LogToFile = config.Bind("7 - Debug", "LogToFile", true, "Also write log lines to BepInEx/HiredHands.log.");

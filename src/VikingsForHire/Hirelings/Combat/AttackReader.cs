@@ -8,7 +8,7 @@ using UnityEngine;
 namespace VikingsForHire.Hirelings.Combat
 {
     /// <summary>
-    /// A hireling watching for attacks coming at it (BlockAndDodge): enemies close by and facing it that have just started
+    /// A hireling watching for attacks coming at it (CombatSkill): enemies close by and facing it that have just started
     /// an attack. Each one is estimated (when it lands, how hard, area or not) and rolled against the level's read chance
     /// once, then kept in <see cref="Incoming"/> until shortly after it lands. Only runs while the hireling is fighting or
     /// was hit recently. Whom an enemy targets is only known on its owner's machine, so facing is the test.
@@ -42,7 +42,7 @@ namespace VikingsForHire.Hirelings.Combat
 
         public void Tick()
         {
-            if (!VfhConfig.BlockAndDodge.Value)
+            if (!VfhConfig.CombatSkillOn)
             {
                 if (Active || _incoming.Count > 0)
                     Clear();
@@ -179,7 +179,7 @@ namespace VikingsForHire.Hirelings.Combat
                     Types = AttackEstimate.ProjectileTypes(p, t.Shooter, h.Armor, h.Humanoid.GetMaxHealth()),
                     Dodgeable = p.m_dodgeable,
                     Area = p.m_aoe > 0f,
-                    Read = DefenseRules.Roll(h.LevelData.ReadChance, Random.value),
+                    Read = DefenseRules.Roll(VfhConfig.SkillChance(CombatSkillKind.Read, h.LevelData.ReadChance), Random.value),
                     From = back.sqrMagnitude > 0.0001f ? back.normalized : -h.transform.forward,
                     Weapon = Utils.GetPrefabName(p.gameObject),
                 };
@@ -267,7 +267,7 @@ namespace VikingsForHire.Hirelings.Combat
                 Types = weapon != null ? AttackEstimate.Types(attacker, weapon, h.Armor) : default,
                 Dodgeable = weapon?.m_dodgeable ?? true,
                 Area = weapon != null && AttackEstimate.Area(weapon),
-                Read = DefenseRules.Roll(h.LevelData.ReadChance, Random.value),
+                Read = DefenseRules.Roll(VfhConfig.SkillChance(CombatSkillKind.Read, h.LevelData.ReadChance), Random.value),
                 From = from,
                 Weapon = weapon?.m_name ?? "",
             };

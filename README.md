@@ -75,7 +75,13 @@ Guards patrol and fight by stance; everyone else defends themselves, weakly, and
   sees about half of the attacks, parries a few and rolls again after 6 s; level 8 sees nearly all, parries most and
   rolls again after 2 s. The numbers are in the data file's levels table (`readChance`, `parryChance`, `dodgeChance`,
   `dodgeCooldown`).
-- `BlockAndDodge` (Combat, server-synced) turns it all off: hirelings fight as in 0.5.0.
+- **How good they are** is the server's choice: `CombatSkill` (Combat, server-synced) is one of four presets.
+  - **Off:** the 0.5.0 fighting.
+  - **Green:** they block and roll now and then; you still have to look after them.
+  - **Trained** (default): the levels table as tested.
+  - **Veteran:** they parry most swings and roll often.
+
+  The preset scales the whole levels table, so higher levels stay better than lower ones.
 
 ## The Steward
 

@@ -27,7 +27,7 @@ namespace VikingsForHire.Hirelings
 
         public ThreatScanner Threats { get; private set; } = null!;
 
-        /// <summary>Attacks seen coming at it (BlockAndDodge).</summary>
+        /// <summary>Attacks seen coming at it (CombatSkill).</summary>
         public AttackReader Reader { get; private set; } = null!;
         public IReadOnlyList<IncomingAttack> Incoming => Reader.Incoming;
         public DefenseStats Defense { get; } = new();
