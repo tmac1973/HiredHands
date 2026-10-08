@@ -19,12 +19,18 @@ Plans: `plan/tree-patches/overview.md`, `plan/combat-ai/overview.md` (blocking a
 | d8502e9…8aa9922 | Passing tuned with the corridor test: no sidestep with a wall just to the right; pass through when getting nowhere (under 0.5 m a second) with another hireling within 2.5 m; `PassSideRoom` (1.2 m), `PassThroughAfter` (1.5 s) | the game simulating the hirelings |
 | f95f9f2 | Combat 1/6: hirelings in a fight notice swings coming at them (when they land, how hard after armor, area or not) with a per-level read chance (`readChance`, `parryChance`, `dodgeChance`, `dodgeCooldown` in the levels table); `BlockAndDodge` setting. Nothing reacts yet | the game simulating the hireling |
 
+| f8e249e | Combat 2–4/6: guards with shields raise them in time for swings and projectiles they see coming (a well-timed one parries: "Parry!", the attacker staggers); any hireling rolls out of the way of a hit that would take over a quarter of its health or explodes (cooldown by level). The 0.5.0 late block hardly ever fired (guards were nearly always mid-swing) | the game simulating the hireling |
 ### To test (batch)
 - [x] Macro (single player): `vfh_test_chain tree_patch` (passed 2026-10-06).
 - [x] Macro (single player): `vfh_test_chain pass` (10 runs, 5–9 s, no jams, 2026-10-07).
 - [x] Sign stays standing (Tim, 2026-10-06).
 - [x] By hand: build a Tree patch sign only inside a board's area (outside it the ghost is red and placing says so). Tested by Tim 2026-10-07.
-- [ ] Macro (single player): `vfh_test_chain read1 read2`; in HiredHands.log (Combat at Debug) the level 8 guard's `defense.read` lines are 85-100% `read=true`, Greydwarf Brute swings `timed=true` with `in=` 0.2-1.0 s.
+- [x] Macro (single player): `vfh_test_chain read1 read2 block1 block2 block3 proj1 proj2 dodge1 dodge2 dodge3 dodge4` plus the combat regression rows (stance1-5 combat1 combat5 combat6 tame1 retreat1 noise1 post1): all passing, 2026-10-07/08 (flaky rows reworked to be deterministic).
+- [ ] (was) `vfh_test_chain read1 read2`; in HiredHands.log (Combat at Debug) the level 8 guard's `defense.read` lines are 85-100% `read=true`, Greydwarf Brute swings `timed=true` with `in=` 0.2-1.0 s.
+- [ ] By hand: a level 5+ guard against a Greydwarf Brute: the shield comes up just before each swing lands, sometimes "Parry!" and the Brute staggers, and the guard swings back straight after.
+- [ ] By hand: a guard posted in front of Draugr archers turns into the arrows and blocks most of them; arrows at someone else don't make it react.
+- [ ] By hand: a worker or archer near a troll rolls (sideways or back) out of its big swings; never off a ledge or into water; rolls are spaced out at low levels.
+- [ ] By hand (dedicated server): a hireling owned by one player dodges a troll owned by another: the hit misses and both players see the roll.
 - [ ] By hand: on a Tree patch sign, Shift+E changes radius and kind; looking at it draws the circle; a woodcutter plants it from seeds in a chest and later fells the grown trees.
 
 ## 0.5.0 (released 2026-10-06): Farmer, Cook and production orders
