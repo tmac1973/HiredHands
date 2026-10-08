@@ -27,6 +27,12 @@ Plans: `plan/tree-patches/overview.md`, `plan/combat-ai/overview.md` (blocking a
 | b313640 | No reaching through floors and walls: within 3 m a chest (or station) counts as in reach only with no other building piece in the way, so a chest upstairs isn't filled from the ground below or from outside the wall. Walking up to it: only spots it can use it from, picked again while routes upstairs are worked out, closing in meanwhile; progress counted along the route (a detour round a hill gave up after 25 s). Deliveries plan without a chest just found unreachable (its share went to the pile). Test deposit counts reset per house | the game simulating the hireling; tests |
 | 06b549b, 6d892bf | Tests protect the tester: from `vfh_test_begin` until the test queue is done (or aborted) you're in ghost mode and take no hits at all (vanilla's god and ghost modes only stop the death; area hits still landed and staggered you). The per-row `vfh_fixture ghost on` steps are gone; `ghost off` is left for a row that needs something to come for you. A chain no longer looks finished between two of its commands (protection went off right after `vfh_test_begin`). `vfh_t_protect` (VFH-PROTECT-1), `vfh_fixture hit_me`, checks `player_health`, `player_ghost`, `tester_hits_blocked` | tests |
 
+### Post-merge regression (2026-10-08, merged build 1185828 + row fixes, 36 rows through ModTestBridge)
+All pass, NAVLINK-4/5/6 included (the stair fix holds). PROJ-1 and STN-3 failed once and passed twice on rerun
+(flaky). Two rows needed fixing for the merged changes: VFH-DODGE-3 turns `HealthRegen` off (the archer healed out of
+"badly hurt" before the first arrow), and VFH-NAV-2 now waits for the delivery to finish (a woodcutter now walks into the
+room through the door instead of reaching the chest through the wall, so it takes longer).
+
 ### Blocking and dodging measured (2026-10-08, single player, `scripts/defense-ab.sh 5`, plus 8 more archer runs each way)
 Damage taken per fight (share of max health) is lower with blocking and dodging on (`CombatSkill` Trained) for the melee guards and the archer, with every
 fight still won; the woodcutter is unchanged (no troll hit is over a quarter of its health, and it has no shield, so it
