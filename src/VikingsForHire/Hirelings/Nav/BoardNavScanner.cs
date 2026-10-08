@@ -147,7 +147,7 @@ namespace VikingsForHire.Hirelings.Nav
             List<(float Along, float? Height)>? bestSamples = null;
             foreach (Vector3 axis in new[] { piece.transform.forward, piece.transform.right })
             {
-                List<(float Along, float? Height)> samples = StairSampler.Sample(_colliders, b, axis, _points);
+                List<(float Along, float? Height)> samples = StairSampler.Sample(_colliders, b, piece.transform, axis, _points);
                 StairResult r = StairProfile.Classify(samples, hint);
                 if (r.Accepted && (!best.Accepted || r.Rise > best.Rise))
                 {

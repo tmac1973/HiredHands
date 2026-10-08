@@ -17,10 +17,11 @@ namespace VikingsForHire.Testing
     {
         public static void Register()
         {
-            Fixtures.Add("house2", "<tag> [item count]… - a 6x6 m house 12 m to the board's left: door facing the board (<tag>_door), a wood stair (<tag>_stair) up to an upper floor at the back (middle piece <tag>_up), chest upstairs (<tag>)",
+            Fixtures.Add("house2", "<tag> [item count]… - a 6x8 m house 13 m to the board's left: door facing the board (<tag>_door), two wood stair flights (<tag>_stair, <tag>_stair2 above it) up to an upper floor 2 m up at the back (middle piece <tag>_up), chest upstairs (<tag>)",
                 args => House(args, "wood_stair"));
-            Fixtures.Add("stepladder", "<tag> [item count]… - the same house with a stepladder (<tag>_stair) instead of the stair",
+            Fixtures.Add("stepladder", "<tag> [item count]… - the same house with one stepladder (<tag>_stair) instead of the stairs",
                 args => House(args, "wood_stepladder"));
+            Fixtures.Add("stair_probe", "<prefab> - place a piece 5 m ahead at turns of 0-165 degrees and log what the stair scan's sampler reads at each (then remove it)", StairProbe);
             Fixtures.Add("remove_piece", "<tag> - deconstruct a tagged piece (as a player with the hammer)", RemovePiece);
             Fixtures.Add("flatten", "<radius=22> - level the ground around you to the height under your feet and remove rocks, trees, bushes and stumps there (test worlds only)", Flatten);
             Fixtures.Add("roof_over", "<prefab> [walls] - a thatch roof (3x3 wood_roof pieces), and with walls three sides of walls stacked up to the roof (the east open), over the nearest such station, e.g. a spinning wheel, which only works under a roof", RoofOver);
@@ -59,6 +60,10 @@ namespace VikingsForHire.Testing
             });
         }
 
+        // The real climb of one flight of each piece, measured with the probe below (vanilla, 2026-10-08): wood_stair's top
+        // step is 1.05 m up (two flights make a 2 m storey, as in the game), the stepladder's top plank 2.05 m.
+        private const float StoreyRise = 1.8f;
+
         private static IEnumerator House(string[] args, string stairPrefab)
         {
             string tag = args.ElementAtOrDefault(0) ?? "H";
@@ -67,51 +72,78 @@ namespace VikingsForHire.Testing
             HiringBoard board = FixturesWork.Board();
             Vector3 n = board.transform.right; // from the house towards the board
             Vector3 t = board.transform.forward;
-            Vector3 c = board.transform.position - board.transform.right * 12f;
+            // 6 m wide, 8 m deep: the upper floor is the back 2 m, two wood_stair flights take 4 m, and there's room to stand
+            // at their foot inside the door.
+            Vector3 c = board.transform.position - board.transform.right * 13f;
             float ground = ZoneSystem.instance.GetGroundHeight(c);
 
             // Walls like the room fixture's; the middle of the side facing the board is the door.
             for (int i = -1; i <= 1; i++)
             {
-                Place(i == 0 ? "wood_door" : "woodwall", Ground(c + n * 3f + t * (2f * i)), n, i == 0 ? tag + "_door" : "");
-                Place("woodwall", Ground(c - n * 3f + t * (2f * i)), n, "");
-                Place("woodwall", Ground(c + t * 3f + n * (2f * i)), t, "");
-                Place("woodwall", Ground(c - t * 3f + n * (2f * i)), t, "");
+                Place(i == 0 ? "wood_door" : "woodwall", Ground(c + n * 4f + t * (2f * i)), n, i == 0 ? tag + "_door" : "");
+                Place("woodwall", Ground(c - n * 4f + t * (2f * i)), n, "");
+            }
+            for (int i = -3; i <= 3; i += 2)
+            {
+                Place("woodwall", Ground(c + t * 3f + n * i), t, "");
+                Place("woodwall", Ground(c - t * 3f + n * i), t, "");
             }
 
-            // The stair climbs towards the back (-n); turn it round if it was placed climbing the other way.
-            GameObject stair = Place(stairPrefab, new Vector3(c.x, ground, c.z), -n, tag + "_stair");
+            // One flight first, to measure: it should climb towards the back (-n); turn it round if it climbs the other way.
+            GameObject first = Place(stairPrefab, new Vector3(c.x, ground, c.z), -n, tag + "_stair");
             yield return null;
             // Colliders only follow a moved transform after a sync; measuring before it reads the old place.
             Physics.SyncTransforms();
-            if (Climbs(stair, -n) < 0f)
-                stair.transform.rotation = Quaternion.LookRotation(n);
-            Physics.SyncTransforms();
-            Bounds sb = Bounds(stair);
-            float along = Mathf.Abs(n.x) * sb.extents.x + Mathf.Abs(n.z) * sb.extents.z;
-            // High end at the front edge of the upper floor (1 m behind the centre), low end towards the door.
-            Vector3 stairPos = c - n * 1f + n * along + (stair.transform.position - sb.center).With(y: 0f);
-            stair.transform.position = new Vector3(stairPos.x, ground, stairPos.z);
-            Physics.SyncTransforms();
-            // Its origin isn't at its foot: stand it on the ground under its own foot.
-            float footGround = ZoneSystem.instance.GetGroundHeight(stair.transform.position + n * along * 0.8f);
-            stair.transform.position += Vector3.up * (footGround - Bounds(stair).min.y);
-            Physics.SyncTransforms();
-            // Slide it so its top step (as the scan measures it) ends 0.9 m behind the centre, just inside the upper
-            // floor's front edge (1 m behind), so the floor is there to step onto.
-            if (TopStepPoint(stair, -n) is Vector3 step)
+            if (Flight(first, -n).TopIndex < Flight(first, -n).BottomIndex)
             {
-                float d = Vector3.Dot(step - c, -n);
-                stair.transform.position += -n * (0.9f - d);
+                first.transform.rotation = Quaternion.LookRotation(n);
                 Physics.SyncTransforms();
             }
-            // The upper floor goes level with the top step (not the rails' top).
-            float top = TopStep(stair, -n);
+            Flight(first, -n, out Vector3 lo, out Vector3 hi);
+            if (Vector3.Dot(hi - lo, -n) <= 0f)
+                throw new InvalidOperationException($"{stairPrefab} still climbs towards the door after turning it round");
+            Vector3 origin = first.transform.position;
+            float baseY = Bounds(first).min.y - origin.y; // its foot, below its origin
+            float rise = hi.y - (origin.y + baseY);
+            // Cross-check against its own colliders: the top step is at most a rail's height below their top.
+            float colliderTop = Bounds(first).max.y - (origin.y + baseY);
+            if (colliderTop - rise > 0.25f)
+                VfhLog.W(LogCat.Test, "fixture.house_stair_low", ("stair", stairPrefab), ("rise", rise), ("colliderTop", colliderTop));
+            // How far one flight runs along the climb (its own length, so flights meet end to end).
+            Bounds lb = StairSampler.LocalBounds(Colliders(first), first.transform);
+            Vector3 la = Quaternion.Inverse(first.transform.rotation) * -n;
+            float run = 2f * (Mathf.Abs(la.x) * lb.extents.x + Mathf.Abs(la.z) * lb.extents.z);
+            int flights = Mathf.Clamp(Mathf.CeilToInt(StoreyRise / rise), 1, 3);
+
+            // Lay the flights end to end, each starting on the one below's top step, with the top flight's top step 0.1 m
+            // inside the upper floor's front edge (2 m behind the centre) and the bottom flight's foot on the ground.
+            Vector3 perFlight = -n * run + Vector3.up * (hi.y - origin.y);
+            Vector3 topStep = hi + perFlight * (flights - 1);
+            Vector3 shift = -n * (2.1f - Vector3.Dot(topStep - c, -n));
+            first.transform.position += shift.With(y: 0f);
+            Physics.SyncTransforms();
+            float footGround = ZoneSystem.instance.GetGroundHeight(lo + shift.With(y: 0f) + n * 0.3f);
+            first.transform.position += Vector3.up * (footGround - (first.transform.position.y + baseY));
+            Physics.SyncTransforms();
+            GameObject stair = first;
+            for (int k = 1; k < flights; k++)
+            {
+                stair = Place(stairPrefab, first.transform.position + perFlight * k, first.transform.forward, $"{tag}_stair{k + 1}");
+                Physics.SyncTransforms();
+            }
+            yield return null;
+            Physics.SyncTransforms();
+            // The upper floor goes level with the top flight's top step as the scan reads it (not the rails' top).
+            StairResult r = Flight(stair, -n, out _, out Vector3 topPoint);
+            float top = topPoint.y;
+            float storey = top - footGround;
+            if (storey < StoreyRise)
+                VfhLog.W(LogCat.Test, "fixture.house_low", ("stair", stairPrefab), ("flights", flights), ("storey", storey), ("want", StoreyRise));
 
             // Upper floor: the back 2 m strip, three 2x2 m floor pieces, its surface level with the stair's top.
             for (int i = -1; i <= 1; i++)
             {
-                GameObject floor = Place("wood_floor", c - n * 2f + t * (2f * i) + Vector3.up * (top - c.y), n, i == 0 ? tag + "_up" : "");
+                GameObject floor = Place("wood_floor", c - n * 3f + t * (2f * i) + Vector3.up * (top - c.y), n, i == 0 ? tag + "_up" : "");
                 floor.transform.position = new Vector3(floor.transform.position.x, top, floor.transform.position.z);
                 Physics.SyncTransforms();
                 float surface = Bounds(floor).max.y;
@@ -119,52 +151,73 @@ namespace VikingsForHire.Testing
                 Physics.SyncTransforms();
             }
             yield return null;
-            GameObject chest = Place("piece_chest_wood", new Vector3((c - n * 2f + t * 2f).x, top, (c - n * 2f + t * 2f).z), n, tag);
+            GameObject chest = Place("piece_chest_wood", new Vector3((c - n * 3f + t * 2f).x, top, (c - n * 3f + t * 2f).z), n, tag);
             yield return null;
             Inventory inv = chest.GetComponent<Container>().GetInventory();
             for (int i = 1; i + 1 < args.Length; i += 2)
                 FixturesWork.AddStacks(inv, args[i], int.Parse(args[i + 1], CultureInfo.InvariantCulture));
-            VfhLog.I(LogCat.Test, "fixture.house", ("tag", tag), ("stair", stairPrefab), ("center", c), ("ground", ground), ("upperFloor", top),
-                ("rise", top - Bounds(stair).min.y), ("stairPos", stair.transform.position), ("climbs", Climbs(stair, -n) >= 0f ? "back" : "front"));
+            VfhLog.I(LogCat.Test, "fixture.house", ("tag", tag), ("stair", stairPrefab), ("center", c), ("ground", footGround), ("upperFloor", top),
+                ("flights", flights), ("flightRise", rise), ("run", run), ("storey", storey), ("slope", r.SlopeDeg),
+                ("topStepIn", Vector3.Dot(topPoint - c, -n) - 2f), ("climbs", Vector3.Dot(hi - lo, -n) > 0f ? "back" : "front"));
             yield return new WaitForSeconds(0.5f);
 
             Vector3 Ground(Vector3 p) => new(p.x, ZoneSystem.instance.GetGroundHeight(p), p.z);
         }
 
-        // Where the top step is, by the scan's own shape test (null if it doesn't take the piece for a stair).
-        private static Vector3? TopStepPoint(GameObject piece, Vector3 axis)
+        private static System.Collections.Generic.List<Collider> Colliders(GameObject piece)
+        {
+            var cols = new System.Collections.Generic.List<Collider>();
+            StairSampler.Colliders(piece.GetComponent<Piece>(), cols, out _);
+            return cols;
+        }
+
+        // One flight by the scan's own shape test along the axis: its bottom and top step. A test house built on a piece
+        // the scan doesn't take for a stair would test nothing, so that fails the fixture.
+        private static StairResult Flight(GameObject piece, Vector3 axis) => Flight(piece, axis, out _, out _);
+
+        private static StairResult Flight(GameObject piece, Vector3 axis, out Vector3 bottom, out Vector3 top)
         {
             var cols = new System.Collections.Generic.List<Collider>();
             if (!StairSampler.Colliders(piece.GetComponent<Piece>(), cols, out Bounds b))
-                return null;
+                throw new InvalidOperationException($"{Utils.GetPrefabName(piece)} has no colliders");
             var points = new System.Collections.Generic.List<Vector3>();
-            StairResult r = StairProfile.Classify(StairSampler.Sample(cols, b, axis, points), nameHint: true);
-            return r.Accepted ? points[r.TopIndex] : null;
+            var samples = StairSampler.Sample(cols, b, piece.transform, axis, points);
+            StairResult r = StairProfile.Classify(samples, nameHint: true);
+            if (!r.Accepted)
+                throw new InvalidOperationException($"{Utils.GetPrefabName(piece)} isn't a stair to the scan ({r.Reason}): heights " +
+                                                    string.Join(" ", samples.Select(x => x.Height?.ToString("0.00", CultureInfo.InvariantCulture) ?? "-")));
+            bottom = points[r.BottomIndex];
+            top = points[r.TopIndex];
+            return r;
         }
 
-        // The highest walkable surface along the axis, sampled the way the board's scan does it.
-        private static float TopStep(GameObject piece, Vector3 axis)
+        // Places the piece at several turns and logs what the scan's sampler reads along its own forward each time (the
+        // board faces a different way each run, so a reading that depends on the turn shows up here).
+        private static IEnumerator StairProbe(string[] args)
         {
-            var cols = new System.Collections.Generic.List<Collider>();
-            if (!StairSampler.Colliders(piece.GetComponent<Piece>(), cols, out Bounds b))
-                return Bounds(piece).max.y;
-            float? top = StairSampler.Sample(cols, b, axis, new System.Collections.Generic.List<Vector3>()).Max(s => s.Height);
-            return top ?? b.max.y;
-        }
-
-        // Which way the piece climbs along the axis (positive: up towards +axis), judged by the scan's own shape test
-        // on the piece's own colliders, so the ground and floors around it can't mislead it.
-        private static float Climbs(GameObject piece, Vector3 axis)
-        {
-            var cols = new System.Collections.Generic.List<Collider>();
-            if (StairSampler.Colliders(piece.GetComponent<Piece>(), cols, out Bounds b))
+            string prefab = args.ElementAtOrDefault(0) ?? "wood_stair";
+            Transform me = Player.m_localPlayer.transform;
+            Vector3 at = me.position + me.forward.With(y: 0f).normalized * 5f;
+            at.y = ZoneSystem.instance.GetGroundHeight(at);
+            for (int yaw = 0; yaw < 180; yaw += 15)
             {
-                var samples = StairSampler.Sample(cols, b, axis, new System.Collections.Generic.List<Vector3>());
+                GameObject go = Place(prefab, at, Quaternion.Euler(0f, yaw, 0f) * Vector3.forward, "");
+                yield return null;
+                Physics.SyncTransforms();
+                var cols = new System.Collections.Generic.List<Collider>();
+                StairSampler.Colliders(go.GetComponent<Piece>(), cols, out Bounds b);
+                if (yaw == 0)
+                    foreach (Collider c in cols)
+                        VfhLog.I(LogCat.Test, "fixture.stair_probe.col", ("name", c.name), ("min", c.bounds.min - at), ("max", c.bounds.max - at));
+                var samples = StairSampler.Sample(cols, b, go.transform, go.transform.forward, new System.Collections.Generic.List<Vector3>());
                 StairResult r = StairProfile.Classify(samples, nameHint: true);
-                if (r.Accepted)
-                    return r.TopIndex > r.BottomIndex ? 1f : -1f;
+                VfhLog.I(LogCat.Test, "fixture.stair_probe", ("prefab", prefab), ("yaw", yaw), ("top", b.max.y - at.y),
+                    ("local", StairSampler.LocalBounds(cols, go.transform)),
+                    ("heights", string.Join(" ", samples.Select(x => x.Height is float h ? (h - at.y).ToString("0.00", CultureInfo.InvariantCulture) : "-"))),
+                    ("accepted", r.Accepted), ("reason", r.Reason), ("climbs", r.Accepted ? (r.TopIndex > r.BottomIndex ? "fwd" : "back") : "?"), ("rise", r.Rise));
+                ZNetScene.instance.Destroy(go);
+                yield return null;
             }
-            return HighEnd(piece, axis);
         }
 
         private static IEnumerator Flatten(string[] args)
@@ -215,18 +268,6 @@ namespace VikingsForHire.Testing
             VfhLog.I(LogCat.Test, "fixture.flatten", ("center", c), ("radius", radius), ("removed", removed), ("patches", patches));
             // The game's walking map catches up with new ground a few seconds later.
             yield return new WaitForSeconds(6f);
-        }
-
-        // Which way the piece climbs along the axis: positive when its surface is higher towards +axis.
-        private static float HighEnd(GameObject piece, Vector3 axis)
-        {
-            Bounds b = Bounds(piece);
-            float reach = Mathf.Abs(axis.x) * b.extents.x + Mathf.Abs(axis.z) * b.extents.z;
-            float? Surface(Vector3 p) => Physics.Raycast(new Vector3(p.x, b.max.y + 0.5f, p.z), Vector3.down, out RaycastHit hit, b.size.y + 1f,
-                StairSampler.FloorMask, QueryTriggerInteraction.Ignore) ? hit.point.y : null;
-            float hi = Surface(b.center + axis * reach * 0.8f) ?? b.min.y;
-            float lo = Surface(b.center - axis * reach * 0.8f) ?? b.min.y;
-            return hi - lo;
         }
 
         private static Bounds Bounds(GameObject go)

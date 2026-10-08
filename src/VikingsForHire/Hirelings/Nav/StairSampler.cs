@@ -28,21 +28,61 @@ namespace VikingsForHire.Hirelings.Nav
         }
 
         /// <summary>
-        /// The surface height at <see cref="SampleCount"/> points along a horizontal axis through the bounds' centre,
+        /// The colliders' box in the frame's own axes (turned with it, not scaled), so a turned piece measures as long as it
+        /// really is: its world bounds are wider, and samples spread over those land past its ends and between its steps.
+        /// </summary>
+        public static Bounds LocalBounds(List<Collider> colliders, Transform frame)
+        {
+            Quaternion inv = Quaternion.Inverse(frame.rotation);
+            Bounds lb = default;
+            bool any = false;
+            foreach (Collider c in colliders)
+            {
+                // A box's own corners; other shapes by their world bounds (a little wider when turned).
+                Transform? t = null;
+                Vector3 center = c.bounds.center, half = c.bounds.extents;
+                if (c is BoxCollider box)
+                {
+                    t = box.transform;
+                    center = box.center;
+                    half = box.size * 0.5f;
+                }
+                for (int i = 0; i < 8; i++)
+                {
+                    var corner = new Vector3((i & 1) == 0 ? -half.x : half.x, (i & 2) == 0 ? -half.y : half.y, (i & 4) == 0 ? -half.z : half.z);
+                    Vector3 world = t != null ? t.TransformPoint(center + corner) : center + corner;
+                    Vector3 local = inv * (world - frame.position);
+                    if (!any)
+                        lb = new Bounds(local, Vector3.zero);
+                    else
+                        lb.Encapsulate(local);
+                    any = true;
+                }
+            }
+            return lb;
+        }
+
+        /// <summary>
+        /// The surface height at <see cref="SampleCount"/> points along a horizontal axis through the piece's middle, end to
+        /// end of its own extent along that axis (<see cref="LocalBounds"/> in <paramref name="frame"/>, the piece's transform),
         /// against this piece's own colliders only (highest upward-facing hit). Points are where each ray landed.
         /// </summary>
-        public static List<(float Along, float? Height)> Sample(List<Collider> colliders, Bounds b, Vector3 axis, List<Vector3> points)
+        public static List<(float Along, float? Height)> Sample(List<Collider> colliders, Bounds b, Transform frame, Vector3 axis, List<Vector3> points)
         {
             axis.y = 0f;
             axis.Normalize();
-            float half = Mathf.Abs(axis.x) * b.extents.x + Mathf.Abs(axis.z) * b.extents.z;
+            Bounds lb = LocalBounds(colliders, frame);
+            Vector3 la = Quaternion.Inverse(frame.rotation) * axis;
+            // A little in from the very ends: a ray down a box's edge can miss it.
+            float half = Mathf.Max(0f, Mathf.Abs(la.x) * lb.extents.x + Mathf.Abs(la.z) * lb.extents.z - 0.03f);
+            Vector3 middle = frame.position + frame.rotation * lb.center;
             var samples = new List<(float, float?)>(SampleCount);
             points.Clear();
             float length = b.size.y + 1f;
             for (int i = 0; i < SampleCount; i++)
             {
                 float t = -half + 2f * half * i / (SampleCount - 1);
-                Vector3 origin = b.center + axis * t;
+                Vector3 origin = middle + axis * t;
                 origin.y = b.max.y + 0.5f;
                 var ray = new Ray(origin, Vector3.down);
                 float? best = null;
