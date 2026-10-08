@@ -21,6 +21,8 @@ Plans: `plan/tree-patches/overview.md`, `plan/combat-ai/overview.md` (blocking a
 
 | f8e249e | Combat 2–4/6: guards with shields raise them in time for swings and projectiles they see coming (a well-timed one parries: "Parry!", the attacker staggers); any hireling rolls out of the way of a hit that would take over a quarter of its health or explodes (cooldown by level). The 0.5.0 late block hardly ever fired (guards were nearly always mid-swing) | the game simulating the hireling |
 | 4d7731f | Combat 5/6: hit times learnt from hits that land (Troll swings were read up to a second late); fight records in the balance log carry blocks, parries and dodges; `scripts/defense-ab.sh` + `balance-report.py --compare-defense` | the game simulating the hireling; tests |
+| bf15356 | Stair scan reads a piece along its own length, not its world-aligned bounds: a turned stepladder read gaps (not a stair) or a 1.37 m top depending on which way the board faced. Test house measures each flight with the scan's shape test (fails if it isn't a stair), stacks as many as reach a 1.8 m+ storey (wood_stair is 1.05 m a flight, as in the game: two; the stepladder 2.05 m: one) and warns below that; `vfh_fixture stair_probe <prefab>` | the game with the board loaded (scan); tests |
+| b313640 | No reaching through floors and walls: within 3 m a chest (or station) counts as in reach only with no other building piece in the way, so a chest upstairs isn't filled from the ground below or from outside the wall. Walking up to it: only spots it can use it from, picked again while routes upstairs are worked out, closing in meanwhile; progress counted along the route (a detour round a hill gave up after 25 s). Deliveries plan without a chest just found unreachable (its share went to the pile). Test deposit counts reset per house | the game simulating the hireling; tests |
 ### Blocking and dodging measured (2026-10-08, single player, `scripts/defense-ab.sh 5`, plus 8 more archer runs each way)
 Damage taken per fight (share of max health) is lower with `BlockAndDodge` on for the melee guards and the archer, with every
 fight still won; the woodcutter is unchanged (no troll hit is over a quarter of its health, and it has no shield, so it
@@ -47,12 +49,30 @@ blocking and dodging:
 - WORK-5: needs AzuAutoStore disabled (the dev profile has it on); HIRE-1: `hire1_a`/`hire1_b` are the two halves of a
   relog test and were chained back to back (cleanup killed the hireling in between). Not bugs.
 - NAVLINK-5 (stepladder) and NAVLINK-6 (stair removed) failed in both modes, then both passed after a game restart.
-  Not a regression: the house fixture's stair measurement varies run to run (the stepladder measured a 1.45 m rise placed
-  the wrong way round, then 2.13 m the right way round; the wood stair measures about 1.1 m), which decides whether the
-  "upstairs" chest is really out of reach. A test-fixture flake to firm up some time (measure the rise from the stair's
-  own bounds as well as the sampler).
+  Not a blocking/dodging regression. Followed up the same day (bf15356, b313640): the stair scan's samples depended on
+  which way the piece was turned, a single wood_stair is only 1.05 m up (the house now stacks two), and the upstairs
+  chest was "in reach" through the floor from the ground (0.5.0's reach rule), which also hid that NAVLINK-4/5 never
+  climbed to it. See below.
+
+### Stair fixture and reach (2026-10-08, single player, ModTestBridge)
+- `vfh_fixture stair_probe wood_stair` / `wood_stepladder` (12 turns, 0-165 degrees): before bf15356 the stepladder was no
+  stair at 15/75/105/165 degrees (`gaps`) and read rises of 0.76-0.96 m for the wood stair by turn; after, every turn reads
+  the same (wood_stair top step 1.05 m, footprint 2.0 x 2.0 m; stepladder top plank 2.05 m, 1.0 x 2.2 m).
+- `fixture.house` the same on every run: wood_stair 2 flights x 1.12 m, storey 2.17 m; stepladder 1 flight, 2.13 m;
+  both `climbs=back`, top step 0.1 m inside the upper floor.
+- With b313640: `vfh_test_chain nav1 nav2 nav3 nav1 nav2 nav3 nav1 nav2 nav3 nav5 nav6` all 11 pass, each delivery a
+  fresh count (NAVLINK-5 routes `walk>door>walk>stair>walk` and deposits upstairs; NAVLINK-6 gives up on the upstairs
+  chest and fills chest B), plus the pair 2x more on the build just before the count reset; `navscan1 navscan2 navscan3`
+  pass. Before b313640, NAVLINK-4/5 had passed by filling the upstairs chest from the ground: they never climbed.
+- Reach regression on b313640: `deliver1 deliver2 door1 work3 chore_toggle mills fires beehive sap fermenter shield tidy
+  repairs repairs2 board_food cook_spit cook_oven cook_chain farm_harvest keep1 azu3` all pass, no `lvl=E` (repairs
+  first failed when the Greyling killed Testboy, which left its board and broke the next rows' setup; passed with
+  `vfh_fixture ghost on`).
 
 ### To test (batch)
+- [x] Macro (single player): `vfh_test_chain nav1 nav2 nav3 nav5 nav6 navscan1 navscan2 navscan3`, the pair run 3+ times (2026-10-08, see above).
+- [x] Macro (single player), reach regression (2026-10-08, see above): `vfh_test_chain deliver1 deliver2 door1 work3 chore_toggle mills fires beehive sap fermenter shield tidy repairs repairs2 board_food cook_spit cook_oven cook_chain farm_harvest keep1 azu3`.
+- [ ] By hand: a chest on an upper floor: a woodcutter delivers only after climbing the stairs (not from below, not through the wall); remove the stairs and it fills a chest downstairs instead, no hang. A Steward still fuels a sconce or torch up on a wall and loads a smelter from the open side.
 - [x] Macro (single player): `vfh_test_chain tree_patch` (passed 2026-10-06).
 - [x] Macro (single player): `vfh_test_chain pass` (10 runs, 5–9 s, no jams, 2026-10-07).
 - [x] Sign stays standing (Tim, 2026-10-06).
