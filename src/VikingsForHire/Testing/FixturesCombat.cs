@@ -24,6 +24,11 @@ namespace VikingsForHire.Testing
                 FixturesWork.FindTagged("tame") is GameObject t && t.GetComponent<Character>() is Character c && !c.IsDead() ? "true" : "false");
             TestHarness.RegisterCheck("damage_blocked", "<reason> - hits between hirelings and others blocked since login (e.g. tame_on_hireling)", args =>
                 Hirelings.DamagePatches.BlockedCount(args.ElementAtOrDefault(0) ?? "").ToString());
+            Fixtures.Add("hit_me", "<share=0.5> - heal yourself to full, then take a blunt hit worth that share of your max health after armor (to check the tester's protection)", HitMe);
+            TestHarness.RegisterCheck("player_health", "- your health as a share of your max", _ =>
+                (Player.m_localPlayer.GetHealth() / Player.m_localPlayer.GetMaxHealth()).ToString("0.00", CultureInfo.InvariantCulture));
+            TestHarness.RegisterCheck("player_ghost", "- whether you're in ghost mode", _ => Player.m_localPlayer.InGhostMode() ? "true" : "false");
+            TestHarness.RegisterCheck("tester_hits_blocked", "- hits on you dropped by the test protection since login", _ => TestProtection.Blocked.ToString());
             Fixtures.Add("kill_enemies", "<radius=60> - kill every hostile creature near you", KillEnemies);
             Fixtures.Add("stance", "<last|all> <stance> - set the stance of the last spawned hireling (or all nearby)", SetStance);
             Fixtures.Add("wait", "<seconds> - pause the test run", args => Wait(float.Parse(args.ElementAtOrDefault(0) ?? "1", CultureInfo.InvariantCulture)));
@@ -157,6 +162,22 @@ namespace VikingsForHire.Testing
             h.SetHealth(h.GetMaxHealth() * f);
             VfhLog.I(LogCat.Test, "fixture.hireling_health", ("health", h.GetHealth()));
             yield return null;
+        }
+
+        private static IEnumerator HitMe(string[] args)
+        {
+            Player me = Player.m_localPlayer;
+            me.SetHealth(me.GetMaxHealth());
+            // Armor takes its full value off a hit at least twice its size: add it on top so the hit really costs that much.
+            float share = float.Parse(args.ElementAtOrDefault(0) ?? "0.5", CultureInfo.InvariantCulture);
+            float damage = share * me.GetMaxHealth() + me.GetBodyArmor();
+            var hit = new HitData { m_point = me.transform.position, m_dir = Vector3.forward };
+            hit.m_damage.m_blunt = damage;
+            me.Damage(hit);
+            VfhLog.I(LogCat.Test, "fixture.hit_me", ("damage", damage), ("armor", me.GetBodyArmor()), ("protected", TestProtection.On),
+                ("healthNow", me.GetHealth()), ("god", me.InGodMode()), ("ghost", me.InGhostMode()), ("flying", me.IsDebugFlying()), ("teleporting", me.IsTeleporting()));
+            yield return new WaitForSeconds(0.5f);
+            VfhLog.I(LogCat.Test, "fixture.hit_me_after", ("health", me.GetHealth()), ("max", me.GetMaxHealth()));
         }
 
         private static IEnumerator Ghost(string[] args)

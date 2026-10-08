@@ -223,8 +223,16 @@ namespace VikingsForHire.Testing
         private static IEnumerator RunQueue()
         {
             _running = true;
-            while (QueueItems.Count > 0)
+            // A chain queues its commands one by one, so the queue can look empty between two of them: done only when it's
+            // still empty a frame later.
+            while (true)
             {
+                if (QueueItems.Count == 0)
+                {
+                    yield return null;
+                    if (QueueItems.Count == 0)
+                        break;
+                }
                 if (_skipToEndReason != null)
                 {
                     SkipToEnd();

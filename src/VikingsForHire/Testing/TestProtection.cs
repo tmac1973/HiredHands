@@ -13,6 +13,9 @@ namespace VikingsForHire.Testing
     {
         public static bool On { get; private set; }
 
+        /// <summary>Hits on you dropped since login (for the test that checks this).</summary>
+        public static int Blocked { get; private set; }
+
         /// <summary>On at each test's start (again, in case a death reset ghost mode); off once the test queue is done.</summary>
         public static void Set(bool on)
         {
@@ -29,7 +32,13 @@ namespace VikingsForHire.Testing
         private static class NoHitsOnTester
         {
             [HarmonyPriority(Priority.First)]
-            private static bool Prefix(Character __instance) => !(On && __instance == Player.m_localPlayer);
+            private static bool Prefix(Character __instance)
+            {
+                if (!On || __instance != Player.m_localPlayer)
+                    return true;
+                Blocked++;
+                return false;
+            }
         }
     }
 }
