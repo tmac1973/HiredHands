@@ -124,3 +124,14 @@ Run in game through `mtb`.
 Revert the commit. `CombatBehaviour` goes back to its 0.5.0 block code, and the phase 01 reader still runs harmlessly.
 For a quick fix without a revert, set `BlockAndDodge = false` on the server, which brings back the 0.5.0 block code
 path and stops the reads.
+
+## Implementation notes (as built)
+- **The 0.5.0 late block hardly ever fired.** A guard swinging every 1.2 s is nearly always mid-swing, and vanilla
+  ignores `m_blocking` during an attack. In the test fights (VFH-BLOCK-3, setting off) a level 4 guard took 7 Brute hits
+  and blocked none.
+  - The overview's "guards already block a lot" was wrong. The planned raises in this phase, which hold a ready swing
+    for up to 1 s (`MaxSwingHold`), are what make blocking happen.
+  - VFH-BLOCK-3 therefore asserts no reads and no parry rolls, and no block count.
+- **Test fights need to last.** The rows use Greydwarf Brutes given 2 stars (`enemy_level ... all`); plain Greydwarfs
+  die before swinging.
+- **`ghost on`.** Every combat row starts with `vfh_fixture ghost on`, so enemies fight the hirelings, not the tester.

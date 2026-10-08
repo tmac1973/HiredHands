@@ -1,5 +1,6 @@
 {
   "vfh_board": "Hiring Board",
+  "vfh_parry": "Parry!",
   "vfh_command_stone": "Command Stone",
   "vfh_command_stone_desc": "Left click a board's hireling to have it follow you. Left click a follower at home to post a guard on that spot (or send a worker back to work); in the field, to make it stay or follow. Left click a tree, rock or enemy to send your followers at it, or the ground to have them hold there. Right click a follower or posted guard to release it; right click nothing to call everyone back. Shift+E on a hireling for orders. Followers: 1 at quality 1, up to 4 at quality 4.",
   "vfh_stone_needs_board": "Needs a level $1 Hiring Board within $2 m of this workbench",

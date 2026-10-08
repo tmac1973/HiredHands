@@ -21,6 +21,15 @@ namespace VikingsForHire.Hirelings.Combat
         /// <summary>Estimated damage after the hireling's armor.</summary>
         public float Damage;
 
+        /// <summary>The same by damage type (for working out what a shield would leave).</summary>
+        public HitData.DamageTypes Types;
+
+        /// <summary>Vanilla lets a dodge's invincibility skip it (most attacks).</summary>
+        public bool Dodgeable = true;
+
+        /// <summary>The way the dodge controller chose to roll.</summary>
+        public Vector3 DodgeDir;
+
         public bool Area;
 
         /// <summary>The read roll: seen coming in time to react.</summary>
@@ -37,5 +46,15 @@ namespace VikingsForHire.Hirelings.Combat
         public bool Dodging { get; set; }
 
         public string Weapon = "";
+
+        // The block controller's plan (guards with shields): planned once; RaiseAt/LowerAt NaN when no raise is planned
+        // (not read, untimed, or it rolls instead).
+        public bool BlockPlanned;
+        public bool? ParryWon;
+        public float RaiseAt = float.NaN;
+        public float LowerAt = float.NaN;
+        public bool SkipLogged;
+
+        public bool HasRaise => !float.IsNaN(RaiseAt);
     }
 }

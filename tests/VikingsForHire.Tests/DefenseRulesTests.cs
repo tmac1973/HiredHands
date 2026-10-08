@@ -37,6 +37,43 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void ClosestApproachHeadOnSideAndAway()
+        {
+            // 20 m away, flying straight at us at 20 m/s: there in a second, dead on.
+            (float d, float t) = DefenseRules.ClosestApproach(0, 1, -20, 0, 0, 20, 0, 1, 0);
+            Assert.Equal(0f, d, 3);
+            Assert.Equal(1f, t, 3);
+            // Passing 3 m to the side.
+            (d, t) = DefenseRules.ClosestApproach(3, 1, -20, 0, 0, 20, 0, 1, 0);
+            Assert.Equal(3f, d, 3);
+            Assert.Equal(1f, t, 3);
+            // Flying away: negative time, current distance.
+            (d, t) = DefenseRules.ClosestApproach(0, 1, 5, 0, 0, 20, 0, 1, 0);
+            Assert.True(t < 0f);
+            Assert.Equal(5f, d, 3);
+        }
+
+        [Fact]
+        public void DodgeDirectionsByKindOfAttack()
+        {
+            // Attack from straight ahead (+z).
+            var area = DefenseRules.DodgeDirections(0, 1, area: true, projectile: false, leftFirst: true);
+            Assert.Equal((0f, -1f), (Round(area[0].X), Round(area[0].Z))); // straight away
+            var proj = DefenseRules.DodgeDirections(0, 1, area: false, projectile: true, leftFirst: true);
+            Assert.Equal((-1f, 0f), (Round(proj[0].X), Round(proj[0].Z))); // left, out of the line
+            Assert.Equal((1f, 0f), (Round(proj[1].X), Round(proj[1].Z)));
+            var melee = DefenseRules.DodgeDirections(0, 1, area: false, projectile: false, leftFirst: true);
+            Assert.True(melee[0].X < 0f && melee[0].Z < 0f); // back-left
+            var melee2 = DefenseRules.DodgeDirections(0, 1, area: false, projectile: false, leftFirst: false);
+            Assert.True(melee2[0].X > 0f && melee2[0].Z < 0f); // back-right when alternated
+            Assert.Equal((0f, -1f), (Round(melee[4].X), Round(melee[4].Z))); // straight back last
+            foreach (var d in melee)
+                Assert.Equal(1f, (float)System.Math.Sqrt(d.X * d.X + d.Z * d.Z), 3);
+        }
+
+        private static float Round(float v) => (float)System.Math.Round(v, 3) + 0f;
+
+        [Fact]
         public void DefaultCurveRisesWithLevel()
         {
             var levels = DefaultData.Create().HirelingLevels.OrderBy(h => h.Level).ToList();

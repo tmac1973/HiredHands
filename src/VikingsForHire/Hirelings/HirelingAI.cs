@@ -31,6 +31,8 @@ namespace VikingsForHire.Hirelings
         public AttackReader Reader { get; private set; } = null!;
         public IReadOnlyList<IncomingAttack> Incoming => Reader.Incoming;
         public DefenseStats Defense { get; } = new();
+        public BlockController Block { get; private set; } = null!;
+        public DodgeController Dodge { get; private set; } = null!;
 
         /// <summary>When it last took damage (Time.time).</summary>
         public float LastHitTime { get; private set; } = -999f;
@@ -137,6 +139,8 @@ namespace VikingsForHire.Hirelings
             Nav.LegOracle.Agent = m_pathAgentType;
             Threats = new ThreatScanner(this);
             Reader = new AttackReader(this);
+            Block = new BlockController(this);
+            Dodge = new DodgeController(this);
             Add(new IdleBehaviour());
             Add(new TestWalkBehaviour());
             Add(new LeaveBehaviour());
@@ -187,6 +191,7 @@ namespace VikingsForHire.Hirelings
             hireling.Humanoid.m_onDamaged += (damage, attacker) =>
             {
                 LastHitTime = Time.time;
+                Dodge.OnDamaged();
                 Threats.OnDamaged(attacker);
                 _combat.OnHit();
                 RetreatHit();
@@ -238,6 +243,9 @@ namespace VikingsForHire.Hirelings
             Regenerate(dt);
             Threats.Tick(VfhConfig.ThreatScanIntervalSeconds.Value);
             Reader.Tick();
+            Block.Plan();
+            Dodge.Tick();
+            Block.Act();
             bool retreat = StanceRules.ShouldRetreat(Stance, Hireling.Job.IsGuard(), Hireling.Humanoid.GetHealthPercentage(), Retreating);
             if (retreat != Retreating)
             {
@@ -266,6 +274,10 @@ namespace VikingsForHire.Hirelings
                 _heldForCargo = false;
                 VfhLog.D(LogCat.AI, "ai.release", ("hid", Hireling.Hid), ("reason", "cargo or panel closed"));
             }
+
+            // Mid-roll: the roll's root motion moves it; behaviours wait (their timers carry on).
+            if (Hireling.Humanoid.InDodge())
+                return true;
 
             VfhLog.Guard(LogCat.AI, "ai.tick_failed", () =>
             {

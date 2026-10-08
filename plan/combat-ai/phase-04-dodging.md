@@ -169,3 +169,13 @@ Revert the commit. The two patches and the controller go, and blocking (phases 0
 case: a hireling caught mid-roll by a hot update could keep `s_dodgeinv = true` on its ZDO. That's harmless after a
 revert, because nothing reads it for a non-Player any more. As a quick fix without a revert, set
 `BlockAndDodge = false`.
+
+## Implementation notes (as built)
+- **The swing check.** A swing passing through a second animation state before it lands is the same swing. Before this,
+  every Troll swing was read twice, the second time untimed.
+- **Deterministic dodge rows.** `defense_chances <level> <read> <parry> <dodge> | reset` overrides a level's chances in
+  memory, and `hireling_health <fraction>` lowers the last hireling's health.
+  - The DODGE rows set read and dodge to 1, so they test the mechanics.
+  - The rates are phase 05's job.
+- **What this means for guards.** With realistic estimates a guard with a shield seldom rolls: the block it plans leaves
+  most hits under a quarter of its health, which is the rule. Archers and workers, with no shield, roll more.

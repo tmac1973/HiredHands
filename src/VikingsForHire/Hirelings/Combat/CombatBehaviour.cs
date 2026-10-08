@@ -19,6 +19,7 @@ namespace VikingsForHire.Hirelings.Combat
         private const float SidearmRange = 6f;
         private const float QuietSeconds = 10f;
         private const float BlockSeconds = 0.8f;
+        private const float MaxSwingHold = 1f;
         private const float ShotRadius = 0.1f;
         private static readonly int ShotBlockMask = LayerMask.GetMask("Default", "static_solid", "Default_small", "piece", "terrain", "vehicle");
 
@@ -26,6 +27,7 @@ namespace VikingsForHire.Hirelings.Combat
         private float _lastAction;
         private float _blockUntil;
         private float _nextAttack;
+        private float _swingReadyAt = -1f;
         private Character? _ignored;
         private float _engagedAt = -1f;
         private float _ignoredUntil;
@@ -67,7 +69,7 @@ namespace VikingsForHire.Hirelings.Combat
                 Ranged(ai, me, target, dist, dt);
             else
                 Melee(ai, me, target, dist, dt);
-            if (Time.time > _blockUntil && me.m_blocking)
+            if (!ai.Block.On && Time.time > _blockUntil && me.m_blocking)
                 me.m_blocking = false;
         }
 
@@ -108,7 +110,15 @@ namespace VikingsForHire.Hirelings.Combat
             ai.Face(target.GetCenterPoint());
             // Swing whenever the swing is ready; raise the shield only in between. Blocking first meant a guard facing
             // a fast or busy enemy (nearly always mid-attack) held its shield up and never hit back.
-            if (Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 35f))
+            // With BlockAndDodge a ready swing waits (up to a second) for a block that's about to go up: swinging drops
+            // the shield. The block controller raises and lowers it.
+            bool blockOwned = ai.Block.On;
+            if (Time.time < _nextAttack)
+                _swingReadyAt = -1f;
+            else if (_swingReadyAt < 0f)
+                _swingReadyAt = Time.time;
+            bool hold = (blockOwned && ai.Block.HoldSwing() && Time.time - _swingReadyAt < MaxSwingHold) || ai.Dodge.HoldAttack;
+            if (Time.time >= _nextAttack && !hold && ai.IsLookingAt(target.GetCenterPoint(), 35f))
             {
                 me.m_blocking = false;
                 if (ai.Attack(target))
@@ -118,7 +128,7 @@ namespace VikingsForHire.Hirelings.Combat
                 }
             }
             bool guard = ai.Hireling.Job == JobType.GuardMelee;
-            if (guard && me.GetLeftItem() != null && target.InAttack() && dist < 4f && !me.InAttack())
+            if (!blockOwned && guard && me.GetLeftItem() != null && target.InAttack() && dist < 4f && !me.InAttack())
             {
                 me.m_blocking = true;
                 _blockUntil = Time.time + BlockSeconds;
@@ -174,7 +184,7 @@ namespace VikingsForHire.Hirelings.Combat
             // the bow hand, so looking from the eyes put every arrow half a metre low, into the ground before a
             // low target.
             ai.LookTowards((aim.Value - from).normalized);
-            if (dist <= RangedMax + 10f && Time.time >= _nextAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f))
+            if (dist <= RangedMax + 10f && Time.time >= _nextAttack && !ai.Dodge.HoldAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f))
             {
                 // Player bows only reach full power when drawn; NPCs never hold the button, so draw them fully. The draw
                 // is read only as the shot starts: clear it straight after, because while it's set the game counts the
@@ -282,6 +292,7 @@ namespace VikingsForHire.Hirelings.Combat
             _target = null;
             _blockedSince = -1f;
             ai.Hireling.Humanoid.m_blocking = false;
+            ai.Block.Reset();
             ai.Hireling.UseSidearm(false);
             return false;
         }

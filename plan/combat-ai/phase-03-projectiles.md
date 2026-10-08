@@ -121,3 +121,18 @@ Run in game through `mtb`.
 Revert the commit. Phases 01–02 keep working for close attacks. The `Projectile.Awake` postfix is the only new patch,
 and reverting removes it. With `BlockAndDodge = false`, readers are idle and projectiles are only registered, which
 costs nothing noticeable.
+
+## Implementation notes (as built)
+- **Projectiles are scanned every tick while the setting is on,** not only during a fight.
+  - Arrows from close by arrive within about 0.25 s, and an idle guard often hasn't noticed the archer.
+  - The tracker uses the launcher's own velocity on the first look (`Projectile.GetVelocity()`), with no need for two
+    looks.
+- **Swing windups whose weapon fires a projectile are skipped** (a Greydwarf's throw, a Draugr's bow). The projectile is
+  read in flight instead, so it isn't counted twice.
+- **Damage estimates follow vanilla's order for a hireling:**
+  1. our armor (`DamagePatches`);
+  2. `m_enemyDamageRate × m_playerDamageRate ×` the difficulty scales;
+  3. chop and pickaxe damage dropped, since characters ignore them. A Troll's slap is mostly chop damage.
+
+  Estimates now land within about 20% of the hits taken. Before this they were 4× too high for Trolls and about 2.5×
+  too low for 2-star arrows.
