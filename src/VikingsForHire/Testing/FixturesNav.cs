@@ -153,6 +153,7 @@ namespace VikingsForHire.Testing
             yield return null;
             GameObject chest = Place("piece_chest_wood", new Vector3((c - n * 3f + t * 2f).x, top, (c - n * 3f + t * 2f).z), n, tag);
             yield return null;
+            Hirelings.Work.ContainerAccess.ResetDeposited(tag); // counts start fresh for this test's chest
             Inventory inv = chest.GetComponent<Container>().GetInventory();
             for (int i = 1; i + 1 < args.Length; i += 2)
                 FixturesWork.AddStacks(inv, args[i], int.Parse(args[i + 1], CultureInfo.InvariantCulture));

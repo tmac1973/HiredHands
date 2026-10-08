@@ -144,6 +144,9 @@ namespace VikingsForHire.Hirelings.Work
             foreach (Container c in chests)
             {
                 string id = c.GetInstanceID().ToString();
+                // One it couldn't get to just now: plan for the others (else its share ends up on the pile).
+                if (_unreachable.TryGetValue(id, out float until) && Time.time < until)
+                    continue;
                 _chests[id] = c;
                 Inventory inv = c.GetInventory();
                 var stacks = inv.GetAllItems().Where(i => i.m_dropPrefab != null).Select(i => (i.m_dropPrefab.name, i.m_stack)).ToList();

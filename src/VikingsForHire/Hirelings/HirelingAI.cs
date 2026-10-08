@@ -352,6 +352,20 @@ namespace VikingsForHire.Hirelings
         private bool PathReaches(Vector3 point, float within) =>
             FindPath(point) && m_path.Count > 0 && Utils.DistanceXZ(m_path[m_path.Count - 1], point) <= within;
 
+        /// <summary>
+        /// How far there is still to walk along the game's route to the point, if the route we're on ends near it (a detour
+        /// round a hill takes us further away in a straight line while getting there).
+        /// </summary>
+        public float? RouteLeft(Vector3 point)
+        {
+            if (m_path.Count == 0 || Vector3.Distance(m_path[m_path.Count - 1], point) > 2f)
+                return null;
+            float left = Vector3.Distance(transform.position, m_path[0]);
+            for (int i = 1; i < m_path.Count; i++)
+                left += Vector3.Distance(m_path[i - 1], m_path[i]);
+            return left;
+        }
+
         /// <summary>Whether the pathfinder has a full route from here to the point.</summary>
         public bool CanReach(Vector3 point) => HavePath(point) || (Nav.NavLinkRegistry.Enabled && Links.Reachable(point));
 

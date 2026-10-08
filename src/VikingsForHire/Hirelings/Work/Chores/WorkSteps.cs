@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VikingsForHire.Core.Diagnostics;
+using VikingsForHire.Diagnostics;
 
 namespace VikingsForHire.Hirelings.Work.Chores
 {
@@ -13,10 +15,14 @@ namespace VikingsForHire.Hirelings.Work.Chores
         public const float Reach = 2.2f;
 
         private float _bestDistance = float.MaxValue;
+        private float _bestRoute = float.MaxValue;
         private float _progressAt;
         private Component? _spotFor;
         private Vector3 _spotTarget;
         private Vector3 _spot;
+        private bool _spotReachable;
+        private float _spotAt;
+        private float _noSpotLoggedAt = -999f;
 
         /// <summary>Seconds without getting closer to (or working at) the current thing.</summary>
         public float SinceProgress => Time.time - _progressAt;
@@ -24,6 +30,7 @@ namespace VikingsForHire.Hirelings.Work.Chores
         public void Reset()
         {
             _bestDistance = float.MaxValue;
+            _bestRoute = float.MaxValue;
             _spotFor = null;
             _progressAt = Time.time;
         }
@@ -42,40 +49,69 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 _bestDistance = dist;
                 _progressAt = Time.time;
             }
-            // Height against the object's base, not the switch (a smelter's ore input is 2 m up): on its floor, not below.
-            // Or, like a player's reach, within 3 m of its nearest surface (a wall's upper row, a sconce up high).
-            if ((dist <= half + Reach && Mathf.Abs(ai.transform.position.y - obj.transform.position.y) < 1.8f) || WithinReach(ai, obj, reach))
+            // Or getting on along the route there (round a hill, away from it in a straight line).
+            if (_spotFor == obj && ai.RouteLeft(_spot) is float left && left < _bestRoute - 0.3f)
+            {
+                _bestRoute = left;
+                _progressAt = Time.time;
+            }
+            if (UsableFrom(ai.transform.position, obj, target, half, reach))
             {
                 _progressAt = Time.time; // working at it counts as progress
                 return true;
             }
-            if (_spotFor != obj || _spotTarget != target)
+            // Pick again now and then while no spot was reachable: routes up stairs are worked out over the next frames
+            // (the first ask only queues them), so the first pick misses every spot upstairs.
+            if (_spotFor != obj || _spotTarget != target || (!_spotReachable && Time.time - _spotAt > RepickSeconds))
             {
+                if (_spotFor != obj || _spotTarget != target)
+                    _bestRoute = float.MaxValue; // another thing: another route (picking again for the same one keeps it)
                 _spotFor = obj;
                 _spotTarget = target;
-                _spot = PickSpot(ai, obj, target, half);
+                _spotAt = Time.time;
+                _spot = PickSpot(ai, obj, target, half, reach, out _spotReachable);
+                if (!_spotReachable && Time.time - _noSpotLoggedAt > 10f)
+                {
+                    _noSpotLoggedAt = Time.time;
+                    VfhLog.D(LogCat.Work, "work.no_spot", ("hid", ai.Hireling.Hid), ("obj", Utils.GetPrefabName(obj.gameObject)), ("at", target),
+                        ("from", ai.transform.position), ("meanwhile", _spot));
+                }
             }
             ai.WalkTo(dt, _spot, 0.5f, run: false);
             return false;
         }
 
-        // A spot just outside the object: the side facing us if we can get there (the game's map or the base's links),
-        // else another side we can reach (nearest first), else the facing side anyway (WalkTo then walks straight at it).
-        private static Vector3 PickSpot(HirelingAI ai, Component obj, Vector3 target, float half)
+        // Close enough to use it from where the feet are. Height against the object's base, not the switch (a smelter's ore
+        // input is 2 m up): on its floor, not below. Or, like a player's reach, within 3 m of its nearest surface (a wall's
+        // upper row, a sconce up high).
+        private static bool UsableFrom(Vector3 feet, Component obj, Vector3 target, float half, float reach) =>
+            (Utils.DistanceXZ(feet, target) <= half + Reach && Mathf.Abs(feet.y - obj.transform.position.y) < 1.8f) || WithinReach(feet, obj, reach);
+
+        // A spot just outside the object it can use it from: the side facing us if we can get there (the game's map or the
+        // base's links), else another side we can reach (nearest first). Not the ground below a chest upstairs: close by,
+        // but out of reach through the floor. With none (yet: routes upstairs are still being worked out), the nearest
+        // spot it can get to, to close in meanwhile; else the facing side anyway (WalkTo then walks straight at it).
+        private static Vector3 PickSpot(HirelingAI ai, Component obj, Vector3 target, float half, float reach, out bool reachable)
         {
+            reachable = true;
             Vector3 away = ai.transform.position - target;
             away.y = 0f;
             Vector3 facing = away.sqrMagnitude > 0.01f ? away.normalized : obj.transform.forward;
             var spots = Enumerable.Range(0, 8).Select(i => Quaternion.Euler(0f, i * 45f, 0f) * facing)
                 .Select(d => target + d * (half + 1f)).ToList();
+            Vector3? closer = null;
             foreach (Vector3 spot in spots.OrderBy(p => Vector3.Distance(p, ai.transform.position)))
             {
                 Vector3 grounded = spot;
                 grounded.y = Floor(spot, target.y);
-                if (ai.CanReach(grounded))
+                if (!ai.CanReach(grounded))
+                    continue;
+                if (UsableFrom(grounded, obj, target, half, reach))
                     return grounded;
+                closer ??= grounded;
             }
-            return spots[0];
+            reachable = false;
+            return closer ?? spots[0];
         }
 
         // The floor under a spot at about the target's height (an upper floor, not the ground under the building).
@@ -86,6 +122,8 @@ namespace VikingsForHire.Hirelings.Work.Chores
             return ZoneSystem.instance.GetSolidHeight(p);
         }
 
+        private const float RepickSeconds = 1f;
+
         public const float PlayerReach = 3f;
 
         /// <summary>A player's hammer reach: 5 m from the eye to what it's aimed at.</summary>
@@ -94,8 +132,9 @@ namespace VikingsForHire.Hirelings.Work.Chores
         private static readonly int SightMask = LayerMask.GetMask("Default", "static_solid", "Default_small", "piece", "terrain", "vehicle");
 
         /// <summary>
-        /// Whether something is within <paramref name="reach"/> of the hireling's eye (its nearest surface). Beyond a
-        /// close 3 m the line from the eye to it must be clear too, as a player's aim would be.
+        /// Whether something is within <paramref name="reach"/> of the hireling's eye (its nearest surface). Within a close
+        /// 3 m no other building piece may be in the way (a floor or wall: a player can't reach a chest upstairs through the
+        /// floor); beyond it the line from the eye must be clear of anything, as a player's aim would be.
         /// </summary>
         public static bool WithinReach(HirelingAI ai, Component obj, float reach = PlayerReach) => WithinReach(ai.transform.position, obj, reach);
 
@@ -109,9 +148,30 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 // ClosestPoint needs a convex collider; others fall back to their bounds.
                 Vector3 p = c is MeshCollider { convex: false } ? c.bounds.ClosestPoint(eye) : c.ClosestPoint(eye);
                 float d = Vector3.Distance(eye, p);
-                if (d <= PlayerReach)
+                // Both to its nearest point and to its middle: the nearest point of a chest on a floor is its bottom edge,
+                // and a line to that can slip through the crack between a wall's top and the floor.
+                if (d <= PlayerReach && !PieceBetween(eye, p, obj) && !PieceBetween(eye, c.bounds.center, obj))
                     return true;
                 if (d <= reach && InSight(eye, p, obj))
+                    return true;
+            }
+            return false;
+        }
+
+        // Another building piece (not terrain, not the thing itself or its own parts) between the eye and a point on it.
+        private static bool PieceBetween(Vector3 eye, Vector3 point, Component obj)
+        {
+            Vector3 to = point - eye;
+            float length = to.magnitude;
+            if (length < 0.05f)
+                return false;
+            Piece? own = obj.GetComponentInParent<Piece>();
+            foreach (RaycastHit hit in Physics.RaycastAll(eye, to / length, length - 0.05f, SightMask, QueryTriggerInteraction.Ignore))
+            {
+                if (hit.collider.transform.IsChildOf(obj.transform))
+                    continue;
+                Piece? piece = hit.collider.GetComponentInParent<Piece>();
+                if (piece != null && piece != own)
                     return true;
             }
             return false;
