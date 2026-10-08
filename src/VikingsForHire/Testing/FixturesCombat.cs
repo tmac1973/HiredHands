@@ -24,9 +24,30 @@ namespace VikingsForHire.Testing
                 FixturesWork.FindTagged("tame") is GameObject t && t.GetComponent<Character>() is Character c && !c.IsDead() ? "true" : "false");
             TestHarness.RegisterCheck("damage_blocked", "<reason> - hits between hirelings and others blocked since login (e.g. tame_on_hireling)", args =>
                 Hirelings.DamagePatches.BlockedCount(args.ElementAtOrDefault(0) ?? "").ToString());
+            Fixtures.Add("hit_me", "<share=0.5> - heal yourself to full, then take a blunt hit worth that share of your max health after armor (to check the tester's protection)", HitMe);
+            TestHarness.RegisterCheck("player_health", "- your health as a share of your max", _ =>
+                (Player.m_localPlayer.GetHealth() / Player.m_localPlayer.GetMaxHealth()).ToString("0.00", CultureInfo.InvariantCulture));
+            TestHarness.RegisterCheck("player_ghost", "- whether you're in ghost mode", _ => Player.m_localPlayer.InGhostMode() ? "true" : "false");
+            TestHarness.RegisterCheck("tester_hits_blocked", "- hits on you dropped by the test protection since login", _ => TestProtection.Blocked.ToString());
             Fixtures.Add("kill_enemies", "<radius=60> - kill every hostile creature near you", KillEnemies);
             Fixtures.Add("stance", "<last|all> <stance> - set the stance of the last spawned hireling (or all nearby)", SetStance);
             Fixtures.Add("wait", "<seconds> - pause the test run", args => Wait(float.Parse(args.ElementAtOrDefault(0) ?? "1", CultureInfo.InvariantCulture)));
+
+            Fixtures.Add("enemy_level", "<prefab> <stars> [all] - give the nearest enemy of that kind (or all within 80 m) that many stars (level = stars + 1)", EnemyLevel);
+            Fixtures.Add("ghost", "<on|off> - enemies ignore you (so they fight the hirelings, not the tester); every test starts with it on, so only `off` is needed, for a row where something must come for you", Ghost);
+            Fixtures.Add("defense_chances", "<level> <read> <parry> <dodge> | reset - override a level's blocking/dodging chances (in memory, for tests); reset puts the loaded ones back", DefenseChances);
+            Fixtures.Add("hireling_health", "<fraction> - set the last spawned hireling's health to that share of its max", HirelingHealth);
+            TestHarness.RegisterCheck("defense", "<last|all> <reads|misses|blocks|parries|dodges|dodged_hits> - blocking/dodging counters since the hireling loaded (all: summed over hirelings within 50 m)", args =>
+            {
+                string counter = args.ElementAtOrDefault(1) ?? "reads";
+                var targets = args.ElementAtOrDefault(0) == "all"
+                    ? Hireling.Loaded.Where(h => h != null && Vector3.Distance(h.transform.position, Player.m_localPlayer.transform.position) < 50f).ToList()
+                    : new[] { Last() }.ToList();
+                return targets.Sum(h => h.Ai.Defense.Get(counter)).ToString();
+            });
+
+            TestHarness.RegisterCheck("fight_over", "- true when no enemy is alive within 40 m of you, or no hireling is", _ =>
+                !Hostiles(40f).Any() || !Hireling.Loaded.Any(h => h != null && !h.Humanoid.IsDead()) ? "true" : "false");
 
             TestHarness.RegisterCheck("enemies_alive", "<radius=40> - hostile creatures alive near you", args =>
             {
@@ -92,6 +113,79 @@ namespace VikingsForHire.Testing
             }
             VfhLog.I(LogCat.Test, "fixture.kill_enemies", ("killed", n));
             yield return new WaitForSeconds(1f);
+        }
+
+        private static IEnumerator EnemyLevel(string[] args)
+        {
+            string prefab = args.ElementAtOrDefault(0) ?? throw new ArgumentException("usage: enemy_level <prefab> <stars>");
+            int stars = int.Parse(args.ElementAtOrDefault(1) ?? "1", CultureInfo.InvariantCulture);
+            Vector3 me = Player.m_localPlayer.transform.position;
+            var found = Hostiles(80f).Where(x => Utils.GetPrefabName(x.gameObject) == prefab)
+                .OrderBy(x => Vector3.Distance(x.transform.position, me)).ToList();
+            if (found.Count == 0)
+                throw new InvalidOperationException($"no {prefab} nearby");
+            foreach (Character c in args.ElementAtOrDefault(2) == "all" ? found : found.Take(1).ToList())
+                c.SetLevel(stars + 1);
+            VfhLog.I(LogCat.Test, "fixture.enemy_level", ("prefab", prefab), ("stars", stars), ("n", args.ElementAtOrDefault(2) == "all" ? found.Count : 1));
+            yield return null;
+        }
+
+        private static readonly System.Collections.Generic.Dictionary<int, (float, float, float)> SavedChances = new();
+
+        private static IEnumerator DefenseChances(string[] args)
+        {
+            var levels = Config.DataStore.Current.HirelingLevels;
+            if (args.ElementAtOrDefault(0) == "reset")
+            {
+                foreach (var l in levels)
+                    if (SavedChances.TryGetValue(l.Level, out var c))
+                        (l.ReadChance, l.ParryChance, l.DodgeChance) = c;
+                SavedChances.Clear();
+                VfhLog.I(LogCat.Test, "fixture.defense_chances", ("reset", true));
+                yield break;
+            }
+            int level = int.Parse(args.ElementAtOrDefault(0) ?? "1", CultureInfo.InvariantCulture);
+            var data = levels.First(l => l.Level == level);
+            if (!SavedChances.ContainsKey(level))
+                SavedChances[level] = (data.ReadChance, data.ParryChance, data.DodgeChance);
+            data.ReadChance = float.Parse(args.ElementAtOrDefault(1) ?? "1", CultureInfo.InvariantCulture);
+            data.ParryChance = float.Parse(args.ElementAtOrDefault(2) ?? "1", CultureInfo.InvariantCulture);
+            data.DodgeChance = float.Parse(args.ElementAtOrDefault(3) ?? "1", CultureInfo.InvariantCulture);
+            VfhLog.I(LogCat.Test, "fixture.defense_chances", ("level", level), ("read", data.ReadChance), ("parry", data.ParryChance), ("dodge", data.DodgeChance));
+            yield return null;
+        }
+
+        private static IEnumerator HirelingHealth(string[] args)
+        {
+            float f = float.Parse(args.ElementAtOrDefault(0) ?? "1", CultureInfo.InvariantCulture);
+            Humanoid h = Last().Humanoid;
+            h.SetHealth(h.GetMaxHealth() * f);
+            VfhLog.I(LogCat.Test, "fixture.hireling_health", ("health", h.GetHealth()));
+            yield return null;
+        }
+
+        private static IEnumerator HitMe(string[] args)
+        {
+            Player me = Player.m_localPlayer;
+            me.SetHealth(me.GetMaxHealth());
+            // Armor takes its full value off a hit at least twice its size: add it on top so the hit really costs that much.
+            float share = float.Parse(args.ElementAtOrDefault(0) ?? "0.5", CultureInfo.InvariantCulture);
+            float damage = share * me.GetMaxHealth() + me.GetBodyArmor();
+            var hit = new HitData { m_point = me.transform.position, m_dir = Vector3.forward };
+            hit.m_damage.m_blunt = damage;
+            me.Damage(hit);
+            VfhLog.I(LogCat.Test, "fixture.hit_me", ("damage", damage), ("armor", me.GetBodyArmor()), ("protected", TestProtection.On),
+                ("healthNow", me.GetHealth()), ("god", me.InGodMode()), ("ghost", me.InGhostMode()), ("flying", me.IsDebugFlying()), ("teleporting", me.IsTeleporting()));
+            yield return new WaitForSeconds(0.5f);
+            VfhLog.I(LogCat.Test, "fixture.hit_me_after", ("health", me.GetHealth()), ("max", me.GetMaxHealth()));
+        }
+
+        private static IEnumerator Ghost(string[] args)
+        {
+            bool on = (args.ElementAtOrDefault(0) ?? "on") != "off";
+            Player.m_localPlayer.SetGhostMode(on);
+            VfhLog.I(LogCat.Test, "fixture.ghost", ("on", on));
+            yield return null;
         }
 
         private static IEnumerator SetStance(string[] args)

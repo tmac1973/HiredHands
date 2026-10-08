@@ -72,6 +72,18 @@ namespace VikingsForHire.Core.Data
         public int UpkeepFood { get; set; }
         [YamlMember(Description = "Coins a day. 0 by default: coins are a one-time cost (hire, promotion, respawn), upkeep is food.")]
         public int UpkeepCoins { get; set; }
+
+        [YamlMember(Description = "Chance (0-1) to see an attack coming in time (a close swing or a projectile). Seen attacks can be parried or dodged; unseen ones are only blocked late.")]
+        public float ReadChance { get; set; }
+
+        [YamlMember(Description = "Chance (0-1) that a guard with a shield times its block on a seen attack as a parry (staggers the attacker).")]
+        public float ParryChance { get; set; }
+
+        [YamlMember(Description = "Chance (0-1) to roll out of the way of a seen attack that would hurt a lot (over a quarter of its health) or explode.")]
+        public float DodgeChance { get; set; }
+
+        [YamlMember(Description = "Seconds after a dodge before the next one.")]
+        public float DodgeCooldown { get; set; }
     }
 
     public class ArmorSetData

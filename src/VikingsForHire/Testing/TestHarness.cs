@@ -109,6 +109,16 @@ namespace VikingsForHire.Testing
                 if (Parse(args.Skip(1).ToArray(), out string check, out string[] checkArgs, out string op, out string expected))
                     Enqueue(() => Assert(check, checkArgs, op, expected, timeout));
             });
+            Add("vfh_wait_until", "<seconds> <check> [args…] <op> <value> - wait until the check passes or the time is up (not a check: never fails the row)", args =>
+            {
+                if (args.Length < 1 || !float.TryParse(args[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float timeout))
+                {
+                    VfhCommand.Print("Usage: vfh_wait_until <seconds> <check> [args…] <op> <value>");
+                    return;
+                }
+                if (Parse(args.Skip(1).ToArray(), out string check, out string[] checkArgs, out string op, out string expected))
+                    Enqueue(() => WaitUntil(check, checkArgs, op, expected, timeout));
+            });
             Add("vfh_test_abort", "- stop the running test and drop every queued step", _ => Abort("vfh_test_abort"));
             Add("vfh_test_chain", "<macro> [macro]… - queue test macros (vfh_t_* aliases from alias_vfh.yaml, prefix optional) strictly in order, cleaning up after each", Chain);
             Add("vfh_test_summary", "- print every test result since login (after any queued tests finish)", _ =>
@@ -183,6 +193,7 @@ namespace VikingsForHire.Testing
                 Plugin.Instance.StopCoroutine(_queue);
             _queue = null;
             _running = false;
+            TestProtection.Set(false);
             if (_run != null)
                 FinishAborted(reason, dropped);
             else if (dropped > 0)
@@ -212,8 +223,16 @@ namespace VikingsForHire.Testing
         private static IEnumerator RunQueue()
         {
             _running = true;
-            while (QueueItems.Count > 0)
+            // A chain queues its commands one by one, so the queue can look empty between two of them: done only when it's
+            // still empty a frame later.
+            while (true)
             {
+                if (QueueItems.Count == 0)
+                {
+                    yield return null;
+                    if (QueueItems.Count == 0)
+                        break;
+                }
                 if (_skipToEndReason != null)
                 {
                     SkipToEnd();
@@ -236,6 +255,7 @@ namespace VikingsForHire.Testing
             }
             _running = false;
             _queue = null;
+            TestProtection.Set(false);
         }
 
         private static IEnumerator Begin(string row)
@@ -243,6 +263,7 @@ namespace VikingsForHire.Testing
             if (_run != null)
                 VfhLog.W(LogCat.Test, "test.abandoned", ("row", _run.Row), ("checks", _run.Checks));
             _run = new Run { Row = row };
+            TestProtection.Set(true); // enemies ignore you and nothing hurts you while it runs
             VfhLog.I(LogCat.Core, "mark", ("text", "test " + row));
             VfhLog.I(LogCat.Test, "test.begin", ("row", row), ("fastTimers", VfhConfig.FastTimers), ("role", VfhLog.Role()));
             Message($"Test {row} started");
@@ -275,6 +296,32 @@ namespace VikingsForHire.Testing
                 VfhLog.W(LogCat.Test, "test.result", fields.ToArray());
             Results.Add(new Result(run.Row, pass, run.Checks, run.Fails.Count));
             Message(pass ? $"<color=#6f6>PASS</color> {run.Row} ({run.Checks} checks)" : $"<color=#f66>FAIL</color> {run.Row} ({run.Fails.Count}/{run.Checks} failed)");
+        }
+
+        private static IEnumerator WaitUntil(string check, string[] args, string op, string expected, float timeout)
+        {
+            float start = Time.realtimeSinceStartup;
+            bool met = false;
+            if (Checks.TryGetValue(check, out Check? def))
+            {
+                while (Time.realtimeSinceStartup - start < timeout)
+                {
+                    string actual = Evaluate(def, def.PrepareArgs != null ? def.PrepareArgs(args) : args);
+                    try
+                    {
+                        met = !actual.StartsWith("error:") && CheckExpr.Compare(actual, op, expected);
+                    }
+                    catch (ArgumentException)
+                    {
+                        met = false;
+                    }
+                    if (met)
+                        break;
+                    yield return new WaitForSeconds(1f);
+                }
+            }
+            VfhLog.I(LogCat.Test, "test.wait", ("check", $"{check} {string.Join(" ", args)} {op} {expected}".Replace("  ", " ")), ("met", met),
+                ("waited", Time.realtimeSinceStartup - start));
         }
 
         private static IEnumerator Assert(string check, string[] args, string op, string expected, float timeout)

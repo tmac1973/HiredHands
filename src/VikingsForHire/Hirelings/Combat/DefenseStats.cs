@@ -1,0 +1,47 @@
+namespace VikingsForHire.Hirelings.Combat
+{
+    /// <summary>What a hireling's defence has done since it loaded: for test checks and the balance log.</summary>
+    internal sealed class DefenseStats
+    {
+        public int Reads { get; set; }
+        public int Misses { get; set; }
+        public int Blocks { get; set; }
+        public int Parries { get; set; }
+        public int ParryRolls { get; set; }
+        public int ParryWins { get; set; }
+        public int ProjReads { get; set; }
+        public int ProjBlocks { get; set; }
+        public int Dodges { get; set; }
+        public int DodgeRolls { get; set; }
+        public int DodgeWins { get; set; }
+        public int DodgedHits { get; set; }
+
+        public DefenseStats Snapshot() => (DefenseStats)MemberwiseClone();
+
+        /// <summary>What happened since <paramref name="before"/> (a snapshot), as balance log fields.</summary>
+        public (string, object?)[] Since(DefenseStats before) => new (string, object?)[]
+        {
+            ("reads", Reads - before.Reads), ("misses", Misses - before.Misses), ("blocks", Blocks - before.Blocks),
+            ("parries", Parries - before.Parries), ("parryRolls", ParryRolls - before.ParryRolls), ("parryWins", ParryWins - before.ParryWins),
+            ("projReads", ProjReads - before.ProjReads), ("projBlocks", ProjBlocks - before.ProjBlocks), ("dodges", Dodges - before.Dodges),
+            ("dodgedHits", DodgedHits - before.DodgedHits), ("dodgeRolls", DodgeRolls - before.DodgeRolls), ("dodgeWins", DodgeWins - before.DodgeWins),
+        };
+
+        public int Get(string counter) => counter switch
+        {
+            "reads" => Reads,
+            "misses" => Misses,
+            "blocks" => Blocks,
+            "parries" => Parries,
+            "parry_rolls" => ParryRolls,
+            "parry_wins" => ParryWins,
+            "proj_reads" => ProjReads,
+            "proj_blocks" => ProjBlocks,
+            "dodges" => Dodges,
+            "dodged_hits" => DodgedHits,
+            "dodge_rolls" => DodgeRolls,
+            "dodge_wins" => DodgeWins,
+            _ => throw new System.ArgumentException($"no defense counter {counter}"),
+        };
+    }
+}

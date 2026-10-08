@@ -29,8 +29,9 @@ namespace VikingsForHire.Hirelings.Work
                 Component? c = (Component?)Hits[i].GetComponentInParent<TreeBase>() ?? Hits[i].GetComponentInParent<TreeLog>();
                 if (c == null)
                 {
+                    // Stumps and the like; never a sapling (a growing Plant is a Tree-type Destructible too).
                     Destructible d = Hits[i].GetComponentInParent<Destructible>();
-                    if (d != null && d.m_destructibleType == DestructibleType.Tree)
+                    if (d != null && d.m_destructibleType == DestructibleType.Tree && d.GetComponent<Plant>() == null)
                         c = d;
                 }
                 if (c != null && seen.Add(c))
@@ -140,7 +141,9 @@ namespace VikingsForHire.Hirelings.Work
 
         private static Vector3 Flat(Vector3 v) => new(v.x, 0f, v.z);
 
-        private static bool IsPlayerPiece(Piece p) => p != null && p.GetCreator() != 0L && p.GetComponent<Hireling>() == null;
+        // Saplings and the tree patch sign aren't buildings a falling tree could hurt.
+        private static bool IsPlayerPiece(Piece p) => p != null && p.GetCreator() != 0L && p.GetComponent<Hireling>() == null &&
+                                                       p.GetComponent<Trees.TreePatch>() == null && p.GetComponent<Plant>() == null;
 
         private static Piece? ClosestPiece(Vector3 at, float radius)
         {

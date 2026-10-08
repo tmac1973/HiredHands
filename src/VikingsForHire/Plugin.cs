@@ -25,7 +25,7 @@ namespace VikingsForHire
     {
         public const string Guid = "Spronglehump.HiredHands";
         public const string Name = "HiredHands";
-        public const string Version = "0.5.0";
+        public const string Version = "0.6.0";
 
         internal static ManualLogSource Log = null!;
         internal static Harmony Harmony = null!;
@@ -51,6 +51,7 @@ namespace VikingsForHire
             Hirelings.BroomItem.Register();
             Hirelings.Gear.CultivatorItem.Register();
             Hirelings.Gear.LadleItem.Register();
+            Hirelings.Work.Trees.TreePatchPiece.Register();
             Hirelings.Work.Farm.CropCatalog.Register();
             Hirelings.Work.Farm.FarmState.FreeSpots = Hirelings.Work.Farm.PlantChore.FreeSpots;
             Hirelings.Work.Kitchen.KitchenCatalog.Register();

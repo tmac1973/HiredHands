@@ -26,6 +26,16 @@ namespace VikingsForHire.Hirelings
         private float _runBoostUntil;
 
         public ThreatScanner Threats { get; private set; } = null!;
+
+        /// <summary>Attacks seen coming at it (BlockAndDodge).</summary>
+        public AttackReader Reader { get; private set; } = null!;
+        public IReadOnlyList<IncomingAttack> Incoming => Reader.Incoming;
+        public DefenseStats Defense { get; } = new();
+        public BlockController Block { get; private set; } = null!;
+        public DodgeController Dodge { get; private set; } = null!;
+
+        /// <summary>When it last took damage (Time.time).</summary>
+        public float LastHitTime { get; private set; } = -999f;
         public Stance Stance => (Stance)(Hireling.Zdo?.GetInt(HirelingZdo.Stance) ?? 0);
         public Character? CombatTarget => _combat?.Target;
 
@@ -128,7 +138,11 @@ namespace VikingsForHire.Hirelings
             Hireling = hireling;
             Nav.LegOracle.Agent = m_pathAgentType;
             Threats = new ThreatScanner(this);
+            Reader = new AttackReader(this);
+            Block = new BlockController(this);
+            Dodge = new DodgeController(this);
             Add(new IdleBehaviour());
+            Add(new TestWalkBehaviour());
             Add(new LeaveBehaviour());
             Add(new GuardPatrolBehaviour());
             Add(new PostBehaviour());
@@ -137,6 +151,7 @@ namespace VikingsForHire.Hirelings
             {
                 case JobType.Woodcutter:
                     Add(Gather = new Work.GatherBehaviour(new Work.WoodcutterProfile()));
+                    Add(new Work.Trees.PlantTreesBehaviour());
                     Add(new Work.DeliverBehaviour(new Work.GathererDeliveryPolicy()));
                     break;
                 case JobType.Smelter:
@@ -175,6 +190,9 @@ namespace VikingsForHire.Hirelings
             Add(_combat);
             hireling.Humanoid.m_onDamaged += (damage, attacker) =>
             {
+                LastHitTime = Time.time;
+                Dodge.OnDamaged();
+                Reader.ObserveHit(attacker);
                 Threats.OnDamaged(attacker);
                 _combat.OnHit();
                 RetreatHit();
@@ -225,6 +243,10 @@ namespace VikingsForHire.Hirelings
             UpdateRegeneration(dt);
             Regenerate(dt);
             Threats.Tick(VfhConfig.ThreatScanIntervalSeconds.Value);
+            Reader.Tick();
+            Block.Plan();
+            Dodge.Tick();
+            Block.Act();
             bool retreat = StanceRules.ShouldRetreat(Stance, Hireling.Job.IsGuard(), Hireling.Humanoid.GetHealthPercentage(), Retreating);
             if (retreat != Retreating)
             {
@@ -253,6 +275,10 @@ namespace VikingsForHire.Hirelings
                 _heldForCargo = false;
                 VfhLog.D(LogCat.AI, "ai.release", ("hid", Hireling.Hid), ("reason", "cargo or panel closed"));
             }
+
+            // Mid-roll: the roll's root motion moves it; behaviours wait (their timers carry on).
+            if (Hireling.Humanoid.InDodge())
+                return true;
 
             VfhLog.Guard(LogCat.AI, "ai.tick_failed", () =>
             {
@@ -325,6 +351,20 @@ namespace VikingsForHire.Hirelings
         // The pathfinder also returns partial routes (as close as it can get); only a route ending near the goal counts.
         private bool PathReaches(Vector3 point, float within) =>
             FindPath(point) && m_path.Count > 0 && Utils.DistanceXZ(m_path[m_path.Count - 1], point) <= within;
+
+        /// <summary>
+        /// How far there is still to walk along the game's route to the point, if the route we're on ends near it (a detour
+        /// round a hill takes us further away in a straight line while getting there).
+        /// </summary>
+        public float? RouteLeft(Vector3 point)
+        {
+            if (m_path.Count == 0 || Vector3.Distance(m_path[m_path.Count - 1], point) > 2f)
+                return null;
+            float left = Vector3.Distance(transform.position, m_path[0]);
+            for (int i = 1; i < m_path.Count; i++)
+                left += Vector3.Distance(m_path[i - 1], m_path[i]);
+            return left;
+        }
 
         /// <summary>Whether the pathfinder has a full route from here to the point.</summary>
         public bool CanReach(Vector3 point) => HavePath(point) || (Nav.NavLinkRegistry.Enabled && Links.Reachable(point));

@@ -3,6 +3,89 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.6.0 (unreleased)
+
+Plans: `plan/tree-patches/overview.md`, `plan/combat-ai/overview.md` (blocking and dodging).
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| 6641ffc | Tree patch sign (inside a board's area; Shift+E: radius, kind; hover shows saplings/trees and draws the circle); woodcutters plant its free spots from seeds in the chests (kinds their axe can fell, clear of buildings), felling grown trees as usual; `WoodcuttersPlantTrees` | your game (sign); the game simulating the woodcutter |
+| d87d581 | Woodcutters never fell saplings (a growing plant is a tree-type destructible) | the game simulating the woodcutter |
+| f120e07 | The tree patch sign stands on its own (the wall sign it's made from collapsed without support) | everywhere |
+| 881bdd1 | A patch set to Any plants only from ordinary tree seeds; PlantEverything's ancient (Ancient seed) and Ygga (Sap) trees only when chosen by name | the game simulating the woodcutter |
+| cc40a2f | Test cleanup empties cargo before killing hirelings (no graves or pins from test runs) | tests |
+| 6161f02 | Hirelings meeting head-on keep right and slide past; wedged for 2 s, they pass through each other for a moment (`HirelingsPassEachOther`); `vfh_t_pass` corridor test | the game simulating the hirelings |
+| d8502e9…8aa9922 | Passing tuned with the corridor test: no sidestep with a wall just to the right; pass through when getting nowhere (under 0.5 m a second) with another hireling within 2.5 m; `PassSideRoom` (1.2 m), `PassThroughAfter` (1.5 s) | the game simulating the hirelings |
+| f95f9f2 | Combat 1/6: hirelings in a fight notice swings coming at them (when they land, how hard after armor, area or not) with a per-level read chance (`readChance`, `parryChance`, `dodgeChance`, `dodgeCooldown` in the levels table); `BlockAndDodge` setting. Nothing reacts yet | the game simulating the hireling |
+
+| f8e249e | Combat 2–4/6: guards with shields raise them in time for swings and projectiles they see coming (a well-timed one parries: "Parry!", the attacker staggers); any hireling rolls out of the way of a hit that would take over a quarter of its health or explodes (cooldown by level). The 0.5.0 late block hardly ever fired (guards were nearly always mid-swing) | the game simulating the hireling |
+| 4d7731f | Combat 5/6: hit times learnt from hits that land (Troll swings were read up to a second late); fight records in the balance log carry blocks, parries and dodges; `scripts/defense-ab.sh` + `balance-report.py --compare-defense` | the game simulating the hireling; tests |
+| bf15356 | Stair scan reads a piece along its own length, not its world-aligned bounds: a turned stepladder read gaps (not a stair) or a 1.37 m top depending on which way the board faced. Test house measures each flight with the scan's shape test (fails if it isn't a stair), stacks as many as reach a 1.8 m+ storey (wood_stair is 1.05 m a flight, as in the game: two; the stepladder 2.05 m: one) and warns below that; `vfh_fixture stair_probe <prefab>` | the game with the board loaded (scan); tests |
+| b313640 | No reaching through floors and walls: within 3 m a chest (or station) counts as in reach only with no other building piece in the way, so a chest upstairs isn't filled from the ground below or from outside the wall. Walking up to it: only spots it can use it from, picked again while routes upstairs are worked out, closing in meanwhile; progress counted along the route (a detour round a hill gave up after 25 s). Deliveries plan without a chest just found unreachable (its share went to the pile). Test deposit counts reset per house | the game simulating the hireling; tests |
+| 06b549b, 6d892bf | Tests protect the tester: from `vfh_test_begin` until the test queue is done (or aborted) you're in ghost mode and take no hits at all (vanilla's god and ghost modes only stop the death; area hits still landed and staggered you). The per-row `vfh_fixture ghost on` steps are gone; `ghost off` is left for a row that needs something to come for you. A chain no longer looks finished between two of its commands (protection went off right after `vfh_test_begin`). `vfh_t_protect` (VFH-PROTECT-1), `vfh_fixture hit_me`, checks `player_health`, `player_ghost`, `tester_hits_blocked` | tests |
+### Blocking and dodging measured (2026-10-08, single player, `scripts/defense-ab.sh 5`, plus 8 more archer runs each way)
+Damage taken per fight (share of max health) is lower with `BlockAndDodge` on for the melee guards and the archer, with every
+fight still won; the woodcutter is unchanged (no troll hit is over a quarter of its health, and it has no shield, so it
+neither rolls nor blocks: as designed). Read rates match the levels table; parry and dodge roll rates had too few rolls to
+judge (n < 30): check by eye.
+
+```
+job          lvl  enemy            mode  runs  taken  median  won   died  length  read rate          parry roll  dodge roll  blocks/parries  dodges/missed
+-----------  ---  ---------------  ----  ----  -----  ------  ----  ----  ------  -----------------  ----------  ----------  --------------  -------------
+GuardMelee   1    Greydwarf        off   5     42%    42%     100%    0%  24s     reads 0            rolls 0     dodges 0    2/2             0/0          
+GuardMelee   1    Greydwarf        on    5     36%    33%     100%    0%  27s     51% vs 50% (n=72)  n/a (n=23)  n/a (n=0)   12/2            0/0          
+GuardMelee   3    Troll            off   5     65%    72%     100%    0%  30s     reads 0            rolls 0     dodges 0    2/2             0/0          
+GuardMelee   3    Troll            on    5     54%    50%     100%    0%  34s     62% vs 63% (n=56)  n/a (n=23)  n/a (n=1)   14/9            0/0          
+GuardRanged  4    Draugr_Ranged**  off   13    23%    0%      100%    0%  14s     reads 0            rolls 0     dodges 0    0/0             0/0          
+GuardRanged  4    Draugr_Ranged**  on    13    13%    0%      100%    0%  21s     n/a (n=19)         n/a (n=0)   n/a (n=1)   0/0             1/1          
+Woodcutter   5    Troll            off   5     25%    24%     100%    0%  38s     reads 0            rolls 0     dodges 0    0/0             0/0          
+Woodcutter   5    Troll            on    5     27%    26%     100%    0%  41s     79% vs 76% (n=73)  n/a (n=0)   n/a (n=0)   0/0             0/0
+```
+
+### Regression run before release (2026-10-08, single player, 38 rows through ModTestBridge)
+29 pass outright. Rerunning the failures with `BlockAndDodge` off and on gives identical results, so none come from
+blocking and dodging:
+- WORK-3, WORK-7, CHORE-7, PASS-1: flaky, pass on the rerun (both modes).
+- WORK-5: needs AzuAutoStore disabled (the dev profile has it on); HIRE-1: `hire1_a`/`hire1_b` are the two halves of a
+  relog test and were chained back to back (cleanup killed the hireling in between). Not bugs.
+- NAVLINK-5 (stepladder) and NAVLINK-6 (stair removed) failed in both modes, then both passed after a game restart.
+  Not a blocking/dodging regression. Followed up the same day (bf15356, b313640): the stair scan's samples depended on
+  which way the piece was turned, a single wood_stair is only 1.05 m up (the house now stacks two), and the upstairs
+  chest was "in reach" through the floor from the ground (0.5.0's reach rule), which also hid that NAVLINK-4/5 never
+  climbed to it. See below.
+
+### Stair fixture and reach (2026-10-08, single player, ModTestBridge)
+- `vfh_fixture stair_probe wood_stair` / `wood_stepladder` (12 turns, 0-165 degrees): before bf15356 the stepladder was no
+  stair at 15/75/105/165 degrees (`gaps`) and read rises of 0.76-0.96 m for the wood stair by turn; after, every turn reads
+  the same (wood_stair top step 1.05 m, footprint 2.0 x 2.0 m; stepladder top plank 2.05 m, 1.0 x 2.2 m).
+- `fixture.house` the same on every run: wood_stair 2 flights x 1.12 m, storey 2.17 m; stepladder 1 flight, 2.13 m;
+  both `climbs=back`, top step 0.1 m inside the upper floor.
+- With b313640: `vfh_test_chain nav1 nav2 nav3 nav1 nav2 nav3 nav1 nav2 nav3 nav5 nav6` all 11 pass, each delivery a
+  fresh count (NAVLINK-5 routes `walk>door>walk>stair>walk` and deposits upstairs; NAVLINK-6 gives up on the upstairs
+  chest and fills chest B), plus the pair 2x more on the build just before the count reset; `navscan1 navscan2 navscan3`
+  pass. Before b313640, NAVLINK-4/5 had passed by filling the upstairs chest from the ground: they never climbed.
+- Reach regression on b313640: `deliver1 deliver2 door1 work3 chore_toggle mills fires beehive sap fermenter shield tidy
+  repairs repairs2 board_food cook_spit cook_oven cook_chain farm_harvest keep1 azu3` all pass, no `lvl=E` (repairs
+  first failed when the Greyling killed Testboy, which left its board and broke the next rows' setup; passed with
+  `vfh_fixture ghost on`).
+
+### To test (batch)
+- [x] Macro (single player): `vfh_test_chain nav1 nav2 nav3 nav5 nav6 navscan1 navscan2 navscan3`, the pair run 3+ times (2026-10-08, see above).
+- [x] Macro (single player), reach regression (2026-10-08, see above): `vfh_test_chain deliver1 deliver2 door1 work3 chore_toggle mills fires beehive sap fermenter shield tidy repairs repairs2 board_food cook_spit cook_oven cook_chain farm_harvest keep1 azu3`.
+- [x] Macro (single player): `vfh_test_chain protect stance1 stance2 stance3 stance4 stance5 tame1 retreat1 noise1 post1 repairs read1 block1 dodge1 protect` all 15 pass (2026-10-08); `test.protect on=true` once at the start and `on=false` once at the end, Testboy never died; VFH-PROTECT-1: a hit worth half your health is dropped (`tester_hits_blocked`), the same hit outside a test takes 25 to 12.5.
+- [ ] By hand: a chest on an upper floor: a woodcutter delivers only after climbing the stairs (not from below, not through the wall); remove the stairs and it fills a chest downstairs instead, no hang. A Steward still fuels a sconce or torch up on a wall and loads a smelter from the open side.
+- [x] Macro (single player): `vfh_test_chain tree_patch` (passed 2026-10-06).
+- [x] Macro (single player): `vfh_test_chain pass` (10 runs, 5–9 s, no jams, 2026-10-07).
+- [x] Sign stays standing (Tim, 2026-10-06).
+- [x] By hand: build a Tree patch sign only inside a board's area (outside it the ghost is red and placing says so). Tested by Tim 2026-10-07.
+- [x] Macro (single player): `vfh_test_chain read1 read2 block1 block2 block3 proj1 proj2 dodge1 dodge2 dodge3 dodge4` plus the combat regression rows (stance1-5 combat1 combat5 combat6 tame1 retreat1 noise1 post1): all passing, 2026-10-07/08 (flaky rows reworked to be deterministic).
+- [ ] By hand: a level 5+ guard against a Greydwarf Brute: the shield comes up just before each swing lands, sometimes "Parry!" and the Brute staggers, and the guard swings back straight after.
+- [ ] By hand: a guard posted in front of Draugr archers turns into the arrows and blocks most of them; arrows at someone else don't make it react.
+- [ ] By hand: a worker or archer near a troll rolls (sideways or back) out of its big swings; never off a ledge or into water; rolls are spaced out at low levels.
+- [ ] By hand (dedicated server): a hireling owned by one player dodges a troll owned by another: the hit misses and both players see the roll.
+- [ ] By hand: on a Tree patch sign, Shift+E changes radius and kind; looking at it draws the circle; a woodcutter plants it from seeds in a chest and later fells the grown trees.
+
 ## 0.5.0 (released 2026-10-06): Farmer, Cook and production orders
 
 Plan: `plan/farmer-cook/`. Includes the held 0.4.4 fixes (first four rows).

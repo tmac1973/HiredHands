@@ -23,6 +23,7 @@ namespace VikingsForHire.Telemetry
             public int HitsDealt;
             public int HitsTaken;
             public string Mode = "";
+            public Hirelings.Combat.DefenseStats Defense = null!;
         }
 
         private static readonly Dictionary<Hireling, Fight> Fights = new();
@@ -42,6 +43,7 @@ namespace VikingsForHire.Telemetry
                 EnemyMax = enemy.GetMaxHealth(),
                 Start = Time.time,
                 Mode = h.Mode == HirelingMode.Following ? "follower" : h.HasPost ? "posted" : "base",
+                Defense = h.Ai.Defense.Snapshot(),
             };
         }
 
@@ -56,6 +58,8 @@ namespace VikingsForHire.Telemetry
 
         public static void Taken(Hireling h, float damage)
         {
+            if (damage >= 1e6f)
+                return; // a test cleanup's kill, not a fight's damage
             if (Fights.TryGetValue(h, out Fight f))
             {
                 f.Taken += damage;
@@ -73,12 +77,18 @@ namespace VikingsForHire.Telemetry
                 return;
             bool killed = f.Enemy == null || f.Enemy.IsDead();
             Humanoid me = h.Humanoid;
-            BalanceLog.Record("fight",
+            var fields = new List<(string, object?)>
+            {
                 ("hid", Short(h.Hid)), ("owner", BalanceLog.Who(h.OwnerId)), ("job", h.Job), ("lvl", h.Level), ("stance", h.Stance), ("mode", f.Mode),
                 ("weapon", GearApplier.Name(me.GetCurrentWeapon())), ("armor", h.Armor), ("hpMax", me.GetMaxHealth()), ("hpEnd", me.GetHealth()),
                 ("enemy", f.EnemyName), ("elvl", f.EnemyLevel), ("ehpMax", f.EnemyMax), ("ehpEnd", f.Enemy != null ? f.Enemy.GetHealth() : 0f),
                 ("biome", Biome(h.transform.position)), ("secs", Time.time - f.Start), ("dealt", f.Dealt), ("taken", f.Taken),
-                ("hitsDealt", f.HitsDealt), ("hitsTaken", f.HitsTaken), ("outcome", killed ? "kill" : me.IsDead() ? "died" : why));
+                ("hitsDealt", f.HitsDealt), ("hitsTaken", f.HitsTaken), ("outcome", killed ? "kill" : me.IsDead() ? "died" : why),
+            };
+            // Blocking and dodging during this fight (0.6.0), and whether it was on.
+            fields.AddRange(h.Ai.Defense.Since(f.Defense));
+            fields.Add(("defense", Config.VfhConfig.BlockAndDodge.Value ? "on" : "off"));
+            BalanceLog.Record("fight", fields.ToArray());
         }
 
         public static void Died(Hireling h, string killer, float lastHit)

@@ -42,6 +42,10 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> AiScanIntervalSeconds = null!;
         public static ConfigEntry<float> ThreatScanIntervalSeconds = null!;
         public static ConfigEntry<float> TreeSafetyDistanceFromPieces = null!;
+        public static ConfigEntry<bool> WoodcuttersPlantTrees = null!;
+        public static ConfigEntry<bool> HirelingsPassEachOther = null!;
+        public static ConfigEntry<float> PassSideRoom = null!;
+        public static ConfigEntry<float> PassThroughAfter = null!;
         public static ConfigEntry<bool> HirelingsOpenDoors = null!;
         public static ConfigEntry<bool> HirelingsCloseDoors = null!;
         public static ConfigEntry<bool> BaseNavLinks = null!;
@@ -104,6 +108,7 @@ namespace VikingsForHire.Config
 
         // 8 - Combat
         public static ConfigEntry<float> MeleeAttackCooldown = null!;
+        public static ConfigEntry<bool> BlockAndDodge = null!;
         public static ConfigEntry<float> RangedAttackCooldown = null!;
 
         // 6 - Controls (local). The board panel is Shift+E: Valheim's alt-interact, so it follows the game's own bindings.
@@ -182,6 +187,10 @@ namespace VikingsForHire.Config
             StewardRepairQuietSeconds = Synced(st, "StewardRepairQuietSeconds", 20f, "No repairs until this long after the last enemy was seen within 30 m of the Steward or the piece.");
             StewardIgnoreOtherMods = Synced(st, "StewardIgnoreOtherMods", false, "Testing: behave as if PetPantry and Torches Eternal weren't installed (so the Steward feeds animals and fuels fires anyway).");
             BaseNavLinks = Synced(w, "BaseNavLinks", true, "Inside a hiring board's area, hirelings route through doors and up stairs and ladders found in your buildings (modded pieces too, by their shape). Off: the 0.2 door and stairs handling.");
+            HirelingsPassEachOther = Synced(w, "HirelingsPassEachOther", true, "Hirelings meeting head-on keep to their right to pass each other, and two wedged together for a couple of seconds pass through each other briefly.");
+            PassSideRoom = Synced(w, "PassSideRoom", 1.2f, "Passing: a hireling only steps aside when there's this much room (m) to its right; in narrower places it waits to pass through instead.");
+            PassThroughAfter = Synced(w, "PassThroughAfter", 1.5f, "Passing: seconds two hirelings must be wedged together before they pass through each other.");
+            WoodcuttersPlantTrees = Synced(w, "WoodcuttersPlantTrees", true, "Woodcutters plant trees from the seeds in the chests on free spots in tree patches (the Tree patch sign) inside their work radius.");
             TreeSafetyDistanceFromPieces = Synced(w, "TreeSafetyDistanceFromPieces", 6f, "Woodcutters skip trees with a player-built piece this close to the trunk (m).");
             TreeFallCorridorHalfWidth = Synced(w, "TreeFallCorridorHalfWidth", 4f, "Woodcutters fell a tree only in a direction where no player-built piece lies within the tree's height and this far either side of the fall line (m). If no direction is clear, the tree is left standing.");
             MinerProtectsTerrain = Synced(w, "MinerProtectsTerrain", true, "Hireling pickaxe swings never dig the ground near your buildings or inside their board's work area. Out in the field they dig like a player would, to get at ore sitting low in the ground. Turning this off lets miners dig anywhere, including in your base.");
@@ -217,6 +226,7 @@ namespace VikingsForHire.Config
             BalanceLogMaxMB = _file.Bind("9 - Balance log", "BalanceLogMaxMB", 20, "Server: total size (MB) of the balance log files kept; the oldest days are deleted beyond it.");
 
             MeleeAttackCooldown = Synced("8 - Combat", "MeleeAttackCooldown", 1.2f, "Seconds between a hireling's melee swings.");
+            BlockAndDodge = Synced("8 - Combat", "BlockAndDodge", true, "Hirelings watch for attacks coming at them: guards with shields raise them in time (and parry when well timed), and anyone fighting rolls out of the way of hits that would hurt a lot. Off: the 0.5.0 fighting (shield up once a swing is under way, no dodging).");
             RangedAttackCooldown = Synced("8 - Combat", "RangedAttackCooldown", 2.5f, "Seconds between an archer's shots (at least the bow's draw time plus a beat).");
 
             LogToFile = config.Bind("7 - Debug", "LogToFile", true, "Also write log lines to BepInEx/HiredHands.log.");

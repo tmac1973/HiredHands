@@ -52,11 +52,30 @@ Works in single-player and on dedicated servers. Every client and the server nee
 
 Woodcutters and miners work twice the board's radius. Everyone defends themselves; non-guards fight weakly and flee or defend by stance. **Chopping and mining make noise**, as yours does, so nearby monsters come for a worker (`GatheringMakesNoise` turns it off).
 
+**Tree patches.** Build a **Tree patch** sign (hammer, Misc, 2 Wood) inside a hiring board's area to mark a woodlot. Shift+E on it sets its radius (3–20 m) and what to plant (any common tree that grows there, from beech seeds, birch seeds, acorns, fir or pine cones; or one kind, including PlantEverything's ancient or Ygga trees, which take Ancient seeds or Sap and are only planted when chosen); looking at it shows the patch's circle. Woodcutters whose work radius covers it plant free spots from the seeds in your chests (beech seeds, birch seeds, acorns, fir and pine cones, modded tree saplings), now and then between felling, only kinds their axe can fell and only where they'll grow and can be felled later (clear of buildings). Grown trees in a patch are felled like any other. `WoodcuttersPlantTrees` (Work) turns it off.
+
 **What to gather.** Shift+E on a woodcutter or miner switches items on and off (Wood, Fine wood, Core wood…; Stone, Copper, Tin…). Each tree or rock counts as its best drop, so with Wood off a woodcutter still fells birches for their fine wood, and with Stone off a miner takes only the copper from a deposit and leaves the stone on the ground. **Works at home: off** keeps a gatherer from touching anything inside its board's area (for bases with decorative trees and rocks); it still works in the field with you.
 
 **Deliveries.** Gatherers deliver each item type only to a chest that **already holds** that item (they never mix items into other chests), nearest first. Whatever doesn't fit is left in front of the board. Put one of an item in a chest to make it the home for that item. **When those chests have no room left, work on that item pauses** (`PauseWhenStorageFull`, on): a woodcutter leaves trees for that wood, a miner that ore, a Steward stops loading a kiln whose coal has no room; the status says "Paused: no room left for Wood", and work picks up again once there's room.
 
 **Doors.** Hirelings open doors in their way and close them behind themselves (never in a player's face). They only use doors the board's owner may use under wards, never locked doors, and don't wander through doors when idle. `HirelingsOpenDoors` turns this off.
+
+## How hirelings fight
+
+Guards patrol and fight by stance; everyone else defends themselves, weakly, and flees or defends by stance. Since
+0.6.0 they also **see attacks coming**:
+
+- **Blocking.** A guard with a shield raises it just before a swing it saw coming lands, and turns into arrows,
+  thrown rocks and spears flying at it. A well-timed block is a **parry** ("Parry!" pops up): it blocks with extra force
+  and staggers the attacker, as yours does. A swing the guard didn't see coming lands, or gets a late block at best.
+- **Dodging.** Any hireling in a fight (guards, archers, workers) rolls out of the way of a hit that would take more
+  than a quarter of its health, or of an explosion: the player's roll, and the hit misses while it lasts. Only towards
+  safe ground (no ledges, no deep water, nothing in the way), and not again straight away.
+- **Levels.** Higher levels see more attacks coming, parry more often, dodge more often and roll again sooner. Level 1
+  sees about half of the attacks, parries a few and rolls again after 6 s; level 8 sees nearly all, parries most and
+  rolls again after 2 s. The numbers are in the data file's levels table (`readChance`, `parryChance`, `dodgeChance`,
+  `dodgeCooldown`).
+- `BlockAndDodge` (Combat, server-synced) turns it all off: hirelings fight as in 0.5.0.
 
 ## The Steward
 

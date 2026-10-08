@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0 (unreleased)
+
+- **Combat: blocking and dodging.** Hirelings now see attacks coming. Guards with shields raise them just before a swing lands and turn into arrows, rocks and spears; a well-timed block is a parry ("Parry!", the attacker staggers). Any hireling in a fight (guards, archers, workers) rolls out of the way of a hit that would take more than a quarter of its health, or of an explosion, with the player's roll (the hit misses), only towards safe ground. Higher levels see more, parry and dodge more and roll again sooner (`readChance`, `parryChance`, `dodgeChance`, `dodgeCooldown` in the levels table; older data files get them automatically). Server setting `BlockAndDodge` (Combat) turns it off. Health, damage and armor are unchanged; with the balance log on (`BalanceLog`), fight records now include blocks, parries and dodges: send them over if hirelings feel too tough or too weak.
+- **Hirelings pass each other.** Two meeting head-on (along a fence, in a doorway) each keep to their right and slide past; two still wedged together after a couple of seconds pass through each other briefly. Server setting `HirelingsPassEachOther` (Work).
+- **Tree patches: woodcutters replant.** A new **Tree patch** sign (hammer, Misc, 2 Wood), placed inside a hiring board's area, marks a woodlot; Shift+E sets its radius and what to plant. Woodcutters plant its free spots from the seeds in your chests, only kinds their axe can fell, where they'll grow and can later be felled, and fell the grown trees as usual. Server setting `WoodcuttersPlantTrees` (Work).
+
 ## 0.5.0
 
 - **Farmer.** A new job (board level 2, one per board) that works the ground you cultivated in its radius, holding a cultivator. It harvests every ripe crop and puts the harvest away, picks berry bushes and other regrowing plants while an order wants them (never planting bushes), and plants to the board's orders in tidy rows lined up with your own, only where the plant can grow. Crops unlock with their biome (`cropLevels`). Works with PlantEverything (its bushes and plants) and PlantEasily (its spacing and harvest radius).

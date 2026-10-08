@@ -126,7 +126,7 @@ namespace VikingsForHire.Board
         }
 
         /// <summary>Bounds of every mesh under <paramref name="under"/>, in <paramref name="root"/>'s local space (works on inactive prefabs).</summary>
-        private static Bounds LocalBounds(Transform root, Transform under)
+        internal static Bounds LocalBounds(Transform root, Transform under)
         {
             bool any = false;
             var bounds = new Bounds();
