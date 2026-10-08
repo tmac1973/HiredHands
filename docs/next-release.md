@@ -40,6 +40,18 @@ Woodcutter   5    Troll            off   5     25%    24%     100%    0%  38s   
 Woodcutter   5    Troll            on    5     27%    26%     100%    0%  41s     79% vs 76% (n=73)  n/a (n=0)   n/a (n=0)   0/0             0/0
 ```
 
+### Regression run before release (2026-10-08, single player, 38 rows through ModTestBridge)
+29 pass outright. Rerunning the failures with `BlockAndDodge` off and on gives identical results, so none come from
+blocking and dodging:
+- WORK-3, WORK-7, CHORE-7, PASS-1: flaky, pass on the rerun (both modes).
+- WORK-5: needs AzuAutoStore disabled (the dev profile has it on); HIRE-1: `hire1_a`/`hire1_b` are the two halves of a
+  relog test and were chained back to back (cleanup killed the hireling in between). Not bugs.
+- NAVLINK-5 (stepladder) and NAVLINK-6 (stair removed) failed in both modes, then both passed after a game restart.
+  Not a regression: the house fixture's stair measurement varies run to run (the stepladder measured a 1.45 m rise placed
+  the wrong way round, then 2.13 m the right way round; the wood stair measures about 1.1 m), which decides whether the
+  "upstairs" chest is really out of reach. A test-fixture flake to firm up some time (measure the rise from the stair's
+  own bounds as well as the sampler).
+
 ### To test (batch)
 - [x] Macro (single player): `vfh_test_chain tree_patch` (passed 2026-10-06).
 - [x] Macro (single player): `vfh_test_chain pass` (10 runs, 5–9 s, no jams, 2026-10-07).
