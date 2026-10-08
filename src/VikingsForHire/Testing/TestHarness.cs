@@ -193,6 +193,7 @@ namespace VikingsForHire.Testing
                 Plugin.Instance.StopCoroutine(_queue);
             _queue = null;
             _running = false;
+            TestProtection.Set(false);
             if (_run != null)
                 FinishAborted(reason, dropped);
             else if (dropped > 0)
@@ -222,8 +223,16 @@ namespace VikingsForHire.Testing
         private static IEnumerator RunQueue()
         {
             _running = true;
-            while (QueueItems.Count > 0)
+            // A chain queues its commands one by one, so the queue can look empty between two of them: done only when it's
+            // still empty a frame later.
+            while (true)
             {
+                if (QueueItems.Count == 0)
+                {
+                    yield return null;
+                    if (QueueItems.Count == 0)
+                        break;
+                }
                 if (_skipToEndReason != null)
                 {
                     SkipToEnd();
@@ -246,6 +255,7 @@ namespace VikingsForHire.Testing
             }
             _running = false;
             _queue = null;
+            TestProtection.Set(false);
         }
 
         private static IEnumerator Begin(string row)
@@ -253,6 +263,7 @@ namespace VikingsForHire.Testing
             if (_run != null)
                 VfhLog.W(LogCat.Test, "test.abandoned", ("row", _run.Row), ("checks", _run.Checks));
             _run = new Run { Row = row };
+            TestProtection.Set(true); // enemies ignore you and nothing hurts you while it runs
             VfhLog.I(LogCat.Core, "mark", ("text", "test " + row));
             VfhLog.I(LogCat.Test, "test.begin", ("row", row), ("fastTimers", VfhConfig.FastTimers), ("role", VfhLog.Role()));
             Message($"Test {row} started");

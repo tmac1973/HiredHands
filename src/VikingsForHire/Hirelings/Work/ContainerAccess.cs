@@ -14,7 +14,6 @@ namespace VikingsForHire.Hirelings.Work
     {
         private static readonly System.Collections.Generic.Dictionary<string, int> DepositedByTag = new();
 
-        /// <summary>How many of an item hirelings have put into the chest with this test tag since login (for tests).</summary>
         /// <summary>Tests: forget what was delivered to chests with this tag (a new test's chest starts at zero).</summary>
         public static void ResetDeposited(string tag)
         {
@@ -22,6 +21,7 @@ namespace VikingsForHire.Hirelings.Work
                 DepositedByTag.Remove(key);
         }
 
+        /// <summary>How many of an item hirelings have put into the chest with this test tag since login (for tests).</summary>
         public static int Deposited(string tag, string prefab) => DepositedByTag.TryGetValue(tag + "|" + prefab, out int n) ? n : 0;
 
         /// <summary>Moves up to <paramref name="amount"/> of a prefab from cargo into the chest; returns how many moved.</summary>
