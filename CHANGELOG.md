@@ -1,11 +1,17 @@
 # Changelog
 
-## 0.6.0 (unreleased)
+## 0.6.0
 
 - **Combat: blocking and dodging.** Hirelings now see attacks coming. Guards with shields raise them just before a swing lands and turn into arrows, rocks and spears; a well-timed block is a parry ("Parry!", the attacker staggers). Any hireling in a fight (guards, archers, workers) rolls out of the way of a hit that would take more than a quarter of its health, or of an explosion, with the player's roll (the hit misses), only towards safe ground. Higher levels see more, parry and dodge more and roll again sooner (`readChance`, `parryChance`, `dodgeChance`, `dodgeCooldown` in the levels table; older data files get them automatically). Server setting `CombatSkill` (Combat) picks how good they are: Off (the 0.5.0 fighting), Green, Trained (default) or Veteran.
 - **`HealthRegen`** (Combat): how fast hirelings heal once they're out of a fight, as a multiple of today's rate (1% of max health every 2 s after 10 s unhurt). 0 to 3; default 1. Health, damage and armor are unchanged; with the balance log on (`BalanceLog`), fight records now include blocks, parries and dodges: send them over if hirelings feel too tough or too weak.
 - **Hirelings pass each other.** Two meeting head-on (along a fence, in a doorway) each keep to their right and slide past; two still wedged together after a couple of seconds pass through each other briefly. Server setting `HirelingsPassEachOther` (Work).
 - **Tree patches: woodcutters replant.** A new **Tree patch** sign (hammer, Misc, 2 Wood), placed inside a hiring board's area, marks a woodlot; Shift+E sets its radius and what to plant. Woodcutters plant its free spots from the seeds in your chests, only kinds their axe can fell, where they'll grow and can later be felled, and fell the grown trees as usual. Server setting `WoodcuttersPlantTrees` (Work).
+
+- **No reaching through floors and walls.** A chest (or station) within reach counts only with no other building piece in the way, so a chest upstairs is no longer filled from the ground below, nor a chest in a room through its wall: hirelings walk up the stairs or in through the door to it.
+- **Stairs any way round.** A stair or stepladder is now recognised whichever way it faces (a turned stepladder could read as a gap and hirelings wouldn't use it).
+- **Data file:** the new level fields (`readChance`, `parryChance`, `dodgeChance`, `dodgeCooldown`) are added to existing files automatically. 0.5 builds reject a file with them, so everyone moves to 0.6 together.
+
+**Update everyone together** (players and the server).
 
 ## 0.5.0
 
