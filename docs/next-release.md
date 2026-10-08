@@ -21,6 +21,9 @@ Plans: `plan/tree-patches/overview.md`, `plan/combat-ai/overview.md` (blocking a
 
 | f8e249e | Combat 2–4/6: guards with shields raise them in time for swings and projectiles they see coming (a well-timed one parries: "Parry!", the attacker staggers); any hireling rolls out of the way of a hit that would take over a quarter of its health or explodes (cooldown by level). The 0.5.0 late block hardly ever fired (guards were nearly always mid-swing) | the game simulating the hireling |
 | 4d7731f | Combat 5/6: hit times learnt from hits that land (Troll swings were read up to a second late); fight records in the balance log carry blocks, parries and dodges; `scripts/defense-ab.sh` + `balance-report.py --compare-defense` | the game simulating the hireling; tests |
+| d8c690f | `CombatSkill` presets (Off, Green, Trained, Veteran) replace `BlockAndDodge`; measured: L3 guard vs Troll takes 65/63/54/35% damage Off/Green/Trained/Veteran, every fight won | the game simulating the hireling |
+| cd50e8e | `HealthRegen` (Combat): out-of-fight healing as a multiple of today's (0–3, default 1); VFH-REGEN-1 passes | the game simulating the hireling |
+
 ### Blocking and dodging measured (2026-10-08, single player, `scripts/defense-ab.sh 5`, plus 8 more archer runs each way)
 Damage taken per fight (share of max health) is lower with blocking and dodging on (`CombatSkill` Trained) for the melee guards and the archer, with every
 fight still won; the woodcutter is unchanged (no troll hit is over a quarter of its health, and it has no shield, so it
