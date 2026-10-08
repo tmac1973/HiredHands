@@ -26,7 +26,6 @@ Plans: `plan/tree-patches/overview.md`, `plan/combat-ai/overview.md` (blocking a
 - [x] Sign stays standing (Tim, 2026-10-06).
 - [x] By hand: build a Tree patch sign only inside a board's area (outside it the ghost is red and placing says so). Tested by Tim 2026-10-07.
 - [x] Macro (single player): `vfh_test_chain read1 read2 block1 block2 block3 proj1 proj2 dodge1 dodge2 dodge3 dodge4` plus the combat regression rows (stance1-5 combat1 combat5 combat6 tame1 retreat1 noise1 post1): all passing, 2026-10-07/08 (flaky rows reworked to be deterministic).
-- [ ] (was) `vfh_test_chain read1 read2`; in HiredHands.log (Combat at Debug) the level 8 guard's `defense.read` lines are 85-100% `read=true`, Greydwarf Brute swings `timed=true` with `in=` 0.2-1.0 s.
 - [ ] By hand: a level 5+ guard against a Greydwarf Brute: the shield comes up just before each swing lands, sometimes "Parry!" and the Brute staggers, and the guard swings back straight after.
 - [ ] By hand: a guard posted in front of Draugr archers turns into the arrows and blocks most of them; arrows at someone else don't make it react.
 - [ ] By hand: a worker or archer near a troll rolls (sideways or back) out of its big swings; never off a ledge or into water; rolls are spaced out at low levels.
