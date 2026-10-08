@@ -29,7 +29,7 @@ namespace VikingsForHire.Testing
             Fixtures.Add("wait", "<seconds> - pause the test run", args => Wait(float.Parse(args.ElementAtOrDefault(0) ?? "1", CultureInfo.InvariantCulture)));
 
             Fixtures.Add("enemy_level", "<prefab> <stars> [all] - give the nearest enemy of that kind (or all within 80 m) that many stars (level = stars + 1)", EnemyLevel);
-            Fixtures.Add("ghost", "<on|off> - enemies ignore you (so they fight the hirelings, not the tester)", Ghost);
+            Fixtures.Add("ghost", "<on|off> - enemies ignore you (so they fight the hirelings, not the tester); every test starts with it on, so only `off` is needed, for a row where something must come for you", Ghost);
             Fixtures.Add("defense_chances", "<level> <read> <parry> <dodge> | reset - override a level's blocking/dodging chances (in memory, for tests); reset puts the loaded ones back", DefenseChances);
             Fixtures.Add("hireling_health", "<fraction> - set the last spawned hireling's health to that share of its max", HirelingHealth);
             TestHarness.RegisterCheck("defense", "<last|all> <reads|misses|blocks|parries|dodges|dodged_hits> - blocking/dodging counters since the hireling loaded (all: summed over hirelings within 50 m)", args =>
