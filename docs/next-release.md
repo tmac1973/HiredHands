@@ -12,7 +12,14 @@ Plan: `plan/split-caps/overview.md` (combat and worker caps per board level, per
 |---|---|---|
 | f924ebb | Caps 1/2: each board level has a combat cap (1, 1, 2, 2, 3, 3, 4, 4) and a worker cap (2, 4, 6, 8, 8, 8, 8, 8); per board at most 2 woodcutters, 2 miners, 1 Steward, 1 Farmer, 1 Cook (`combatCap`, `workerCap`, `maxPerBoard` in the data file, filled into older files); boards over a cap keep their hirelings, only new contracts are refused | the board owner's machine (posting a contract) |
 
+| 49c1787 | Caps 2/4: a refused contract says which limit is full, with the numbers ("Combat hirelings: 1/1 at this board level", "Woodcutter: 2/2 per board"), in each player's language; `contract.refused` log; test fixture `caps`, check `cap_counts`, rows VFH-CAP-1..4, VFH-CON-2 rewritten | the board owner's machine; the message on the player's |
+| ccc76c6 | Caps 3/4: Contracts tab shows "Combat 1/2 · Workers 3/6 · Woodcutter 1/2" (red when the chosen job can't be posted, with the reason under the button); Upgrade tab shows "Workers: 2 → 4 · Combat hirelings: 1" | your game |
+
 ### To test (batch)
+- [ ] Macro (single player, not yet run: the game wasn't free): `vfh_test_chain con2 cap1 cap2 cap3 cap4`, all pass.
+- [ ] By hand: a level 1 board's Contracts tab with Woodcutter chosen reads "Combat 0/1 · Workers 0/2 · Woodcutter 0/2"; with a guard chosen "Combat 0/1 · Workers 0/2". Post a guard, choose a guard again: the line is red, Post is greyed out, and the reason reads "Combat hirelings: 1/1 at this board level. Upgrade the board for more".
+- [ ] By hand: the Upgrade tab at level 1 reads "Workers: 2 → 4 · Combat hirelings: 1", and the materials list doesn't run into the Upgrade button (a level with five materials).
+- [ ] By hand (dedicated server): a refused contract shows its message for a client too.
 
 ## 0.6.0 (released 2026-10-08): blocking and dodging, CombatSkill, tree patches, passing
 
