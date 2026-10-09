@@ -143,7 +143,7 @@ namespace VikingsForHire.Commands
             VfhData d = DataStore.Current;
             var lines = new List<string> { $"HiredHands data: source={DataStore.Source} hash={DataStore.Hash} reloads={DataStore.Reloads}" };
             foreach (BoardLevelData b in d.BoardLevels)
-                lines.Add($"  board L{b.Level}: cap {b.HirelingCap}, radius {b.MaxWorkRadius}m, cost {Cost(b.Cost)}");
+                lines.Add($"  board L{b.Level}: combat {b.CombatCap}, workers {b.WorkerCap}, radius {b.MaxWorkRadius}m, cost {Cost(b.Cost)}");
             foreach (HirelingLevelData h in d.HirelingLevels)
                 lines.Add($"  hireling L{h.Level}: hp {h.Health}, armor {h.Armor}, dmg x{h.GuardDamageMult}, gather x{h.GatherMult}, slots {h.CargoSlots}, " +
                           $"hire {h.HireFood}fp+{h.HireCoins}c, upkeep {h.UpkeepFood}fp+{h.UpkeepCoins}c/day");

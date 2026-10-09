@@ -49,23 +49,32 @@ namespace VikingsForHire.UI
             Cost upkeep = costs.DailyUpkeep(job, _level);
             Cost funds = board.Inventory != null ? BoardStorage.Totals(board.Inventory) : Cost.Zero;
             Roster roster = board.Zdo != null ? BoardRosterOps.Read(board.Zdo) : new Roster();
-            int count = roster.Count;
-            int cap = rules.CombatCap(board.Level) + rules.WorkerCap(board.Level);
-            bool canPost = roster.CanPost(job, rules, board.Level) == OpOutcome.Ok;
+            OpOutcome can = roster.CanPost(job, rules, board.Level);
+            bool canPost = can == OpOutcome.Ok;
+            int combatN = roster.KindCount(true), workerN = roster.KindCount(false);
+            int combatCap = rules.CombatCap(board.Level), workerCap = rules.WorkerCap(board.Level);
+            int jobN = roster.JobCount(job), jobMax = rules.MaxPerBoard(job);
+            string counts = Localization.instance.Localize("$vfh_contract_counts", combatN.ToString(), combatCap.ToString(), workerN.ToString(), workerCap.ToString());
+            if (jobMax > 0)
+                counts += Localization.instance.Localize("$vfh_contract_job_count",
+                    Localization.instance.Localize($"$vfh_job_{job.ToString().ToLowerInvariant()}"), jobN.ToString(), jobMax.ToString());
+            // Red when this job can't be posted for a cap or limit (the other kind being full doesn't matter here).
+            bool full = (job.IsCombat() ? combatN >= combatCap : workerN >= workerCap) || (jobMax > 0 && jobN >= jobMax);
             bool affordable = fee.CoveredBy(funds);
             bool unlocked = rules.JobUnlocked(board.Level, job);
 
             PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_fee") + "  " + Price(fee), 0f, -335f, 600f, 18, color: affordable ? PanelUi.Good : PanelUi.Bad);
             PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_upkeep") + "  " + Price(upkeep), 0f, -365f, 600f, 18);
             PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_funds") + "  " + $"{funds.FoodPoints} {Localization.instance.Localize("$vfh_food_points")} + {funds.Coins} {Localization.instance.Localize("$vfh_coins")}", 0f, -395f, 600f, 18, color: PanelUi.Dim);
-            PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_count") + $"  {count} / {cap}", 0f, -425f, 600f, 18,
-                color: canPost ? PanelUi.Dim : PanelUi.Bad);
+            PanelUi.Text(root, counts, 0f, -425f, 600f, 18, color: full ? PanelUi.Bad : PanelUi.Dim);
 
             Button post = PanelUi.Button(root, "$vfh_contract_post", 0f, -475f, 240f, 44f,
                 () => BoardContracts.Post(board, job, _level, _radius, stance));
             post.interactable = affordable && canPost && unlocked;
             if (!unlocked)
                 PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_job_locked", rules.MinBoardLevel(job).ToString()), 0f, -515f, 600f, 18, color: PanelUi.Bad);
+            else if (!canPost)
+                PanelUi.Text(root, BoardContracts.Text(BoardRosterOps.RefusalMessage(can, job, roster, rules, board.Level)), 0f, -515f, 600f, 18, color: PanelUi.Bad);
         }
 
         /// <summary>

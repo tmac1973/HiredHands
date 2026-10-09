@@ -63,3 +63,8 @@ Players can see both caps and the chosen job's limit:
 
 ## Rollback
 Revert the commit, and the tabs go back to phase 01's interim single number. The rules and enforcement are unaffected.
+
+## Implementation notes (as built)
+- **The Upgrade tab shows both caps on one line** ("Workers: 2 → 4 · Combat hirelings: 1"), with a single key,
+  `$vfh_upgrade_caps`, instead of two lines. The tab has no room for another line: with five upgrade materials, the
+  requirement rows already reach the fixed Upgrade button. The line is green when either cap changes.

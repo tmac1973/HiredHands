@@ -59,14 +59,20 @@ namespace VikingsForHire.UI
             button.interactable = canAfford && !BoardUpgrade.InProgress;
         }
 
-        /// <summary>The three things a level changes, "now → next". Returns the y below the last line.</summary>
+        /// <summary>The things a level changes, "now → next". Returns the y below the last line.</summary>
         private static float Benefits(RectTransform root, LevelRules rules, int level, int next, float y)
         {
-            Line(root, "$vfh_upgrade_cap", rules.CombatCap(level) + rules.WorkerCap(level), rules.CombatCap(next) + rules.WorkerCap(next), ref y);
+            // Both caps on one line: the tab has no room for another (five materials already reach the button).
+            int wNow = rules.WorkerCap(level), wNext = rules.WorkerCap(next), cNow = rules.CombatCap(level), cNext = rules.CombatCap(next);
+            string caps = Localization.instance.Localize("$vfh_upgrade_caps", Change(wNow, wNext), Change(cNow, cNext));
+            PanelUi.Text(root, caps, 0f, y, 560f, 18, color: wNow == wNext && cNow == cNext ? PanelUi.Dim : PanelUi.Good);
+            y -= 28f;
             Line(root, "$vfh_upgrade_maxlevel", rules.MaxHirelingLevel(level), rules.MaxHirelingLevel(next), ref y);
             Line(root, "$vfh_upgrade_radius", rules.MaxWorkRadius(level), rules.MaxWorkRadius(next), ref y);
             return y;
         }
+
+        private static string Change(int now, int next) => now == next ? $"{now}" : $"{now} → {next}";
 
         private static void Line(RectTransform root, string label, float now, float next, ref float y)
         {
