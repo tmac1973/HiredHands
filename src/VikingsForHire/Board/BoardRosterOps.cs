@@ -54,10 +54,9 @@ namespace VikingsForHire.Board
                         return Done(zdo, null, boardId, op, new OpResult(OpOutcome.BadLevel, "$vfh_op_badlevel"));
                     if (!rules.JobUnlocked(boardLevel, op.Job))
                         return Done(zdo, null, boardId, op, new OpResult(OpOutcome.BadLevel, "$vfh_op_job_locked"));
-                    if (roster.JobTaken(op.Job))
-                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.JobTaken, "$vfh_op_job_taken"));
-                    if (!roster.HasRoom(rules.HirelingCap(boardLevel)))
-                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.CapReached, "$vfh_op_cap"));
+                    OpOutcome can = roster.CanPost(op.Job, rules, boardLevel);
+                    if (can != OpOutcome.Ok)
+                        return Done(zdo, null, boardId, op, new OpResult(can, "$vfh_op_cap"));
                     var wallet = new BoardLedger.Wallet(zdo);
                     string paid = "";
                     if (!op.Free && !BoardLedger.TryPay(wallet, costs.HireCost(op.Job, op.Level), out paid))
@@ -76,7 +75,7 @@ namespace VikingsForHire.Board
                         ArriveAt = op.Free ? now : now + UnityEngine.Random.Range(min, Mathf.Max(min, max)),
                         Paid = paid,
                     };
-                    roster.Post(entry, int.MaxValue);
+                    roster.Add(entry);
                     Telemetry.BalanceLog.Record("hire", ("board", boardId.Length > 4 ? boardId.Substring(0, 4) : boardId), ("boardLvl", boardLevel),
                         ("job", entry.Job), ("lvl", entry.Level), ("paid", paid), ("free", op.Free));
                     VfhLog.I(LogCat.Roster, "contract.posted", ("board", boardId), ("contract", entry.ContractId), ("hid", entry.Hid), ("name", entry.Name),

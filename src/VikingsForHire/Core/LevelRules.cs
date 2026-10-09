@@ -17,7 +17,17 @@ namespace VikingsForHire.Core
         /// <summary>A board hires up to its own level.</summary>
         public int MaxHirelingLevel(int boardLevel) => Math.Max(1, Math.Min(boardLevel, _data.HirelingLevels.Count));
 
-        public int HirelingCap(int boardLevel) => Board(boardLevel).HirelingCap;
+        /// <summary>Combat hirelings (guards, any mix) a board of this level can have.</summary>
+        public int CombatCap(int boardLevel) => Board(boardLevel).CombatCap;
+
+        /// <summary>Workers (everyone else) a board of this level can have.</summary>
+        public int WorkerCap(int boardLevel) => Board(boardLevel).WorkerCap;
+
+        /// <summary>The cap of the job's kind.</summary>
+        public int Cap(int boardLevel, JobType job) => job.IsCombat() ? CombatCap(boardLevel) : WorkerCap(boardLevel);
+
+        /// <summary>Most of this job per board; 0 = no limit beyond the cap.</summary>
+        public int MaxPerBoard(JobType job) => Job(job).MaxPerBoard;
 
         /// <summary>Largest contract work radius, which is also how far the board's hirelings roam.</summary>
         public float MaxWorkRadius(int boardLevel) => Board(boardLevel).MaxWorkRadius;

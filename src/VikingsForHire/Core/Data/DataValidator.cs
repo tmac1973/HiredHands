@@ -18,7 +18,7 @@ namespace VikingsForHire.Core.Data
             CheckSequence(errors, "boardLevels", data.BoardLevels.Select(b => b.Level).ToList(), Levels);
             foreach (BoardLevelData b in data.BoardLevels)
             {
-                if (b.HirelingCap < 0) errors.Add($"boardLevels[{b.Level}].hirelingCap is negative");
+                if (b.CombatCap < 0 || b.WorkerCap < 0) errors.Add($"boardLevels[{b.Level}]: combatCap and workerCap must be 0 or more");
                 if (b.MaxWorkRadius <= 0) errors.Add($"boardLevels[{b.Level}].maxWorkRadius must be > 0");
                 CheckCost(errors, $"boardLevels[{b.Level}].cost", b.Cost);
             }
@@ -46,6 +46,7 @@ namespace VikingsForHire.Core.Data
                     continue;
                 }
                 if (j.CostMult < 0 || j.WorkerCombatFactor < 0) errors.Add($"jobs.{job} has a negative multiplier");
+                if (j.MaxPerBoard < 0) errors.Add($"jobs.{job}.maxPerBoard must be 0 (no limit) or more");
                 if (j.MinBoardLevel < 1 || j.MinBoardLevel > Levels) errors.Add($"jobs.{job}.minBoardLevel must be 1-{Levels}");
                 if (j.WorkRadiusMultiplier <= 0) errors.Add($"jobs.{job}.workRadiusMultiplier must be > 0");
                 CheckSequence(errors, $"jobs.{job}.gear", j.Gear.Select(g => g.Level).ToList(), Levels);

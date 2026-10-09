@@ -62,7 +62,7 @@ namespace VikingsForHire.UI
         /// <summary>The three things a level changes, "now → next". Returns the y below the last line.</summary>
         private static float Benefits(RectTransform root, LevelRules rules, int level, int next, float y)
         {
-            Line(root, "$vfh_upgrade_cap", rules.HirelingCap(level), rules.HirelingCap(next), ref y);
+            Line(root, "$vfh_upgrade_cap", rules.CombatCap(level) + rules.WorkerCap(level), rules.CombatCap(next) + rules.WorkerCap(next), ref y);
             Line(root, "$vfh_upgrade_maxlevel", rules.MaxHirelingLevel(level), rules.MaxHirelingLevel(next), ref y);
             Line(root, "$vfh_upgrade_radius", rules.MaxWorkRadius(level), rules.MaxWorkRadius(next), ref y);
             return y;

@@ -38,7 +38,14 @@ namespace VikingsForHire.Core.Data
         [YamlMember(Description = "Item prefab name -> amount.")]
         public Dictionary<string, int> Cost { get; set; } = new();
 
+        [YamlMember(Description = "Not used since 0.7.0: combatCap and workerCap replace it (kept so older files still load).")]
         public int HirelingCap { get; set; }
+
+        [YamlMember(Description = "Combat hirelings (guards, any mix) this board level can have.")]
+        public int CombatCap { get; set; }
+
+        [YamlMember(Description = "Workers (everyone who isn't a guard) this board level can have; each job also has its own maxPerBoard.")]
+        public int WorkerCap { get; set; }
 
         [YamlMember(Description = "Largest work radius (m) a contract may use; also how far hirelings roam from the board.")]
         public float MaxWorkRadius { get; set; }
@@ -104,6 +111,9 @@ namespace VikingsForHire.Core.Data
 
         [YamlMember(Description = "Lowest board level that can post this job (e.g. 2 for miners: no pickaxe before Eikthyr).")]
         public int MinBoardLevel { get; set; } = 1;
+
+        [YamlMember(Description = "Most of this job one board can have (0 = no limit beyond the board's combat or worker cap). A contract on its way out doesn't count.")]
+        public int MaxPerBoard { get; set; }
 
         [YamlMember(Description = "Multiplier on the board level's maxWorkRadius for this job. Gatherers use a bigger area so they don't strip it in a few days. Ground much more than 100-120 m from the nearest player isn't loaded, so radii past that have no effect.")]
         public float WorkRadiusMultiplier { get; set; } = 1f;

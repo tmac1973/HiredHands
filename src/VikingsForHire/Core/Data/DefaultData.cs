@@ -10,14 +10,14 @@ namespace VikingsForHire.Core.Data
         {
             BoardLevels = new List<BoardLevelData>
             {
-                Board(1, 2, 20, ("Wood", 40), ("Stone", 20), ("DeerHide", 10), ("LeatherScraps", 10), ("Resin", 10)),
-                Board(2, 3, 25, ("TrophyEikthyr", 1), ("HardAntler", 3), ("DeerHide", 20), ("Flint", 20), ("Wood", 50)),
-                Board(3, 4, 30, ("TrophyTheElder", 1), ("Bronze", 10), ("RoundLog", 40), ("TrollHide", 5), ("GreydwarfEye", 20)),
-                Board(4, 5, 35, ("TrophyBonemass", 1), ("Iron", 20), ("ElderBark", 40), ("Guck", 10), ("WitheredBone", 10)),
-                Board(5, 6, 40, ("TrophyDragonQueen", 1), ("Silver", 20), ("DragonTear", 5), ("WolfPelt", 10), ("Obsidian", 20)),
-                Board(6, 7, 45, ("TrophyGoblinKing", 1), ("BlackMetal", 20), ("LinenThread", 20), ("Needle", 20), ("LoxPelt", 5)),
-                Board(7, 8, 50, ("TrophySeekerQueen", 1), ("BlackCore", 3), ("Eitr", 15), ("YggdrasilWood", 40), ("Carapace", 20)),
-                Board(8, 10, 60, ("TrophyFader", 1), ("FlametalNew", 20), ("Blackwood", 40), ("AskHide", 10), ("MoltenCore", 3)),
+                Board(1, 2, 1, 2, 20, ("Wood", 40), ("Stone", 20), ("DeerHide", 10), ("LeatherScraps", 10), ("Resin", 10)),
+                Board(2, 3, 1, 4, 25, ("TrophyEikthyr", 1), ("HardAntler", 3), ("DeerHide", 20), ("Flint", 20), ("Wood", 50)),
+                Board(3, 4, 2, 6, 30, ("TrophyTheElder", 1), ("Bronze", 10), ("RoundLog", 40), ("TrollHide", 5), ("GreydwarfEye", 20)),
+                Board(4, 5, 2, 8, 35, ("TrophyBonemass", 1), ("Iron", 20), ("ElderBark", 40), ("Guck", 10), ("WitheredBone", 10)),
+                Board(5, 6, 3, 8, 40, ("TrophyDragonQueen", 1), ("Silver", 20), ("DragonTear", 5), ("WolfPelt", 10), ("Obsidian", 20)),
+                Board(6, 7, 3, 8, 45, ("TrophyGoblinKing", 1), ("BlackMetal", 20), ("LinenThread", 20), ("Needle", 20), ("LoxPelt", 5)),
+                Board(7, 8, 4, 8, 50, ("TrophySeekerQueen", 1), ("BlackCore", 3), ("Eitr", 15), ("YggdrasilWood", 40), ("Carapace", 20)),
+                Board(8, 10, 4, 8, 60, ("TrophyFader", 1), ("FlametalNew", 20), ("Blackwood", 40), ("AskHide", 10), ("MoltenCore", 3)),
             },
             // Hiring is paid in coins and upkeep in food. Coins are scarce (the trader, dungeon chests), so they're a
             // one-time cost (hiring, promoting, respawning); daily coin upkeep added up to hundreds of coins an hour. Level
@@ -48,6 +48,7 @@ namespace VikingsForHire.Core.Data
             {
                 [JobType.Woodcutter] = new()
                 {
+                    MaxPerBoard = 2,
                     CostMult = 1.0f,
                     WorkRadiusMultiplier = 2f,
                     WorkerCombatFactor = 0.4f,
@@ -58,6 +59,7 @@ namespace VikingsForHire.Core.Data
                 },
                 [JobType.Miner] = new()
                 {
+                    MaxPerBoard = 2,
                     CostMult = 1.1f,
                     MinBoardLevel = 2,
                     WorkRadiusMultiplier = 2f,
@@ -71,6 +73,7 @@ namespace VikingsForHire.Core.Data
                 },
                 [JobType.Smelter] = new()
                 {
+                    MaxPerBoard = 1,
                     CostMult = 0.9f,
                     WorkerCombatFactor = 0.3f,
                     Gear = Mains("VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom"),
@@ -90,6 +93,7 @@ namespace VikingsForHire.Core.Data
                 },
                 [JobType.Farmer] = new()
                 {
+                    MaxPerBoard = 1,
                     CostMult = 0.9f,
                     WorkerCombatFactor = 0.3f,
                     MinBoardLevel = 2,
@@ -109,6 +113,7 @@ namespace VikingsForHire.Core.Data
                 },
                 [JobType.Cook] = new()
                 {
+                    MaxPerBoard = 1,
                     CostMult = 0.9f,
                     WorkerCombatFactor = 0.3f,
                     MinBoardLevel = 2,
@@ -182,8 +187,9 @@ namespace VikingsForHire.Core.Data
             },
         };
 
-        private static BoardLevelData Board(int level, int cap, float radius, params (string Item, int Amount)[] cost) =>
-            new() { Level = level, HirelingCap = cap, MaxWorkRadius = radius, Cost = cost.ToDictionary(c => c.Item, c => c.Amount) };
+        // cap: the old shared hirelingCap, still written (unused) so the file reads the same; combat and worker caps since 0.7.0.
+        private static BoardLevelData Board(int level, int cap, int combatCap, int workerCap, float radius, params (string Item, int Amount)[] cost) =>
+            new() { Level = level, HirelingCap = cap, CombatCap = combatCap, WorkerCap = workerCap, MaxWorkRadius = radius, Cost = cost.ToDictionary(c => c.Item, c => c.Amount) };
 
         private static HirelingLevelData Hireling(int level, float health, float armor, float guardMult, float gatherMult, int slots,
             int hireFood, int hireCoins, int upkeepFood, int upkeepCoins) => new()

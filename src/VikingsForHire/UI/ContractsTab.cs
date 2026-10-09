@@ -48,8 +48,10 @@ namespace VikingsForHire.UI
             Cost fee = costs.HireCost(job, _level);
             Cost upkeep = costs.DailyUpkeep(job, _level);
             Cost funds = board.Inventory != null ? BoardStorage.Totals(board.Inventory) : Cost.Zero;
-            int count = board.Zdo != null ? BoardRosterOps.Read(board.Zdo).Count : 0;
-            int cap = rules.HirelingCap(board.Level);
+            Roster roster = board.Zdo != null ? BoardRosterOps.Read(board.Zdo) : new Roster();
+            int count = roster.Count;
+            int cap = rules.CombatCap(board.Level) + rules.WorkerCap(board.Level);
+            bool canPost = roster.CanPost(job, rules, board.Level) == OpOutcome.Ok;
             bool affordable = fee.CoveredBy(funds);
             bool unlocked = rules.JobUnlocked(board.Level, job);
 
@@ -57,11 +59,11 @@ namespace VikingsForHire.UI
             PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_upkeep") + "  " + Price(upkeep), 0f, -365f, 600f, 18);
             PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_funds") + "  " + $"{funds.FoodPoints} {Localization.instance.Localize("$vfh_food_points")} + {funds.Coins} {Localization.instance.Localize("$vfh_coins")}", 0f, -395f, 600f, 18, color: PanelUi.Dim);
             PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_count") + $"  {count} / {cap}", 0f, -425f, 600f, 18,
-                color: count < cap ? PanelUi.Dim : PanelUi.Bad);
+                color: canPost ? PanelUi.Dim : PanelUi.Bad);
 
             Button post = PanelUi.Button(root, "$vfh_contract_post", 0f, -475f, 240f, 44f,
                 () => BoardContracts.Post(board, job, _level, _radius, stance));
-            post.interactable = affordable && count < cap && unlocked;
+            post.interactable = affordable && canPost && unlocked;
             if (!unlocked)
                 PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_job_locked", rules.MinBoardLevel(job).ToString()), 0f, -515f, 600f, 18, color: PanelUi.Bad);
         }

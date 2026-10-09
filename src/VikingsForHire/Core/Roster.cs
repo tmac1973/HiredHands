@@ -14,13 +14,18 @@ namespace VikingsForHire.Core
     public enum OpOutcome
     {
         Ok,
+        /// <summary>Not used since 0.7.0 (CombatCapReached and WorkerCapReached replace it).</summary>
         CapReached,
         NotFound,
         WrongState,
         InsufficientFunds,
         BadLevel,
         BadValue,
+        /// <summary>Not used since 0.7.0 (JobLimitReached replaces it).</summary>
         JobTaken,
+        CombatCapReached,
+        WorkerCapReached,
+        JobLimitReached,
     }
 
     /// <summary>One contract on a board: a hireling that's coming, working or on its way out.</summary>
@@ -150,25 +155,46 @@ namespace VikingsForHire.Core
         /// <summary>Everyone counts against the cap until they've actually gone.</summary>
         public int Count => Entries.Count;
 
-        public bool HasRoom(int cap) => Count < cap;
 
         public ContractEntry? ByHid(string hid) => hid.Length == 0 ? null : Entries.FirstOrDefault(e => e.Hid == hid);
 
         public ContractEntry? ByContract(string id) => Entries.FirstOrDefault(e => e.ContractId == id);
 
-        /// <summary>A one-per-board job (Farmer, Cook) that already has a contract here that isn't on its way out.</summary>
-        public bool JobTaken(JobType job) =>
-            job.OnePerBoard() && Entries.Any(e => e.Job == job && e.State != ContractState.Leaving);
+        /// <summary>Contracts of a kind (combat or worker): all of them count until they've actually gone.</summary>
+        public int KindCount(bool combat) => Entries.Count(e => e.Job.IsCombat() == combat);
 
-        public OpOutcome Post(ContractEntry entry, int cap)
+        /// <summary>Contracts of a job that aren't on their way out (a replacement can be hired while one walks off).</summary>
+        public int JobCount(JobType job) => Entries.Count(e => e.Job == job && e.State != ContractState.Leaving);
+
+        /// <summary>
+        /// Whether this board may post the job: its kind's cap first, then the job's own limit. A board already over a cap
+        /// (an older world, or a lowered setting) keeps its hirelings; only new contracts of that kind are refused.
+        /// </summary>
+        public OpOutcome CanPost(JobType job, LevelRules rules, int boardLevel)
         {
-            if (JobTaken(entry.Job))
-                return OpOutcome.JobTaken;
-            if (!HasRoom(cap))
-                return OpOutcome.CapReached;
+            bool combat = job.IsCombat();
+            if (KindCount(combat) >= rules.Cap(boardLevel, job))
+                return combat ? OpOutcome.CombatCapReached : OpOutcome.WorkerCapReached;
+            int max = rules.MaxPerBoard(job);
+            if (max > 0 && JobCount(job) >= max)
+                return OpOutcome.JobLimitReached;
+            return OpOutcome.Ok;
+        }
+
+        public OpOutcome Post(ContractEntry entry, LevelRules rules, int boardLevel)
+        {
+            OpOutcome can = CanPost(entry.Job, rules, boardLevel);
+            if (can != OpOutcome.Ok)
+                return can;
+            Add(entry);
+            return OpOutcome.Ok;
+        }
+
+        /// <summary>Adds a pending contract with no checks (callers check with <see cref="CanPost"/> first).</summary>
+        public void Add(ContractEntry entry)
+        {
             entry.State = ContractState.Pending;
             Entries.Add(entry);
-            return OpOutcome.Ok;
         }
 
         public OpOutcome Activate(string contractId, string hid)

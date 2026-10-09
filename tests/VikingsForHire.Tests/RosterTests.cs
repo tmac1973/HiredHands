@@ -17,44 +17,80 @@ namespace VikingsForHire.Tests
             var r = new Roster();
             foreach (string id in ids)
             {
-                r.Post(Entry(id), 99);
+                r.Add(Entry(id));
                 r.Activate(id, "h" + id);
             }
             return r;
         }
 
+        private static readonly LevelRules Rules = new(VikingsForHire.Core.Data.DefaultData.Create());
+
         [Fact]
-        public void PostRespectsCapIncludingPendingAndLeaving()
+        public void CombatCapAnyMix()
         {
-            var r = WithActive("a");
-            r.Dismiss("ha");
-            Assert.Equal(OpOutcome.Ok, r.Post(Entry("b"), 2));
-            Assert.Equal(OpOutcome.CapReached, r.Post(Entry("c"), 2));
-            Assert.Equal(2, r.Count);
+            var r = new Roster();
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("g1", JobType.GuardMelee), Rules, 1));
+            Assert.Equal(OpOutcome.CombatCapReached, r.Post(Entry("g2", JobType.GuardRanged), Rules, 1));
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("g3", JobType.GuardRanged), Rules, 3)); // level 3: 2 combat, any mix
+            Assert.Equal(OpOutcome.CombatCapReached, r.Post(Entry("g4", JobType.GuardMelee), Rules, 3));
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("w1"), Rules, 1)); // workers have their own cap
+        }
+
+        [Fact]
+        public void WorkerCapCountsPendingAndLeaving()
+        {
+            var r = new Roster();
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("w1"), Rules, 1));
+            r.Activate("w1", "hw1");
+            r.Dismiss("hw1"); // on its way out: still counts against the cap
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("s1", JobType.Smelter), Rules, 1));
+            Assert.Equal(OpOutcome.WorkerCapReached, r.Post(Entry("w2"), Rules, 1));
             Assert.Equal(1, r.Pending);
             Assert.Equal(1, r.Leaving);
+        }
+
+        [Fact]
+        public void JobLimitsInsideTheWorkerCap()
+        {
+            var r = new Roster();
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("w1"), Rules, 3));
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("w2"), Rules, 3));
+            Assert.Equal(OpOutcome.JobLimitReached, r.Post(Entry("w3"), Rules, 3)); // room in the cap (6), not for a 3rd woodcutter
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("s1", JobType.Smelter), Rules, 3));
+            Assert.Equal(OpOutcome.JobLimitReached, r.Post(Entry("s2", JobType.Smelter), Rules, 3));
         }
 
         [Fact]
         public void OneFarmerAndOneCookPerBoard()
         {
             var r = new Roster();
-            Assert.Equal(OpOutcome.Ok, r.Post(Entry("f1", JobType.Farmer), 9));
-            Assert.Equal(OpOutcome.JobTaken, r.Post(Entry("f2", JobType.Farmer), 9)); // a pending one counts
-            Assert.Equal(OpOutcome.Ok, r.Post(Entry("c1", JobType.Cook), 9));
-            Assert.Equal(OpOutcome.Ok, r.Post(Entry("w1"), 9));
-            Assert.Equal(OpOutcome.Ok, r.Post(Entry("w2"), 9)); // other jobs aren't limited
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("f1", JobType.Farmer), Rules, 4));
+            Assert.Equal(OpOutcome.JobLimitReached, r.Post(Entry("f2", JobType.Farmer), Rules, 4)); // a pending one counts
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("c1", JobType.Cook), Rules, 4));
             r.Activate("f1", "hf1");
-            Assert.Equal(OpOutcome.JobTaken, r.Post(Entry("f3", JobType.Farmer), 9));
+            Assert.Equal(OpOutcome.JobLimitReached, r.Post(Entry("f3", JobType.Farmer), Rules, 4));
             r.Dismiss("hf1");
-            Assert.Equal(OpOutcome.Ok, r.Post(Entry("f4", JobType.Farmer), 9)); // one on its way out doesn't
+            Assert.Equal(OpOutcome.Ok, r.Post(Entry("f4", JobType.Farmer), Rules, 4)); // one on its way out doesn't
+            Assert.Equal(3, r.KindCount(false)); // f1 (leaving), c1, f4: the one on its way out still counts against the worker cap
+        }
+
+        [Fact]
+        public void OverTheCapKeepsWhatItHasAndRefusesNew()
+        {
+            var r = new Roster();
+            for (int i = 0; i < 3; i++)
+                r.Add(Entry("g" + i, JobType.GuardMelee)); // an older world: 3 guards at level 1
+            Assert.Equal(3, r.KindCount(true));
+            Assert.Equal(OpOutcome.CombatCapReached, r.CanPost(JobType.GuardRanged, Rules, 1));
+            Assert.Equal(OpOutcome.Ok, r.CanPost(JobType.Woodcutter, Rules, 1));
+            Assert.Equal(3, r.Count); // nobody removed
         }
 
         [Fact]
         public void ActivateMovesPendingToActive()
         {
             var r = new Roster();
-            r.Post(Entry("a"), 5);
+            r.Add(Entry("a"));
             Assert.Equal(OpOutcome.Ok, r.Activate("a", "hid1"));
             Assert.Equal(ContractState.Active, r.ByHid("hid1")!.State);
             Assert.Equal(OpOutcome.WrongState, r.Activate("a", "hid1"));
@@ -65,7 +101,7 @@ namespace VikingsForHire.Tests
         public void CancelOnlyPendingAndReturnsPayment()
         {
             var r = WithActive("a");
-            r.Post(Entry("b"), 5);
+            r.Add(Entry("b"));
             Assert.Null(r.CancelPending("a"));
             ContractEntry? cancelled = r.CancelPending("b");
             Assert.NotNull(cancelled);
@@ -139,7 +175,7 @@ namespace VikingsForHire.Tests
         public void RosterRoundTrip()
         {
             var r = WithActive("a");
-            r.Post(Entry("b", JobType.GuardRanged, 4), 9);
+            r.Add(Entry("b", JobType.GuardRanged, 4));
             r.ByContract("b")!.ArriveAt = 1234.5;
             var w = new W();
             r.Write(w);
@@ -201,7 +237,7 @@ namespace VikingsForHire.Tests
         public void PostsRoundTripForAnyJob()
         {
             var r = WithActive("a", "b");
-            r.Post(Entry("g", JobType.GuardRanged, 3), 9);
+            r.Add(Entry("g", JobType.GuardRanged, 3));
             r.Activate("g", "hg");
             // A worker can be posted too (it waits there when it has no work).
             Assert.Equal(OpOutcome.Ok, r.SetPost("ha", new GuardPost { X = 1 }));

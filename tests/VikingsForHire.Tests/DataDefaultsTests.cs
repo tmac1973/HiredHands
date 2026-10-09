@@ -22,6 +22,22 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void OlderFilesGetTheSplitCaps()
+        {
+            // A 0.6 file: no combatCap / workerCap per board level, no maxPerBoard per job.
+            string yaml = System.Text.RegularExpressions.Regex.Replace(DataYaml.Serialize(DefaultData.Create()),
+                @"^\s*(combatCap|workerCap|maxPerBoard):.*\n", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+            Assert.DoesNotContain("workerCap:", yaml);
+            VfhData data = DataYaml.Deserialize(yaml, out var filled);
+            Assert.Equal(2, data.BoardLevels[2].CombatCap);
+            Assert.Equal(6, data.BoardLevels[2].WorkerCap);
+            Assert.Equal(2, data.Jobs[JobType.Woodcutter].MaxPerBoard);
+            Assert.Equal(1, data.Jobs[JobType.Smelter].MaxPerBoard);
+            Assert.Contains("boardLevels[2].workerCap", filled);
+            Assert.Empty(DataValidator.Validate(data));
+        }
+
+        [Fact]
         public void TheWoodReserveReachesOlderFiles()
         {
             string full = DataYaml.Serialize(DefaultData.Create());

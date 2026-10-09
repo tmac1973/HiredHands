@@ -19,9 +19,32 @@ namespace VikingsForHire.Tests
         [Fact]
         public void CapsAndRadius()
         {
-            Assert.Equal(2, _rules.HirelingCap(1));
-            Assert.Equal(10, _rules.HirelingCap(8));
+            int[] combat = { 1, 1, 2, 2, 3, 3, 4, 4 }, workers = { 2, 4, 6, 8, 8, 8, 8, 8 };
+            for (int level = 1; level <= 8; level++)
+            {
+                Assert.Equal(combat[level - 1], _rules.CombatCap(level));
+                Assert.Equal(workers[level - 1], _rules.WorkerCap(level));
+            }
+            Assert.Equal(_rules.CombatCap(5), _rules.Cap(5, JobType.GuardRanged));
+            Assert.Equal(_rules.WorkerCap(5), _rules.Cap(5, JobType.Cook));
             Assert.Equal(60f, _rules.MaxWorkRadius(8));
+        }
+
+        [Fact]
+        public void JobKindsAndLimits()
+        {
+            foreach (JobType job in new[] { JobType.GuardMelee, JobType.GuardRanged })
+            {
+                Assert.True(job.IsCombat());
+                Assert.Equal(0, _rules.MaxPerBoard(job)); // any mix within the combat cap
+            }
+            foreach (JobType job in new[] { JobType.Woodcutter, JobType.Miner, JobType.Smelter, JobType.Farmer, JobType.Cook })
+                Assert.False(job.IsCombat());
+            Assert.Equal(2, _rules.MaxPerBoard(JobType.Woodcutter));
+            Assert.Equal(2, _rules.MaxPerBoard(JobType.Miner));
+            Assert.Equal(1, _rules.MaxPerBoard(JobType.Smelter));
+            Assert.Equal(1, _rules.MaxPerBoard(JobType.Farmer));
+            Assert.Equal(1, _rules.MaxPerBoard(JobType.Cook));
         }
 
         [Fact]
