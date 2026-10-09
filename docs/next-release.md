@@ -14,8 +14,11 @@ Plan: `plan/split-caps/overview.md` (combat and worker caps per board level, per
 
 | 49c1787 | Caps 2/4: a refused contract says which limit is full, with the numbers ("Combat hirelings: 1/1 at this board level", "Woodcutter: 2/2 per board"), in each player's language; `contract.refused` log; test fixture `caps`, check `cap_counts`, rows VFH-CAP-1..4, VFH-CON-2 rewritten | the board owner's machine; the message on the player's |
 | ccc76c6 | Caps 3/4: Contracts tab shows "Combat 1/2 · Workers 3/6 · Woodcutter 1/2" (red when the chosen job can't be posted, with the reason under the button); Upgrade tab shows "Workers: 2 → 4 · Combat hirelings: 1" | your game |
+| 61de7c4 | Death mode: `DeathMode` = Permadeath / PayToRespawn / ReturnAfterDays (new default: back by itself, free, after `ReturnAfterDays` in-game days, 3); replaces `PermadeathEnabled` (on → Permadeath, off → PayToRespawn, on first start); death message says when it'll be back; Roster tab counts down in days | the board owner's machine |
 
 ### To test (batch)
+- [ ] Macro (single player, not yet run: the game is in use): `vfh_test_chain death1 death2 death3 death4`, all pass; the dev profile's cfg had `PermadeathEnabled = true` and should now read `DeathMode = Permadeath` with the old line gone.
+- [ ] By hand: in ReturnAfterDays a hireling dies: "… has died, and will be back at the board in 3 days."; the Roster tab shows "Returning (3.0 days)" counting down, and sleeping moves it on by the night.
 - [x] Macro (single player, 2026-10-09): `vfh_test_chain con2 cap1 cap2 cap3 cap4`, all pass.
 - [x] Regression (2026-10-09, 36 rows: contract-posting rows, nav, farm, cook, trees, passing, combat): 31 pass outright;
   DIS-1, BLOCK-1 pass on rerun (flaky), STN-5 is the known flaky one (the archer doesn't spot the Neck within 4 s).
