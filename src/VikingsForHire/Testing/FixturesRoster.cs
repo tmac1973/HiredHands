@@ -44,6 +44,12 @@ namespace VikingsForHire.Testing
             Fixtures.Add("skip_time", "<seconds> - move the world clock on (up to 1500 s, under a day so no upkeep is charged): stations, fermenters and beehives catch up as after sleeping", SkipTime);
             Fixtures.Add("skip_days", "<n> - advance the clock n days (like skiptime 1800) and let the board charge upkeep", SkipDays);
             Fixtures.Add("cfg_set", "<key> <value> - set a config value (stays set: put it back after the test)", CfgSet);
+            Fixtures.Add("caps", "<level> <combat> <workers> | reset - override a board level's caps in memory (single player tests); reset puts the loaded ones back", Caps);
+            TestHarness.RegisterCheck("cap_counts", "- the nearest board's contracts as combat/workers, e.g. 1/2", _ =>
+            {
+                Roster r = BoardRosterOps.Read(Board().Zdo!);
+                return $"{r.KindCount(true)}/{r.KindCount(false)}";
+            });
 
             TestHarness.RegisterCheck("roster", "<Pending|Active|Leaving|all> - contracts on the nearest board", args =>
             {
@@ -77,7 +83,7 @@ namespace VikingsForHire.Testing
                 string hid = sel == "last" ? BoardContracts.LastPostedHid : sel;
                 return BoardRosterOps.Read(Board().Zdo!).Entries.Any(x => x.Hid.StartsWith(hid, StringComparison.OrdinalIgnoreCase)) ? "false" : "true";
             });
-            TestHarness.RegisterCheck("last_op", "- outcome of the last contract op: Ok, CapReached, InsufficientFunds…", _ => BoardContracts.LastOutcome);
+            TestHarness.RegisterCheck("last_op", "- outcome of the last contract op: Ok, CombatCapReached, WorkerCapReached, JobLimitReached, InsufficientFunds…", _ => BoardContracts.LastOutcome);
             TestHarness.RegisterCheck("last_upkeep_day", "- the day the nearest board last charged upkeep", _ => Board().Zdo!.GetInt(BoardZdo.LastUpkeepDay).ToString());
             TestHarness.RegisterCheck("today", "- the current in-game day", _ => EnvMan.instance.GetDay().ToString());
             TestHarness.RegisterCheck("upkeep_charged_today", "- true when the nearest board has charged today's upkeep",
@@ -102,6 +108,30 @@ namespace VikingsForHire.Testing
                     _ => throw new ArgumentException("unknown field"),
                 };
             });
+        }
+
+        private static readonly System.Collections.Generic.Dictionary<int, (int Combat, int Workers)> SavedCaps = new();
+
+        private static IEnumerator Caps(string[] args)
+        {
+            var levels = DataStore.Current.BoardLevels;
+            if (args.ElementAtOrDefault(0) == "reset")
+            {
+                foreach (var b in levels)
+                    if (SavedCaps.TryGetValue(b.Level, out var c))
+                        (b.CombatCap, b.WorkerCap) = c;
+                SavedCaps.Clear();
+                VfhLog.I(LogCat.Test, "fixture.caps", ("reset", true));
+                yield break;
+            }
+            int level = int.Parse(args.ElementAtOrDefault(0) ?? "1", CultureInfo.InvariantCulture);
+            var data = levels.First(b => b.Level == level);
+            if (!SavedCaps.ContainsKey(level))
+                SavedCaps[level] = (data.CombatCap, data.WorkerCap);
+            data.CombatCap = int.Parse(args.ElementAtOrDefault(1) ?? "1", CultureInfo.InvariantCulture);
+            data.WorkerCap = int.Parse(args.ElementAtOrDefault(2) ?? "2", CultureInfo.InvariantCulture);
+            VfhLog.I(LogCat.Test, "fixture.caps", ("level", level), ("combat", data.CombatCap), ("workers", data.WorkerCap));
+            yield return null;
         }
 
         private static HiringBoard Board() =>

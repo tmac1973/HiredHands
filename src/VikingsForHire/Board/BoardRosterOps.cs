@@ -56,7 +56,12 @@ namespace VikingsForHire.Board
                         return Done(zdo, null, boardId, op, new OpResult(OpOutcome.BadLevel, "$vfh_op_job_locked"));
                     OpOutcome can = roster.CanPost(op.Job, rules, boardLevel);
                     if (can != OpOutcome.Ok)
-                        return Done(zdo, null, boardId, op, new OpResult(can, "$vfh_op_cap"));
+                    {
+                        VfhLog.I(LogCat.Roster, "contract.refused", ("board", boardId), ("job", op.Job), ("why", can),
+                            ("combat", $"{roster.KindCount(true)}/{rules.CombatCap(boardLevel)}"), ("workers", $"{roster.KindCount(false)}/{rules.WorkerCap(boardLevel)}"),
+                            ("jobCount", $"{roster.JobCount(op.Job)}/{rules.MaxPerBoard(op.Job)}"));
+                        return Done(zdo, null, boardId, op, new OpResult(can, RefusalMessage(can, op.Job, roster, rules, boardLevel)));
+                    }
                     var wallet = new BoardLedger.Wallet(zdo);
                     string paid = "";
                     if (!op.Free && !BoardLedger.TryPay(wallet, costs.HireCost(op.Job, op.Level), out paid))
@@ -236,5 +241,17 @@ namespace VikingsForHire.Board
                 VfhLog.I(LogCat.Roster, "contract.rejected", ("board", boardId), ("op", op.Type), ("hid", op.Hid), ("outcome", result.Outcome));
             return result;
         }
+
+        /// <summary>
+        /// Which limit a refused contract hit, with the numbers, as "$key|arg|arg…": each client fills the arguments in
+        /// its own language (BoardContracts.Text). Job names travel as their $vfh_job_ key.
+        /// </summary>
+        public static string RefusalMessage(OpOutcome why, JobType job, Roster roster, LevelRules rules, int boardLevel) => why switch
+        {
+            OpOutcome.CombatCapReached => $"$vfh_op_cap_combat|{roster.KindCount(true)}|{rules.CombatCap(boardLevel)}",
+            OpOutcome.WorkerCapReached => $"$vfh_op_cap_workers|{roster.KindCount(false)}|{rules.WorkerCap(boardLevel)}",
+            OpOutcome.JobLimitReached => $"$vfh_op_job_limit|$vfh_job_{job.ToString().ToLowerInvariant()}|{roster.JobCount(job)}|{rules.MaxPerBoard(job)}",
+            _ => "",
+        };
     }
 }

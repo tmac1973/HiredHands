@@ -63,8 +63,20 @@ namespace VikingsForHire.Board
         {
             LastOutcome = r.Outcome.ToString();
             if (r.Message.Length > 0)
-                Player.m_localPlayer?.Message(MessageHud.MessageType.Center, r.Message);
+                Player.m_localPlayer?.Message(MessageHud.MessageType.Center, Text(r.Message));
             done?.Invoke(r);
+        }
+
+        /// <summary>A message in this player's language: a "$key", or "$key|arg|…" with its arguments ($keys among them localised too).</summary>
+        public static string Text(string message)
+        {
+            if (message.IndexOf('|') < 0)
+                return Localization.instance.Localize(message);
+            string[] parts = message.Split('|');
+            string[] args = new string[parts.Length - 1];
+            for (int i = 1; i < parts.Length; i++)
+                args[i - 1] = parts[i].StartsWith("$") ? Localization.instance.Localize(parts[i]) : parts[i];
+            return Localization.instance.Localize(parts[0], args);
         }
     }
 }
