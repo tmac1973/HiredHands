@@ -15,6 +15,7 @@ Plan: `plan/split-caps/overview.md` (combat and worker caps per board level, per
 | 49c1787 | Caps 2/4: a refused contract says which limit is full, with the numbers ("Combat hirelings: 1/1 at this board level", "Woodcutter: 2/2 per board"), in each player's language; `contract.refused` log; test fixture `caps`, check `cap_counts`, rows VFH-CAP-1..4, VFH-CON-2 rewritten | the board owner's machine; the message on the player's |
 | ccc76c6 | Caps 3/4: Contracts tab shows "Combat 1/2 · Workers 3/6 · Woodcutter 1/2" (red when the chosen job can't be posted, with the reason under the button); Upgrade tab shows "Workers: 2 → 4 · Combat hirelings: 1" | your game |
 | 61de7c4 | Death mode: `DeathMode` = Permadeath / PayToRespawn / ReturnAfterDays (new default: back by itself, free, after `ReturnAfterDays` in-game days, 3); replaces `PermadeathEnabled` (on → Permadeath, off → PayToRespawn, on first start); death message says when it'll be back; Roster tab counts down in days | the board owner's machine |
+| 23b6f8e | Stale rows: VFH-HIRE-4 rewritten for the cargo weight limit (feathers fill the 8 slots; wood stops at 3 stacks, 300 weight; new `hireling … cargo_weight` field); VFH-HIRE-5's snapshot round trip ignores the animator's movement floats (`forward_speed`, `turn_speed`, `sideway_speed`, ZDO keys -1489121593 and -1488745797), which differ whenever the hireling was walking or turning when snapshotted | tests |
 
 ### To test (batch)
 - [ ] Macro (single player, not yet run: the game is in use): `vfh_test_chain death1 death2 death3 death4`, all pass; the dev profile's cfg had `PermadeathEnabled = true` and should now read `DeathMode = Permadeath` with the old line gone.
@@ -25,6 +26,7 @@ Plan: `plan/split-caps/overview.md` (combat and worker caps per board level, per
   HIRE-4 and HIRE-5 fail every time but don't post contracts and last passed on 2026-10-03 (0.1.x): HIRE-4 predates the
   cargo weight limit (20 stacks of wood stop at 3 slots: the weight limit, as intended), HIRE-5's snapshot round trip
   differs in two of the game's own ZDO floats. Old stale rows, not 0.7.0; left for a separate look.
+- [x] Macro (single player, 2026-10-09): `vfh_test_chain hire4 hire5 hire4 hire5`, all pass (rows fixed above); feathers 8 of 20 stacks in, wood 3 of 20, round trip 47 values equal.
 - [ ] By hand: a level 1 board's Contracts tab with Woodcutter chosen reads "Combat 0/1 · Workers 0/2 · Woodcutter 0/2"; with a guard chosen "Combat 0/1 · Workers 0/2". Post a guard, choose a guard again: the line is red, Post is greyed out, and the reason reads "Combat hirelings: 1/1 at this board level. Upgrade the board for more".
 - [ ] By hand: the Upgrade tab at level 1 reads "Workers: 2 → 4 · Combat hirelings: 1", and the materials list doesn't run into the Upgrade button (a level with five materials).
 - [ ] By hand (dedicated server): a refused contract shows its message for a client too.

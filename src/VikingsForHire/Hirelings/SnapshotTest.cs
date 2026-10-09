@@ -18,8 +18,14 @@ namespace VikingsForHire.Hirelings
 
         // Values that legitimately differ on a fresh instance (physics sync) are left out of the comparison.
         // Health is compared as the character's actual health instead: Character drops the stored value when it's full.
+        // So are the movement values ZSyncAnimation syncs for the animator (stored under the animator hash + 438569): a
+        // hireling turning or walking when it's snapshotted reads differently once it stands still again.
         private static readonly HashSet<int> Ignore = new[] { "vel", "body_vel", "body_avel", "BodyVelocity", "BodyAngularVelocity", "relPos", "relRot", "noise", "attachJoint", "health" }
-            .Select(n => n.GetStableHashCode()).ToHashSet();
+            .Select(n => n.GetStableHashCode())
+            .Concat(new[] { "forward_speed", "sideway_speed", "turn_speed" }.Select(n => AnimatorFloatKey + Animator.StringToHash(n)))
+            .ToHashSet();
+
+        private const int AnimatorFloatKey = 438569;
 
         public static IEnumerator Run(Hireling original)
         {
