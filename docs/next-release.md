@@ -18,7 +18,7 @@ Plan: `plan/split-caps/overview.md` (combat and worker caps per board level, per
 | 23b6f8e | Stale rows: VFH-HIRE-4 rewritten for the cargo weight limit (feathers fill the 8 slots; wood stops at 3 stacks, 300 weight; new `hireling … cargo_weight` field); VFH-HIRE-5's snapshot round trip ignores the animator's movement floats (`forward_speed`, `turn_speed`, `sideway_speed`, ZDO keys -1489121593 and -1488745797), which differ whenever the hireling was walking or turning when snapshotted | tests |
 
 ### To test (batch)
-- [ ] Macro (single player, not yet run: the game is in use): `vfh_test_chain death1 death2 death3 death4`, all pass; the dev profile's cfg had `PermadeathEnabled = true` and should now read `DeathMode = Permadeath` with the old line gone.
+- [x] Macro (single player, 2026-10-09, merged build 17d7695): `vfh_test_chain death1 death2 death3 death4 hire4 hire5 con2 cap1 cap3`, all pass. The dev profile's `PermadeathEnabled = true` became `DeathMode = Permadeath` on start (`config.migrated` logged) and the old line is gone.
 - [ ] By hand: in ReturnAfterDays a hireling dies: "… has died, and will be back at the board in 3 days."; the Roster tab shows "Returning (3.0 days)" counting down, and sleeping moves it on by the night.
 - [x] Macro (single player, 2026-10-09): `vfh_test_chain con2 cap1 cap2 cap3 cap4`, all pass.
 - [x] Regression (2026-10-09, 36 rows: contract-posting rows, nav, farm, cook, trees, passing, combat): 31 pass outright;
