@@ -194,7 +194,7 @@ A hireling that manages the base's farm animals (boars, wolves, lox, chickens…
 - Probably a board level 2+ job, one per board, chores on the existing chore loop. To decide: pens (keep animals inside
   walls?), what counts as "the herd" (tames inside the board's area?), and what it carries (a knife? a club?).
 
-## Separate caps for combat and non-combat hirelings (Tim's idea, 2026-10-08; scaling to work out)
+## Separate caps for combat and non-combat hirelings (done in 0.7.0: plan/split-caps/; combat 1,1,2,2,3,3,4,4, workers 2,4,6,8, per-job maxPerBoard)
 Today each board level has one `hirelingCap` (2, 3, 4, 5, 6, 7, 8, 10). Split it in two so a base can be **fully
 automated early** (workers) without an **army late** (combat):
 - `workerCap` grows quickly: e.g. level 1: 2, level 2: 4, then +1 or +2 a level.

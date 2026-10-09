@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.7.0
+
+- **Combat and worker caps.** A hiring board now has two caps instead of one:
+  - combat hirelings (guards, any mix): 1, 1, 2, 2, 3, 3, 4, 4 at board levels 1-8;
+  - workers: 2, 4, 6, 8, then 8.
+
+  Inside the workers there are at most 2 woodcutters, 2 miners, 1 Steward, 1 Farmer and 1 Cook per board. A base can
+  be fully worked from a level 4 board, while the fighting force stays small: before, the one cap went from 2 to 10
+  hirelings of any kind.
+- **Refusals say which limit is full,** with the numbers: "Combat hirelings: 1/1 at this board level",
+  "Woodcutter: 2/2 per board".
+- **The Contracts tab** shows "Combat 1/2 · Workers 3/6 · Woodcutter 1/2", and the Upgrade tab what the next level
+  adds.
+- **Existing boards keep their hirelings.** A board over the new caps (say 5 guards at level 6) keeps them; only new
+  contracts of that kind wait. The Steward is now one per board too: boards with two keep both.
+- **Data file:** `combatCap` and `workerCap` per board level and `maxPerBoard` per job are added to existing files
+  automatically (`hirelingCap` stays but is no longer used). 0.6 builds reject a file with them, so everyone moves to
+  0.7 together.
+
+**Update everyone together** (players and the server).
+
 ## 0.6.0
 
 - **Combat: blocking and dodging.** Hirelings now see attacks coming. Guards with shields raise them just before a swing lands and turn into arrows, rocks and spears; a well-timed block is a parry ("Parry!", the attacker staggers). Any hireling in a fight (guards, archers, workers) rolls out of the way of a hit that would take more than a quarter of its health, or of an explosion, with the player's roll (the hit misses), only towards safe ground. Higher levels see more, parry and dodge more and roll again sooner (`readChance`, `parryChance`, `dodgeChance`, `dodgeCooldown` in the levels table; older data files get them automatically). Server setting `CombatSkill` (Combat) picks how good they are: Off (the 0.5.0 fighting), Green, Trained (default) or Veteran.
