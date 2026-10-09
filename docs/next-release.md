@@ -16,7 +16,12 @@ Plan: `plan/split-caps/overview.md` (combat and worker caps per board level, per
 | ccc76c6 | Caps 3/4: Contracts tab shows "Combat 1/2 · Workers 3/6 · Woodcutter 1/2" (red when the chosen job can't be posted, with the reason under the button); Upgrade tab shows "Workers: 2 → 4 · Combat hirelings: 1" | your game |
 
 ### To test (batch)
-- [ ] Macro (single player, not yet run: the game wasn't free): `vfh_test_chain con2 cap1 cap2 cap3 cap4`, all pass.
+- [x] Macro (single player, 2026-10-09): `vfh_test_chain con2 cap1 cap2 cap3 cap4`, all pass.
+- [x] Regression (2026-10-09, 36 rows: contract-posting rows, nav, farm, cook, trees, passing, combat): 31 pass outright;
+  DIS-1, BLOCK-1 pass on rerun (flaky), STN-5 is the known flaky one (the archer doesn't spot the Neck within 4 s).
+  HIRE-4 and HIRE-5 fail every time but don't post contracts and last passed on 2026-10-03 (0.1.x): HIRE-4 predates the
+  cargo weight limit (20 stacks of wood stop at 3 slots: the weight limit, as intended), HIRE-5's snapshot round trip
+  differs in two of the game's own ZDO floats. Old stale rows, not 0.7.0; left for a separate look.
 - [ ] By hand: a level 1 board's Contracts tab with Woodcutter chosen reads "Combat 0/1 · Workers 0/2 · Woodcutter 0/2"; with a guard chosen "Combat 0/1 · Workers 0/2". Post a guard, choose a guard again: the line is red, Post is greyed out, and the reason reads "Combat hirelings: 1/1 at this board level. Upgrade the board for more".
 - [ ] By hand: the Upgrade tab at level 1 reads "Workers: 2 → 4 · Combat hirelings: 1", and the materials list doesn't run into the Upgrade button (a level with five materials).
 - [ ] By hand (dedicated server): a refused contract shows its message for a client too.
