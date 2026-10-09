@@ -18,7 +18,8 @@ namespace VikingsForHire.Config
 
         // 1 - General
         public static ConfigEntry<bool> FriendlyFireOnHirelings = null!;
-        public static ConfigEntry<bool> PermadeathEnabled = null!;
+        public static ConfigEntry<DeathMode> DeathMode = null!;
+        public static ConfigEntry<float> ReturnAfterDays = null!;
         public static ConfigEntry<float> RespawnCooldownSeconds = null!;
         public static ConfigEntry<float> RespawnCostFraction = null!;
         public static ConfigEntry<bool> AllowRawFood = null!;
@@ -141,9 +142,12 @@ namespace VikingsForHire.Config
             const string g = "1 - General", b = "2 - Base", h = "3 - Hiring", w = "4 - Work", f = "5 - Followers";
 
             FriendlyFireOnHirelings = Synced(g, "FriendlyFireOnHirelings", false, "Players can damage hirelings.");
-            PermadeathEnabled = Synced(g, "PermadeathEnabled", true, "Dead hirelings are gone for good. Off: they come back to the board after a cooldown for a fee.");
-            RespawnCooldownSeconds = Synced(g, "RespawnCooldownSeconds", 600f, "Seconds before a dead hireling returns (permadeath off).");
-            RespawnCostFraction = Synced(g, "RespawnCostFraction", 0.5f, "Share of the hire fee charged to bring a dead hireling back (permadeath off).");
+            bool hadDeathMode = Orphans().ContainsKey(new ConfigDefinition(g, "DeathMode"));
+            DeathMode = Synced(g, "DeathMode", Core.DeathMode.ReturnAfterDays, "What happens when a hireling dies. Permadeath: gone for good, the contract ends. PayToRespawn: back at the board after RespawnCooldownSeconds, once the board pays RespawnCostFraction of the hire fee. ReturnAfterDays: back at the board by itself, free, after ReturnAfterDays in-game days. Either way its slot on the board stays taken while it's away.");
+            MigratePermadeath(g, hadDeathMode);
+            ReturnAfterDays = Synced(g, "ReturnAfterDays", 3f, "DeathMode ReturnAfterDays: in-game days before a dead hireling comes back by itself (a day is 30 minutes of play; sleeping skips the night). Fractions allowed.");
+            RespawnCooldownSeconds = Synced(g, "RespawnCooldownSeconds", 600f, "DeathMode PayToRespawn: seconds before a dead hireling comes back.");
+            RespawnCostFraction = Synced(g, "RespawnCostFraction", 0.5f, "DeathMode PayToRespawn: share of the hire fee charged to bring a dead hireling back.");
             AllowRawFood = Synced(g, "AllowRawFood", false, "Raw food (meat, berries, mushrooms…) counts toward hiring and upkeep.");
 
             BaseCheckRadius = Synced(b, "BaseCheckRadius", 20f, "Radius (m) around a new hiring board searched for the base requirements.");
@@ -280,6 +284,30 @@ namespace VikingsForHire.Config
             VfhLog.I(LogCat.Test, "fast_timers", ("on", on),
                 ("overrides", string.Join(",", Overrides.Select(o => $"{o.Key.Definition.Key}:{o.Value:0.##}"))));
         }
+
+        /// <summary>
+        /// Configs from before 0.7.0 had PermadeathEnabled (true: permadeath, false: pay to respawn). The first time
+        /// DeathMode is written, it takes that over, so updating changes nothing; the old line is then dropped.
+        /// </summary>
+        private static void MigratePermadeath(string section, bool hadDeathMode)
+        {
+            var old = new ConfigDefinition(section, "PermadeathEnabled");
+            Dictionary<ConfigDefinition, string> orphans = Orphans();
+            if (!orphans.TryGetValue(old, out string value))
+                return;
+            if (!hadDeathMode && DeathRules.FromPermadeathSetting(value) is Core.DeathMode mode)
+            {
+                DeathMode.Value = mode;
+                VfhLog.I(LogCat.Core, "config.migrated", ("from", $"PermadeathEnabled = {value}"), ("to", $"DeathMode = {mode}"));
+            }
+            orphans.Remove(old);
+            _file.Save();
+        }
+
+        // Lines in the cfg file no setting is bound to (yet). Not public in this BepInEx.
+        private static Dictionary<ConfigDefinition, string> Orphans() =>
+            HarmonyLib.AccessTools.Property(typeof(ConfigFile), "OrphanedEntries")?.GetValue(_file) as Dictionary<ConfigDefinition, string>
+            ?? new Dictionary<ConfigDefinition, string>();
 
         /// <summary>Finds an entry by key name (section ignored); used by the cfg test check and the session header.</summary>
         public static ConfigEntryBase? Find(string key) =>

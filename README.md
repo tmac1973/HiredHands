@@ -36,7 +36,15 @@ Works in single-player and on dedicated servers. Every client and the server nee
 
 **Hirelings.** Hover one to see its name, job, level, stance, health, what it's doing and its cargo (slots and weight). Open its cargo with E like a chest; Shift+E opens its orders panel (stance, rename, and more for gatherers and followers). A hireling carries about what you can: it's full when its slots or its weight limit run out, and a gatherer then goes to deliver. Can't find one? **Call to board** on the board's Roster tab brings it to the board to wait there (off work) until you press **Back to work** (there or in its Shift+E panel); a hireling with no way there is moved there. It holds still while its Shift+E panel is open.
 
-**Deaths.** When a hireling dies, its cargo goes into a **grave** named after it, which floats and lasts like a player's (it doesn't despawn). A follower's grave opens only for its owner, who gets a map pin on it; a base worker's opens for anyone with ward access there. Its weapon and armour aren't dropped. You're told when one of yours dies. With permadeath off (`PermadeathEnabled`) it comes back to the board after a cooldown for half its hire fee.
+**Deaths.** When a hireling dies, its cargo goes into a **grave** named after it, which floats and lasts like a player's (it doesn't despawn). A follower's grave opens only for its owner, who gets a map pin on it; a base worker's opens for anyone with ward access there. Its weapon and armour aren't dropped. You're told when one of yours dies. What happens next is the server's choice (`DeathMode`, General):
+- **ReturnAfterDays** (default for new installs): it comes back to the board by itself, free, after `ReturnAfterDays`
+  in-game days (3; a day is 30 minutes of play, and sleeping skips the night).
+- **PayToRespawn:** it comes back after `RespawnCooldownSeconds` once the board pays half its hire fee
+  (`RespawnCostFraction`).
+- **Permadeath:** it's gone, and the contract ends.
+
+Either way its slot on the board stays taken while it's away. Configs from older versions keep what they had
+(`PermadeathEnabled` on becomes Permadeath, off becomes PayToRespawn).
 
 ## Jobs
 

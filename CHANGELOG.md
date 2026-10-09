@@ -19,6 +19,15 @@
   automatically (`hirelingCap` stays but is no longer used). 0.6 builds reject a file with them, so everyone moves to
   0.7 together.
 
+- **Hirelings can come back on their own.** A new death setting, `DeathMode` (General):
+  - **ReturnAfterDays** (the default for new installs): a dead hireling returns to the board by itself, free, after
+    `ReturnAfterDays` in-game days (default 3; sleeping skips the night);
+  - **PayToRespawn:** returns after a cooldown for a fee, as with permadeath off before;
+  - **Permadeath.**
+
+  It replaces `PermadeathEnabled`; existing configs keep their behaviour (on → Permadeath, off → PayToRespawn). The
+  Roster tab counts down in days for a long wait.
+
 **Update everyone together** (players and the server).
 
 ## 0.6.0

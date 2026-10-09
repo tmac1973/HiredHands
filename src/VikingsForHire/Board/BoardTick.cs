@@ -36,7 +36,8 @@ namespace VikingsForHire.Board
             var costs = new CostCalculator(DataStore.Current, VfhConfig.RespawnCostFraction.Value);
             foreach (ContractEntry e in roster.Entries.Where(e => e.State == ContractState.Pending && e.ArriveAt <= now).ToList())
             {
-                if (e.RespawnPending && !BoardLedger.TryPay(new BoardLedger.Wallet(board.Zdo!), costs.RespawnCost(e.Job, e.Level), out _))
+                // Paying to respawn is decided when it comes back (a server switching mode meanwhile gets what it set).
+                if (e.RespawnPending && DeathRules.Pays(VfhConfig.DeathMode.Value) && !BoardLedger.TryPay(new BoardLedger.Wallet(board.Zdo!), costs.RespawnCost(e.Job, e.Level), out _))
                 {
                     VfhLog.Throttled("respawn_wait_" + e.ContractId, 60f, LogLevel.Info, LogCat.Roster, "contract.respawn_waiting",
                         ("board", board.Id), ("contract", e.ContractId), ("name", e.Name), ("cost", costs.RespawnCost(e.Job, e.Level).ToString()));

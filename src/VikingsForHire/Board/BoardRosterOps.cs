@@ -198,11 +198,15 @@ namespace VikingsForHire.Board
                 {
                     ContractEntry? e = roster.ByHid(op.Hid);
                     string name = e?.Name ?? op.Name;
-                    bool permadeath = VfhConfig.PermadeathEnabled.Value;
-                    OpOutcome o = roster.MarkDied(op.Hid, permadeath, now, VfhConfig.Get(VfhConfig.RespawnCooldownSeconds));
+                    DeathMode mode = VfhConfig.DeathMode.Value;
+                    bool permadeath = DeathRules.EndsContract(mode);
+                    // Test timers (fast_timers) shorten both waits to the cooldown's test value.
+                    double delay = VfhConfig.FastTimers ? VfhConfig.Get(VfhConfig.RespawnCooldownSeconds)
+                        : DeathRules.ReturnDelay(mode, VfhConfig.Get(VfhConfig.RespawnCooldownSeconds), VfhConfig.ReturnAfterDays.Value, DayLengthSeconds());
+                    OpOutcome o = roster.MarkDied(op.Hid, permadeath, now, delay);
                     if (o != OpOutcome.Ok)
                         return Done(zdo, null, boardId, op, new OpResult(o));
-                    VfhLog.I(LogCat.Roster, "contract.died", ("board", boardId), ("hid", op.Hid), ("name", name), ("permadeath", permadeath));
+                    VfhLog.I(LogCat.Roster, "contract.died", ("board", boardId), ("hid", op.Hid), ("name", name), ("mode", mode), ("returnIn", permadeath ? 0 : delay));
                     result = new OpResult(OpOutcome.Ok);
                     break;
                 }
@@ -253,5 +257,8 @@ namespace VikingsForHire.Board
             OpOutcome.JobLimitReached => $"$vfh_op_job_limit|$vfh_job_{job.ToString().ToLowerInvariant()}|{roster.JobCount(job)}|{rules.MaxPerBoard(job)}",
             _ => "",
         };
+
+        /// <summary>The game's day length in seconds (30 minutes unless a mod changes it).</summary>
+        private static double DayLengthSeconds() => EnvMan.instance != null ? EnvMan.instance.m_dayLengthSec : 1800.0;
     }
 }

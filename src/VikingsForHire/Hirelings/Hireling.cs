@@ -500,10 +500,15 @@ namespace VikingsForHire.Hirelings
             bool mine = Mode == HirelingMode.Following && OwnerId == me.GetPlayerID();
             if (!mine && Vector3.Distance(me.transform.position, transform.position) > 50f)
                 return;
-            string text = $"{DisplayName} {(Config.VfhConfig.PermadeathEnabled.Value ? "$vfh_msg_died" : "$vfh_msg_died_respawn")}";
-            me.Message(MessageHud.MessageType.Center, Localization.instance.Localize(text));
+            string text = Config.VfhConfig.DeathMode.Value switch
+            {
+                DeathMode.Permadeath => $"{DisplayName} {Localization.instance.Localize("$vfh_msg_died")}",
+                DeathMode.PayToRespawn => $"{DisplayName} {Localization.instance.Localize("$vfh_msg_died_respawn")}",
+                _ => $"{DisplayName} {Localization.instance.Localize("$vfh_msg_died_return", Config.VfhConfig.ReturnAfterDays.Value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))}",
+            };
+            me.Message(MessageHud.MessageType.Center, text);
             if (mine)
-                me.Message(MessageHud.MessageType.TopLeft, Localization.instance.Localize(text));
+                me.Message(MessageHud.MessageType.TopLeft, text);
         }
 
         /// <summary>

@@ -58,7 +58,7 @@ namespace VikingsForHire.Testing
                 return (state.Equals("all", StringComparison.OrdinalIgnoreCase) ? r.Count
                     : r.Entries.Count(e => e.State.ToString().Equals(state, StringComparison.OrdinalIgnoreCase))).ToString();
             });
-            TestHarness.RegisterCheck("roster_entry", "<last|hid-prefix> <state|level|unpaid|radius|stance|respawn|name> - a contract on the nearest board", args =>
+            TestHarness.RegisterCheck("roster_entry", "<last|hid-prefix> <state|level|unpaid|radius|stance|respawn|returnin|name> - a contract on the nearest board (returnin: seconds until a pending one arrives)", args =>
             {
                 Roster r = BoardRosterOps.Read(Board().Zdo!);
                 string sel = args.ElementAtOrDefault(0) ?? "last";
@@ -73,6 +73,7 @@ namespace VikingsForHire.Testing
                     "radius" => e.Radius.ToString(CultureInfo.InvariantCulture),
                     "stance" => e.Stance.ToString(),
                     "respawn" => e.RespawnPending ? "true" : "false",
+                    "returnin" => Math.Max(0.0, e.ArriveAt - ZNet.instance.GetTimeSeconds()).ToString("0", CultureInfo.InvariantCulture),
                     "name" => e.Name,
                     _ => throw new ArgumentException("unknown field"),
                 };

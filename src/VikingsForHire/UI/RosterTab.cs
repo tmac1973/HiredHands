@@ -125,6 +125,15 @@ namespace VikingsForHire.UI
                 PanelUi.Button(root, "$vfh_orders_clear_post", x, -505f, 280f, 34f, () => BoardContracts.ClearPost(board, e.Hid));
         }
 
+        /// <summary>Seconds up to an hour, then in-game days (a dead hireling returning after days).</summary>
+        private static string WaitText(double seconds)
+        {
+            if (seconds <= 3600.0)
+                return $"{Mathf.CeilToInt((float)seconds)}s";
+            double day = EnvMan.instance != null ? EnvMan.instance.m_dayLengthSec : 1800.0;
+            return Localization.instance.Localize("$vfh_status_days", (seconds / day).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture));
+        }
+
         private static string Status(ContractEntry e, Hireling? live)
         {
             switch (e.State)
@@ -132,9 +141,10 @@ namespace VikingsForHire.UI
                 case ContractState.Pending:
                     double wait = e.ArriveAt - ZNet.instance.GetTimeSeconds();
                     string key = e.RespawnPending ? "$vfh_status_returning" : "$vfh_status_arriving";
-                    // "$1s" would read as an unknown token; localize the label alone and append the seconds.
-                    return wait > 0 ? Localization.instance.Localize(key) + $" ({Mathf.CeilToInt((float)wait)}s)"
-                        : Localization.instance.Localize(e.RespawnPending ? "$vfh_status_awaiting_payment" : key);
+                    // "$1s" would read as an unknown token; localize the label alone and append the time.
+                    if (wait > 0)
+                        return Localization.instance.Localize(key) + " (" + WaitText(wait) + ")";
+                    return Localization.instance.Localize(e.RespawnPending && DeathRules.Pays(VfhConfig.DeathMode.Value) ? "$vfh_status_awaiting_payment" : key);
                 case ContractState.Leaving:
                     return "$vfh_status_leaving";
                 default:
