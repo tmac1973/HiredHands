@@ -3,6 +3,17 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.7.0 (unreleased)
+
+Plan: `plan/split-caps/overview.md` (combat and worker caps per board level, per-job limits).
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| f924ebb | Caps 1/2: each board level has a combat cap (1, 1, 2, 2, 3, 3, 4, 4) and a worker cap (2, 4, 6, 8, 8, 8, 8, 8); per board at most 2 woodcutters, 2 miners, 1 Steward, 1 Farmer, 1 Cook (`combatCap`, `workerCap`, `maxPerBoard` in the data file, filled into older files); boards over a cap keep their hirelings, only new contracts are refused | the board owner's machine (posting a contract) |
+
+### To test (batch)
+
 ## 0.6.0 (released 2026-10-08): blocking and dodging, CombatSkill, tree patches, passing
 
 Plans: `plan/tree-patches/overview.md`, `plan/combat-ai/overview.md` (blocking and dodging).
