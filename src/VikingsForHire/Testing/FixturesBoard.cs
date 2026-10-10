@@ -37,6 +37,15 @@ namespace VikingsForHire.Testing
             Fixtures.Add("charter_apply", "- the nearest board takes your best Hiring Charter, as when building a board while carrying it", CharterApply);
             TestHarness.RegisterCheck("charter_carries", "- hirelings in your best Hiring Charter (0 when you have none)", _ =>
                 Player.m_localPlayer.GetInventory() is Inventory inv && HiringCharter.Best(inv) is ItemDrop.ItemData c ? HiringCharter.CountOf(c).ToString() : "0");
+            Fixtures.Add("board_far", "<dist=45> - a second hiring board that far to your right (no base check: for tests between two boards)", args =>
+            {
+                Player player = RequirePlayer();
+                float dist = Radius(args, 0, 45f);
+                Vector3 spot = Ground(player.transform.position + Vector3.ProjectOnPlane(player.transform.right, Vector3.up).normalized * dist);
+                Spawn(BoardZdo.PrefabName, spot, Quaternion.LookRotation(-player.transform.forward));
+                VfhLog.I(LogCat.Test, "fixture.board_far", ("pos", spot), ("dist", dist));
+                return WaitSeconds(1f);
+            });
             Fixtures.Add("board_put", "<item> <n> - give yourself n items and move them into the nearest board like the UI does", BoardPut);
             Fixtures.Add("board_force_add", "<item> <n> - put items into the nearest board, skipping its food/coins filter", BoardForceAdd);
             Fixtures.Add("crafty_probe", "- add a workbench recipe 'Wood' costing 1 Coins + 1 CookedMeat (this session only)", _ => CraftyProbe());
@@ -285,6 +294,11 @@ namespace VikingsForHire.Testing
                 ("nearestBoard", v.Counts.NearestBoardDistance.HasValue ? v.Counts.NearestBoardDistance.Value : "none"),
                 ("worldBoards", v.Counts.WorldBoardCount), ("near", PlacementCheck.Describe(spot)));
             return v;
+        }
+
+        private static IEnumerator WaitSeconds(float s)
+        {
+            yield return new WaitForSeconds(s);
         }
 
         private static HiringBoard NearestBoard() =>

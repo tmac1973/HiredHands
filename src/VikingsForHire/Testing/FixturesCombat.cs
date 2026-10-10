@@ -29,6 +29,22 @@ namespace VikingsForHire.Testing
                 (Player.m_localPlayer.GetHealth() / Player.m_localPlayer.GetMaxHealth()).ToString("0.00", CultureInfo.InvariantCulture));
             TestHarness.RegisterCheck("player_ghost", "- whether you're in ghost mode", _ => Player.m_localPlayer.InGhostMode() ? "true" : "false");
             TestHarness.RegisterCheck("tester_hits_blocked", "- hits on you dropped by the test protection since login", _ => TestProtection.Blocked.ToString());
+            Fixtures.Add("enemies_immune", "<radius=40> - hostile creatures near you take no damage from anything (a target a guard can't hurt)", args =>
+            {
+                float r = float.Parse(args.ElementAtOrDefault(0) ?? "40", CultureInfo.InvariantCulture);
+                int n = 0;
+                foreach (Character c in Character.GetAllCharacters().Where(c => c != null && !c.IsPlayer() && Hireling.Of(c) == null &&
+                                                                                Vector3.Distance(c.transform.position, Player.m_localPlayer.transform.position) <= r))
+                {
+                    object mods = c.m_damageModifiers;
+                    foreach (var f in typeof(HitData.DamageModifiers).GetFields().Where(f => f.FieldType == typeof(HitData.DamageModifier)))
+                        f.SetValue(mods, HitData.DamageModifier.Immune);
+                    c.m_damageModifiers = (HitData.DamageModifiers)mods;
+                    n++;
+                }
+                VfhLog.I(LogCat.Test, "fixture.enemies_immune", ("n", n), ("radius", r));
+                return Pause(0.2f);
+            });
             Fixtures.Add("kill_enemies", "<radius=60> - kill every hostile creature near you", KillEnemies);
             Fixtures.Add("stance", "<last|all> <stance> - set the stance of the last spawned hireling (or all nearby)", SetStance);
             Fixtures.Add("wait", "<seconds> - pause the test run", args => Wait(float.Parse(args.ElementAtOrDefault(0) ?? "1", CultureInfo.InvariantCulture)));
@@ -65,6 +81,11 @@ namespace VikingsForHire.Testing
             return Hireling.Loaded.FirstOrDefault(h => h != null && spawned != null && h.Hid == spawned)
                    ?? Hireling.Loaded.FirstOrDefault(h => h != null && h.Hid == BoardContracts.LastPostedHid)
                    ?? throw new InvalidOperationException("the last spawned hireling isn't loaded");
+        }
+
+        private static IEnumerator Pause(float s)
+        {
+            yield return new WaitForSeconds(s);
         }
 
         private static IEnumerator Enemies(string[] args)

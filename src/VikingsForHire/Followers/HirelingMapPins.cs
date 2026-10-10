@@ -39,6 +39,9 @@ namespace VikingsForHire.Followers
         private static float _nextAsk;
         private static float _nextMove;
 
+        /// <summary>Pins shown right now (tests).</summary>
+        public static int Count => Pins.Count;
+
         public static void Register() => _rpc = NetworkManager.Instance.AddRPC("VFH_HirelingPins", OnServer, OnClient);
 
         /// <summary>Every frame (Plugin.Update), client side.</summary>

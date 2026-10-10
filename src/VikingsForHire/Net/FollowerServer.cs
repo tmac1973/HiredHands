@@ -236,10 +236,15 @@ namespace VikingsForHire.Net
         /// </summary>
         private static void Transfer(long sender, long pid, string hid, string boardId)
         {
+            void Answer(string reply)
+            {
+                VfhLog.I(LogCat.Follow, "follow.reply", ("kind", Kind.Transfer), ("hid", hid), ("player", pid), ("board", boardId), ("reply", reply));
+                Reply(sender, reply);
+            }
             ZDO? zdo = WorldIndex.Hireling(hid);
             if (zdo == null || zdo.GetLong(HirelingZdo.Owner) != pid || zdo.GetInt(HirelingZdo.Mode) != (int)HirelingMode.Following)
             {
-                Reply(sender, "$vfh_follow_not_yours");
+                Answer("$vfh_follow_not_yours");
                 return;
             }
             string name = zdo.GetString(HirelingZdo.Name);
@@ -247,13 +252,13 @@ namespace VikingsForHire.Net
             ZDO? board = WorldIndex.Board(boardId);
             if (oldId == boardId)
             {
-                Reply(sender, Release(pid, hid));
+                Answer(Release(pid, hid));
                 return;
             }
             var rules = new LevelRules(DataStore.Current);
             if (board == null || Utils.DistanceXZ(zdo.GetPosition(), board.GetPosition()) > rules.MaxWorkRadius(Board.BoardZdo.GetLevel(board)))
             {
-                Reply(sender, "$vfh_transfer_no_board");
+                Answer("$vfh_transfer_no_board");
                 return;
             }
             ZDO? oldBoard = WorldIndex.Board(oldId);
@@ -271,7 +276,7 @@ namespace VikingsForHire.Net
                 if (!result.Ok)
                 {
                     VfhLog.I(LogCat.Follow, "follow.transfer_refused", ("hid", hid), ("from", oldId), ("to", boardId), ("why", result.Outcome));
-                    Reply(sender, result.Message.Length > 0 ? result.Message : "$vfh_transfer_failed");
+                    Answer(result.Message.Length > 0 ? result.Message : "$vfh_transfer_failed");
                     return;
                 }
                 if (oldBoard != null)
@@ -284,7 +289,7 @@ namespace VikingsForHire.Net
                     BoardId = boardId, Home = (home.x, home.y, home.z), Radius = rules.ClampRadius(level, job, adopt.Radius), ClearPost = true,
                 });
                 VfhLog.I(LogCat.Follow, "follow.transferred", ("player", pid), ("hid", hid), ("name", name), ("from", oldId), ("to", boardId));
-                Reply(sender, $"$vfh_transfer_done|{name}");
+                Answer($"$vfh_transfer_done|{name}");
             });
         }
 

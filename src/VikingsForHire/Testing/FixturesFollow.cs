@@ -41,6 +41,19 @@ namespace VikingsForHire.Testing
                 }
                 return Done();
             });
+            Fixtures.Add("transfer_posted", "- move your follower from the last contract next to your other board and ask that board to take it (the stone's right click there)", _ => TransferPosted());
+            TestHarness.RegisterCheck("posted_board", "- after transfer_posted: which board the hireling from the last contract belongs to (from, to, or another)", _ =>
+            {
+                Hireling h = Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == Posted()) ?? throw new InvalidOperationException("posted hireling not loaded");
+                return h.BoardId == _transferTo ? "to" : h.BoardId == _transferFrom ? "from" : "another";
+            });
+            TestHarness.RegisterCheck("transfer_rosters", "- after transfer_posted: active contracts on the board it left and on the one it joined, as from/to", _ =>
+            {
+                int Active(string id) => HiringBoard.Loaded.FirstOrDefault(b => b != null && b.Id == id)?.Zdo is ZDO z
+                    ? BoardRosterOps.Read(z).Entries.Count(e => e.State == ContractState.Active) : -1;
+                return $"{Active(_transferFrom)}/{Active(_transferTo)}";
+            });
+            TestHarness.RegisterCheck("map_pins", "- hireling pins on your map right now (shown while the stone is in hand)", _ => HirelingMapPins.Count.ToString());
             Fixtures.Add("retreat", "- the stone's middle click: your followers nearby retreat with you", _ => RetreatNow());
             Fixtures.Add("follow_stats_reset", "- start counting follower lag and catch-up teleports afresh", _ => ResetStats());
             Fixtures.Add("player_to", "<tag> [dy=0.5] - move yourself onto a tagged object (a direct move: followers aren't carried along as by a teleport)", PlayerTo);
@@ -180,6 +193,37 @@ namespace VikingsForHire.Testing
         private static IEnumerator Done()
         {
             yield return null;
+        }
+
+        private static string _transferFrom = "", _transferTo = "";
+
+        private static IEnumerator TransferPosted()
+        {
+            string hid = Posted();
+            Hireling h = Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == hid) ?? throw new InvalidOperationException("posted hireling not loaded");
+            HiringBoard other = HiringBoard.Loaded.Where(b => b != null && b.Zdo != null && b.Id.Length > 0 && b.Id != h.BoardId)
+                .OrderBy(b => Vector3.Distance(b.transform.position, h.transform.position)).FirstOrDefault()
+                ?? throw new InvalidOperationException("no other board loaded (board_far first)");
+            // You walk there together: move yourself beside the other board too (or the follower catches up with you,
+            // back at the first board, before the server looks), then come back.
+            Player me = Player.m_localPlayer;
+            Vector3 back = me.transform.position;
+            Vector3 Beside(float m)
+            {
+                Vector3 p = other.transform.position + other.transform.forward * m;
+                p.y = ZoneSystem.instance.GetGroundHeight(p) + 0.1f;
+                return p;
+            }
+            _transferFrom = h.BoardId;
+            _transferTo = other.Id;
+            me.transform.position = Beside(5f);
+            FollowCatchUp.Place(h.Ai, Beside(3f), other.transform.position);
+            yield return new WaitForSeconds(1f);
+            FollowerServer.Send(FollowerServer.Kind.Transfer, hid, 1, Vector3.zero, 0f, other.Id);
+            VfhLog.I(LogCat.Test, "fixture.transfer_posted", ("hid", hid), ("to", other.Id));
+            yield return new WaitForSeconds(1.5f);
+            me.transform.position = back;
+            yield return new WaitForSeconds(0.5f);
         }
 
         private static IEnumerator RetreatNow()

@@ -24,7 +24,7 @@ namespace VikingsForHire.Testing
             Fixtures.Add("board_clear", "- empty the nearest board's storage", _ => BoardClear());
             Fixtures.Add("post", "<job> <level> [radius=20] [free] - post a contract on the nearest board (pays like the panel, or nothing with free) and wait for the answer", Post);
             Fixtures.Add("contract", "<cancel|dismiss|promote> - act on the contract last posted, through the real op", Contract);
-            Fixtures.Add("order", "<add|remove|clear> [item] [target] [seed|crop|kitchen] - edit the nearest board's production orders (through its owner, like the Orders tab)", Order);
+            Fixtures.Add("order", "<add|remove|clear|pause> [item] [target] [seed|crop|kitchen|station] - edit the nearest board's production orders (through its owner, like the Orders tab)", Order);
             TestHarness.RegisterCheck("order", "<item> <target|paused|position|kind> - an order on the nearest board (position 1-based in work order; none when absent)", args =>
             {
                 Core.Orders.OrderList list = BoardOrders.For(FixturesWork.Board());
@@ -58,7 +58,7 @@ namespace VikingsForHire.Testing
                 return (state.Equals("all", StringComparison.OrdinalIgnoreCase) ? r.Count
                     : r.Entries.Count(e => e.State.ToString().Equals(state, StringComparison.OrdinalIgnoreCase))).ToString();
             });
-            TestHarness.RegisterCheck("roster_entry", "<last|hid-prefix> <state|level|unpaid|radius|stance|respawn|returnin|name> - a contract on the nearest board (returnin: seconds until a pending one arrives)", args =>
+            TestHarness.RegisterCheck("roster_entry", "<last|hid-prefix> <state|level|unpaid|radius|stance|respawn|returnin|name|post> - a contract on the nearest board (returnin: seconds until a pending one arrives)", args =>
             {
                 Roster r = BoardRosterOps.Read(Board().Zdo!);
                 string sel = args.ElementAtOrDefault(0) ?? "last";
@@ -75,6 +75,7 @@ namespace VikingsForHire.Testing
                     "respawn" => e.RespawnPending ? "true" : "false",
                     "returnin" => Math.Max(0.0, e.ArriveAt - ZNet.instance.GetTimeSeconds()).ToString("0", CultureInfo.InvariantCulture),
                     "name" => e.Name,
+                    "post" => e.Post != null ? "true" : "false",
                     _ => throw new ArgumentException("unknown field"),
                 };
             });
@@ -282,14 +283,16 @@ namespace VikingsForHire.Testing
             {
                 "seed" => Core.Orders.OrderKind.Seed,
                 "kitchen" => Core.Orders.OrderKind.Kitchen,
+                "station" => Core.Orders.OrderKind.Station,
                 _ => Core.Orders.OrderKind.Crop,
             };
             switch (what)
             {
+                case "pause": BoardOrders.Submit(board, OrderEdit.Pause, item, paused: true); break;
                 case "add": BoardOrders.Submit(board, OrderEdit.Add, item, kind, target); break;
                 case "remove": BoardOrders.Submit(board, OrderEdit.Remove, item); break;
                 case "clear": BoardOrders.Submit(board, OrderEdit.Clear, ""); break;
-                default: throw new InvalidOperationException("order add|remove|clear");
+                default: throw new InvalidOperationException("order add|remove|clear|pause");
             }
             VfhLog.I(LogCat.Test, "fixture.order", ("what", what), ("item", item), ("target", target), ("kind", kind));
             yield return new WaitForSeconds(0.5f); // the edit goes through the board's owner
