@@ -3,6 +3,16 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.7.4 (not released): live playtest
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| b08de9b | Placing a board, the base check (workbench, bed, pieces) looks within the larger of `BaseCheckRadius` (20 m) and the placed board's own area: a level 4 board from a Hiring Charter counts a bed or workbench anywhere in its 35 m circle, the circle the hammer shows. The "needs a bed within N m" hint says the radius used | your game |
+
+### To test (batch)
+- [ ] By hand: with a level 4 charter, place a board where the only bed is 30 m away (outside 20 m, inside 35 m): allowed; without the charter (level 1) it says a bed is needed within 20 m.
+
 ## 0.7.3 (released 2026-10-10): playtest fixes, Steward limits, follower moves, board area
 
 ### Fixed or added
