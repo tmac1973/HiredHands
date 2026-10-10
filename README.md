@@ -13,7 +13,7 @@ Works in single-player and on dedicated servers. Every client and the server nee
 
 ## Getting started
 
-1. **Build a base.** The board can only be placed with a workbench, a bed and 40 built pieces within 20 m (all configurable). Boards must be 100 m apart.
+1. **Build a base.** The board can only be placed with a workbench, a bed and 40 built pieces within 20 m (all configurable), or within the board's own area when you place a higher-level one from a Hiring Charter (30 m for a level 3 board). Boards must be 100 m apart.
 2. **Build the Hiring Board** with the hammer (Wood 45, Stone 20, Deer hide 10, Leather scraps 10, Resin 10).
 3. **Stock it.** Use the board's *Funds (food & coins)* to put in cooked food and coins. Only food and coins fit. Food is counted in *food points* (a food's health + stamina + eitr: a cooked meat is 40), and the cheapest food is used first so your best food is left alone.
 4. **Post a contract** under *Manage → Contracts*: choose the job, the level, the work radius (it starts at the most the job allows) and, for guards, a stance. The hire fee is taken from the board's funds, and a viking walks in a few minutes later.

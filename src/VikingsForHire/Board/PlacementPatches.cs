@@ -16,12 +16,15 @@ namespace VikingsForHire.Board
         public readonly bool Pending;
         public readonly BaseCheckResult? Result;
         public readonly BaseCounts Counts;
+        /// <summary>How far round the spot the base was looked for.</summary>
+        public readonly float Radius;
 
-        public PlacementVerdict(bool pending, BaseCheckResult? result, BaseCounts counts)
+        public PlacementVerdict(bool pending, BaseCheckResult? result, BaseCounts counts, float radius)
         {
             Pending = pending;
             Result = result;
             Counts = counts;
+            Radius = radius;
         }
 
         public bool Ok => !Pending && Result != null && Result.Ok;
@@ -35,7 +38,7 @@ namespace VikingsForHire.Board
                 return "";
             BaseMissing m = Result.Missing[0];
             return Localization.instance.Localize(m.Token, Mathf.FloorToInt(m.Have).ToString(), Mathf.CeilToInt(m.Need).ToString(),
-                Mathf.RoundToInt(VfhConfig.BaseCheckRadius.Value).ToString());
+                Mathf.RoundToInt(Radius).ToString());
         }
 
         public string MissingTokens() => Pending ? "pending" : Result == null ? "" : string.Join(",", Result.Missing.Select(m => m.Kind));
@@ -48,10 +51,25 @@ namespace VikingsForHire.Board
         public static BaseRules Rules() => new(VfhConfig.RequiredWorkbenches.Value, VfhConfig.RequiredBeds.Value,
             VfhConfig.RequiredPieces.Value, VfhConfig.MinDistanceBetweenBoards.Value, VfhConfig.MaxBoardsPerWorld.Value);
 
-        public static PlacementVerdict Evaluate(Vector3 position)
+        /// <summary>
+        /// The level a board placed now gets: 1, or the level of the Hiring Charter it will take (Charters with hirelings
+        /// first, then the highest), as HiringCharter.Best picks it.
+        /// </summary>
+        public static int PlacingLevel(Player? me) =>
+            me != null && HiringCharter.Best(me.GetInventory()) is ItemDrop.ItemData charter ? Mathf.Max(1, HiringCharter.LevelOf(charter)) : 1;
+
+        /// <summary>
+        /// How far round the spot the base requirements are looked for: BaseCheckRadius, or the board's own area when
+        /// it's bigger (a higher-level board, from a charter, covers more ground, so its base may be spread wider).
+        /// </summary>
+        public static float Radius(int level) =>
+            Mathf.Max(VfhConfig.BaseCheckRadius.Value, new LevelRules(DataStore.Current).MaxWorkRadius(level));
+
+        public static PlacementVerdict Evaluate(Vector3 position, int level = 1)
         {
+            float radius = Radius(level);
             PieceBuffer.Clear();
-            Piece.GetAllPiecesInRadius(position, VfhConfig.BaseCheckRadius.Value, PieceBuffer);
+            Piece.GetAllPiecesInRadius(position, radius, PieceBuffer);
             int workbenches = 0, beds = 0, pieces = 0;
             foreach (Piece p in PieceBuffer)
             {
@@ -68,8 +86,8 @@ namespace VikingsForHire.Board
             bool known = BoardRegistry.TryQuery(position, out BoardRegistry.Answer answer);
             var counts = new BaseCounts(workbenches, beds, pieces, known ? answer.NearestDistance : null, known ? answer.Count : 0);
             return known
-                ? new PlacementVerdict(false, BaseRequirement.Evaluate(counts, Rules()), counts)
-                : new PlacementVerdict(true, null, counts);
+                ? new PlacementVerdict(false, BaseRequirement.Evaluate(counts, Rules()), counts, radius)
+                : new PlacementVerdict(true, null, counts, radius);
         }
 
         /// <summary>The workbenches and beds counted at a spot, with their distances, for the logs.</summary>
@@ -115,7 +133,7 @@ namespace VikingsForHire.Board
                     Vector3 pos = __instance.m_placementGhost.transform.position;
                     if ((pos - _cachedPos).sqrMagnitude > 1f || Time.time - _cachedAt > CacheSeconds)
                     {
-                        _cached = PlacementCheck.Evaluate(pos);
+                        _cached = PlacementCheck.Evaluate(pos, PlacementCheck.PlacingLevel(__instance));
                         _cachedPos = pos;
                         _cachedAt = Time.time;
                         LogChange(_cached, pos);
@@ -156,9 +174,8 @@ namespace VikingsForHire.Board
                 var go = new GameObject("VFH_GhostArea");
                 _ghostRing = UI.AreaRing.On(go.transform, new Color(1f, 0.85f, 0.35f, 0.85f));
             }
-            int level = HiringCharter.Best(me.GetInventory()) is ItemDrop.ItemData charter ? Mathf.Max(1, HiringCharter.LevelOf(charter)) : 1;
             _ghostRing.transform.position = me.m_placementGhost.transform.position;
-            _ghostRing.Show(new LevelRules(Config.DataStore.Current).MaxWorkRadius(level));
+            _ghostRing.Show(new LevelRules(Config.DataStore.Current).MaxWorkRadius(PlacementCheck.PlacingLevel(me)));
         }
 
         /// <summary>Re-checks on the actual click, so a stale ghost status can never place a board.</summary>
@@ -174,7 +191,7 @@ namespace VikingsForHire.Board
                         return true;
 
                     Vector3 pos = __instance.m_placementGhost.transform.position;
-                    PlacementVerdict verdict = PlacementCheck.Evaluate(pos);
+                    PlacementVerdict verdict = PlacementCheck.Evaluate(pos, PlacementCheck.PlacingLevel(__instance));
                     if (verdict.Ok)
                     {
                         VfhLog.I(LogCat.Placement, "placement.allowed", ("pos", pos), ("workbenches", verdict.Counts.Workbenches),
