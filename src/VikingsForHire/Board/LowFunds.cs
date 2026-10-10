@@ -56,8 +56,10 @@ namespace VikingsForHire.Board
             (int foodDays, int coinDays) = FundsForecast.DaysLeft(funds, daily);
             int days = System.Math.Min(foodDays, coinDays);
             string color = days <= 1 ? "#ff5050" : IsLow(days) ? "orange" : "#c8c8c8";
-            string lasts = Localization.instance.Localize("$vfh_board_lasts",
-                foodDays == int.MaxValue ? "—" : foodDays.ToString(), coinDays == int.MaxValue ? "—" : coinDays.ToString());
+            // Upkeep is food only by default; coins are mentioned only when the server's data file charges them daily.
+            string lasts = daily.Coins > 0
+                ? Localization.instance.Localize("$vfh_board_lasts", foodDays == int.MaxValue ? "—" : foodDays.ToString(), coinDays.ToString())
+                : Localization.instance.Localize("$vfh_board_lasts_food", foodDays == int.MaxValue ? "—" : foodDays.ToString());
             return $"\n$vfh_board_upkeep {UI.ContractsTab.Price(daily)}\n<color={color}>{lasts}</color>";
         }
 

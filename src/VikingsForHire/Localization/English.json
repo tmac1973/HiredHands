@@ -56,6 +56,7 @@
   "vfh_grave_not_yours": "This grave's cargo belongs to the hireling's owner",
   "vfh_board_upkeep": "Upkeep a day:",
   "vfh_board_lasts": "Food lasts $1 days, coins $2 days",
+  "vfh_board_lasts_food": "Food lasts $1 days",
   "vfh_low_funds_food": "The hiring board has food for only $1 more day(s)",
   "vfh_low_funds_coins": "The hiring board has coins for only $1 more day(s)",
   "vfh_pin_low_food": "Hiring board: food for $1 day(s)",
