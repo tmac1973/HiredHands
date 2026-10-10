@@ -194,6 +194,15 @@ A hireling that manages the base's farm animals (boars, wolves, lox, chickens…
 - Probably a board level 2+ job, one per board, chores on the existing chore loop. To decide: pens (keep animals inside
   walls?), what counts as "the herd" (tames inside the board's area?), and what it carries (a knife? a club?).
 
+## Skill trees for combat hirelings (Tim's idea, 2026-10-10; details to work out)
+Combat hirelings pick up perks as they level, a small tree per job, so two guards of the same level can differ:
+- **Archer:** fire arrows (burn damage, lights up the target), poison or frost arrows later, faster draw, longer range.
+- **Melee guard:** more health, better blocking or parry window, a shield bash or taunt that pulls enemies off others.
+- Later the wizard and healer get theirs (spells, heal amount).
+- To decide: how points are earned (one per hireling level? per kills?), who picks (the player in the Shift+E panel, or
+  random at promotion), whether a respec costs something, how it stacks with CombatSkill and GuardMelee/RangedDamage,
+  and how it's saved (the contract, so it survives death and moving boards).
+
 ## Separate caps for combat and non-combat hirelings (done in 0.7.0: plan/split-caps/; combat 1,1,2,2,3,3,4,4, workers 2,4,6,8, per-job maxPerBoard)
 Today each board level has one `hirelingCap` (2, 3, 4, 5, 6, 7, 8, 10). Split it in two so a base can be **fully
 automated early** (workers) without an **army late** (combat):
