@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.7.3
+
+**Everyone updates together:** this version adds network messages, so the server and every player need 0.7.3.
+
+- **Move a follower to another board.** Take a follower to another of your bases and right-click it with the Command Stone: it joins that board if the board has room for it (its level, job and caps are checked as for a new contract; no fee), and works there from then on.
+- **See a board's area.** Looking at a hiring board, or having its panel open, draws its area on the ground as a gold circle, and the hover says how big it is (with the woodcutters' and miners' double range). While placing a board with the hammer, the circle follows the ghost, at the level the new board will have (a carried Hiring Charter's level).
+- **Steward limits.** In a Steward's Shift+E panel, *Limits* caps what it makes: coal, bars, flour, linen, honey, sap, each mead, and anything a modded station makes. At the limit a kiln or smelter isn't loaded, a beehive or sap collector is left full, and a fermenter isn't loaded with that mead's base. Anything without a limit is made as before. Limits are kept on the board, so a new Steward follows them.
+- **Charcoal kilns are their own chore,** apart from smelters, furnaces and refineries, so you can switch them off on their own.
+- **Followers on the map.** With the Command Stone in hand, the map shows your followers and the hirelings of the boards you built, wherever they are.
+- **A retreat key.** `RetreatKey` (Followers, your own setting, unset by default): any key or mouse button for the retreat order, stone in hand or not.
+- **A bigger board panel,** with larger order rows (10 a page) and a roomier order picker.
+- **Guards stop swinging at walls.** A melee guard no longer swings forever at a monster just the other side of a wall: it walks round to it, or gives up after a few seconds.
+- **Guards give up on what they can't hurt.** A guard whose target loses no health for 25 s (a creature stuck in the ground, say) leaves it alone for a minute and takes on others; creatures below the water's surface aren't targeted. A creature stuck at 0 health that never died is finished off.
+- **Posts.** A hireling that dies comes back patrolling, without its old post. A posted guard that can't walk to its post tries again, says "Can't reach their post", and after a few tries goes straight there when no one is looking.
+- **Raw food from mods doesn't pay upkeep.** Any food nothing makes (no recipe, cooking station, oven or fermenter) now counts as raw, so a mod's raw mushroom (Witch Eye) or the Ashlands Smoke Puff no longer fills a board. `AllowRawFood` still lets it all in.
+- **The board hover** says "Food lasts N days"; coins are mentioned only when a data file charges coin upkeep.
+
 ## 0.7.2
 
 - **Command Stone on a chest.** Point the stone at a chest (left click): followers near you carrying something that chest already holds walk over and put it in, then carry on (following you, or back to their spot).

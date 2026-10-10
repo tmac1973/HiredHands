@@ -216,7 +216,7 @@ navLinks:
 | 7 | The Queen trophy, Black core 3, Eitr 15, Yggdrasil wood 40, Carapace 20 | 4 | 8 | 50 m |
 | 8 | Fader trophy, Flametal 20, Blackwood 40, Asksvin hide 10, Molten core 3 | 4 | 8 | 60 m |
 
-**The board's area** is its max radius: look at the board (or open its panel) and it's drawn on the ground as a gold circle. Woodcutters and miners work twice that.
+**The board's area** is its max radius: look at the board (or open its panel), or place one with the hammer, and it's drawn on the ground as a gold circle. Woodcutters and miners work twice that.
 
 **Workers only.** A server can turn combat hirelings off (`CombatHirelings`, Hiring): no guards or archers can be hired,
 and the board offers workers only. Ones already hired stay.
