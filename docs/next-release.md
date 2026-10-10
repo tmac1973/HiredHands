@@ -3,6 +3,18 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.7.3 (not released): playtest fixes
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| fe10bcc | Melee guards swung forever at a mob just the other side of a wall (in reach, so they swung, and every swing kept the fight going). A swing now needs a clear line (middle or eyes to the target's middle or head, past pieces and terrain); blocked, the guard walks round to it (doors and all), and after 5 s still blocked gives it up and ignores it for 20 s. `combat.swing_blocked` log | the game simulating the hireling |
+| bbd786e | Raw food from mods paid upkeep: the Steward filled a board with Witch Eyes (a mod mushroom), counted as 9 days of food. Now any edible item that nothing makes (no recipe, cooking station, oven or fermenter turns anything into it) is raw, as well as what the data file's raw list names (which also lacked the Ashlands Smoke Puff). `AllowRawFood` still lets it all in. `food.raw_unmade` logs the unmade foods found. Raw food already on a board stays there but no longer counts or pays; take it out by hand | everywhere (board, Steward, hiring) |
+
+### To test (batch)
+- [ ] By hand (live server): a mob against the outside of a wall near a melee guard: the guard doesn't swing at the wall; it goes round through a door, or gives up within about 5 s.
+- [ ] By hand (live server): the board with the Witch Eyes shows food days from cooked food only; the Steward doesn't bring more Witch Eyes; putting one on the board by hand is refused. The server log's `food.raw_unmade` lists Witch Eye and no cooked foods (check what else is in it).
+
 ## 0.7.2 (released 2026-10-09): board moving, stone on a chest, combat settings
 
 ### Fixed or added
