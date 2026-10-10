@@ -115,6 +115,7 @@ A Steward works inside its board's radius from the chests there, taking on more 
 - **Most urgent first.** Every few seconds it looks over everything it may do and takes the most urgent job (an empty fire before a half-full smelter, anything before tidying), nearer jobs first when it's close.
 - **From your chests only.** It never takes the last of an item from a chest, and leaves a reserve of chosen items in storage (`keepInStorage`, default 50 Wood). What it collects (bars, honey, sap, meads, flour, thread, tidied items) goes into chests that already hold that item.
 - **Repairs** follow your rules: a crafting station for the piece in range, ward access, and free as for you. They wait until no enemy has been within 30 m of the Steward or the piece for 20 s. Wood out in the rain without a roof, or standing in water, wears down to half health and no further, so the Steward leaves such pieces alone until something takes them below half; a piece that keeps wearing soon after a repair with no enemy about (weak support) is left for an hour. It repairs from where a player could (5 m, in sight), and skips a piece it can't get to for 30 minutes ("Repairs: can't get to …").
+- **Limits:** the board's Orders tab can cap what its stations make (*Add Steward limit*: coal, bars, flour, linen and anything a modded station makes). With a limit of 200 Coal the Steward stops loading the kilns once the chests in its area hold 200 coal; paused, it makes none. Anything without a limit is made as before. Each chore, kilns included (apart from smelters), can be switched off per Steward in its Shift+E panel.
 - **Tamed animals** get one item they eat, dropped in front of them (AzuAutoStore leaves it alone).
 - **Fermenters** need cover as for you (a roof and mostly walled in); the Steward says when one doesn't have enough instead of loading it.
 - **Board food:** when its board has less than 3 days of upkeep left in food, it brings food from the chests up to 7 days (`StewardBoardRefillDays`, `StewardBoardFillDays`), cheapest food first so your best food stays put, and only food the board accepts (raw food only with `AllowRawFood`).
@@ -128,7 +129,7 @@ A Steward works inside its board's radius from the chests there, taking on more 
 
 ## The Farmer and the Cook
 
-Both work to the board's **Orders** tab: a list of "keep at least X of this in the chests" orders. Add one with *Add farm order* or *Add kitchen order* (the list shows what your Farmer or Cook can make at its level), set the target with - / + (Shift for steps of 1), move orders up or down, pause or remove them. Orders are worked top to bottom; **seed orders always come first**. "Have" counts the chests in the board's area (above their reserves) plus what's growing in the field.
+Both work to the board's **Orders** tab: a list of "keep at least X of this in the chests" orders. Add one with *Add farm order* or *Add kitchen order* (*Add Steward limit* is the Steward's, see above: a ceiling rather than a target; the list shows what your Farmer or Cook can make at its level), set the target with - / + (Shift for steps of 1), move orders up or down, pause or remove them. Orders are worked top to bottom; **seed orders always come first**. "Have" counts the chests in the board's area (above their reserves) plus what's growing in the field.
 
 **The Farmer** works the ground **you** cultivated inside its radius (bring your own cultivator; it never tills new ground):
 - It **harvests every ripe crop** and puts the harvest in chests that hold it, and picks **berry bushes, mushrooms and other regrowing plants** (wild, or planted with PlantEverything) only while an order for them is short. It never plants bushes. Stones, flint and branches are never picked.
@@ -213,6 +214,8 @@ navLinks:
 | 6 | Yagluth trophy, Black metal 20, Linen thread 20, Needle 20, Lox pelt 5 | 3 | 8 | 45 m |
 | 7 | The Queen trophy, Black core 3, Eitr 15, Yggdrasil wood 40, Carapace 20 | 4 | 8 | 50 m |
 | 8 | Fader trophy, Flametal 20, Blackwood 40, Asksvin hide 10, Molten core 3 | 4 | 8 | 60 m |
+
+**The board's area** is its max radius: look at the board (or open its panel) and it's drawn on the ground as a gold circle. Woodcutters and miners work twice that.
 
 **Workers only.** A server can turn combat hirelings off (`CombatHirelings`, Hiring): no guards or archers can be hired,
 and the board offers workers only. Ones already hired stay.
