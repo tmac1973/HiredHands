@@ -21,6 +21,8 @@ namespace VikingsForHire.Hirelings.Combat
         private const float BlockSeconds = 0.8f;
         private const float MaxSwingHold = 1f;
         private const float ShotRadius = 0.1f;
+        private const float BlockedGiveUpSeconds = 5f;
+        private const float BlockedIgnoreSeconds = 20f;
         private static readonly int ShotBlockMask = LayerMask.GetMask("Default", "static_solid", "Default_small", "piece", "terrain", "vehicle");
 
         private Character? _target;
@@ -106,6 +108,21 @@ namespace VikingsForHire.Hirelings.Combat
                 ai.WalkTo(dt, target.transform.position, target.GetRadius() + MeleeReach * 0.7f, run: true);
                 return;
             }
+            if (!ClearSwing(me, target))
+            {
+                // In reach but behind a wall (a mob pressed against the base from outside): swinging only hits the wall,
+                // and every swing kept the fight going. Walk round to it if there's a way; give up on it if there isn't.
+                BlockedShot(ai, target, "combat.swing_blocked");
+                if (Time.time - _blockedSince > BlockedGiveUpSeconds)
+                {
+                    Drop(ai, "blocked");
+                    return;
+                }
+                if (ai.WalkTo(dt, target.transform.position, 0.5f, run: true))
+                    ai.Face(target.GetCenterPoint());
+                return;
+            }
+            _blockedSince = -1f;
             ai.Halt();
             ai.Face(target.GetCenterPoint());
             // Swing whenever the swing is ready; raise the shield only in between. Blocking first meant a guard facing
@@ -200,12 +217,27 @@ namespace VikingsForHire.Hirelings.Combat
             }
         }
 
-        private void BlockedShot(HirelingAI ai, Character target)
+        /// <summary>
+        /// Whether a melee swing can reach the target: a line from the hireling's middle or eyes to the target's middle or
+        /// head that no wall, floor or ground is in the way of.
+        /// </summary>
+        private static bool ClearSwing(Humanoid me, Character target)
+        {
+            Vector3 head = target.m_head != null ? target.GetHeadPoint() : target.m_eye != null ? target.m_eye.position : target.GetCenterPoint();
+            Vector3 eye = me.m_eye != null ? me.m_eye.position : me.GetCenterPoint();
+            foreach (Vector3 from in new[] { me.GetCenterPoint(), eye })
+                foreach (Vector3 to in new[] { target.GetCenterPoint(), head })
+                    if (!Physics.Linecast(from, to, ShotBlockMask))
+                        return true;
+            return false;
+        }
+
+        private void BlockedShot(HirelingAI ai, Character target, string evt = "combat.shot_blocked")
         {
             if (_blockedSince >= 0f)
                 return;
             _blockedSince = Time.time;
-            VfhLog.D(LogCat.Combat, "combat.shot_blocked", ("hid", ai.Hireling.Hid), ("target", target.m_name),
+            VfhLog.D(LogCat.Combat, evt, ("hid", ai.Hireling.Hid), ("target", target.m_name),
                 ("dist", Vector3.Distance(target.transform.position, ai.transform.position)));
         }
 
@@ -283,10 +315,10 @@ namespace VikingsForHire.Hirelings.Combat
             {
                 VfhLog.D(LogCat.Combat, "combat.disengage", ("hid", ai.Hireling.Hid), ("target", _target.m_name), ("reason", reason));
                 Telemetry.BalanceFights.End(ai.Hireling, reason);
-                if (reason == "quiet or leashed" && ThreatScanner.Alive(_target))
+                if ((reason == "quiet or leashed" || reason == "blocked") && ThreatScanner.Alive(_target))
                 {
                     _ignored = _target;
-                    _ignoredUntil = Time.time + 10f;
+                    _ignoredUntil = Time.time + (reason == "blocked" ? BlockedIgnoreSeconds : 10f);
                 }
             }
             _target = null;
