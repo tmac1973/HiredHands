@@ -103,7 +103,7 @@ namespace VikingsForHire.Commands
                 VfhLog.I(LogCat.Hireling, "dump.hireling", ("hid", h.Hid), ("board", h.BoardId), ("name", h.DisplayName), ("job", h.Job),
                     ("level", h.Level), ("mode", h.Mode), ("stance", (Stance)z.GetInt(HirelingZdo.Stance)), ("owner", z.GetOwner()),
                     ("pos", h.transform.position), ("home", h.Home), ("health", h.Humanoid.GetHealth()), ("max", h.Humanoid.GetMaxHealth()),
-                    ("charLevel", h.Humanoid.GetLevel()), ("tamed", h.Humanoid.IsTamed()), ("behaviour", h.Ai.CurrentBehaviour),
+                    ("charLevel", h.Humanoid.GetLevel()), ("tamed", h.Humanoid.IsTamed()), ("behaviour", h.Ai.CurrentBehaviour), ("target", h.Ai.CombatTarget is Character ct ? $"{Utils.GetPrefabName(ct.gameObject)}@{ct.transform.position}" : ""),
                     ("gear", GearApplier.Describe(h.Humanoid)), ("cargo", cargo == null ? "" : string.Join(",", cargo.GetAllItems().Select(i => $"{GearApplier.Name(i)}x{i.m_stack}"))),
                     ("zdo", z.m_uid.ToString()));
             }

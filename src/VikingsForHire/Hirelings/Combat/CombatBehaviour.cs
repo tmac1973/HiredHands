@@ -23,6 +23,8 @@ namespace VikingsForHire.Hirelings.Combat
         private const float ShotRadius = 0.1f;
         private const float BlockedGiveUpSeconds = 5f;
         private const float BlockedIgnoreSeconds = 20f;
+        private const float NoEffectSeconds = 25f;
+        private const float NoEffectIgnoreSeconds = 60f;
         private static readonly int ShotBlockMask = LayerMask.GetMask("Default", "static_solid", "Default_small", "piece", "terrain", "vehicle");
 
         private Character? _target;
@@ -34,6 +36,9 @@ namespace VikingsForHire.Hirelings.Combat
         private float _engagedAt = -1f;
         private float _ignoredUntil;
         private float _blockedSince = -1f;
+        private float _targetHealth;
+        private float _hurtAt;
+        private bool _attackedTarget;
 
         public string Name => "Combat";
         public int Priority => 900;
@@ -53,10 +58,20 @@ namespace VikingsForHire.Hirelings.Combat
             Character? pick = Choose(ai);
             if (pick == null || (pick == _ignored && Time.time < _ignoredUntil))
                 return false;
+            // Under the water (a fish or a serpent below the surface by the shore): arrows stop at the surface and swords
+            // don't reach, so a guard would shoot or swing at it forever.
+            if (Underwater(pick))
+            {
+                Ignore(ai, pick, "underwater", NoEffectIgnoreSeconds);
+                return false;
+            }
             _target = pick;
             Telemetry.BalanceFights.Start(ai.Hireling, pick);
             _lastAction = Time.time;
             _engagedAt = Time.time;
+            _targetHealth = pick.GetHealth();
+            _hurtAt = Time.time;
+            _attackedTarget = false;
             VfhLog.D(LogCat.Combat, "combat.engage", ("hid", ai.Hireling.Hid), ("target", pick.m_name), ("stance", ai.Stance),
                 ("dist", Vector3.Distance(pick.transform.position, ai.transform.position)), ("gear", GearApplier.Describe(ai.Hireling.Humanoid)));
             return true;
@@ -65,6 +80,18 @@ namespace VikingsForHire.Hirelings.Combat
         public void Tick(HirelingAI ai, float dt)
         {
             Character target = _target!;
+            // Attacking without effect: nothing it does takes any health off the target (it can't be hit where it is,
+            // or can't be hurt at all). Every attack used to count as fighting, so it never let go.
+            float health = target.GetHealth();
+            if (health < _targetHealth - 0.01f)
+                _hurtAt = Time.time;
+            _targetHealth = health;
+            if (_attackedTarget && Time.time - _hurtAt > NoEffectSeconds)
+            {
+                Ignore(ai, target, "no effect", NoEffectIgnoreSeconds);
+                Drop(ai, "no effect");
+                return;
+            }
             Humanoid me = ai.Hireling.Humanoid;
             float dist = Vector3.Distance(target.transform.position, ai.transform.position) - target.GetRadius();
             if (ai.Hireling.Job == JobType.GuardRanged)
@@ -89,6 +116,21 @@ namespace VikingsForHire.Hirelings.Combat
             }
             _lastAction = Time.time;
             _nextAttack = Time.time + cooldown;
+            _attackedTarget = true;
+        }
+
+        internal static bool Underwater(Character c) =>
+            c.InWater() && ZoneSystem.instance != null && c.GetCenterPoint().y < ZoneSystem.instance.m_waterLevel - 0.5f && !c.IsFlying();
+
+        // Leave a target alone for a while, saying what it was (at Info: these are the ones players ask about).
+        private void Ignore(HirelingAI ai, Character c, string why, float seconds)
+        {
+            if (_ignored != c || Time.time >= _ignoredUntil)
+                VfhLog.I(LogCat.Combat, "combat.ignored", ("hid", ai.Hireling.Hid), ("target", c.m_name), ("prefab", Utils.GetPrefabName(c.gameObject)),
+                    ("why", why), ("pos", c.transform.position), ("inWater", c.InWater()), ("health", c.GetHealth()), ("seconds", seconds));
+            _ignored = c;
+            _ignoredUntil = Time.time + seconds;
+            ai.Threats.Ignore(c, seconds);
         }
 
         private void Melee(HirelingAI ai, Humanoid me, Character target, float dist, float dt)
@@ -315,7 +357,7 @@ namespace VikingsForHire.Hirelings.Combat
             {
                 VfhLog.D(LogCat.Combat, "combat.disengage", ("hid", ai.Hireling.Hid), ("target", _target.m_name), ("reason", reason));
                 Telemetry.BalanceFights.End(ai.Hireling, reason);
-                if ((reason == "quiet or leashed" || reason == "blocked") && ThreatScanner.Alive(_target))
+                if ((reason == "quiet or leashed" || reason == "blocked") && ThreatScanner.Alive(_target) && !(_ignored == _target && Time.time < _ignoredUntil))
                 {
                     _ignored = _target;
                     _ignoredUntil = Time.time + (reason == "blocked" ? BlockedIgnoreSeconds : 10f);

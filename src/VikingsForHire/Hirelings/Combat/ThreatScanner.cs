@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Collections.Generic;
 using VikingsForHire.Core;
 using UnityEngine;
 
@@ -37,6 +39,11 @@ namespace VikingsForHire.Hirelings.Combat
             _nextScan = 0f; // react now
         }
 
+        private readonly Dictionary<Character, float> _ignored = new();
+
+        /// <summary>Leave this one out of the scan for a while (a target it couldn't hurt), so the next one is picked.</summary>
+        public void Ignore(Character c, float seconds) => _ignored[c] = Time.time + seconds;
+
         public void Tick(float scanInterval)
         {
             if (Time.time < _nextScan)
@@ -45,8 +52,12 @@ namespace VikingsForHire.Hirelings.Combat
             Vector3 me = _ai.transform.position;
             Character? best = null;
             float bestSq = MaxScanRange * MaxScanRange;
+            foreach (Character c in _ignored.Where(kv => kv.Key == null || Time.time >= kv.Value).Select(kv => kv.Key).ToList())
+                _ignored.Remove(c);
             foreach (Character c in Character.GetAllCharacters())
             {
+                if (c != null && _ignored.ContainsKey(c))
+                    continue;
                 if (c == null || c == _ai.Hireling.Humanoid || c.IsDead() || c is Player || c.IsTamed() || Hireling.Of(c) != null)
                     continue;
                 if (!BaseAI.IsEnemy(_ai.Hireling.Humanoid, c))
@@ -54,6 +65,9 @@ namespace VikingsForHire.Hirelings.Combat
                 // Harmless wildlife (deer, hares…: creatures with the passive animal AI) isn't a threat: a guard
                 // shouldn't chase every deer that wanders by. Anything that hits a hireling is still fought back.
                 if (c.GetBaseAI() is AnimalAI)
+                    continue;
+                // Below the water's surface (fish and serpents by the shore): out of reach of arrows and swords alike.
+                if (CombatBehaviour.Underwater(c))
                     continue;
                 float sq = (c.transform.position - me).sqrMagnitude;
                 if (sq < bestSq && Sees(c))
