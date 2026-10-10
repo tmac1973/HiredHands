@@ -12,7 +12,8 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 
 ### To test (batch)
 - [x] Catalog dumps (single player, 2026-10-09): `vfh_recipes` has no gear and FishRaw once per fish; `vfh_crops` crops, seeds, berries and mushrooms only.
-- [ ] Macro (single player): `vfh_test_chain cook_spit cook_oven cook_cauldron cook_chain cook_protect farm_harvest farm_seeds farm_rows`.
+- [x] Macro (single player, 2026-10-09): `vfh_test_chain cook_spit cook_oven cook_cauldron cook_chain cook_protect farm_harvest farm_seeds farm_rows` pass. COOK-5 had failed after COOK-3 in one chain: `crafted_by_cook` counted from game start, so the cauldron row's carrot soup counted against it (the Cook itself refused the reserved carrots correctly). The cook rows now start with the new `cook_stats_reset`; COOK-3 then COOK-5 pass twice. FARM-4 failed once on sloped ground (Testboy had been moved off the test area by a hung launch) and passes at the test area.
+- [x] Dev game: Valheim had saved its window as 1 x 28 px (the first hung launch), so later launches rendered into nothing (`RenderTextureDesc width must be greater than zero` every frame). Set to 1920 x 1080 windowed in the Proton prefix's user.reg; 0 errors since.
 - [ ] By hand (live server, the 1dotohsupermodded profile): the board's Orders tab lists no armor or weapons for the Cook or the Farmer; the client log's `kitchen.rejected`/`crops.rejected` lines show what the server's mods added.
 
 ## 0.7.0 (released 2026-10-09): split caps, DeathMode

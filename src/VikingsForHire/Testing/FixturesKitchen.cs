@@ -19,7 +19,8 @@ namespace VikingsForHire.Testing
         {
             Fixtures.Add("stove", "<prefab> [lit] [fuel <n>] [tag] - a cooking station over a campfire (lit: fuelled) or an oven with n wood (default 5), beside the nearest board", Stove);
             Fixtures.Add("craftstation", "<prefab> [level] [tag] - a cauldron or mead ketill over a lit campfire, or a prep table, beside the nearest board; level adds that many of its extensions", CraftStation);
-            TestHarness.RegisterCheck("crafted_by_cook", "<item> - how many of an item Cooks have crafted since login", args =>
+            Fixtures.Add("cook_stats_reset", "- start counting what Cooks craft from zero (crafted_by_cook)", _ => ResetCookStats());
+            TestHarness.RegisterCheck("crafted_by_cook", "<item> - how many of an item Cooks have crafted since login or the last cook_stats_reset", args =>
                 (CraftChore.Crafted.TryGetValue(args.ElementAtOrDefault(0) ?? "", out int n) ? n : 0).ToString(CultureInfo.InvariantCulture));
             TestHarness.RegisterCheck("status_has", "<posted> <text> - true when the status line of the hireling from your last contract contains the text", args =>
             {
@@ -121,6 +122,12 @@ namespace VikingsForHire.Testing
             }
             VfhLog.I(LogCat.Test, "fixture.craftstation", ("prefab", prefab), ("extensions", extensions.Count), ("tag", tag));
             yield return new WaitForSeconds(1f);
+        }
+
+        private static System.Collections.IEnumerator ResetCookStats()
+        {
+            Hirelings.Work.Kitchen.CraftChore.Crafted.Clear();
+            yield return null;
         }
     }
 }
