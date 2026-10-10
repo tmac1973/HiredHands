@@ -3,6 +3,18 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.7.1 (unreleased)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| 4ffa952 | Orders tab: the Cook's list had gold weapons, Deep North armor, shields and staffs (the vanilla frost foundry is built as a cooking station) and the prep table's fishing bait. Now stoves only count when they make food, the cauldron, prep table and mead ketill when they make consumables or materials, and the Farmer never lists gear. Raw fish ("any one fish") was listed as needing all 12 fish at once, so the Cook could never make it: now one way per fish. Rejections are logged (`kitchen.rejected`, `crops.rejected`) | everywhere (catalogs) |
+
+### To test (batch)
+- [x] Catalog dumps (single player, 2026-10-09): `vfh_recipes` has no gear and FishRaw once per fish; `vfh_crops` crops, seeds, berries and mushrooms only.
+- [ ] Macro (single player): `vfh_test_chain cook_spit cook_oven cook_cauldron cook_chain cook_protect farm_harvest farm_seeds farm_rows`.
+- [ ] By hand (live server, the 1dotohsupermodded profile): the board's Orders tab lists no armor or weapons for the Cook or the Farmer; the client log's `kitchen.rejected`/`crops.rejected` lines show what the server's mods added.
+
 ## 0.7.0 (released 2026-10-09): split caps, DeathMode
 
 Plan: `plan/split-caps/overview.md` (combat and worker caps per board level, per-job limits).
