@@ -14,6 +14,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | 1319717 | Looking at a hiring board (or having its panel open) draws its area on the ground (gold circle: the level's largest work radius, 20 m at level 1 to 60 m at level 8); the hover says "Area: 30 m (woodcutters and miners 60 m)". The tree patch circle uses the same code (AreaRing) | your game |
 | 716ffce | Steward chores: charcoal kilns are their own toggle ("Charcoal kilns"), apart from "Smelters, furnaces and refineries". Same server setting (StewardStations). A Steward that had smelting switched off has kilns on after the update | the game simulating the Steward |
 | bf7265c, (this) | Steward limits, set in the Steward's Shift+E panel ("Limits (N set)"; kept on its board, so a new Steward keeps them): "make no more once the chests in its area hold this many", for anything it makes: coal, bars, eitr, flour, linen, modded station products, honey, sap, each mead. At the limit a station isn't loaded ("Kiln: paused, Coal is at its limit (100)"), a beehive or sap collector is left full, a fermenter isn't loaded with that mead's base; paused = makes none; anything without a limit as before. Counted over every chest in its area, reserves included. The board panel is bigger (1000 x 720) with larger order rows (10 a page) and picks (18 a page); the Orders tab stays farm and kitchen | your game (panels); the game simulating the Steward |
+| 06db69e | With the Command Stone in hand, the map shows your hirelings: your followers (dot, their name) and the workers and guards of the boards you built (hammer, name and job), not those leaving or on a trip home. Asked of the server every 2 s (so far-off bases show too); ones near you are pinned where they are, so a follower's pin keeps up. Pins aren't saved and go when you put the stone away | your game (pins); the server (positions) |
 
 ### To test (batch)
 - [ ] By hand (live server): a mob against the outside of a wall near a melee guard: the guard doesn't swing at the wall; it goes round through a door, or gives up within about 5 s.
@@ -26,6 +27,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 - [ ] By hand: a Steward's Shift+E chores list "Charcoal kilns" separately; switch it off: the kiln is left alone while the smelter is still fed.
 - [ ] By hand: Steward Shift+E → Limits: add Coal, set it below what the chests hold: the Steward stops loading the kiln ("paused, Coal is at its limit"); raise it above: it loads again; pause: no coal made. The same with Honey (hives left full) and a mead (that base isn't loaded). The count matches the chests.
 - [ ] By hand: the Orders tab with 10+ orders: rows readable, paging works; the panel fits on your screen (and at your GUI scale).
+- [ ] By hand: stone in hand, open the map: a dot per follower moving with them, a hammer per hireling at your boards (also a base far away), named; put the stone away: the pins go. On a dedicated server too.
 
 ## 0.7.2 (released 2026-10-09): board moving, stone on a chest, combat settings
 

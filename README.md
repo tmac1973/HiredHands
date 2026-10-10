@@ -173,6 +173,7 @@ With the stone in hand (the list of your followers shows on the left of the scre
 | Shift+E | A hireling | Orders panel: follow mode (Follow, Stay, Gather Here), stance, what to gather, work at home, rename, send home, apply to all |
 | E | Your follower | Its cargo, to load your own loot onto it |
 
+- **On the map**: with the stone in hand, the map shows your followers (a dot with their name) and the hirelings of the boards you built (a hammer with name and job), wherever they are. The pins go when you put the stone away.
 - **Retreat key**: `RetreatKey` (Followers section, your own setting, unset by default) gives the retreat its own key or mouse button, so it works without the stone in hand.
 - **Gather Here**: a woodcutter or miner works around the spot you leave it until its cargo is full.
 - **Sneaking**: crouch and your followers nearby crouch with you: slower, silent and harder to spot.
