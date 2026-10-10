@@ -10,10 +10,15 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 |---|---|---|
 | fe10bcc | Melee guards swung forever at a mob just the other side of a wall (in reach, so they swung, and every swing kept the fight going). A swing now needs a clear line (middle or eyes to the target's middle or head, past pieces and terrain); blocked, the guard walks round to it (doors and all), and after 5 s still blocked gives it up and ignores it for 20 s. `combat.swing_blocked` log | the game simulating the hireling |
 | bbd786e | Raw food from mods paid upkeep: the Steward filled a board with Witch Eyes (a mod mushroom), counted as 9 days of food. Now any edible item that nothing makes (no recipe, cooking station, oven or fermenter turns anything into it) is raw, as well as what the data file's raw list names (which also lacked the Ashlands Smoke Puff). `AllowRawFood` still lets it all in. `food.raw_unmade` logs the unmade foods found. Raw food already on a board stays there but no longer counts or pays; take it out by hand | everywhere (board, Steward, hiring) |
+| 476a59c | `RetreatKey` (Followers, your own setting, unset by default): a key or mouse button for the retreat order, stone in hand or not (the stone's middle click still works). Right click your follower in another board's area (the board level's largest work radius, you need ward access): it joins that board if the board would take the same contract (hireling level, job gate, combat and worker caps, per-job limits, CombatHirelings; no fee), leaves the old board's roster and goes to work at the new board (unposted). Refused: the reason with the numbers. New op type and fields: server and clients must all update | your game (key, click); the server (transfer); the new board's owner (cap check); the old board's owner (removal) |
 
 ### To test (batch)
 - [ ] By hand (live server): a mob against the outside of a wall near a melee guard: the guard doesn't swing at the wall; it goes round through a door, or gives up within about 5 s.
 - [ ] By hand (live server): the board with the Witch Eyes shows food days from cooked food only; the Steward doesn't bring more Witch Eyes; putting one on the board by hand is refused. The server log's `food.raw_unmade` lists Witch Eye and no cooked foods (check what else is in it).
+- [ ] By hand: set RetreatKey (e.g. a mouse side button) in ConfigurationManager; in a fight with no stone in hand, press it: "N followers retreat with you" and they drop the fight.
+- [ ] By hand: a follower from board A walked to board B (with room for it): right click it: "X joins this board and gets to work"; A's Roster tab no longer lists it, B's does, it works at B; upkeep comes off B.
+- [ ] By hand: the same into a board that's full for that kind or job (or below the hireling's level): refused with the reason; it stays your follower and on A's roster.
+- [ ] By hand (dedicated server): the same, ideally with the two boards owned by different players' games.
 
 ## 0.7.2 (released 2026-10-09): board moving, stone on a chest, combat settings
 
