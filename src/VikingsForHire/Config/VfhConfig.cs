@@ -100,6 +100,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<int> LowFundsWarnDays = null!;
         public static ConfigEntry<bool> LowFundsMessages = null!;
         public static ConfigEntry<bool> LowFundsMapPins = null!;
+        public static ConfigEntry<KeyboardShortcut> RetreatKey = null!;
         public static ConfigEntry<bool> UpgradeFromNearbyChests = null!;
         public static ConfigEntry<int> BalanceLogMaxMB = null!;
         public static ConfigEntry<float> ReturnSecondsPer100m = null!;
@@ -244,6 +245,7 @@ namespace VikingsForHire.Config
             ReturnMinSeconds = Synced(f, "ReturnMinSeconds", 60f, "Shortest return-home trip.");
             ReturnMaxSeconds = Synced(f, "ReturnMaxSeconds", 1200f, "Longest return-home trip.");
             StoneBoardSearchRadius = Synced(f, "StoneBoardSearchRadius", 30f, "Radius (m) around the workbench searched for a hiring board when crafting a Command Stone.");
+            RetreatKey = _file.Bind(f, "RetreatKey", KeyboardShortcut.Empty, "Your own setting: a key or mouse button that orders your followers within 50 m to retreat with you (as the Command Stone's middle click), stone in hand or not. Unset by default.");
 
             BalanceLog = Synced("9 - Balance log", "BalanceLog", false, "Record how hirelings fight and work (each fight, death, delivery and upkeep day) to BepInEx/HiredHands/balance/*.jsonl on the server, for tuning the mod. Off by default. Set it on the server: every player's game then sends its summaries there once a minute.");
             BalanceLogMaxMB = _file.Bind("9 - Balance log", "BalanceLogMaxMB", 20, "Server: total size (MB) of the balance log files kept; the oldest days are deleted beyond it.");

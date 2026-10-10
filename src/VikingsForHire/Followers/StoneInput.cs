@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using VikingsForHire.Board;
 using VikingsForHire.Core;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
@@ -20,7 +21,8 @@ namespace VikingsForHire.Followers
     ///   at home are posted there instead).
     /// Right click: on your follower at home → back to work; on a posted guard → clear its post; anything else (your
     /// follower in the field included) →
-    /// recall every follower within 50 m to follow you. Middle click: retreat, everyone within 50 m drops its fight and
+    /// recall every follower within 50 m to follow you; on your follower in another board's area → it joins that board
+    /// (Kind.Transfer: if the board has room for it). Middle click (or the RetreatKey setting, stone in hand or not): retreat, everyone within 50 m drops its fight and
     /// follows you, ignoring enemies until things are quiet (a left-click order ends it). All act once per press.
     /// </summary>
     internal static class StoneInput
@@ -73,7 +75,15 @@ namespace VikingsForHire.Followers
         /// <summary>Every frame (Plugin.Update): right click (the block button) with the stone in hand.</summary>
         public static void Tick()
         {
-            if (!StoneInHand || !Player.m_localPlayer.TakeInput())
+            if (Player.m_localPlayer == null || !Player.m_localPlayer.TakeInput())
+                return;
+            // The retreat key (unset by default): the middle click without needing the stone in hand.
+            if (Config.VfhConfig.RetreatKey.Value.MainKey != KeyCode.None && Config.VfhConfig.RetreatKey.Value.IsDown() && Time.time - _lastMiddlePress > PressGap)
+            {
+                _lastMiddlePress = Time.time;
+                VfhLog.Guard(LogCat.Orders, "stone.retreat_key_failed", () => Retreat(Player.m_localPlayer));
+            }
+            if (!StoneInHand)
                 return;
             if (ZInput.GetMouseButtonDown(2) && Time.time - _lastMiddlePress > PressGap)
             {
@@ -133,6 +143,13 @@ namespace VikingsForHire.Followers
                     if (AtHome(h))
                     {
                         FollowerServer.Send(FollowerServer.Kind.Release, h.Hid, Quality);
+                        return;
+                    }
+                    // In another board's area: it joins that board (if it has room) and works there.
+                    if (OtherBoard(h) is HiringBoard other)
+                    {
+                        if (PrivateArea.CheckAccess(other.transform.position, 0f, flash: true))
+                            FollowerServer.Send(FollowerServer.Kind.Transfer, h.Hid, Quality, Vector3.zero, 0f, other.Id);
                         return;
                     }
                 }
@@ -311,6 +328,18 @@ namespace VikingsForHire.Followers
         // Clicked into place at home: guards are posted; so are gatherers with "Works at home" off, which would otherwise
         // wander about the base with nothing to do. Other workers go back to work.
         private static bool Postable(Hireling h) => h.Job.IsGuard() || !h.WorksAtHome;
+
+        // The nearest board other than its own whose area (the board level's largest work radius) the hireling is in.
+        private static HiringBoard? OtherBoard(Hireling h)
+        {
+            var rules = new LevelRules(Config.DataStore.Current);
+            Vector3 at = h.transform.position;
+            return HiringBoard.Loaded
+                .Where(b => b != null && b.Zdo != null && b.Id.Length > 0 && b.Id != h.BoardId &&
+                            Utils.DistanceXZ(at, b.transform.position) <= rules.MaxWorkRadius(b.Level))
+                .OrderBy(b => Utils.DistanceXZ(at, b.transform.position))
+                .FirstOrDefault();
+        }
 
         private static bool AtHome(Hireling h) => Utils.DistanceXZ(h.transform.position, h.Home) <= h.Radius;
 

@@ -15,6 +15,8 @@ namespace VikingsForHire.Core
         Rename = 9,
         SetGather = 10,
         Orders = 11,
+        /// <summary>Another board's hireling joins this roster as it is (a follower moved between bases): no fee.</summary>
+        Adopt = 12,
     }
 
     /// <summary>An edit to the board's production orders (RosterOpType.Orders).</summary>
@@ -141,6 +143,9 @@ namespace VikingsForHire.Core
         public bool? NoHomeWork { get; set; }
         /// <summary>Called to the board: stands there, off work, until sent back to work.</summary>
         public bool? Parked { get; set; }
+        /// <summary>Moving to another board: its id and where home (the board) is.</summary>
+        public string? BoardId { get; set; }
+        public (float X, float Y, float Z)? Home { get; set; }
 
         public void Write(IPackageWriter w)
         {
@@ -148,7 +153,8 @@ namespace VikingsForHire.Core
                         | (LeavingSince.HasValue ? 16 : 0) | (Status != null ? 32 : 0) | (Owner.HasValue ? 64 : 0) | (OwnerName != null ? 128 : 0)
                         | (FollowMode.HasValue ? 256 : 0) | (StayPos.HasValue ? 512 : 0) | (DeliverPending.HasValue ? 1024 : 0)
                         | (Post.HasValue ? 2048 : 0) | (ClearPost == true ? 4096 : 0) | (Name != null ? 8192 : 0)
-                        | (SkipItems != null ? 16384 : 0) | (NoHomeWork.HasValue ? 32768 : 0) | (Parked.HasValue ? 65536 : 0);
+                        | (SkipItems != null ? 16384 : 0) | (NoHomeWork.HasValue ? 32768 : 0) | (Parked.HasValue ? 65536 : 0)
+                        | (BoardId != null ? 131072 : 0) | (Home.HasValue ? 262144 : 0);
             w.Write(flags);
             if (Mode.HasValue) w.Write((int)Mode.Value);
             if (Stance.HasValue) w.Write((int)Stance.Value);
@@ -177,6 +183,13 @@ namespace VikingsForHire.Core
             if (SkipItems != null) w.Write(SkipItems);
             if (NoHomeWork.HasValue) w.Write(NoHomeWork.Value ? 1 : 0);
             if (Parked.HasValue) w.Write(Parked.Value ? 1 : 0);
+            if (BoardId != null) w.Write(BoardId);
+            if (Home is (float hx, float hy, float hz))
+            {
+                w.Write(hx);
+                w.Write(hy);
+                w.Write(hz);
+            }
         }
 
         public static HirelingOp Read(IPackageReader r)
@@ -200,10 +213,12 @@ namespace VikingsForHire.Core
             if ((flags & 16384) != 0) op.SkipItems = r.ReadString();
             if ((flags & 32768) != 0) op.NoHomeWork = r.ReadInt() != 0;
             if ((flags & 65536) != 0) op.Parked = r.ReadInt() != 0;
+            if ((flags & 131072) != 0) op.BoardId = r.ReadString();
+            if ((flags & 262144) != 0) op.Home = (r.ReadSingle(), r.ReadSingle(), r.ReadSingle());
             return op;
         }
 
         public override string ToString() =>
-            $"SetFields({(Mode.HasValue ? $"mode={Mode} " : "")}{(Stance.HasValue ? $"stance={Stance} " : "")}{(Radius.HasValue ? $"radius={Radius} " : "")}{(Level.HasValue ? $"level={Level} " : "")}{(LeavingSince.HasValue ? "leaving " : "")}{(Status != null ? $"status={Status} " : "")}{(Owner.HasValue ? $"owner={Owner} " : "")}{(FollowMode.HasValue ? $"follow={FollowMode} " : "")}{(StayPos.HasValue ? "stay " : "")}{(DeliverPending == true ? "deliver " : "")}{(Name != null ? $"name={Name} " : "")}{(Parked.HasValue ? $"parked={Parked} " : "")})".Replace(" )", ")");
+            $"SetFields({(Mode.HasValue ? $"mode={Mode} " : "")}{(Stance.HasValue ? $"stance={Stance} " : "")}{(Radius.HasValue ? $"radius={Radius} " : "")}{(Level.HasValue ? $"level={Level} " : "")}{(LeavingSince.HasValue ? "leaving " : "")}{(Status != null ? $"status={Status} " : "")}{(Owner.HasValue ? $"owner={Owner} " : "")}{(FollowMode.HasValue ? $"follow={FollowMode} " : "")}{(StayPos.HasValue ? "stay " : "")}{(DeliverPending == true ? "deliver " : "")}{(Name != null ? $"name={Name} " : "")}{(Parked.HasValue ? $"parked={Parked} " : "")}{(BoardId != null ? $"board={BoardId} " : "")})".Replace(" )", ")");
     }
 }

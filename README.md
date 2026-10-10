@@ -166,11 +166,13 @@ With the stone in hand (the list of your followers shows on the left of the scre
 | Left click | An enemy | Your guards attack it |
 | Left click | The ground | Your followers go there and hold; at home, guards (and gatherers with "Works at home" off) are posted there |
 | Right click | Your follower at home / a posted guard | Back to work / clear the post |
+| Right click | Your follower in another board's area | It **joins that board** and works there, if the board has room for it (its level, job and caps are checked as for a new contract; no fee). You need access to that board's area |
 | Right click | Anything else | Recall: everyone within 50 m follows you |
 | Middle click | Anywhere | **Retreat**: everyone drops the fight and runs with you, ignoring enemies, until 20 s pass without a hit |
 | Shift+E | A hireling | Orders panel: follow mode (Follow, Stay, Gather Here), stance, what to gather, work at home, rename, send home, apply to all |
 | E | Your follower | Its cargo, to load your own loot onto it |
 
+- **Retreat key**: `RetreatKey` (Followers section, your own setting, unset by default) gives the retreat its own key or mouse button, so it works without the stone in hand.
 - **Gather Here**: a woodcutter or miner works around the spot you leave it until its cargo is full.
 - **Sneaking**: crouch and your followers nearby crouch with you: slower, silent and harder to spot.
 - **Keeping up**: followers sprint when you do, catch up faster when well behind, get themselves unstuck, and as a last resort reappear just behind you when you can't see them.

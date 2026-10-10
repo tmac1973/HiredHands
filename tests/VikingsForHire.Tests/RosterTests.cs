@@ -217,6 +217,15 @@ namespace VikingsForHire.Tests
             HirelingOp pb = HirelingOp.Read(new R(w4.Stream.ToArray()));
             Assert.True(pb.Parked);
             Assert.Equal(Stance.Defensive, pb.Stance);
+
+            var move = new HirelingOp { BoardId = "b2", Home = (1f, 2f, 3f), ClearPost = true, Parked = false };
+            var w5 = new W();
+            move.Write(w5);
+            HirelingOp mb = HirelingOp.Read(new R(w5.Stream.ToArray()));
+            Assert.Equal("b2", mb.BoardId);
+            Assert.Equal((1f, 2f, 3f), mb.Home);
+            Assert.True(mb.ClearPost);
+            Assert.False(mb.Parked);
         }
 
         private static readonly string[] Wood = { "Wood", "FineWood", "RoundLog", "ElderBark" };

@@ -30,6 +30,8 @@ namespace VikingsForHire.Net
             Post = 4,
             ClearPost = 5,
             SendHome = 6,
+            /// <summary>Your follower in another board's area joins that board's roster (the board's id travels along).</summary>
+            Transfer = 7,
         }
 
         private const float OwnershipSeconds = 5f;
@@ -111,7 +113,7 @@ namespace VikingsForHire.Net
         public static void Send(Kind kind, string hid, int quality) => Send(kind, hid, quality, Vector3.zero, 0f);
 
         /// <summary>Client: ask the server; <paramref name="pos"/>/<paramref name="yaw"/> are the post for Kind.Post.</summary>
-        public static void Send(Kind kind, string hid, int quality, Vector3 pos, float yaw)
+        public static void Send(Kind kind, string hid, int quality, Vector3 pos, float yaw, string board = "")
         {
             if (ZNet.instance == null || Player.m_localPlayer == null)
                 return;
@@ -122,6 +124,7 @@ namespace VikingsForHire.Net
             pkg.Write(Player.m_localPlayer.GetPlayerName());
             pkg.Write(pos);
             pkg.Write(yaw);
+            pkg.Write(board);
             VfhLog.D(LogCat.Follow, "follow.request", ("kind", kind), ("hid", hid), ("quality", quality));
             if (ZNet.instance.IsServer())
             {
@@ -141,7 +144,7 @@ namespace VikingsForHire.Net
         private static IEnumerator OnClient(long sender, ZPackage pkg)
         {
             string message = pkg.ReadString();
-            Player.m_localPlayer?.Message(MessageHud.MessageType.Center, message);
+            Player.m_localPlayer?.Message(MessageHud.MessageType.Center, Board.BoardContracts.Text(message));
             yield break;
         }
 
@@ -153,10 +156,16 @@ namespace VikingsForHire.Net
             string name = pkg.ReadString();
             Vector3 pos = pkg.ReadVector3();
             float yaw = pkg.ReadSingle();
+            string board = pkg.GetPos() < pkg.Size() ? pkg.ReadString() : "";
             long pid = PlayerIdOf(sender);
             if (pid == 0L)
             {
                 VfhLog.W(LogCat.Follow, "follow.unknown_player", ("sender", sender));
+                return;
+            }
+            if (kind == Kind.Transfer)
+            {
+                Transfer(sender, pid, hid, board);
                 return;
             }
             string reply = kind switch
@@ -218,6 +227,65 @@ namespace VikingsForHire.Net
                 return "$vfh_follow_too_far";
             ReleaseOne(zdo, "released");
             return Localization.instance.Localize("$vfh_follow_released", zdo.GetString(HirelingZdo.Name));
+        }
+
+        /// <summary>
+        /// Your follower in another board's area joins that board: the new board takes it if it would take the same
+        /// contract (level, job gate, caps; no fee), then it leaves the old board's roster and goes to work at the new
+        /// one. The answer comes once the new board has said yes or no.
+        /// </summary>
+        private static void Transfer(long sender, long pid, string hid, string boardId)
+        {
+            ZDO? zdo = WorldIndex.Hireling(hid);
+            if (zdo == null || zdo.GetLong(HirelingZdo.Owner) != pid || zdo.GetInt(HirelingZdo.Mode) != (int)HirelingMode.Following)
+            {
+                Reply(sender, "$vfh_follow_not_yours");
+                return;
+            }
+            string name = zdo.GetString(HirelingZdo.Name);
+            string oldId = zdo.GetString(HirelingZdo.BoardId);
+            ZDO? board = WorldIndex.Board(boardId);
+            if (oldId == boardId)
+            {
+                Reply(sender, Release(pid, hid));
+                return;
+            }
+            var rules = new LevelRules(DataStore.Current);
+            if (board == null || Utils.DistanceXZ(zdo.GetPosition(), board.GetPosition()) > rules.MaxWorkRadius(Board.BoardZdo.GetLevel(board)))
+            {
+                Reply(sender, "$vfh_transfer_no_board");
+                return;
+            }
+            ZDO? oldBoard = WorldIndex.Board(oldId);
+            ContractEntry? old = oldBoard != null ? Board.BoardRosterOps.Read(oldBoard).ByHid(hid) : null;
+            var job = (JobType)zdo.GetInt(HirelingZdo.Job);
+            var adopt = new RosterOp
+            {
+                Type = RosterOpType.Adopt, ContractId = old?.ContractId ?? "", Hid = hid, Name = name, Job = job,
+                Level = Mathf.Max(1, zdo.GetInt(HirelingZdo.Level, 1)), Radius = zdo.GetFloat(HirelingZdo.Radius, 20f),
+                Stance = (Stance)zdo.GetInt(HirelingZdo.Stance), Snapshot = old?.Snapshot ?? HirelingSnapshot.FromZdo(zdo).ToBytes(),
+                SkipItems = zdo.GetString(HirelingZdo.SkipItems), NoHomeWork = zdo.GetBool(HirelingZdo.NoHomeWork),
+            };
+            MutationService.SubmitBoard(boardId, adopt, result =>
+            {
+                if (!result.Ok)
+                {
+                    VfhLog.I(LogCat.Follow, "follow.transfer_refused", ("hid", hid), ("from", oldId), ("to", boardId), ("why", result.Outcome));
+                    Reply(sender, result.Message.Length > 0 ? result.Message : "$vfh_transfer_failed");
+                    return;
+                }
+                if (oldBoard != null)
+                    MutationService.SubmitBoard(oldId, new RosterOp { Type = RosterOpType.Remove, Hid = hid });
+                Vector3 home = board.GetPosition();
+                int level = Board.BoardZdo.GetLevel(board);
+                MutationService.SubmitHireling(hid, new HirelingOp
+                {
+                    Mode = HirelingMode.Working, Owner = 0L, OwnerName = "", FollowMode = FollowMode.Follow, DeliverPending = true,
+                    BoardId = boardId, Home = (home.x, home.y, home.z), Radius = rules.ClampRadius(level, job, adopt.Radius), ClearPost = true,
+                });
+                VfhLog.I(LogCat.Follow, "follow.transferred", ("player", pid), ("hid", hid), ("name", name), ("from", oldId), ("to", boardId));
+                Reply(sender, $"$vfh_transfer_done|{name}");
+            });
         }
 
         // A follower at home posted on a spot: it stops being a follower (freeing the stone slot) and goes back to its
@@ -327,7 +395,7 @@ namespace VikingsForHire.Net
         {
             if (to == ZDOMan.GetSessionID())
             {
-                Player.m_localPlayer?.Message(MessageHud.MessageType.Center, Localization.instance.Localize(message));
+                Player.m_localPlayer?.Message(MessageHud.MessageType.Center, Board.BoardContracts.Text(message));
                 return;
             }
             var pkg = new ZPackage();

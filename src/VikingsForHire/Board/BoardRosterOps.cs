@@ -210,6 +210,39 @@ namespace VikingsForHire.Board
                     result = new OpResult(OpOutcome.Ok);
                     break;
                 }
+                case RosterOpType.Adopt:
+                {
+                    // A follower moved here from another board: the same checks as a new contract (level, job gate, caps)
+                    // but no fee and no arrival wait; it's already here.
+                    if (roster.ByHid(op.Hid) != null)
+                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.Ok));
+                    if (op.Level > rules.MaxHirelingLevel(boardLevel))
+                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.BadLevel, $"$vfh_transfer_level|{op.Name}|{op.Level}|{rules.MaxHirelingLevel(boardLevel)}"));
+                    if (!rules.JobUnlocked(boardLevel, op.Job))
+                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.BadLevel, "$vfh_op_job_locked"));
+                    OpOutcome can = op.Job.IsCombat() && !VfhConfig.CombatHirelings.Value ? OpOutcome.CombatOff : roster.CanPost(op.Job, rules, boardLevel);
+                    if (can != OpOutcome.Ok)
+                        return Done(zdo, null, boardId, op, new OpResult(can, RefusalMessage(can, op.Job, roster, rules, boardLevel)));
+                    var entry = new ContractEntry
+                    {
+                        ContractId = op.ContractId.Length > 0 ? op.ContractId : Guid.NewGuid().ToString("N"),
+                        Hid = op.Hid,
+                        Name = op.Name,
+                        Job = op.Job,
+                        Level = op.Level,
+                        Radius = rules.ClampRadius(boardLevel, op.Job, op.Radius),
+                        Stance = StanceRules.IsAllowed(op.Job, op.Stance) ? op.Stance : StanceRules.Default(op.Job),
+                        Snapshot = op.Snapshot,
+                        SkipItems = op.SkipItems,
+                        NoHomeWork = op.NoHomeWork,
+                    };
+                    roster.Add(entry);
+                    entry.State = ContractState.Active;
+                    VfhLog.I(LogCat.Roster, "contract.adopted", ("board", boardId), ("hid", entry.Hid), ("name", entry.Name), ("job", entry.Job),
+                        ("level", entry.Level), ("radius", entry.Radius));
+                    result = new OpResult(OpOutcome.Ok);
+                    break;
+                }
                 case RosterOpType.Remove:
                 {
                     bool removed = roster.RemoveEntry(op.Hid);
