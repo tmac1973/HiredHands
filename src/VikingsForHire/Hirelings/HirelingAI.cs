@@ -185,6 +185,7 @@ namespace VikingsForHire.Hirelings
                     break;
             }
             Add(new Followers.FollowBehaviour());
+            Add(new Followers.UnloadBehaviour());
             Add(new FleeBehaviour());
             _combat = new CombatBehaviour();
             Add(_combat);

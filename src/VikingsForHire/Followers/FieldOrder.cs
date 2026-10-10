@@ -18,6 +18,30 @@ namespace VikingsForHire.Followers
         {
             Harvest,
             Attack,
+            /// <summary>Put what this chest already holds from the cargo into it, then carry on.</summary>
+            Unload,
+        }
+
+        /// <summary>How long an unload order lasts before it's dropped (a chest it can't reach).</summary>
+        public const float UnloadLifetime = 60f;
+
+        public static FieldOrder Unload(Container chest) => new()
+        {
+            Kind = OrderKind.Unload, Target = chest, Position = chest.transform.position, Until = Time.time + UnloadLifetime,
+        };
+
+        /// <summary>The cargo items (prefab -> count) a chest already holds some of: the only ones an unload puts in it.</summary>
+        public static Dictionary<string, int> ForChest(Inventory cargo, Container chest)
+        {
+            var have = new HashSet<string>();
+            foreach (ItemDrop.ItemData i in chest.GetInventory().GetAllItems())
+                if (i.m_dropPrefab != null)
+                    have.Add(i.m_dropPrefab.name);
+            var take = new Dictionary<string, int>();
+            foreach (ItemDrop.ItemData i in cargo.GetAllItems())
+                if (i.m_dropPrefab != null && have.Contains(i.m_dropPrefab.name))
+                    take[i.m_dropPrefab.name] = (take.TryGetValue(i.m_dropPrefab.name, out int n) ? n : 0) + i.m_stack;
+            return take;
         }
 
         public OrderKind Kind;

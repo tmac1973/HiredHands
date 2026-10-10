@@ -193,8 +193,11 @@ namespace VikingsForHire.Followers
             if (rock == null && tree == null && c.GetComponentInParent<Destructible>() is Destructible dr && dr.m_destructibleType == DestructibleType.Default)
                 rock = dr;
             Character? enemy = c.GetComponentInParent<Character>();
+            Container? chest = c.GetComponentInParent<Container>();
 
-            if (tree != null)
+            if (chest != null && Hireling.Of(chest) == null)
+                Unload(me, near, chest);
+            else if (tree != null)
                 Harvest(near, JobType.Woodcutter, tree, "$vfh_order_chop", "$vfh_order_no_woodcutter");
             else if (rock != null)
                 Harvest(near, JobType.Miner, rock, "$vfh_order_mine", "$vfh_order_no_miner");
@@ -229,6 +232,26 @@ namespace VikingsForHire.Followers
             Vector3 at = target.transform.position;
             if (f.FollowMode != FollowMode.Stay || Vector3.Distance(f.StayPos, at) > 1f)
                 MutationService.SubmitHireling(f.Hid, new HirelingOp { FollowMode = FollowMode.Stay, StayPos = (at.x, at.y, at.z) });
+        }
+
+        // A chest: everyone near you carrying something that chest already holds puts it in, then carries on.
+        internal static void Unload(Player me, List<Hireling> near, Container chest)
+        {
+            if (!chest.CheckAccess(me.GetPlayerID()) || !PrivateArea.CheckAccess(chest.transform.position, 0f, flash: true))
+            {
+                Say("$vfh_order_unload_no_access");
+                return;
+            }
+            int n = 0;
+            foreach (Hireling f in near)
+            {
+                if (f.CargoInventory == null || FieldOrder.ForChest(f.CargoInventory, chest).Count == 0)
+                    continue;
+                f.Ai.Order = FieldOrder.Unload(chest);
+                n++;
+            }
+            VfhLog.I(LogCat.Orders, "order.unload", ("chest", chest.transform.position), ("followers", n));
+            Say(n == 0 ? "$vfh_order_unload_none" : Localization.instance.Localize("$vfh_order_unload", n.ToString()));
         }
 
         private static void Attack(List<Hireling> near, Character enemy)

@@ -25,6 +25,7 @@ namespace VikingsForHire.Testing
             Fixtures.Add("post_posted", "<right|back|front|left> <distance> - post the guard from your last contract at that spot next to the board, facing away from it", PostPosted);
             Fixtures.Add("clear_post_posted", "- clear the post of the guard from your last contract", _ => Op(FollowerServer.Kind.ClearPost, Posted()));
             Fixtures.Add("park_posted", "<GatherHere|Stay|Follow> <right|back|front|left> <distance> - set your follower's follow mode, parked at that spot next to the board", Park);
+            Fixtures.Add("order_unload", "<tag> - point the stone at a tagged chest: followers near you put in what it already holds", UnloadTagged);
             Fixtures.Add("order_harvest", "<tag> - give the follower from your last contract a stone order to harvest a tagged tree or rock", HarvestTagged);
             Fixtures.Add("order_harvest_nearest", "- give your followers a stone order to harvest the nearest tree or rock to the board", HarvestNearest);
             Fixtures.Add("strand_posted", "<distance> - put your follower from your last contract that far behind the camera, out of your view (to test catching up)", Strand);
@@ -134,6 +135,16 @@ namespace VikingsForHire.Testing
             me.m_maxAirAltitude = to.y;
             VfhLog.I(LogCat.Test, "fixture.player_to", ("tag", args[0]), ("pos", to));
             yield return new WaitForSeconds(0.5f);
+        }
+
+        private static IEnumerator UnloadTagged(string[] args)
+        {
+            GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged object");
+            Container chest = go.GetComponent<Container>() ?? throw new InvalidOperationException("tagged object isn't a chest");
+            Player me = Player.m_localPlayer;
+            StoneInput.Unload(me, StoneInput.MyFollowers(me, 40f).ToList(), chest);
+            VfhLog.I(LogCat.Test, "fixture.order_unload", ("chest", chest.transform.position));
+            yield return null;
         }
 
         private static IEnumerator HarvestTagged(string[] args)
