@@ -65,9 +65,7 @@ namespace VikingsForHire.Board
 
                     __result = false;
                     ZDOID id = board.Zdo.m_uid;
-                    string text = Localization.instance.Localize("$vfh_confirm_remove", count.ToString());
-                    if (board.Level >= 2)
-                        text += "\n" + Localization.instance.Localize("$vfh_confirm_remove_charter", board.Level.ToString());
+                    string text = Localization.instance.Localize("$vfh_confirm_remove_pack", count.ToString(), board.Level.ToString());
                     UnifiedPopup.Push(new YesNoPopup(Localization.instance.Localize("$vfh_board"), text,
                         () =>
                         {
@@ -76,8 +74,19 @@ namespace VikingsForHire.Board
                                 return;
                             _confirmed = id;
                             VfhLog.I(LogCat.Board, "board.remove_confirmed", ("board", board.Id), ("hirelings", count));
-                            HiringCharter.Give(board);
-                            board.GetComponent<WearNTear>()?.Remove();
+                            // Pack the hirelings first (on the server), then the charter, then the board comes down: its
+                            // hirelings are gone from the world by then, so nobody is sent away.
+                            CharterPacking.Request(board, packed =>
+                            {
+                                if (packed == null)
+                                {
+                                    Player.m_localPlayer?.Message(MessageHud.MessageType.Center, "$vfh_charter_pack_failed");
+                                    return;
+                                }
+                                HiringCharter.Give(board, packed);
+                                if (board != null)
+                                    board.GetComponent<WearNTear>()?.Remove();
+                            });
                         },
                         () => UnifiedPopup.Pop(), localizeText: false));
                     return false;

@@ -61,6 +61,7 @@ namespace VikingsForHire
             BoardRegistry.Register();
             Net.MutationService.Register();
             Net.BoardServer.Register();
+            Board.CharterPacking.Register();
             Hirelings.HirelingPrefab.Register();
 
             DebugCommands.Register();

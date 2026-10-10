@@ -223,7 +223,14 @@ still counts against its cap until the hireling has gone, though a replacement f
 - **Changing the numbers:** server owners can change them in the data file (`combatCap` and `workerCap` per board
   level, `maxPerBoard` per job, where 0 means no limit).
 
-**Moving a board.** Deconstruct it with the hammer and you keep a **Hiring Charter** that remembers its level (from level 2). Build the new board while carrying the charter and it starts at that level, so you don't have to fight the bosses again. Its hirelings leave when the board comes down; hire them again at the new board.
+**Moving a board.** Deconstruct it with the hammer and you keep a **Hiring Charter**. It remembers the board's level
+(from level 2) and carries its hirelings, packed away with their gear, cargo, names and contracts, followers included.
+Build the new board while carrying the charter:
+- it starts at that level, so you don't have to fight the bosses again;
+- the hirelings walk back in, like new hires.
+
+A level 1 board gives a charter too when it has hirelings. The board's stored food and coins drop like any chest's. A
+board destroyed by monsters or damage gives no charter, and its hirelings leave.
 
 A board hires up to its own level. Higher-level hirelings have more health and armour, better gear, work faster and carry more, and cost more (see *What it costs* above).
 

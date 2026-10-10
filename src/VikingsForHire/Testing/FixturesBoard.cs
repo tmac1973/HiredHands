@@ -33,6 +33,10 @@ namespace VikingsForHire.Testing
             Fixtures.Add("base_partial", "<workbench|bed|pieces> - like base but missing one requirement (pieces = only 10 posts)",
                 args => Base(new[] { "12", args.FirstOrDefault() == "pieces" ? "10" : "40" }, args.FirstOrDefault()));
             Fixtures.Add("board_here", "- place a hiring board 5m ahead through the real base check", _ => BoardHere());
+            Fixtures.Add("charter_pack", "- deconstruct the nearest board as the hammer does after confirming: its hirelings are packed into a Hiring Charter you get", CharterPack);
+            Fixtures.Add("charter_apply", "- the nearest board takes your best Hiring Charter, as when building a board while carrying it", CharterApply);
+            TestHarness.RegisterCheck("charter_carries", "- hirelings in your best Hiring Charter (0 when you have none)", _ =>
+                Player.m_localPlayer.GetInventory() is Inventory inv && HiringCharter.Best(inv) is ItemDrop.ItemData c ? HiringCharter.CountOf(c).ToString() : "0");
             Fixtures.Add("board_put", "<item> <n> - give yourself n items and move them into the nearest board like the UI does", BoardPut);
             Fixtures.Add("board_force_add", "<item> <n> - put items into the nearest board, skipping its food/coins filter", BoardForceAdd);
             Fixtures.Add("crafty_probe", "- add a workbench recipe 'Wood' costing 1 Coins + 1 CookedMeat (this session only)", _ => CraftyProbe());
@@ -304,5 +308,36 @@ namespace VikingsForHire.Testing
 
         private static float Radius(string[] args, int index, float fallback) =>
             args.Length > index && float.TryParse(args[index], NumberStyles.Float, CultureInfo.InvariantCulture, out float r) ? r : fallback;
+
+        private static IEnumerator CharterPack(string[] args)
+        {
+            HiringBoard board = NearestBoard();
+            bool done = false;
+            CharterPacking.Packed? result = null;
+            CharterPacking.Request(board, packed =>
+            {
+                result = packed;
+                done = true;
+            });
+            float until = Time.time + 10f;
+            while (!done && Time.time < until)
+                yield return null;
+            if (result == null)
+                throw new InvalidOperationException("packing failed or timed out");
+            HiringCharter.Give(board, result);
+            board.GetComponent<WearNTear>()?.Remove();
+            VfhLog.I(LogCat.Test, "fixture.charter_pack", ("hirelings", result.Count), ("level", result.Level));
+            yield return new WaitForSeconds(1f);
+        }
+
+        private static IEnumerator CharterApply(string[] args)
+        {
+            HiringBoard board = NearestBoard();
+            Inventory inv = Player.m_localPlayer.GetInventory();
+            ItemDrop.ItemData charter = HiringCharter.Best(inv) ?? throw new InvalidOperationException("no Hiring Charter");
+            bool used = HiringCharter.Apply(board, charter, inv, Player.m_localPlayer);
+            VfhLog.I(LogCat.Test, "fixture.charter_apply", ("used", used), ("level", board.Level));
+            yield return null;
+        }
     }
 }
