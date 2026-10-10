@@ -150,6 +150,8 @@ namespace VikingsForHire.UI
                 default:
                     if (live != null && live.Mode == HirelingMode.Working && live.IsParked)
                         return "$vfh_roster_parked";
+                    if (e.Post != null && live?.Zdo?.GetString(HirelingZdo.Activity) == "$vfh_status_post_unreachable")
+                        return "$vfh_status_post_unreachable";
                     if (e.Post != null && (live == null || live.Mode == HirelingMode.Working))
                         return "$vfh_roster_posted";
                     if (live != null && live.Mode == HirelingMode.Returning && live.Zdo != null)

@@ -127,7 +127,7 @@ namespace VikingsForHire.Followers
 
         // Whether the owner could see the follower right now: inside the camera's view and not hidden behind terrain or
         // buildings (checked to its head and its middle).
-        private static bool OwnerSees(HirelingAI ai)
+        internal static bool OwnerSees(HirelingAI ai)
         {
             Camera? cam = GameCamera.instance != null ? GameCamera.instance.m_camera : null;
             if (cam == null)
