@@ -11,8 +11,11 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | 06eea66 | Command Stone on a chest (left click): followers near you carrying something that chest already holds walk to it and put those items in (only what it holds, like base deliveries), then carry on (following you, or back to their spot). "You can't use that chest" without access; "Nobody near you carries anything this chest holds" otherwise | your game (the order); the game simulating the follower |
 | 4f78d7b | `GuardMeleeDamage`, `GuardRangedDamage` (Combat, default 1): combat hirelings' damage multiplier on top of the level table's guardDamageMult | the game simulating the hireling |
 | 6de1704 | Moving a board keeps its hirelings: deconstructing (after the confirm) asks the server to pack them (each hireling's ZDO saved into its contract and removed; posts cleared; a waiting respawn keeps its wait) into the Hiring Charter, even at level 1; building a board while carrying it restores the roster and they arrive like new hires; tooltip lists them | the server (packing); the placer's game (unpacking); the board owner's (arrivals) |
+| 4161559 | `CombatHirelings` (Hiring, default on): off = workers only: combat contracts refused ("Combat hirelings are turned off on this server"), the Contracts tab offers workers only, counts and Upgrade tab show workers; combat hirelings already hired stay | the board owner's machine; your game (tabs) |
 
 ### To test (batch)
+- [ ] Macro (single player, not yet run): `vfh_test_chain cap5`.
+- [ ] By hand: CombatHirelings off: the Contracts tab cycles through workers only and reads "Workers 0/2"; turn it back on and the guards reappear.
 - [ ] Macro (single player, not yet run): `vfh_test_chain charter1` (pack a level 3 board's woodcutter and guard, rebuild, both walk back in).
 - [ ] By hand: move a real board: deconstruct (the popup says they'll go into the charter), hover the charter (level and names), build the new board elsewhere: same level, everyone walks in with their cargo; posted guards come back unposted.
 - [ ] By hand (dedicated server): the same as a client (packing runs on the server).
