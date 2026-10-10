@@ -3,6 +3,19 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.7.5 (not released): live playtest
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| a4d110e | Hirelings keep to dry land (board by a cliff over the sea): idle spots and "call to board" spots are never in the water; gatherers skip rocks and trees standing in the water (`in the water` in work.no_targets) and give up a target as soon as getting to it means swimming (`work.needs_swim`); followers wait on the shore while you swim ("Waiting on the shore") and catch up once you're back on land; melee guards don't wade out after a target in the water and archers don't close in through it (they shoot from the shore if in range), giving it up after 5 s (`combat.target_in_water`). Gather Here: a big rock is picked by its centre, so a chunk of it outside the 15 m circle (plus a pickaxe's reach) is left alone (`work.part_outside`); Sigrid swam 30 m to one | the game simulating the hireling |
+
+### To test (batch)
+- [ ] By hand (live server): the board by the cliff: idle hirelings stand on land.
+- [ ] By hand: swim out with a follower: it waits on the shore ("Waiting on the shore"); land 60 m along the coast out of its sight: it catches up.
+- [ ] By hand: a melee guard fighting something that swims off: it stays on the shore and lets it go after a few seconds.
+- [ ] By hand: a miner in Gather Here beside a rock, with rocks in the water nearby and a big rock whose far side is 30 m off: it mines only within about 15 m, on land.
+
 ## 0.7.4 (released 2026-10-10): base check follows the board's area
 
 ### Fixed or added
