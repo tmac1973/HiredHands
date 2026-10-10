@@ -3,7 +3,7 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## 0.7.4 (not released): live playtest
+## 0.7.4 (released 2026-10-10): base check follows the board's area
 
 ### Fixed or added
 | Commit | What | Where it runs |

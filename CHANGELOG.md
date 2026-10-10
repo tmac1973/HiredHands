@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.4
+
+- **A higher-level board's base can be spread wider.** Placing a board from a Hiring Charter, the workbench, bed and pieces are looked for within the board's own area (the circle the hammer shows: 35 m for a level 4 board) when that's bigger than `BaseCheckRadius` (20 m). A new board still uses 20 m.
+
 ## 0.7.3
 
 **Everyone updates together:** this version adds network messages, so the server and every player need 0.7.3.

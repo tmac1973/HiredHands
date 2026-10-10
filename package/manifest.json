@@ -1,6 +1,6 @@
 {
     "name": "HiredHands",
-    "version_number": "0.7.3",
+    "version_number": "0.7.4",
     "website_url": "https://github.com/tmac1973/HiredHands",
     "description": "Post contracts on a Hiring Board to hire wandering vikings who chop, mine, farm, cook, look after and guard your base, or follow you into the field.",
     "dependencies": [
