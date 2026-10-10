@@ -111,6 +111,16 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> MeleeAttackCooldown = null!;
         public static ConfigEntry<CombatSkillPreset> CombatSkill = null!;
         public static ConfigEntry<float> HealthRegen = null!;
+        public static ConfigEntry<float> GuardMeleeDamage = null!;
+        public static ConfigEntry<float> GuardRangedDamage = null!;
+
+        /// <summary>The server's damage setting for a combat job (1 for jobs without one: workers use WorkerCombatFactor).</summary>
+        public static float JobDamage(JobType job) => job switch
+        {
+            JobType.GuardMelee => System.Math.Max(0f, GuardMeleeDamage.Value),
+            JobType.GuardRanged => System.Math.Max(0f, GuardRangedDamage.Value),
+            _ => 1f,
+        };
 
         /// <summary>Blocking and dodging on (any preset but Off).</summary>
         public static bool CombatSkillOn => CombatSkills.On(CombatSkill.Value);
@@ -237,6 +247,8 @@ namespace VikingsForHire.Config
             BalanceLogMaxMB = _file.Bind("9 - Balance log", "BalanceLogMaxMB", 20, "Server: total size (MB) of the balance log files kept; the oldest days are deleted beyond it.");
 
             MeleeAttackCooldown = Synced("8 - Combat", "MeleeAttackCooldown", 1.2f, "Seconds between a hireling's melee swings.");
+            GuardMeleeDamage = Synced("8 - Combat", "GuardMeleeDamage", 1f, "Damage multiplier for melee guards' hits, on top of the levels table's guardDamageMult (1 at level 1 up to 5.2 at level 8). 0.5 halves it; 1 is the default.");
+            GuardRangedDamage = Synced("8 - Combat", "GuardRangedDamage", 1f, "Damage multiplier for archers' hits (and their club), on top of the levels table's guardDamageMult. 0.5 halves it; 1 is the default.");
             HealthRegen = Synced("8 - Combat", "HealthRegen", 1f, "How fast hirelings heal once they haven't been hit for 10 s, as a multiple of the default (1% of max health every 2 s: a full heal in about 3.5 minutes). 0.5: about 7 minutes; 0: they don't heal by themselves (only the game's own slow trickle, a full heal in about an hour). 0 to 3.");
             CombatSkill = Synced("8 - Combat", "CombatSkill", CombatSkillPreset.Trained, "How good hirelings are at seeing attacks coming, blocking (guards with shields; well timed blocks parry) and rolling out of the way of big hits. Off: the 0.5.0 fighting (no blocking on purpose, no dodging). Green: now and then. Trained: as measured for 0.6.0. Veteran: parry most swings, roll often. Scales the levels table (readChance, parryChance, dodgeChance, dodgeCooldown in the data file).");
             RangedAttackCooldown = Synced("8 - Combat", "RangedAttackCooldown", 2.5f, "Seconds between an archer's shots (at least the bow's draw time plus a beat).");

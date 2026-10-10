@@ -90,6 +90,9 @@ Guards patrol and fight by stance; everyone else defends themselves, weakly, and
   - **Veteran:** they parry most swings and roll often.
 
   The preset scales the whole levels table, so higher levels stay better than lower ones.
+- **How hard they hit.** `GuardMeleeDamage` and `GuardRangedDamage` (Combat, server-synced) scale melee guards' and
+  archers' damage on top of the levels table (`guardDamageMult`, 1 at level 1 up to 5.2 at level 8). The default is 1;
+  0.5 halves it.
 - **Healing.** A hireling that hasn't been hit for 10 s heals 1% of its health every 2 s, a full heal in about 3.5
   minutes. `HealthRegen` (Combat, server-synced) scales that: 0.5 is about 7 minutes, 0 means no healing of their own
   (only the game's slow trickle), and the maximum is 3.

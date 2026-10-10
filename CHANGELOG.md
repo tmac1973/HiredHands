@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.2
+
+- **Command Stone on a chest.** Point the stone at a chest (left click): followers near you carrying something that chest already holds walk over and put it in, then carry on (following you, or back to their spot).
+- **Combat hirelings' damage is a setting.** `GuardMeleeDamage` and `GuardRangedDamage` (Combat) scale melee guards' and archers' damage on top of the level table (default 1; 0.5 halves it), for servers where a guard makes things too easy.
+
 ## 0.7.1
 
 - **Orders tab: only food and farm produce.** The Cook's list offered gold weapons, Deep North armor, shields and staffs: the game's frost foundry is built like a cooking station, and the food preparation table's fishing bait came along too. Now a cooking station only counts when it makes food, the cauldron, prep table and mead ketill when they make food, meads, potions or ingredients, and the Farmer never lists armor, weapons, tools or trophies, whatever a mod adds. What's left out is logged (`kitchen.rejected`, `crops.rejected`).

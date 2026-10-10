@@ -160,7 +160,7 @@ namespace VikingsForHire.Hirelings
             HirelingLevelData level = h.LevelData;
             float factor = h.Job.IsGuard() ? 1f
                 : DataStore.Current.Jobs.TryGetValue(h.Job, out JobData? job) ? job.WorkerCombatFactor : 1f;
-            return level.GuardDamageMult * factor;
+            return level.GuardDamageMult * factor * VfhConfig.JobDamage(h.Job);
         }
 
         private static readonly System.Collections.Generic.Dictionary<string, int> BlockedCounts = new();

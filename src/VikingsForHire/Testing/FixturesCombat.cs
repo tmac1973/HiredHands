@@ -46,6 +46,8 @@ namespace VikingsForHire.Testing
                 return targets.Sum(h => h.Ai.Defense.Get(counter)).ToString();
             });
 
+            TestHarness.RegisterCheck("damage_mult", "- the last spawned hireling's damage multiplier (level table x job factor x the job's damage setting)", _ =>
+                Hirelings.DamagePatches.DamageMultiplier(Last()).ToString("0.###", CultureInfo.InvariantCulture));
             TestHarness.RegisterCheck("fight_over", "- true when no enemy is alive within 40 m of you, or no hireling is", _ =>
                 !Hostiles(40f).Any() || !Hireling.Loaded.Any(h => h != null && !h.Humanoid.IsDead()) ? "true" : "false");
 
