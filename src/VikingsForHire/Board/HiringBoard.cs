@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using VikingsForHire.Config;
 using VikingsForHire.Core;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
@@ -122,10 +123,17 @@ namespace VikingsForHire.Board
 
         public float GetHoverOffset() => 0f;
 
+        /// <summary>Draw the board's area (the level's largest work radius) on the ground for a moment.</summary>
+        public void ShowArea() => UI.AreaRing.On(this, new Color(1f, 0.85f, 0.35f, 0.85f)).Show(new LevelRules(DataStore.Current).MaxWorkRadius(Level));
+
         public string GetHoverText()
         {
+            ShowArea();
+            var rules = new LevelRules(DataStore.Current);
             var sb = new StringBuilder();
             sb.Append("$vfh_board ($vfh_level ").Append(Level).Append(')');
+            sb.Append('\n').Append(Localization.instance.Localize("$vfh_board_area", rules.MaxWorkRadius(Level).ToString("0"),
+                rules.MaxWorkRadius(Level, JobType.Woodcutter).ToString("0")));
             if (!PrivateArea.CheckAccess(transform.position, 0f, flash: false))
                 return Localization.instance.Localize(sb.Append("\n$piece_noaccess").ToString());
 

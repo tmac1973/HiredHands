@@ -18,9 +18,6 @@ namespace VikingsForHire.Hirelings.Work.Trees
         public static readonly List<TreePatch> Loaded = new();
 
         private ZNetView? _nview;
-        private LineRenderer? _ring;
-        private float _showRingUntil;
-        private float _ringRadius = -1f;
 
         public ZDO? Zdo => _nview != null && _nview.IsValid() ? _nview.GetZDO() : null;
         public float Radius => Mathf.Clamp(Zdo?.GetFloat(RadiusKey, DefaultRadius) ?? DefaultRadius, MinRadius, MaxRadius);
@@ -91,7 +88,7 @@ namespace VikingsForHire.Hirelings.Work.Trees
 
         public string GetHoverText()
         {
-            _showRingUntil = Time.time + 0.3f;
+            ShowRing();
             (int saplings, int trees) = Count();
             Localization l = Localization.instance;
             return l.Localize("$vfh_patch") + "\n" + l.Localize("$vfh_patch_plants", KindName(Kind), Radius.ToString("0")) + "\n" +
@@ -116,43 +113,7 @@ namespace VikingsForHire.Hirelings.Work.Trees
         public bool UseItem(Humanoid user, ItemDrop.ItemData item) => false;
 
         /// <summary>Keep the circle shown (while the settings panel is open).</summary>
-        public void ShowRing() => _showRingUntil = Time.time + 0.3f;
-
-        private void Update()
-        {
-            bool show = Time.time < _showRingUntil;
-            if (!show)
-            {
-                if (_ring != null && _ring.enabled)
-                    _ring.enabled = false;
-                return;
-            }
-            if (_ring == null)
-            {
-                var go = new GameObject("VFH_PatchRing");
-                go.transform.SetParent(transform, false);
-                _ring = go.AddComponent<LineRenderer>();
-                _ring.useWorldSpace = true;
-                _ring.loop = true;
-                _ring.widthMultiplier = 0.08f;
-                _ring.material = new Material(Shader.Find("Sprites/Default"));
-                _ring.startColor = _ring.endColor = new Color(0.4f, 1f, 0.4f, 0.8f);
-            }
-            _ring.enabled = true;
-            if (Mathf.Abs(_ringRadius - Radius) > 0.01f || _ring.positionCount == 0 || Time.frameCount % 30 == 0)
-            {
-                _ringRadius = Radius;
-                const int n = 64;
-                _ring.positionCount = n;
-                for (int i = 0; i < n; i++)
-                {
-                    float a = i * Mathf.PI * 2f / n;
-                    Vector3 p = transform.position + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * _ringRadius;
-                    p.y = (ZoneSystem.instance != null ? ZoneSystem.instance.GetGroundHeight(p) : p.y) + 0.15f;
-                    _ring.SetPosition(i, p);
-                }
-            }
-        }
+        public void ShowRing() => UI.AreaRing.On(this, new Color(0.4f, 1f, 0.4f, 0.8f)).Show(Radius);
 
         /// <summary>The patches whose sign is within a worker's area.</summary>
         public static IEnumerable<TreePatch> Within(Vector3 center, float radius) =>

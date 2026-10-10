@@ -16,6 +16,7 @@
   "vfh_follow_no_stone": "You need a Command Stone in hand",
   "vfh_follow_not_yours": "That's not your follower",
   "vfh_follow_too_far": "Bring it back to its board's area to send it back to work",
+  "vfh_board_area": "Area: $1 m (woodcutters and miners $2 m)",
   "vfh_transfer_done": "$1 joins this board and gets to work",
   "vfh_transfer_level": "$1 is level $2; this board takes hirelings up to level $3",
   "vfh_transfer_no_board": "No hiring board here to join",

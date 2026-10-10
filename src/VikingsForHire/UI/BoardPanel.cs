@@ -115,6 +115,7 @@ namespace VikingsForHire.UI
                 Close("walked away");
                 return;
             }
+            _board.ShowArea();
             if (Time.unscaledTime < _nextRefresh)
                 return;
             _nextRefresh = Time.unscaledTime + RefreshSeconds;
