@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Collections.Generic;
 using VikingsForHire.Core;
+using VikingsForHire.Core.Diagnostics;
+using VikingsForHire.Diagnostics;
 using UnityEngine;
 
 namespace VikingsForHire.Hirelings.Combat
@@ -69,6 +71,13 @@ namespace VikingsForHire.Hirelings.Combat
                 // Below the water's surface (fish and serpents by the shore): out of reach of arrows and swords alike.
                 if (CombatBehaviour.Underwater(c))
                     continue;
+                // At 0 health but not dead: its death never ran (only the game that owns a creature runs it, and none
+                // does). Damage can't finish it, so take it over: the death check then runs here and it drops.
+                if (c.GetHealth() <= 0f)
+                {
+                    FinishOff(c);
+                    continue;
+                }
                 float sq = (c.transform.position - me).sqrMagnitude;
                 if (sq < bestSq && Sees(c))
                 {
@@ -91,5 +100,18 @@ namespace VikingsForHire.Hirelings.Combat
         }
 
         public static bool Alive(Character? c) => c != null && !c.IsDead();
+
+        private static readonly Dictionary<Character, float> Claimed = new();
+
+        private static void FinishOff(Character c)
+        {
+            ZNetView? view = c.m_nview;
+            if (view == null || !view.IsValid() || view.IsOwner() || Claimed.TryGetValue(c, out float at) && Time.time - at < 10f)
+                return;
+            Claimed[c] = Time.time;
+            VfhLog.I(LogCat.Combat, "combat.claimed_dead", ("target", Utils.GetPrefabName(c.gameObject)), ("pos", c.transform.position),
+                ("owner", view.GetZDO().GetOwner()));
+            view.ClaimOwnership();
+        }
     }
 }

@@ -56,7 +56,7 @@ namespace VikingsForHire.Hirelings.Combat
                 Drop(ai, ThreatScanner.Alive(_target) ? "quiet or leashed" : "target down");
 
             Character? pick = Choose(ai);
-            if (pick == null || (pick == _ignored && Time.time < _ignoredUntil))
+            if (pick == null || (pick == _ignored && Time.time < _ignoredUntil) || pick.GetHealth() <= 0f)
                 return false;
             // Under the water (a fish or a serpent below the surface by the shore): arrows stop at the surface and swords
             // don't reach, so a guard would shoot or swing at it forever.
