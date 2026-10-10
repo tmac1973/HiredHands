@@ -86,7 +86,7 @@ namespace VikingsForHire.Hirelings
             for (int i = 0; i < 8; i++)
             {
                 Vector3 p = Ground(boardPos + Quaternion.Euler(0f, i * 45f, 0f) * fwd * 2.5f, boardPos.y);
-                if (ai.CanReach(p))
+                if (!WaterRules.Under(p, 0f) && ai.CanReach(p))
                     return p;
             }
             return first;

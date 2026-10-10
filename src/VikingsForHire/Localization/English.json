@@ -34,6 +34,7 @@
   "vfh_status_cargo_full": "Cargo full",
   "vfh_status_to_post": "Going to their post",
   "vfh_status_on_post": "On guard",
+  "vfh_status_waiting_shore": "Waiting on the shore",
   "vfh_status_post_unreachable": "Can't reach their post",
   "vfh_post_here": "$1 will guard this spot",
   "vfh_post_set": "Post set",

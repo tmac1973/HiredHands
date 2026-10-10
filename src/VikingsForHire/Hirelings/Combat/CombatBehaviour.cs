@@ -143,6 +143,21 @@ namespace VikingsForHire.Hirelings.Combat
                 ai.Face(target.GetCenterPoint());
                 return;
             }
+            // Out in the water (swimming away, or a serpent): don't wade out after it. Wait on the shore for it to come
+            // back; give it up if it doesn't.
+            if (dist > MeleeReach && WaterRules.Out(target) && !me.InWater())
+            {
+                BlockedShot(ai, target, "combat.target_in_water");
+                if (Time.time - _blockedSince > BlockedGiveUpSeconds)
+                {
+                    Ignore(ai, target, "in the water", BlockedIgnoreSeconds);
+                    Drop(ai, "in the water");
+                    return;
+                }
+                ai.Halt();
+                ai.Face(target.GetCenterPoint());
+                return;
+            }
             if (dist > MeleeReach)
             {
                 // Stop at the target's edge, not its centre: walking to within reach of a troll's centre means walking
@@ -217,6 +232,19 @@ namespace VikingsForHire.Hirelings.Combat
             float flat = Utils.DistanceXZ(target.transform.position, ai.transform.position) - target.GetRadius();
             if (!posted && flat > RangedMax)
             {
+                // Not out into the water to get in range: shoot from the shore or let it go.
+                if (WaterRules.Out(target) && !me.InWater())
+                {
+                    BlockedShot(ai, target, "combat.target_in_water");
+                    if (Time.time - _blockedSince > BlockedGiveUpSeconds)
+                    {
+                        Ignore(ai, target, "in the water", BlockedIgnoreSeconds);
+                        Drop(ai, "in the water");
+                    }
+                    else
+                        ai.Halt();
+                    return;
+                }
                 ai.WalkTo(dt, target.transform.position, RangedMax * 0.8f, run: true);
                 return;
             }

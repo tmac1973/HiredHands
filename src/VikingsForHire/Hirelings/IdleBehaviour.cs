@@ -6,7 +6,7 @@ using UnityEngine;
 namespace VikingsForHire.Hirelings
 {
     /// <summary>
-    /// Nothing to do: stand about near home (the board). It picks an open-air spot on the ground a few metres from the
+    /// Nothing to do: stand about near home (the board). It picks an dry, open-air spot on the ground a few metres from the
     /// board that it has a full route to (on the board's floor when the board is indoors), walks there and waits, moving
     /// to another such spot now and then. Wandering at random sent hirelings into the buildings round the board, up the
     /// stairs and back down again, over and over.
@@ -75,7 +75,8 @@ namespace VikingsForHire.Hirelings
                     float ring = Random.Range(MinRing, MaxRing);
                     Vector3 p = home + Quaternion.Euler(0f, angle, 0f) * Vector3.forward * ring;
                     p.y = pass == 0 ? ZoneSystem.instance.GetGroundHeight(p) : home.y;
-                    if ((pass == 0 && Covered(p)) || _failed.Exists(f => Vector3.Distance(f, p) < 1.5f) || !ai.CanReach(p))
+                    // Not in the water either: a board on a cliff over the sea had its people standing about in it.
+                    if ((pass == 0 && (Covered(p) || WaterRules.Under(p, 0f))) || _failed.Exists(f => Vector3.Distance(f, p) < 1.5f) || !ai.CanReach(p))
                         continue;
                     // Prefer somewhere new but not far from where we stand.
                     float score = Vector3.Distance(me, p) + (_spot is Vector3 old && Vector3.Distance(old, p) < 1.5f ? 5f : 0f);

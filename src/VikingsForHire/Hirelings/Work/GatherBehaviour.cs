@@ -131,6 +131,21 @@ namespace VikingsForHire.Hirelings.Work
                 _target = null;
                 return;
             }
+            // A follower in Gather Here works around its spot: a big rock is picked by its centre,
+            // but a chunk of it well outside the circle is out of bounds (a miner set by a rock swam to one 30 m off).
+            if (h.Mode == HirelingMode.Following && h.FollowMode == FollowMode.GatherHere && h.Ai.Order == null &&
+                Utils.DistanceXZ(at, _area.Center) > _area.Radius + _profile.WorkReach)
+            {
+                VfhLog.D(LogCat.Work, "work.part_outside", ("hid", h.Hid), ("target", _target.name), ("part", _aimPart.name),
+                    ("fromCenter", Utils.DistanceXZ(at, _area.Center)), ("radius", _area.Radius));
+                if (!_profile.GiveUpOnPart(_target, _aimPart))
+                {
+                    Reservations.Skip(_target, UnreachableSkip);
+                    Reservations.Release(_target, h.Hid);
+                    _target = null;
+                }
+                return;
+            }
             float stand = _profile.StandOff(_target);
             // Where to stand: a tree with a planned fall direction is worked from the opposite side, so the hit pushes
             // it that way. Anything else from just outside the aim point on our side: the aim point itself is on (or
@@ -143,6 +158,15 @@ namespace VikingsForHire.Hirelings.Work
             // A tree being felled one way must be hit from its spot; anything else may be worked from any side.
             float toAim = Utils.DistanceXZ(ai.transform.position, at);
             bool inPlace = _fellDir != null ? dist <= 1.1f : dist <= 0.8f || toAim <= stand + 0.4f;
+            // Swimming to get there (a rock off the shore, across a cove): not worth it; something on land is.
+            if (!inPlace && h.Humanoid.IsSwimming())
+            {
+                VfhLog.D(LogCat.Work, "work.needs_swim", ("hid", h.Hid), ("target", _target.name), ("dist", dist));
+                Reservations.Skip(_target, UnreachableSkip);
+                Reservations.Release(_target, h.Hid);
+                _target = null;
+                return;
+            }
             if (!inPlace)
             {
                 if (dist < _approachBest - 0.5f)
@@ -287,6 +311,7 @@ namespace VikingsForHire.Hirelings.Work
                 string? skip = h.Ai.Order is { } order && !order.Allows(c) ? "not part of the order"
                     : h.Ai.Order == null && SwitchedOff(h, c) is string off ? $"{off} switched off"
                     : NoRoomFor(h, c) is string full ? $"no room for {full}"
+                    : WaterRules.Under(c.transform.position, 1f) ? "in the water"
                     : Reservations.IsSkipped(c) ? "skipped after a failed approach"
                     : Reservations.IsReservedByOther(c, h.Hid) ? "claimed by another hireling"
                     : !_profile.IsValid(c, h, out string reason) ? reason

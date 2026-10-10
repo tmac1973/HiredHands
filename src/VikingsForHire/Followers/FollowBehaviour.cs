@@ -120,6 +120,15 @@ namespace VikingsForHire.Followers
             ai.WantSneak = sneak;
             if (_catchUp.Tick(ai, owner, dist, dt))
                 return;
+            // You're swimming: wait on the shore (one already in the water keeps after you, to get out again). Once you're
+            // back on land the catch-up brings it along.
+            if (WaterRules.Out(owner) && !h.Humanoid.InWater())
+            {
+                Show(h, "$vfh_status_waiting_shore");
+                ai.Halt();
+                ai.Face(owner.GetHeadPoint());
+                return;
+            }
             if (dist > FollowDistance)
                 ai.Chase(dt, owner.transform.position, FollowDistance * 0.8f, run: !sneak && (retreat || owner.IsRunning() || dist > FollowRunBeyond));
             else
