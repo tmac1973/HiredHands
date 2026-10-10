@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.1
+
+- **Orders tab: only food and farm produce.** The Cook's list offered gold weapons, Deep North armor, shields and staffs: the game's frost foundry is built like a cooking station, and the food preparation table's fishing bait came along too. Now a cooking station only counts when it makes food, the cauldron, prep table and mead ketill when they make food, meads, potions or ingredients, and the Farmer never lists armor, weapons, tools or trophies, whatever a mod adds. What's left out is logged (`kitchen.rejected`, `crops.rejected`).
+- **Raw fish from any fish.** The food preparation table's raw fish takes any one fish; the Cook treated it as needing all twelve at once, so it never made it.
+
 ## 0.7.0
 
 - **Combat and worker caps.** A hiring board now has two caps instead of one:
