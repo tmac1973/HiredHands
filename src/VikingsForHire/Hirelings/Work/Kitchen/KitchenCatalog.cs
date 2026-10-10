@@ -47,6 +47,19 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             DataStore.Changed += () => VfhLog.Guard(LogCat.Work, "kitchen.levels_failed", Build);
         }
 
+        /// <summary>
+        /// What a kitchen makes: food, meads and potions (consumables) or things to cook with (mead bases, dough…). A mod's
+        /// armor or tool recipe at the cauldron isn't the Cook's job.
+        /// </summary>
+        private static bool KitchenItem(GameObject item, string station)
+        {
+            ItemDrop.ItemData.ItemType? t = item.GetComponent<ItemDrop>()?.m_itemData.m_shared.m_itemType;
+            if (t == ItemDrop.ItemData.ItemType.Consumable || t == ItemDrop.ItemData.ItemType.Material)
+                return true;
+            VfhLog.I(LogCat.Work, "kitchen.rejected", ("station", station), ("item", item.name), ("type", t?.ToString() ?? "?"));
+            return false;
+        }
+
         public static void Build()
         {
             if (ObjectDB.instance == null || ZNetScene.instance == null || ObjectDB.instance.m_recipes.Count == 0)
@@ -66,30 +79,46 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                 if (stove == null)
                     continue;
                 foreach (CookingStation.ItemConversion c in stove.m_conversion.Where(c => c?.m_from != null && c.m_to != null))
+                {
+                    // A stove cooks food: a forge built as a cooking station (Deep North's frost foundry) isn't a kitchen.
+                    if (!Farm.CropCatalog.IsFood(c.m_to.gameObject))
+                    {
+                        VfhLog.I(LogCat.Work, "kitchen.rejected", ("station", go.name), ("item", c.m_to.name), ("why", "not food"));
+                        continue;
+                    }
                     _all.Add(new KitchenInfo
                     {
                         Output = c.m_to.name, Station = go.name, Kind = StationKind.Stove,
                         Inputs = new Dictionary<string, int> { [c.m_from.name] = 1 },
                         CookSeconds = c.m_cookTime, Level = Level(c.m_to.name, StationLevel(go.name)),
                     });
+                }
             }
             foreach (Recipe r in ObjectDB.instance.m_recipes.Where(r => r != null && r.m_enabled && r.m_item != null && r.m_craftingStation != null))
             {
                 string station = Utils.GetPrefabName(r.m_craftingStation.gameObject);
-                if (!CraftStations.Contains(station) || r.m_resources == null || r.m_resources.Length == 0)
+                if (!CraftStations.Contains(station) || r.m_resources == null || r.m_resources.Length == 0 || !KitchenItem(r.m_item.gameObject, station))
                     continue;
-                var info = new KitchenInfo
-                {
-                    Output = r.m_item.name, OutputAmount = Mathf.Max(1, r.m_amount), Station = station, Kind = StationKind.Craft,
-                    Inputs = r.m_resources.Where(x => x?.m_resItem != null && x.m_amount > 0)
-                        .GroupBy(x => x.m_resItem.name).ToDictionary(g => g.Key, g => g.Sum(x => x.m_amount)),
-                    StationLevelNeeded = Mathf.Max(1, r.m_minStationLevel),
-                    Level = Level(r.m_item.name, StationLevel(station) + Mathf.Max(1, r.m_minStationLevel) - 1),
-                };
-                if (info.Inputs.Count == 0)
+                var inputs = r.m_resources.Where(x => x?.m_resItem != null && x.m_amount > 0)
+                    .GroupBy(x => x.m_resItem.name).ToDictionary(g => g.Key, g => g.Sum(x => x.m_amount));
+                if (inputs.Count == 0)
                     continue; // a modded recipe with only per-level amounts: nothing to make it from at quality 1
-                _all.Add(info);
-                _recipes[info] = r;
+                // "Any one of these" (raw fish from whichever fish you have): one way of making it per ingredient.
+                IEnumerable<Dictionary<string, int>> ways = r.m_requireOnlyOneIngredient
+                    ? inputs.Select(kv => new Dictionary<string, int> { [kv.Key] = kv.Value })
+                    : new[] { inputs };
+                foreach (Dictionary<string, int> way in ways)
+                {
+                    var info = new KitchenInfo
+                    {
+                        Output = r.m_item.name, OutputAmount = Mathf.Max(1, r.m_amount), Station = station, Kind = StationKind.Craft,
+                        Inputs = way,
+                        StationLevelNeeded = Mathf.Max(1, r.m_minStationLevel),
+                        Level = Level(r.m_item.name, StationLevel(station) + Mathf.Max(1, r.m_minStationLevel) - 1),
+                    };
+                    _all.Add(info);
+                    _recipes[info] = r;
+                }
             }
             VfhLog.I(LogCat.Work, "kitchen.built", ("stove", _all.Count(i => i.Kind == StationKind.Stove)), ("craft", _all.Count(i => i.Kind == StationKind.Craft)));
         }

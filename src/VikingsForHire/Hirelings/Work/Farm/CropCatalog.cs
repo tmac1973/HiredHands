@@ -106,18 +106,29 @@ namespace VikingsForHire.Hirelings.Work.Farm
             _bySapling.Clear();
             ItemDrop? cultivator = ObjectDB.instance.GetItemPrefab("Cultivator")?.GetComponent<ItemDrop>();
             List<GameObject> pieces = cultivator?.m_itemData.m_shared.m_buildPieces?.m_pieces ?? new List<GameObject>();
+            JobData farmerData = DataStore.Current.Jobs.TryGetValue(JobType.Farmer, out JobData? fd) ? fd : new JobData();
             foreach (GameObject go in pieces.Where(p => p != null))
-            {
                 if (go.GetComponent<Plant>() is Plant plant)
                     AddPlanted(go, plant);
-                else if (go.GetComponent<Pickable>() is Pickable pick && pick.m_respawnTimeMinutes > 0f)
-                    AddRegrowing(go, pick);
-            }
+            // What counts as produce for a regrowing pickable: food, an item the crop levels name, a seed some crop is
+            // planted from, or something the Cook cooks with. PlantEverything (and other mods) put all sorts of pickables
+            // on the cultivator (surtling core stands, crypt loot…): those aren't farming.
+            var seeds = new HashSet<string>(_all.Select(c => c.Info.Consumes).Where(s => s.Length > 0));
+            var ingredients = new HashSet<string>(Kitchen.KitchenCatalog.All.SelectMany(k => k.Inputs.Keys));
+            bool Produce(GameObject item) => IsFood(item) || farmerData.CropLevels.ContainsKey(item.name) || seeds.Contains(item.name) || ingredients.Contains(item.name);
+            foreach (GameObject go in pieces.Where(p => p != null && p.GetComponent<Plant>() == null))
+                if (go.GetComponent<Pickable>() is Pickable pick && pick.m_respawnTimeMinutes > 0f && pick.m_itemPrefab != null)
+                {
+                    if (Produce(pick.m_itemPrefab))
+                        AddRegrowing(go, pick);
+                    else
+                        Reject(go.name, pick.m_itemPrefab, "not produce");
+                }
             // Wild regrowing plants: only food, or items the crop levels name (thistle, dandelion…), not surtling core stands and the like.
             JobData farmer = DataStore.Current.Jobs.TryGetValue(JobType.Farmer, out JobData? fj) ? fj : new JobData();
             foreach (GameObject go in ZNetScene.instance.m_prefabs.Where(p => p != null && !_byGrown.ContainsKey(p.name)))
                 if (go.GetComponent<Pickable>() is Pickable pick && pick.m_respawnTimeMinutes > 0f && go.GetComponent<Plant>() == null &&
-                    pick.m_itemPrefab != null && (IsFood(pick.m_itemPrefab) || farmer.CropLevels.ContainsKey(pick.m_itemPrefab.name)))
+                    pick.m_itemPrefab != null && (IsFood(pick.m_itemPrefab) || farmer.CropLevels.ContainsKey(pick.m_itemPrefab.name)) && FarmItem(pick.m_itemPrefab))
                     AddRegrowing(go, pick, wild: true);
             ApplyLevels();
             _grownHashes.Clear();
@@ -132,6 +143,18 @@ namespace VikingsForHire.Hirelings.Work.Farm
                 ("plantEverything", Compat.PlantMods.IsPlantEverything), ("plantEasily", Compat.PlantMods.IsPlantEasily));
         }
 
+        /// <summary>
+        /// The kinds of item a farm can yield: things you eat or make things from (crops, seeds, berries, flax…). Never
+        /// armor, weapons, tools, trophies or ammo, whatever plant a mod hangs them on.
+        /// </summary>
+        public static bool FarmItem(GameObject item) =>
+            item.GetComponent<ItemDrop>()?.m_itemData.m_shared.m_itemType is ItemDrop.ItemData.ItemType t &&
+            (t == ItemDrop.ItemData.ItemType.Material || t == ItemDrop.ItemData.ItemType.Consumable);
+
+        private static void Reject(string plant, GameObject item, string why) =>
+            VfhLog.I(LogCat.Work, "crops.rejected", ("plant", plant), ("item", item.name),
+                ("type", item.GetComponent<ItemDrop>()?.m_itemData.m_shared.m_itemType.ToString() ?? "?"), ("why", why));
+
         public static bool IsFood(GameObject item) =>
             item.GetComponent<ItemDrop>()?.m_itemData.m_shared is ItemDrop.ItemData.SharedData s && (s.m_food > 0f || s.m_foodStamina > 0f || s.m_foodEitr > 0f);
 
@@ -143,6 +166,11 @@ namespace VikingsForHire.Hirelings.Work.Farm
             Piece.Requirement? seed = piece?.m_resources?.FirstOrDefault(r => r?.m_resItem != null);
             if (grown == null || pick?.m_itemPrefab == null || seed == null || NotCrops.Contains(pick.m_itemPrefab.name))
                 return;
+            if (!FarmItem(pick.m_itemPrefab))
+            {
+                Reject(go.name, pick.m_itemPrefab, "not a farm item");
+                return;
+            }
             var crop = new Crop
             {
                 Prefab = go,
@@ -171,6 +199,11 @@ namespace VikingsForHire.Hirelings.Work.Farm
         {
             if (pick.m_itemPrefab == null || NotCrops.Contains(pick.m_itemPrefab.name) || _byGrown.ContainsKey(go.name))
                 return;
+            if (!FarmItem(pick.m_itemPrefab))
+            {
+                Reject(go.name, pick.m_itemPrefab, "not a farm item");
+                return;
+            }
             var crop = new Crop
             {
                 Prefab = go,
