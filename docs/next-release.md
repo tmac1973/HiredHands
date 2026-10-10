@@ -3,6 +3,17 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.7.2 (unreleased)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| 06eea66 | Command Stone on a chest (left click): followers near you carrying something that chest already holds walk to it and put those items in (only what it holds, like base deliveries), then carry on (following you, or back to their spot). "You can't use that chest" without access; "Nobody near you carries anything this chest holds" otherwise | your game (the order); the game simulating the follower |
+
+### To test (batch)
+- [ ] Macro (single player, not yet run: Tim playing): `vfh_test_chain order2 order2 order1 recruit1`.
+- [ ] By hand: followers with mixed cargo; point the stone at a chest holding some of it: they walk over, put only those items in, then follow you again; a follower in Stay goes back to its spot.
+
 ## 0.7.1 (released 2026-10-09): orders catalog fix
 
 ### Fixed or added
