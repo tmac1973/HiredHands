@@ -156,7 +156,7 @@ namespace VikingsForHire.Board
                 var go = new GameObject("VFH_GhostArea");
                 _ghostRing = UI.AreaRing.On(go.transform, new Color(1f, 0.85f, 0.35f, 0.85f));
             }
-            int level = HiringCharter.Best(me.GetInventory()) is ItemDrop.ItemData charter ? HiringCharter.LevelOf(charter) : 1;
+            int level = HiringCharter.Best(me.GetInventory()) is ItemDrop.ItemData charter ? Mathf.Max(1, HiringCharter.LevelOf(charter)) : 1;
             _ghostRing.transform.position = me.m_placementGhost.transform.position;
             _ghostRing.Show(new LevelRules(Config.DataStore.Current).MaxWorkRadius(level));
         }
