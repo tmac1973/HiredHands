@@ -40,6 +40,24 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void StationOrdersAreCapsNotWork()
+        {
+            OrderList l = Orders(("Coal", OrderKind.Station, 200), ("Carrot", OrderKind.Crop, 10), ("Copper", OrderKind.Station, 50));
+            Assert.Equal(200, l.StationCap("Coal"));
+            Assert.Null(l.StationCap("Iron"));
+            Assert.Null(l.StationCap("Carrot"));
+            Assert.Equal(new[] { "Carrot" }, l.Active().Select(o => o.Item)); // the Farmer and Cook don't see them
+            Assert.False(l.Find("Coal")!.IsFarm);
+            Assert.True(l.Move("Copper", -1)); // past Coal, its own group, not Carrot
+            Assert.Equal(new[] { "Copper", "Carrot", "Coal" }, l.Orders.Select(o => o.Item));
+            l.SetPaused("Coal", true);
+            Assert.Equal(0, l.StationCap("Coal"));
+            OrderList back = OrderList.Parse(l.Serialize());
+            Assert.Equal(OrderKind.Station, back.Find("Coal")!.Kind);
+            Assert.Equal(0, back.StationCap("Coal"));
+        }
+
+        [Fact]
         public void SerializeRoundTripsAndJunkIsEmpty()
         {
             OrderList l = Orders(("CarrotSeeds", OrderKind.Seed, 6), ("Bread", OrderKind.Kitchen, 10));

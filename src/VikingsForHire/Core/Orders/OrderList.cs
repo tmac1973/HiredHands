@@ -53,7 +53,14 @@ namespace VikingsForHire.Core.Orders
             return true;
         }
 
-        /// <summary>Moves an order up (-1) or down (+1) past the next order of the same group (farm or kitchen).</summary>
+        /// <summary>
+        /// The most of a station product the Steward may have in the chests before it stops making it: null with no
+        /// Steward order for it (no limit), 0 while the order is paused (none made).
+        /// </summary>
+        public int? StationCap(string item) =>
+            Find(item) is { Kind: OrderKind.Station } o ? (o.Paused ? 0 : o.Target) : null;
+
+        /// <summary>Moves an order up (-1) or down (+1) past the next order of the same group (farm, kitchen, Steward).</summary>
         public bool Move(string item, int direction)
         {
             if (Find(item) is not ProductionOrder o)
@@ -62,7 +69,7 @@ namespace VikingsForHire.Core.Orders
             int j = i;
             do
                 j += direction;
-            while (j >= 0 && j < Orders.Count && Orders[j].IsFarm != o.IsFarm);
+            while (j >= 0 && j < Orders.Count && Orders[j].Group != o.Group);
             if (j < 0 || j >= Orders.Count)
                 return false;
             Orders[i] = Orders[j];
@@ -73,7 +80,7 @@ namespace VikingsForHire.Core.Orders
         /// <summary>Unpaused orders in the order they're worked: seed orders first, then the rest.</summary>
         public List<ProductionOrder> Active() =>
             Orders.Where(o => !o.Paused && o.Target > 0 && o.Kind == OrderKind.Seed)
-                .Concat(Orders.Where(o => !o.Paused && o.Target > 0 && o.Kind != OrderKind.Seed))
+                .Concat(Orders.Where(o => !o.Paused && o.Target > 0 && o.Kind is OrderKind.Crop or OrderKind.Kitchen))
                 .ToList();
 
         public string Serialize() =>
@@ -99,7 +106,13 @@ namespace VikingsForHire.Core.Orders
 
         private static int Clamp(int target) => Math.Max(0, Math.Min(MaxTarget, target));
 
-        private static string KindCode(OrderKind k) => k == OrderKind.Seed ? "s" : k == OrderKind.Crop ? "c" : "k";
+        private static string KindCode(OrderKind k) => k switch
+        {
+            OrderKind.Seed => "s",
+            OrderKind.Crop => "c",
+            OrderKind.Station => "m",
+            _ => "k",
+        };
 
         private static bool TryKind(string code, out OrderKind kind)
         {
@@ -108,6 +121,7 @@ namespace VikingsForHire.Core.Orders
                 case "s": kind = OrderKind.Seed; return true;
                 case "c": kind = OrderKind.Crop; return true;
                 case "k": kind = OrderKind.Kitchen; return true;
+                case "m": kind = OrderKind.Station; return true;
                 default: kind = OrderKind.Crop; return false;
             }
         }

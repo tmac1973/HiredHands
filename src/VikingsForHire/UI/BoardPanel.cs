@@ -19,7 +19,8 @@ namespace VikingsForHire.UI
     {
         private const float OpenRange = 5f;
         // Wide enough for four tabs (Contracts, Roster, Orders, Upgrade), centred whatever their number.
-        private const float PanelWidth = 900f;
+        private const float PanelWidth = 1000f;
+        private const float PanelHeight = 720f;
         private const float TabSpacing = 210f;
         private const float CloseRange = 6f;
         private const float RefreshSeconds = 0.5f;
@@ -71,7 +72,7 @@ namespace VikingsForHire.UI
         private static BoardPanel Create()
         {
             GameObject root = GUIManager.Instance.CreateWoodpanel(GUIManager.CustomGUIFront.transform,
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, PanelWidth, 560f, false);
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, PanelWidth, PanelHeight, false);
             root.name = "VFH_BoardPanel";
             BoardPanel panel = root.AddComponent<BoardPanel>();
 
@@ -83,7 +84,7 @@ namespace VikingsForHire.UI
                     () => panel.SelectTab(index)));
             }
             panel._content = PanelUi.Fill(root.transform, "content");
-            PanelUi.Button(root.transform, "$vfh_close", 300f, -30f, 80f, 34f, () => Close("button"));
+            PanelUi.Button(root.transform, "$vfh_close", PanelWidth / 2f - 90f, -35f, 90f, 36f, () => Close("button"));
             root.SetActive(false);
             PanelUi.Clicked += () =>
             {
