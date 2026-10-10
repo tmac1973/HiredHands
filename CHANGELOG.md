@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.5
+
+- **Hirelings keep to dry land.** By a base on the shore they used to stand about in the sea and swim after things:
+  - idle hirelings, and ones called to the board, stand on land;
+  - woodcutters and miners leave rocks and trees standing in the water alone, and give up a target as soon as getting to it means swimming;
+  - followers wait on the shore while you swim ("Waiting on the shore") and catch up once you're back on land;
+  - melee guards don't wade out after an enemy in the water, and archers don't walk in to get closer (they shoot from the shore if in range); after a few seconds they let it go.
+- **Gather Here stays put.** A follower in Gather Here mines and chops only within its circle (15 m, `GatherNearbyRadius`): a big rock whose middle is inside but whose far side is 30 m away no longer sends it off to the far side.
+
 ## 0.7.4
 
 - **A higher-level board's base can be spread wider.** Placing a board from a Hiring Charter, the workbench, bed and pieces are looked for within the board's own area (the circle the hammer shows: 35 m for a level 4 board) when that's bigger than `BaseCheckRadius` (20 m). A new board still uses 20 m.

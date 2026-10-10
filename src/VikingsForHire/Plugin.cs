@@ -25,7 +25,7 @@ namespace VikingsForHire
     {
         public const string Guid = "Spronglehump.HiredHands";
         public const string Name = "HiredHands";
-        public const string Version = "0.7.4";
+        public const string Version = "0.7.5";
 
         internal static ManualLogSource Log = null!;
         internal static Harmony Harmony = null!;
