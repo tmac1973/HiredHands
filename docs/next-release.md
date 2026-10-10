@@ -8,6 +8,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
+| 316b4a9 | A hireling that dies loses its guard post: it comes back (after ReturnAfterDays or a paid respawn) patrolling, and can be posted again with the stone | the board owner's machine |
 | 56322bb | A posted guard that couldn't walk to its post (Una, back from death at the base's edge, walled off from her post 26 m away) stopped after 15 s and stood there for good, "on guard", the Roster tab saying "Posted". Now it tries again every 20 s, shows "Can't reach their post" (Roster tab too), and after 3 failed tries goes straight to the post when nobody is looking (`post.moved`) | the game simulating the hireling |
 | fe10bcc | Melee guards swung forever at a mob just the other side of a wall (in reach, so they swung, and every swing kept the fight going). A swing now needs a clear line (middle or eyes to the target's middle or head, past pieces and terrain); blocked, the guard walks round to it (doors and all), and after 5 s still blocked gives it up and ignores it for 20 s. `combat.swing_blocked` log | the game simulating the hireling |
 | bbd786e | Raw food from mods paid upkeep: the Steward filled a board with Witch Eyes (a mod mushroom), counted as 9 days of food. Now any edible item that nothing makes (no recipe, cooking station, oven or fermenter turns anything into it) is raw, as well as what the data file's raw list names (which also lacked the Ashlands Smoke Puff). `AllowRawFood` still lets it all in. `food.raw_unmade` logs the unmade foods found. Raw food already on a board stays there but no longer counts or pays; take it out by hand | everywhere (board, Steward, hiring) |
@@ -18,6 +19,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | 06db69e | With the Command Stone in hand, the map shows your hirelings: your followers (dot, their name) and the workers and guards of the boards you built (hammer, name and job), not those leaving or on a trip home. Asked of the server every 2 s (so far-off bases show too); ones near you are pinned where they are, so a follower's pin keeps up. Pins aren't saved and go when you put the stone away | your game (pins); the server (positions) |
 
 ### To test (batch)
+- [ ] By hand: a posted guard dies and comes back: the Roster tab shows it working (not "Posted"), patrolling.
 - [ ] By hand: a posted guard that can't walk to its post (e.g. post it in a walled yard, then close the only door): the Roster tab shows "Can't reach their post"; within about a minute and a half, looking away, it's on its post.
 - [ ] By hand (live server): a mob against the outside of a wall near a melee guard: the guard doesn't swing at the wall; it goes round through a door, or gives up within about 5 s.
 - [ ] By hand (live server): the board with the Witch Eyes shows food days from cooked food only; the Steward doesn't bring more Witch Eyes; putting one on the board by hand is refused. The server log's `food.raw_unmade` lists Witch Eye and no cooked foods (check what else is in it).
