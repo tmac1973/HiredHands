@@ -35,7 +35,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 - [ ] By hand (the server side passed in VFH-MOVE-1; this is the click and the messages): a follower from board A walked to board B (with room for it): right click it: "X joins this board and gets to work"; A's Roster tab no longer lists it, B's does, it works at B; upkeep comes off B.
 - [ ] By hand: the same into a board that's full for that kind or job (or below the hireling's level): refused with the reason; it stays your follower and on A's roster.
 - [ ] By hand (dedicated server): the same, ideally with the two boards owned by different players' games.
-- [ ] By hand: hammer, select the hiring board: the circle follows the ghost (20 m; with a level 3 charter in your inventory, 30 m).
+- [x] By hand (Tim, dev game, 2026-10-10): hammer, select the hiring board: the circle follows the ghost and is bigger with a higher-level charter; picked up a board with hirelings (`vfh_board_setlevel`, `vfh_spawn_contract`), placed it elsewhere: they came back.
 - [x] By hand (Tim, dev game, 2026-10-10): looking at a board shows the circle.
 - [ ] By hand: look at a board: gold circle on the ground at its level's radius, follows the ground; open Shift+E: the circle stays; the hover's area line. A tree patch's circle still shows.
 - [ ] By hand (logic passed in VFH-CHORE-15; this is the panel): a Steward's Shift+E chores list "Charcoal kilns" separately; switch it off: the kiln is left alone while the smelter is still fed.
