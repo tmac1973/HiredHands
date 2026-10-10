@@ -51,7 +51,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
             }
         }
 
-        private static string[] Bases(Fermenter f) => f.m_conversion.Where(c => c.m_from != null).Select(c => c.m_from.gameObject.name).ToArray();
+        // The bases it may load: not those whose mead is at its limit.
+        private static string[] Bases(Fermenter f, WorkContext ctx) =>
+            f.m_conversion.Where(c => c.m_from != null && (c.m_to == null || !StewardLimits.Reached(ctx, c.m_to.gameObject.name, out _)))
+                .Select(c => c.m_from.gameObject.name).ToArray();
 
         private static string[] Meads(Fermenter f) => f.m_conversion.Where(c => c.m_to != null).Select(c => c.m_to.gameObject.name).ToArray();
 
@@ -81,8 +84,13 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     Missing ??= ActivityText.Make("$vfh_need_cover", f.m_name);
                     continue;
                 }
-                if (empty && !Bases(f).Any(b => Have(ctx, b) > 0))
+                if (empty && !Bases(f, ctx).Any(b => Have(ctx, b) > 0))
                 {
+                    if (f.m_conversion.Any(c => c.m_from != null && Have(ctx, c.m_from.gameObject.name) > 0))
+                    {
+                        Missing ??= ActivityText.Make("$vfh_paused_limits", f.m_name);
+                        continue;
+                    }
                     Missing ??= ActivityText.Make("$vfh_need_base", f.m_name);
                     continue;
                 }
@@ -120,7 +128,13 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 return;
             }
             // The base the chests (and cargo) hold most of.
-            _base = Bases(_fermenter).OrderByDescending(b => Have(ctx, b)).First();
+            _base = Bases(_fermenter, ctx).OrderByDescending(b => Have(ctx, b)).FirstOrDefault() ?? "";
+            if (_base.Length == 0)
+            {
+                _step = Step.None;
+                RestAfter = 3f;
+                return;
+            }
             bool carrying = ctx.Carried.TryGetValue(_base, out int c) && c > 0;
             _chest = carrying ? null : ctx.NearestChestWith(new[] { _base });
             _step = carrying ? Step.Load : _chest != null ? Step.Fetch : Step.None;

@@ -84,6 +84,12 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 if (u <= 0f || Reservations.IsReservedByOther(x.Comp, ctx.Hireling.Hid) || Reservations.IsSkipped(x.Comp))
                     continue;
                 ChoreDeliveryPolicy.ChoreOutputs.Add(x.Item);
+                // At its limit: left in the hive or collector (it stops filling when full, as for a player).
+                if (StewardLimits.Reached(ctx, x.Item, out int cap))
+                {
+                    Missing ??= ActivityText.Make("$vfh_paused_order", x.Name, WorkSteps.SharedName(x.Item), cap.ToString());
+                    continue;
+                }
                 if (StorageRoom.NoRoom(ctx.AllChests, x.Item))
                 {
                     Missing ??= ActivityText.Make("$vfh_paused_full", x.Name, WorkSteps.SharedName(x.Item));

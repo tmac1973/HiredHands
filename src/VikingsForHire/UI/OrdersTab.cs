@@ -13,12 +13,12 @@ namespace VikingsForHire.UI
 {
     /// <summary>
     /// The board's production orders, worked top to bottom: farm orders (seed orders first) by the board's Farmer and
-    /// kitchen orders by its Cook, "keep at least X in the chests"; Steward orders are limits, "make no more once the
-    /// chests hold X" of a smelter's, kiln's or mill's product. A list view, and a picker for adding an order.
+    /// kitchen orders by its Cook, "keep at least X in the chests". A list view, and a picker for adding an order. (The
+    /// Steward's limits are kept in the same list but set in its own Shift+E panel.)
     /// </summary>
     internal sealed class OrdersTab : IBoardTab
     {
-        private enum PickFor { Farm, Kitchen, Steward }
+        private enum PickFor { Farm, Kitchen }
 
         private const int RowsPerPage = 10;
         private const float RowStep = 46f;
@@ -38,8 +38,7 @@ namespace VikingsForHire.UI
             Stock stock = BoardOrders.Stock(board);
             string haves = string.Join(",", list.Orders.Select(o => stock.Have(o.Item)));
             return $"{_picking}|{_pickFor}|{_page}|{_pickPage}|{list.Serialize()}|{haves}|" +
-                   $"{BoardOrders.WorkerLevel(board, JobType.Farmer)}|{BoardOrders.WorkerLevel(board, JobType.Cook)}|" +
-                   $"{BoardOrders.WorkerLevel(board, JobType.Smelter)}|{CanEdit(board)}";
+                   $"{BoardOrders.WorkerLevel(board, JobType.Farmer)}|{BoardOrders.WorkerLevel(board, JobType.Cook)}|{CanEdit(board)}";
         }
 
         private static bool CanEdit(HiringBoard board) => PrivateArea.CheckAccess(board.transform.position, 0f, false, false);
@@ -61,18 +60,16 @@ namespace VikingsForHire.UI
             Stock stock = BoardOrders.Stock(board);
             var adds = new[]
             {
-                PanelUi.Button(root, "$vfh_orders_add_farm", -310f, -140f, 280f, 34f, () => StartPick(PickFor.Farm)),
-                PanelUi.Button(root, "$vfh_orders_add_kitchen", 0f, -140f, 280f, 34f, () => StartPick(PickFor.Kitchen)),
-                PanelUi.Button(root, "$vfh_orders_add_steward", 310f, -140f, 280f, 34f, () => StartPick(PickFor.Steward)),
+                PanelUi.Button(root, "$vfh_orders_add_farm", -170f, -140f, 300f, 34f, () => StartPick(PickFor.Farm)),
+                PanelUi.Button(root, "$vfh_orders_add_kitchen", 170f, -140f, 300f, 34f, () => StartPick(PickFor.Kitchen)),
             };
             foreach (Button b in adds)
                 b.interactable = edit;
 
-            // Farm (seed orders first, as they're worked), then kitchen, then the Steward's limits.
+            // Farm (seed orders first, as they're worked), then kitchen.
             List<ProductionOrder> shown = list.Orders.Where(o => o.Kind == OrderKind.Seed)
                 .Concat(list.Orders.Where(o => o.Kind == OrderKind.Crop))
-                .Concat(list.Orders.Where(o => o.Kind == OrderKind.Kitchen))
-                .Concat(list.Orders.Where(o => o.Kind == OrderKind.Station)).ToList();
+                .Concat(list.Orders.Where(o => o.Kind == OrderKind.Kitchen)).ToList();
             if (shown.Count == 0)
             {
                 PanelUi.Text(root, "$vfh_orders_empty", 0f, -230f, 760f, 17, color: PanelUi.Dim);
@@ -96,7 +93,7 @@ namespace VikingsForHire.UI
             _pickPage = 0;
         }
 
-        private static void Pager(RectTransform root, int page, int pages, System.Action<int> go)
+        internal static void Pager(RectTransform root, int page, int pages, System.Action<int> go)
         {
             if (pages <= 1)
                 return;
@@ -113,14 +110,11 @@ namespace VikingsForHire.UI
             {
                 OrderKind.Seed => "$vfh_orders_kind_seed",
                 OrderKind.Crop => "$vfh_orders_kind_farm",
-                OrderKind.Kitchen => "$vfh_orders_kind_kitchen",
-                _ => "$vfh_orders_kind_steward",
+                _ => "$vfh_orders_kind_kitchen",
             };
             PanelUi.Text(root, (item != null ? item.m_itemData.m_shared.m_name : o.Item), -250f, y + 8f, 260f, 18, TextAnchor.MiddleLeft, o.Paused ? PanelUi.Dim : (Color?)null);
             PanelUi.Text(root, kind, -250f, y - 11f, 260f, 13, TextAnchor.MiddleLeft, PanelUi.Dim);
-            // A limit that's reached is the Steward stopping as asked, not a shortfall.
-            Color count = have >= o.Target ? PanelUi.Good : o.Kind == OrderKind.Station ? PanelUi.Dim : PanelUi.Bad;
-            PanelUi.Text(root, $"{have} / {o.Target}", -50f, y, 130f, 18, color: count);
+            PanelUi.Text(root, $"{have} / {o.Target}", -50f, y, 130f, 18, color: have >= o.Target ? PanelUi.Good : PanelUi.Bad);
             var buttons = new List<Button>
             {
                 PanelUi.Button(root, "-", 45f, y, 36f, 32f, () => BoardOrders.Submit(board, OrderEdit.Target, o.Item, target: o.Target - StepFor())),
@@ -153,8 +147,6 @@ namespace VikingsForHire.UI
                 return KitchenCatalog.All.GroupBy(k => k.Output)
                     .Select(g => new Pick { Item = g.Key, Kind = OrderKind.Kitchen, Level = g.Min(k => k.Level) })
                     .OrderBy(p => p.Level).ThenBy(p => Name(p.Item)).ToList();
-            if (what == PickFor.Steward)
-                return StationPicks();
             List<CropInfo> crops = CropCatalog.Infos.ToList();
             var picks = new Dictionary<string, Pick>();
             foreach (CropInfo c in crops)
@@ -164,32 +156,6 @@ namespace VikingsForHire.UI
                     AddPick(picks, c.Consumes, c.Level, crops);
             }
             return picks.Values.OrderBy(p => p.Level).ThenBy(p => p.Kind).ThenBy(p => Name(p.Item)).ToList();
-        }
-
-        // What the Steward's stations make (smelters, kilns, furnaces, refineries, mills, modded ones too), at the level
-        // the station unlocks.
-        private static List<Pick> StationPicks()
-        {
-            var picks = new Dictionary<string, Pick>();
-            if (ZNetScene.instance == null || !Config.DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out Core.Data.JobData? steward))
-                return new List<Pick>();
-            foreach (GameObject go in ZNetScene.instance.m_prefabs)
-            {
-                if (go == null || go.GetComponent<Piece>() == null || go.GetComponent<Smelter>() is not Smelter station)
-                    continue;
-                int level = Core.Chores.ChoreRules.MinLevel(steward, go.name);
-                foreach (Smelter.ItemConversion c in station.m_conversion)
-                {
-                    if (c?.m_to == null)
-                        continue;
-                    string item = c.m_to.gameObject.name;
-                    if (picks.TryGetValue(item, out Pick p))
-                        p.Level = Mathf.Min(p.Level, level);
-                    else
-                        picks[item] = new Pick { Item = item, Kind = OrderKind.Station, Level = level };
-                }
-            }
-            return picks.Values.OrderBy(p => p.Level).ThenBy(p => Name(p.Item)).ToList();
         }
 
         private static void AddPick(Dictionary<string, Pick> picks, string item, int level, List<CropInfo> crops)
@@ -209,14 +175,12 @@ namespace VikingsForHire.UI
         private void BuildPicker(RectTransform root, HiringBoard board)
         {
             OrderList list = BoardOrders.For(board);
-            JobType job = _pickFor switch { PickFor.Kitchen => JobType.Cook, PickFor.Steward => JobType.Smelter, _ => JobType.Farmer };
+            JobType job = _pickFor == PickFor.Kitchen ? JobType.Cook : JobType.Farmer;
             int worker = BoardOrders.WorkerLevel(board, job);
-            string title = _pickFor switch { PickFor.Kitchen => "$vfh_orders_pick_kitchen", PickFor.Steward => "$vfh_orders_pick_steward", _ => "$vfh_orders_pick_farm" };
-            string needs = _pickFor switch { PickFor.Kitchen => "$vfh_orders_needs_cook", PickFor.Steward => "$vfh_orders_needs_steward", _ => "$vfh_orders_needs_farmer" };
+            string title = _pickFor == PickFor.Kitchen ? "$vfh_orders_pick_kitchen" : "$vfh_orders_pick_farm";
+            string needs = _pickFor == PickFor.Kitchen ? "$vfh_orders_needs_cook" : "$vfh_orders_needs_farmer";
             PanelUi.Text(root, title, 0f, -140f, 600f, 19, bold: true);
             PanelUi.Button(root, "$vfh_orders_back", 380f, -140f, 110f, 32f, () => _picking = false);
-            if (_pickFor == PickFor.Steward)
-                PanelUi.Text(root, "$vfh_orders_steward_hint", 0f, -165f, 760f, 14, color: PanelUi.Dim);
             List<Pick> picks = Picks(_pickFor).Where(p => list.Find(p.Item) == null).ToList();
             int pages = Mathf.Max(1, (picks.Count + PicksPerPage - 1) / PicksPerPage);
             _pickPage = Mathf.Clamp(_pickPage, 0, pages - 1);
@@ -232,8 +196,7 @@ namespace VikingsForHire.UI
                 Pick chosen = p;
                 Button b = PanelUi.Button(root, label, x, y, 420f, 32f, () =>
                 {
-                    int target = chosen.Kind switch { OrderKind.Seed => 10, OrderKind.Station => 100, _ => 20 };
-                    BoardOrders.Submit(board, OrderEdit.Add, chosen.Item, chosen.Kind, target);
+                    BoardOrders.Submit(board, OrderEdit.Add, chosen.Item, chosen.Kind, chosen.Kind == OrderKind.Seed ? 10 : 20);
                     _picking = false;
                 });
                 PanelUi.Text(root, note, x, y - 21f, 420f, 13, color: canDo ? PanelUi.Dim : PanelUi.Bad);

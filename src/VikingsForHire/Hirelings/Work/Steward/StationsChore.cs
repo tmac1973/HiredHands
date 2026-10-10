@@ -69,22 +69,11 @@ namespace VikingsForHire.Hirelings.Work.Steward
             // PauseWhenStorageFull: inputs whose product has no room left aren't loaded (a kiln stops when the coal chests are full).
             // The board's Steward orders: inputs whose product the chests already hold enough of aren't loaded either.
             string? paused = null;
-            Core.Orders.OrderList orders = BoardOrders.For(BoardOrders.BoardOf(h.BoardId)?.Zdo);
-            var held = new Dictionary<string, int>();
-            int Held(string product)
-            {
-                if (!held.TryGetValue(product, out int n))
-                {
-                    string shared = WorkSteps.SharedName(product);
-                    held[product] = n = ctx.AllChests.Sum(c => c.GetInventory().CountItems(shared));
-                }
-                return n;
-            }
             foreach (StationState st in states)
             {
                 Smelter s = _byId[st.Id];
                 var noRoom = st.Inputs.Where(i => StorageRoom.NoRoom(ctx.AllChests, ProductOf(s, i))).ToList();
-                var enough = st.Inputs.Except(noRoom).Where(i => orders.StationCap(ProductOf(s, i)) is int cap && Held(ProductOf(s, i)) >= cap).ToList();
+                var enough = st.Inputs.Except(noRoom).Where(i => StewardLimits.Reached(ctx, ProductOf(s, i), out _)).ToList();
                 if (noRoom.Count == 0 && enough.Count == 0)
                     continue;
                 st.Inputs = st.Inputs.Except(noRoom).Except(enough).ToList();
@@ -93,7 +82,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 else
                 {
                     string product = ProductOf(s, enough[0]);
-                    paused ??= ActivityText.Make("$vfh_paused_order", s.m_name, WorkSteps.SharedName(product), orders.StationCap(product)!.Value.ToString());
+                    StewardLimits.Reached(ctx, product, out int cap);
+                    paused ??= ActivityText.Make("$vfh_paused_order", s.m_name, WorkSteps.SharedName(product), cap.ToString());
                 }
             }
             var wanted = new HashSet<string>(states.SelectMany(s => s.Inputs).Concat(states.Select(s => s.FuelItem)).Where(p => p.Length > 0));
