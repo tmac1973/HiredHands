@@ -108,7 +108,9 @@ namespace VikingsForHire.Tests
             sw.Stop();
             Assert.True(r.Kind == PlanKind.Route, $"{r.Kind} after {r.OracleCalls} calls");
             Assert.True(r.OracleCalls <= LinkPlanner.MaxOracleCalls, $"{r.OracleCalls} calls");
-            Assert.True(sw.Elapsed.TotalMilliseconds < 5.0, $"{sw.Elapsed.TotalMilliseconds:0.00} ms");
+            // Wall-clock, so with headroom: under load (the game running alongside) a 5 ms bound failed now and then. The
+            // oracle-call cap above is the real guard.
+            Assert.True(sw.Elapsed.TotalMilliseconds < 25.0, $"{sw.Elapsed.TotalMilliseconds:0.00} ms");
         }
     }
 }
