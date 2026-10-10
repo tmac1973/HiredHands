@@ -9,8 +9,11 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | Commit | What | Where it runs |
 |---|---|---|
 | 06eea66 | Command Stone on a chest (left click): followers near you carrying something that chest already holds walk to it and put those items in (only what it holds, like base deliveries), then carry on (following you, or back to their spot). "You can't use that chest" without access; "Nobody near you carries anything this chest holds" otherwise | your game (the order); the game simulating the follower |
+| 4f78d7b | `GuardMeleeDamage`, `GuardRangedDamage` (Combat, default 1): combat hirelings' damage multiplier on top of the level table's guardDamageMult | the game simulating the hireling |
 
 ### To test (batch)
+- [ ] Macro (single player, not yet run): `vfh_test_chain dmg1` (level 4 guard 2.2, 1.1 at 0.5; archer 0.55 at 0.25).
+- [ ] By hand (live server): set GuardMeleeDamage to taste (e.g. 0.5) and fight with a guard along.
 - [ ] Macro (single player, not yet run: Tim playing): `vfh_test_chain order2 order2 order1 recruit1`.
 - [ ] By hand: followers with mixed cargo; point the stone at a chest holding some of it: they walk over, put only those items in, then follow you again; a follower in Stay goes back to its spot.
 
