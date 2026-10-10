@@ -111,6 +111,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> MeleeAttackCooldown = null!;
         public static ConfigEntry<CombatSkillPreset> CombatSkill = null!;
         public static ConfigEntry<float> HealthRegen = null!;
+        public static ConfigEntry<bool> CombatHirelings = null!;
         public static ConfigEntry<float> GuardMeleeDamage = null!;
         public static ConfigEntry<float> GuardRangedDamage = null!;
 
@@ -167,6 +168,7 @@ namespace VikingsForHire.Config
             MinDistanceBetweenBoards = Synced(b, "MinDistanceBetweenBoards", 100f, "Minimum distance (m) between hiring boards.");
             MaxBoardsPerWorld = Synced(b, "MaxBoardsPerWorld", 0, "Hiring boards allowed per world (0 = unlimited).");
 
+            CombatHirelings = Synced(h, "CombatHirelings", true, "Guards and archers (and later other fighting jobs) can be hired. Off: workers only; the Contracts tab doesn't offer combat jobs. Combat hirelings already hired stay.");
             LowFundsWarnDays = Synced(h, "LowFundsWarnDays", 2, "A board whose food or coins last this many days or fewer is low: its hover turns orange (red on the last day), players at the base are told once a day, and its builder gets a map pin. 0 turns the warnings off (the hover still shows the days).");
             LowFundsMessages = Synced(h, "LowFundsMessages", true, "Tell the players at a base, once a day, when its hiring board is running low.");
             LowFundsMapPins = _file.Bind(h, "LowFundsMapPins", true, "Your own setting: show a map pin on hiring boards you built while they're running low.");

@@ -4,6 +4,7 @@
 
 - **Command Stone on a chest.** Point the stone at a chest (left click): followers near you carrying something that chest already holds walk over and put it in, then carry on (following you, or back to their spot).
 - **Move a board without losing your people.** Deconstructing a board now packs its hirelings (gear, cargo, names, contracts, followers too) into the Hiring Charter you keep, even at level 1; build a new board while carrying it and they walk back in. Before, every contract ended.
+- **Workers only, if you like.** `CombatHirelings` (Hiring) off: no guards or archers can be hired, and the board offers workers only; ones already hired stay.
 - **Combat hirelings' damage is a setting.** `GuardMeleeDamage` and `GuardRangedDamage` (Combat) scale melee guards' and archers' damage on top of the level table (default 1; 0.5 halves it), for servers where a guard makes things too easy.
 
 ## 0.7.1

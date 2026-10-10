@@ -11,7 +11,11 @@ namespace VikingsForHire.UI
     /// <summary>Post a contract: job, level, work radius and stance, with the hire fee and daily upkeep shown live.</summary>
     internal sealed class ContractsTab : IBoardTab
     {
-        private static readonly JobType[] Jobs = (JobType[])Enum.GetValues(typeof(JobType));
+        private static readonly JobType[] AllJobs = (JobType[])Enum.GetValues(typeof(JobType));
+        private static readonly JobType[] WorkerJobs = Array.FindAll(AllJobs, j => !j.IsCombat());
+
+        // With combat hirelings turned off (CombatHirelings), only the workers are offered.
+        private static JobType[] Jobs => VfhConfig.CombatHirelings.Value ? AllJobs : WorkerJobs;
         private const float RadiusStep = 5f;
 
         private int _job;
@@ -28,7 +32,7 @@ namespace VikingsForHire.UI
             Clamp(board);
             Cost funds = board.Inventory != null ? BoardStorage.Totals(board.Inventory) : Cost.Zero;
             int count = board.Zdo != null ? BoardRosterOps.Read(board.Zdo).Count : 0;
-            return $"{_job}|{_level}|{_radius}|{_stance}|{board.Level}|{funds}|{count}|{DataStore.Hash}";
+            return $"{_job}|{_level}|{_radius}|{_stance}|{board.Level}|{funds}|{count}|{DataStore.Hash}|{VfhConfig.CombatHirelings.Value}";
         }
 
         public void Build(RectTransform root, HiringBoard board)
@@ -54,7 +58,9 @@ namespace VikingsForHire.UI
             int combatN = roster.KindCount(true), workerN = roster.KindCount(false);
             int combatCap = rules.CombatCap(board.Level), workerCap = rules.WorkerCap(board.Level);
             int jobN = roster.JobCount(job), jobMax = rules.MaxPerBoard(job);
-            string counts = Localization.instance.Localize("$vfh_contract_counts", combatN.ToString(), combatCap.ToString(), workerN.ToString(), workerCap.ToString());
+            string counts = VfhConfig.CombatHirelings.Value
+                ? Localization.instance.Localize("$vfh_contract_counts", combatN.ToString(), combatCap.ToString(), workerN.ToString(), workerCap.ToString())
+                : Localization.instance.Localize("$vfh_contract_counts_workers", workerN.ToString(), workerCap.ToString());
             if (jobMax > 0)
                 counts += Localization.instance.Localize("$vfh_contract_job_count",
                     Localization.instance.Localize($"$vfh_job_{job.ToString().ToLowerInvariant()}"), jobN.ToString(), jobMax.ToString());
@@ -93,6 +99,7 @@ namespace VikingsForHire.UI
 
         private void Clamp(HiringBoard board)
         {
+            _job %= Jobs.Length; // the list may have just shrunk (CombatHirelings changed)
             var rules = new LevelRules(DataStore.Current);
             _level = Mathf.Clamp(_level, 1, rules.MaxHirelingLevel(board.Level));
             float max = rules.MaxWorkRadius(board.Level, Jobs[_job]);

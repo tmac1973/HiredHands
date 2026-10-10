@@ -212,6 +212,9 @@ navLinks:
 | 7 | The Queen trophy, Black core 3, Eitr 15, Yggdrasil wood 40, Carapace 20 | 4 | 8 | 50 m |
 | 8 | Fader trophy, Flametal 20, Blackwood 40, Asksvin hide 10, Molten core 3 | 4 | 8 | 60 m |
 
+**Workers only.** A server can turn combat hirelings off (`CombatHirelings`, Hiring): no guards or archers can be hired,
+and the board offers workers only. Ones already hired stay.
+
 **How many hirelings.** A board has two caps (since 0.7.0):
 - **Combat:** guards, melee or archers in any mix.
 - **Workers:** everyone else, with at most 2 woodcutters, 2 miners, 1 Steward, 1 Farmer and 1 Cook per board.

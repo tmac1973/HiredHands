@@ -54,7 +54,7 @@ namespace VikingsForHire.Board
                         return Done(zdo, null, boardId, op, new OpResult(OpOutcome.BadLevel, "$vfh_op_badlevel"));
                     if (!rules.JobUnlocked(boardLevel, op.Job))
                         return Done(zdo, null, boardId, op, new OpResult(OpOutcome.BadLevel, "$vfh_op_job_locked"));
-                    OpOutcome can = roster.CanPost(op.Job, rules, boardLevel);
+                    OpOutcome can = op.Job.IsCombat() && !VfhConfig.CombatHirelings.Value ? OpOutcome.CombatOff : roster.CanPost(op.Job, rules, boardLevel);
                     if (can != OpOutcome.Ok)
                     {
                         VfhLog.I(LogCat.Roster, "contract.refused", ("board", boardId), ("job", op.Job), ("why", can),
@@ -255,6 +255,7 @@ namespace VikingsForHire.Board
             OpOutcome.CombatCapReached => $"$vfh_op_cap_combat|{roster.KindCount(true)}|{rules.CombatCap(boardLevel)}",
             OpOutcome.WorkerCapReached => $"$vfh_op_cap_workers|{roster.KindCount(false)}|{rules.WorkerCap(boardLevel)}",
             OpOutcome.JobLimitReached => $"$vfh_op_job_limit|$vfh_job_{job.ToString().ToLowerInvariant()}|{roster.JobCount(job)}|{rules.MaxPerBoard(job)}",
+            OpOutcome.CombatOff => "$vfh_op_combat_off",
             _ => "",
         };
 

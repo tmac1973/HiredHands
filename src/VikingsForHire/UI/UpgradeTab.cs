@@ -64,7 +64,9 @@ namespace VikingsForHire.UI
         {
             // Both caps on one line: the tab has no room for another (five materials already reach the button).
             int wNow = rules.WorkerCap(level), wNext = rules.WorkerCap(next), cNow = rules.CombatCap(level), cNext = rules.CombatCap(next);
-            string caps = Localization.instance.Localize("$vfh_upgrade_caps", Change(wNow, wNext), Change(cNow, cNext));
+            string caps = VfhConfig.CombatHirelings.Value
+                ? Localization.instance.Localize("$vfh_upgrade_caps", Change(wNow, wNext), Change(cNow, cNext))
+                : Localization.instance.Localize("$vfh_upgrade_caps_workers", Change(wNow, wNext));
             PanelUi.Text(root, caps, 0f, y, 560f, 18, color: wNow == wNext && cNow == cNext ? PanelUi.Dim : PanelUi.Good);
             y -= 28f;
             Line(root, "$vfh_upgrade_maxlevel", rules.MaxHirelingLevel(level), rules.MaxHirelingLevel(next), ref y);

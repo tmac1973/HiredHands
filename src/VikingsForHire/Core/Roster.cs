@@ -26,6 +26,8 @@ namespace VikingsForHire.Core
         CombatCapReached,
         WorkerCapReached,
         JobLimitReached,
+        /// <summary>The server has combat hirelings turned off (CombatHirelings).</summary>
+        CombatOff,
     }
 
     /// <summary>One contract on a board: a hireling that's coming, working or on its way out.</summary>
