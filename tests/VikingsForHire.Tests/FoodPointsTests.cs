@@ -20,6 +20,17 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void UnmadeFoodIsRaw()
+        {
+            var raw = new HashSet<string> { "RawMeat" };
+            var prepared = new HashSet<string> { "CookedMeat" };
+            Assert.True(FoodPoints.IsAcceptable("CookedMeat", true, false, raw, prepared));
+            Assert.False(FoodPoints.IsAcceptable("WitchEye", true, false, raw, prepared));
+            Assert.True(FoodPoints.IsAcceptable("WitchEye", true, true, raw, prepared));
+            Assert.False(FoodPoints.IsAcceptable("RawMeat", true, false, raw, new HashSet<string> { "RawMeat" }));
+        }
+
+        [Fact]
         public void CheapestFirstWithOverpay()
         {
             var stacks = new[]

@@ -30,8 +30,13 @@ namespace VikingsForHire.Core
         public static int PointsFor(float health, float stamina, float eitr) =>
             (int)Math.Round(health + stamina + eitr, MidpointRounding.AwayFromZero);
 
-        public static bool IsAcceptable(string prefab, bool hasFoodValue, bool allowRaw, ICollection<string> rawFoods) =>
-            hasFoodValue && (allowRaw || !rawFoods.Contains(prefab));
+        /// <summary>
+        /// Whether an item pays upkeep. Raw food doesn't (unless allowed): what the raw list names, and, once the game's
+        /// recipes are known (<paramref name="prepared"/>), anything edible that nothing makes, so a mod's raw mushroom or
+        /// meat is raw without being listed.
+        /// </summary>
+        public static bool IsAcceptable(string prefab, bool hasFoodValue, bool allowRaw, ICollection<string> rawFoods, ICollection<string>? prepared = null) =>
+            hasFoodValue && (allowRaw || (!rawFoods.Contains(prefab) && (prepared == null || prepared.Contains(prefab))));
 
         public static int Total(IEnumerable<FoodStack> available) => available.Sum(s => s.PointsPerItem * s.Count);
 
