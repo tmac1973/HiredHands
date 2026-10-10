@@ -14,14 +14,11 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | 4161559 | `CombatHirelings` (Hiring, default on): off = workers only: combat contracts refused ("Combat hirelings are turned off on this server"), the Contracts tab offers workers only, counts and Upgrade tab show workers; combat hirelings already hired stay | the board owner's machine; your game (tabs) |
 
 ### To test (batch)
-- [ ] Macro (single player, not yet run): `vfh_test_chain cap5`.
+- [x] Macro (single player, 2026-10-09): `vfh_test_chain order2 dmg1 charter1 cap5 con2 cap1 cap2 cap3 order1 recruit1 combat1 combat5 block2 dodge1 death3`: all 15 pass first time.
 - [ ] By hand: CombatHirelings off: the Contracts tab cycles through workers only and reads "Workers 0/2"; turn it back on and the guards reappear.
-- [ ] Macro (single player, not yet run): `vfh_test_chain charter1` (pack a level 3 board's woodcutter and guard, rebuild, both walk back in).
 - [ ] By hand: move a real board: deconstruct (the popup says they'll go into the charter), hover the charter (level and names), build the new board elsewhere: same level, everyone walks in with their cargo; posted guards come back unposted.
 - [ ] By hand (dedicated server): the same as a client (packing runs on the server).
-- [ ] Macro (single player, not yet run): `vfh_test_chain dmg1` (level 4 guard 2.2, 1.1 at 0.5; archer 0.55 at 0.25).
 - [ ] By hand (live server): set GuardMeleeDamage to taste (e.g. 0.5) and fight with a guard along.
-- [ ] Macro (single player, not yet run: Tim playing): `vfh_test_chain order2 order2 order1 recruit1`.
 - [ ] By hand: followers with mixed cargo; point the stone at a chest holding some of it: they walk over, put only those items in, then follow you again; a follower in Stay goes back to its spot.
 
 ## 0.7.1 (released 2026-10-09): orders catalog fix
