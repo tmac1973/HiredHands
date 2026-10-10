@@ -40,6 +40,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 - [ ] By hand: look at a board: gold circle on the ground at its level's radius, follows the ground; open Shift+E: the circle stays; the hover's area line. A tree patch's circle still shows.
 - [ ] By hand (logic passed in VFH-CHORE-15; this is the panel): a Steward's Shift+E chores list "Charcoal kilns" separately; switch it off: the kiln is left alone while the smelter is still fed.
 - [ ] By hand (logic passed in VFH-LIMIT-1/2; this is the panel and the mead case): Steward Shift+E → Limits: add Coal, set it below what the chests hold: the Steward stops loading the kiln ("paused, Coal is at its limit"); raise it above: it loads again; pause: no coal made. The same with Honey (hives left full) and a mead (that base isn't loaded). The count matches the chests.
+- [x] By hand (Tim, 2026-10-10): the bigger board panel looks good.
 - [ ] By hand: the Orders tab with 10+ orders: rows readable, paging works; the panel fits on your screen (and at your GUI scale).
 - [ ] By hand: stone in hand, open the map: a dot per follower moving with them, a hammer per hireling at your boards (also a base far away), named; put the stone away: the pins go. On a dedicated server too.
 
