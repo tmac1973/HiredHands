@@ -202,6 +202,7 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 ChoreKind.Fires => VfhConfig.StewardFires,
                 ChoreKind.Beehives => VfhConfig.StewardBeehives,
                 ChoreKind.Stations => VfhConfig.StewardStations,
+                ChoreKind.Kilns => VfhConfig.StewardStations,
                 ChoreKind.Mills => VfhConfig.StewardMills,
                 ChoreKind.Sap => VfhConfig.StewardSap,
                 ChoreKind.Animals => VfhConfig.StewardAnimals,

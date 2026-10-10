@@ -19,11 +19,15 @@ namespace VikingsForHire.Core.Chores
 
         public static bool Unlocked(JobData steward, int level, string key) => level >= MinLevel(steward, key);
 
-        public static ChoreKind KindOfStation(string prefab) => MillStations.Contains(prefab) ? ChoreKind.Mills : ChoreKind.Stations;
+        /// <summary>The station prefabs that are Kilns (charcoal), switched on and off apart from the smelters.</summary>
+        public static readonly IReadOnlyCollection<string> KilnStations = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "charcoal_kiln" };
+
+        public static ChoreKind KindOfStation(string prefab) =>
+            MillStations.Contains(prefab) ? ChoreKind.Mills : KilnStations.Contains(prefab) ? ChoreKind.Kilns : ChoreKind.Stations;
 
         /// <summary>The keys a chore kind is gated by: its own key, or for stations and mills each of its stations.</summary>
         public static IEnumerable<string> GateKeys(JobData steward, ChoreKind kind) =>
-            kind is ChoreKind.Stations or ChoreKind.Mills
+            kind is ChoreKind.Stations or ChoreKind.Kilns or ChoreKind.Mills
                 ? steward.Stations.Where(s => KindOfStation(s) == kind)
                 : new[] { ChoreKeys.Key(kind) };
 

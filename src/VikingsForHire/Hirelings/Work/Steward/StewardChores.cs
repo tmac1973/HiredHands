@@ -12,6 +12,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             new FiresChore(),
             new ProducersChore(ChoreKind.Beehives),
             new StationsChore(ChoreKind.Stations),
+            new StationsChore(ChoreKind.Kilns),
             new StationsChore(ChoreKind.Mills),
             new ProducersChore(ChoreKind.Sap),
             new AnimalsChore(),

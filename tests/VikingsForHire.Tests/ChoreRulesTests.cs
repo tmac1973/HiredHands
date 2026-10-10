@@ -43,6 +43,8 @@ namespace VikingsForHire.Tests
             Assert.Equal(ChoreKind.Mills, ChoreRules.KindOfStation("windmill"));
             Assert.Equal(ChoreKind.Mills, ChoreRules.KindOfStation("piece_spinningwheel"));
             Assert.Equal(ChoreKind.Stations, ChoreRules.KindOfStation("smelter"));
+            Assert.Equal(ChoreKind.Kilns, ChoreRules.KindOfStation("charcoal_kiln"));
+            Assert.Equal(new[] { "charcoal_kiln" }, ChoreRules.GateKeys(Steward(), ChoreKind.Kilns).ToArray());
             Assert.Equal(new[] { "windmill", "piece_spinningwheel" }, ChoreRules.GateKeys(Steward(), ChoreKind.Mills).ToArray());
             Assert.Equal(2, ChoreRules.FirstUnlock(Steward(), ChoreKind.Stations));
             Assert.Equal(5, ChoreRules.FirstUnlock(Steward(), ChoreKind.Mills));

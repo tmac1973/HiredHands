@@ -279,7 +279,7 @@ namespace VikingsForHire.UI
         // For a partly unlocked Stations or Mills chore: the stations still to come, e.g. "Blast furnace: locked until level 5".
         private static string StillLocked(ChoreKind kind, JobData steward, int level)
         {
-            if (kind is not (ChoreKind.Stations or ChoreKind.Mills))
+            if (kind is not (ChoreKind.Stations or ChoreKind.Kilns or ChoreKind.Mills))
                 return "";
             return string.Join(", ", ChoreRules.GateKeys(steward, kind).Where(k => ChoreRules.MinLevel(steward, k) > level)
                 .Select(k => StationName(k) + ": " + Localization.instance.Localize("$vfh_chore_state_locked", ChoreRules.MinLevel(steward, k).ToString())));
