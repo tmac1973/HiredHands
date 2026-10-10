@@ -152,6 +152,7 @@ namespace VikingsForHire.Tests
         public void DeathPermadeathRemovesOtherwiseRespawns()
         {
             var r = WithActive("a", "b");
+            r.ByHid("hb")!.Post = new GuardPost { X = 1, Y = 2, Z = 3 };
             Assert.Equal(OpOutcome.Ok, r.MarkDied("ha", true, 100, 600));
             Assert.Null(r.ByHid("ha"));
             Assert.Equal(OpOutcome.Ok, r.MarkDied("hb", false, 100, 600));
@@ -159,6 +160,7 @@ namespace VikingsForHire.Tests
             Assert.Equal(ContractState.Pending, b.State);
             Assert.True(b.RespawnPending);
             Assert.Equal(700, b.ArriveAt);
+            Assert.Null(b.Post); // back to patrol, not to its old post
         }
 
         [Fact]

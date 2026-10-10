@@ -308,6 +308,9 @@ namespace VikingsForHire.Core
             e.RespawnPending = true;
             e.ArriveAt = now + cooldownSeconds;
             e.UnpaidDays = 0;
+            // It comes back to patrol, not to an old post that may be anywhere (it walked in from the edge and stood
+            // 26 m off a post it couldn't reach).
+            e.Post = null;
             return OpOutcome.Ok;
         }
 
