@@ -15,6 +15,7 @@ namespace VikingsForHire.UI
         private float _showUntil;
         private float _radius = -1f;
         private float _drawn = -1f;
+        private Vector3 _drawnAt;
         private Color _color = new(0.4f, 1f, 0.4f, 0.8f);
 
         /// <summary>The ring on this object, added the first time.</summary>
@@ -53,10 +54,13 @@ namespace VikingsForHire.UI
             }
             _line.startColor = _line.endColor = _color;
             _line.enabled = true;
-            // Redrawn when the radius changes, and now and then for the ground (terrain edited, or still loading).
-            if (Mathf.Abs(_drawn - _radius) <= 0.01f && _line.positionCount > 0 && Time.frameCount % 30 != 0)
+            // Redrawn when the radius changes or it moves (a board's ghost while placing it), and now and then for the
+            // ground (terrain edited, or still loading).
+            if (Mathf.Abs(_drawn - _radius) <= 0.01f && (transform.position - _drawnAt).sqrMagnitude < 0.0025f && _line.positionCount > 0 &&
+                Time.frameCount % 30 != 0)
                 return;
             _drawn = _radius;
+            _drawnAt = transform.position;
             _line.positionCount = Points;
             for (int i = 0; i < Points; i++)
             {

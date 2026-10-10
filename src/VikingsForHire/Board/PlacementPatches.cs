@@ -106,8 +106,10 @@ namespace VikingsForHire.Board
                 long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
-                    if (__instance != Player.m_localPlayer || __instance.m_placementGhost == null ||
-                        __instance.m_placementStatus != Player.PlacementStatus.Valid || !PlacementCheck.IsBoard(__instance.GetSelectedPiece()))
+                    if (__instance != Player.m_localPlayer || __instance.m_placementGhost == null || !PlacementCheck.IsBoard(__instance.GetSelectedPiece()))
+                        return;
+                    ShowArea(__instance);
+                    if (__instance.m_placementStatus != Player.PlacementStatus.Valid)
                         return;
 
                     Vector3 pos = __instance.m_placementGhost.transform.position;
@@ -141,6 +143,22 @@ namespace VikingsForHire.Board
                     VikingsForHire.Diagnostics.PerfCounters.Patch("PlacementPatches.UpdatePlacementGhost", vfhStarted);
                 }
             }
+        }
+
+        private static UI.AreaRing? _ghostRing;
+
+        // The board's area around the ghost while placing it, at the level it will have: 1, or the Hiring Charter's
+        // level when you carry one (the new board takes it).
+        private static void ShowArea(Player me)
+        {
+            if (_ghostRing == null)
+            {
+                var go = new GameObject("VFH_GhostArea");
+                _ghostRing = UI.AreaRing.On(go.transform, new Color(1f, 0.85f, 0.35f, 0.85f));
+            }
+            int level = HiringCharter.Best(me.GetInventory()) is ItemDrop.ItemData charter ? HiringCharter.LevelOf(charter) : 1;
+            _ghostRing.transform.position = me.m_placementGhost.transform.position;
+            _ghostRing.Show(new LevelRules(Config.DataStore.Current).MaxWorkRadius(level));
         }
 
         /// <summary>Re-checks on the actual click, so a stale ghost status can never place a board.</summary>
