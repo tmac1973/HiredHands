@@ -54,15 +54,17 @@ namespace VikingsForHire.UI
 
             PanelUi.Text(root, "$vfh_upgrade_nonrefundable", 0f, y - 6f, 600f, 14, color: PanelUi.Dim);
             bool canAfford = inv != null && BoardUpgrade.CanAfford(inv, board, reqs);
+            // Below the materials and the note, however many materials there are (it sat at a fixed height and covered the
+            // last ones).
             Button button = PanelUi.Button(root, BoardUpgrade.InProgress ? "$vfh_upgrade_waiting" : "$vfh_upgrade_button",
-                0f, -455f, 220f, 44f, () => BoardUpgrade.TryUpgrade(board));
+                0f, y - 55f, 220f, 44f, () => BoardUpgrade.TryUpgrade(board));
             button.interactable = canAfford && !BoardUpgrade.InProgress;
         }
 
         /// <summary>The things a level changes, "now → next". Returns the y below the last line.</summary>
         private static float Benefits(RectTransform root, LevelRules rules, int level, int next, float y)
         {
-            // Both caps on one line: the tab has no room for another (five materials already reach the button).
+            // Both caps on one line, to leave room for the materials.
             int wNow = rules.WorkerCap(level), wNext = rules.WorkerCap(next), cNow = rules.CombatCap(level), cNext = rules.CombatCap(next);
             string caps = VfhConfig.CombatHirelings.Value
                 ? Localization.instance.Localize("$vfh_upgrade_caps", Change(wNow, wNext), Change(cNow, cNext))
