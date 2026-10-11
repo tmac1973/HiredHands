@@ -11,8 +11,10 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | 6407847 | The farm order picker listed turnips as a seed ("Turnip (seed (kept in reserve))"): raw turnips aren't food, and planting one grows turnip seeds, which was the seed rule. Now food or a cooking ingredient is never a seed, so turnips and onions are produce orders | your game (picker) |
 | c41fac4 | The Farmer planted carrots among picked mushroom stalks: a picked mushroom, berry bush or dandelion hides the part that collides, so the game's own space check sees open ground. Now no crop goes within its grow radius of a regrowing plant, picked or not (wild ones included) | the game simulating the Farmer |
 | 87a7344 | The Roster tab offered "Cancel (refund)" for a hireling waiting to come back from death; it never refunded (the hire fee was spent), so the button now says "End contract (no refund)" | your game |
+| d337d4a | The Steward loaded a board with 76 CoalPaste (Balrond Shipyard's shipbuilding material, which carries food values but can't be eaten). Food now has to be a consumable, as the game requires to eat it: on the board, for the Steward's board food, in the Cook's stove list and in the raw-food check. CoalPaste already on a board stays but no longer counts or pays; take it out by hand | everywhere (board, Steward, Cook) |
 
 ### To test (batch)
+- [ ] By hand (live server): CoalPaste can't be put on the board; the board's food days don't count it; the Steward doesn't bring it.
 - [ ] By hand: a dead hireling waiting to return shows "End contract (no refund)"; a newly posted one still shows "Cancel (refund)".
 - [ ] By hand (live server): picked mushrooms on cultivated ground, a carrot order: no carrots planted between the stalks.
 - [ ] By hand: Orders → Add farm order: "Turnip" (no "(seed)") and "Turnip Seeds (seed)" both listed; an order for turnips makes the Farmer plant turnip seeds.
