@@ -85,6 +85,21 @@ Woodcutters and miners work twice the board's radius. Everyone defends themselve
 
 **They talk back.** Now and then a hireling near you says something, in a speech bubble like the trader's: about its job, about what it's doing, or about you standing there watching. `HirelingChatter` turns it off and `ChatterMinutes` (default 5) sets roughly how often each one speaks; both are your own settings.
 
+## Chests: what workers may do with each
+
+Workers use the chests in their area: they store what they bring into a chest that already holds that item, and take
+what they need from any. **Shift+E on a chest** near a hiring board sets what workers may do with that one (its hover
+text says which):
+
+- **Put in and take out** (the default).
+- **Put in only:** workers store into it but never take from it, and what's in it doesn't count as the base's stock for
+  orders and limits. For a feed chest in an animal pen: the Farmer stores carrots there, the Cook never takes them.
+- **Take out only:** workers take from it but never store into it (a supply chest you fill yourself).
+- **Leave alone:** workers ignore it.
+
+Changing it follows the wards, like the board. If another mod already uses Shift+E on chests, turn `ChestModeOnShiftUse`
+off in *4 - Work* (your own setting).
+
 ## How hirelings fight
 
 Guards patrol and fight by stance; everyone else defends themselves, weakly, and flees or defends by stance. Since

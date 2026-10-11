@@ -107,6 +107,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<bool> HirelingChatter = null!;
         public static ConfigEntry<float> ChatterMinutes = null!;
         public static ConfigEntry<KeyboardShortcut> RetreatKey = null!;
+        public static ConfigEntry<bool> ChestModeOnShiftUse = null!;
         public static ConfigEntry<bool> UpgradeFromNearbyChests = null!;
         public static ConfigEntry<int> BalanceLogMaxMB = null!;
         public static ConfigEntry<bool> ClientLogsToServer = null!;
@@ -264,6 +265,7 @@ namespace VikingsForHire.Config
             ReturnMinSeconds = Synced(f, "ReturnMinSeconds", 60f, "Shortest return-home trip.");
             ReturnMaxSeconds = Synced(f, "ReturnMaxSeconds", 1200f, "Longest return-home trip.");
             StoneBoardSearchRadius = Synced(f, "StoneBoardSearchRadius", 30f, "Radius (m) around the workbench searched for a hiring board when crafting a Command Stone.");
+            ChestModeOnShiftUse = _file.Bind("4 - Work", "ChestModeOnShiftUse", true, "Your own setting: Shift+E on a chest near a hiring board sets what workers may do with it (normal, put only, take only, off) instead of opening it. Turn off if another mod uses Shift+E on chests.");
             RetreatKey = _file.Bind(f, "RetreatKey", KeyboardShortcut.Empty, "Your own setting: a key or mouse button that orders your followers within 50 m to retreat with you (as the Command Stone's middle click), stone in hand or not. Unset by default.");
 
             BalanceLog = Synced("9 - Balance log", "BalanceLog", false, "Record how hirelings fight and work (each fight, death, delivery and upkeep day) to BepInEx/HiredHands/balance/*.jsonl on the server, for tuning the mod. Off by default. Set it on the server: every player's game then sends its summaries there once a minute.");

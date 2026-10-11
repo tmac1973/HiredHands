@@ -121,6 +121,16 @@ namespace VikingsForHire.Testing
                     .Count(f => f.Model.Kind == (args.ElementAtOrDefault(0) ?? "") && !Hirelings.Work.Ranch.HerdScan.Enclosed(f.Animal.transform.position))
                     .ToString(CultureInfo.InvariantCulture);
             });
+            Fixtures.Add("chest_mode", "<tag> <normal|putonly|takeonly|off> - set a tagged chest's worker mode (as Shift+E on it does)", args =>
+            {
+                Container c = Tagged(args.ElementAtOrDefault(0) ?? "");
+                if (!Enum.TryParse(args.ElementAtOrDefault(1) ?? "normal", true, out ChestMode mode))
+                    throw new InvalidOperationException("usage: chest_mode <tag> <normal|putonly|takeonly|off>");
+                c.m_nview.ClaimOwnership();
+                c.m_nview.GetZDO().Set(ChestModes.Key, (int)mode);
+                VfhLog.I(LogCat.Test, "fixture.chest_mode", ("tag", args.ElementAtOrDefault(0)), ("mode", mode));
+                return Brief();
+            });
             Fixtures.Add("ranch_stats_reset", "- start counting Rancher slaughters from zero (slaughtered_by_rancher)", _ =>
             {
                 Hirelings.Work.Ranch.SlaughterChore.Slaughtered = 0;

@@ -41,7 +41,7 @@ namespace VikingsForHire.Hirelings.Work
             var stock = new Stock();
             Dictionary<string, int> keep = DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out JobData? s) ? s.KeepInStorage : new Dictionary<string, int>();
             var total = new Dictionary<string, int>();
-            foreach (Container c in ChestFinder.Find(home, radius))
+            foreach (Container c in ChestModes.Stock(ChestFinder.Find(home, radius)))
                 foreach (var g in c.GetInventory().GetAllItems().Where(i => i.m_dropPrefab != null).GroupBy(i => i.m_dropPrefab.name))
                 {
                     int n = g.Sum(i => i.m_stack);

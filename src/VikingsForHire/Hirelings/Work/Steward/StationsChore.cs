@@ -72,7 +72,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             foreach (StationState st in states)
             {
                 Smelter s = _byId[st.Id];
-                var noRoom = st.Inputs.Where(i => StorageRoom.NoRoom(ctx.AllChests, ProductOf(s, i))).ToList();
+                var noRoom = st.Inputs.Where(i => StorageRoom.NoRoom(ctx.PutChests, ProductOf(s, i))).ToList();
                 var enough = st.Inputs.Except(noRoom).Where(i => StewardLimits.Reached(ctx, ProductOf(s, i), out _)).ToList();
                 if (noRoom.Count == 0 && enough.Count == 0)
                     continue;
@@ -130,7 +130,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         // PauseWhenStorageFull: nowhere to put anything it makes, so what it holds stays in it.
         private static bool OutputsFull(Smelter s, WorkContext ctx) =>
-            StationSurvey.Outputs(s).All(o => StorageRoom.NoRoom(ctx.AllChests, o));
+            StationSurvey.Outputs(s).All(o => StorageRoom.NoRoom(ctx.PutChests, o));
 
         private static string ProductOf(Smelter s, string input) =>
             s.m_conversion.FirstOrDefault(c => c.m_from != null && c.m_from.gameObject.name == input && c.m_to != null)?.m_to.gameObject.name ?? "";

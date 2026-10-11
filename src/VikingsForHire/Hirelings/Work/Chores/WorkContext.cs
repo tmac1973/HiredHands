@@ -17,8 +17,14 @@ namespace VikingsForHire.Hirelings.Work.Chores
         public readonly JobData Job;
         public readonly List<Container> Chests;
 
-        /// <summary>Every chest in the area, skipped ones too: for counting room (a skip is only about taking from it).</summary>
+        /// <summary>Every chest in the area, skipped ones too, whatever its worker mode.</summary>
         public readonly List<Container> AllChests;
+
+        /// <summary>Chests workers may store into (worker mode Normal or Put only), skipped ones too: for counting room.</summary>
+        public readonly List<Container> PutChests;
+
+        /// <summary>Chests whose contents are the base's stock (Normal or Take only): limits and orders count these.</summary>
+        public readonly List<Container> StockChests;
         public readonly int KeepMin;
         private readonly Dictionary<string, int> _available = new();
         private Dictionary<string, int>? _carried;
@@ -36,7 +42,10 @@ namespace VikingsForHire.Hirelings.Work.Chores
             Job = DataStore.Current.Jobs.TryGetValue(h.Job, out JobData? j) ? j : new JobData();
             _baseReserve = DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out JobData? s) ? s.KeepInStorage : new Dictionary<string, int>();
             AllChests = ChestFinder.Find(Home, Radius);
-            Chests = AllChests.Where(c => !Reservations.IsSkipped(c)).ToList();
+            // Taking: only chests that allow it (not a pen's Put-only feed chest).
+            Chests = AllChests.Where(c => !Reservations.IsSkipped(c) && ChestModes.CanTake(c)).ToList();
+            PutChests = ChestModes.Put(AllChests).ToList();
+            StockChests = ChestModes.Stock(AllChests).ToList();
             KeepMin = VfhConfig.ChestReserve;
         }
 

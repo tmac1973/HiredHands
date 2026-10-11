@@ -22,6 +22,9 @@
   **Existing servers keep their data file's numbers:** to take the new ones, set `guardDamageMult` under each of the
   `hirelingLevels` in `Spronglehump.HiredHands.yml` (1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.3), or turn
   `GuardMeleeDamage` / `GuardRangedDamage` / `WizardDamage` down instead.
+- **Chest modes:** Shift+E on a chest near a board sets what workers may do with it: put in and take out (default), put
+  in only (not counted as stock: a pen's feed chest the Cook leaves alone), take out only, or leave alone. Shown in the
+  chest's hover text; follows the wards.
 - **Every hireling minds the gate:** with tame animals near a door, hirelings wait for them to move off before opening it
   and shut it as soon as they're through.
   - Settings in *12 - Rancher*.

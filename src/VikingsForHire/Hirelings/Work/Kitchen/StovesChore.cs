@@ -96,7 +96,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                     .OrderBy(s => Vector3.Distance(ctx.Position, s.transform.position)).FirstOrDefault(s => KitchenState.Heated(s));
                 if (free != null)
                 {
-                    if (!StorageRoom.NoRoom(ctx.AllChests, t.Info.Output))
+                    if (!StorageRoom.NoRoom(ctx.PutChests, t.Info.Output))
                         jobs.Add(Job(free, 0.6f, VariantLoad, ctx, "$vfh_cook_load", WorkSteps.SharedName(t.Info.Output)));
                     else
                         Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_status_storage_full", WorkSteps.SharedName(t.Info.Output)));

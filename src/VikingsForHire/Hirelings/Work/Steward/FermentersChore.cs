@@ -95,7 +95,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     continue;
                 }
                 // PauseWhenStorageFull: a ready mead keeps inside the fermenter until its chests have room.
-                if (ready && MeadOf(f) is string mead0 && StorageRoom.NoRoom(ctx.AllChests, mead0))
+                if (ready && MeadOf(f) is string mead0 && StorageRoom.NoRoom(ctx.PutChests, mead0))
                 {
                     Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_paused_full", f.m_name, WorkSteps.SharedName(mead0)));
                     continue;

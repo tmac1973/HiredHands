@@ -362,7 +362,7 @@ namespace VikingsForHire.Hirelings.Work
         {
             if (_homeChests == null || Time.time - _homeChestsAt > HomeChestsSeconds)
             {
-                _homeChests = ChestFinder.Find(h.Home, h.Radius);
+                _homeChests = ChestModes.Put(ChestFinder.Find(h.Home, h.Radius)).ToList();
                 _homeChestsAt = Time.time;
             }
             return _homeChests;

@@ -78,7 +78,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             // Food on the stoves: only crafting close enough to keep an eye on it.
             if (usable == null || busy != null && Vector3.Distance(usable.transform.position, busy.Value) > KitchenState.StayNear)
                 return Enumerable.Empty<ChoreJob>();
-            if (t.Then == null && StorageRoom.NoRoom(ctx.AllChests, t.Info.Output))
+            if (t.Then == null && StorageRoom.NoRoom(ctx.PutChests, t.Info.Output))
             {
                 Missing = ChoreNotes.Add(ActivityText.Make("$vfh_status_storage_full", WorkSteps.SharedName(t.Info.Output)));
                 return Enumerable.Empty<ChoreJob>();

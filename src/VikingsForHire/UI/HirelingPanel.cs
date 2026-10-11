@@ -124,7 +124,7 @@ namespace VikingsForHire.UI
             if (_limits && BoardOrders.BoardOf(h.BoardId) is HiringBoard lb)
             {
                 Core.Orders.OrderList ol = BoardOrders.For(lb);
-                List<Container> chests = ChestFinder.Find(h.Home, h.Radius).ToList();
+                List<Container> chests = Hirelings.Work.ChestModes.Stock(ChestFinder.Find(h.Home, h.Radius)).ToList();
                 signature += $"|{_limits}|{_limitsPage}|{ol.Serialize()}|" +
                              string.Join(",", ol.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Station).Select(o => Hirelings.Work.Steward.StewardLimits.Held(chests, o.Item)));
             }
@@ -311,7 +311,7 @@ namespace VikingsForHire.UI
             y -= 40f;
             Core.Orders.OrderList list = BoardOrders.For(board);
             // Counted as the Steward counts: every chest in its area, reserves included.
-            List<Container> chests = ChestFinder.Find(h.Home, h.Radius).ToList();
+            List<Container> chests = Hirelings.Work.ChestModes.Stock(ChestFinder.Find(h.Home, h.Radius)).ToList();
             List<Core.Orders.ProductionOrder> limits = list.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Station).ToList();
             if (limits.Count == 0)
             {

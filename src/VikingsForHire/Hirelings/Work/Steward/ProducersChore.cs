@@ -90,13 +90,13 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_paused_order", x.Name, WorkSteps.SharedName(x.Item), cap.ToString()));
                     continue;
                 }
-                if (StorageRoom.NoRoom(ctx.AllChests, x.Item))
+                if (StorageRoom.NoRoom(ctx.PutChests, x.Item))
                 {
                     Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_paused_full", x.Name, WorkSteps.SharedName(x.Item)));
                     continue;
                 }
                 // No chest holds it yet: it still gets emptied (to the pile), and the status says where to put it.
-                bool home = ctx.Chests.Any(c => c.GetInventory().GetAllItems().Any(i => i.m_dropPrefab != null && i.m_dropPrefab.name == x.Item));
+                bool home = ctx.PutChests.Any(c => c.GetInventory().GetAllItems().Any(i => i.m_dropPrefab != null && i.m_dropPrefab.name == x.Item));
                 jobs.Add(new ChoreJob
                 {
                     Kind = Kind, Target = x.Comp, Urgency = u,
