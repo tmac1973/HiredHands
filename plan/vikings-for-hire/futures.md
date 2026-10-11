@@ -203,6 +203,10 @@ Combat hirelings pick up perks as they level, a small tree per job, so two guard
   random at promotion), whether a respec costs something, how it stacks with CombatSkill and GuardMelee/RangedDamage,
   and how it's saved (the contract, so it survives death and moving boards).
 
+## Farmer planting regrowing plants (decided against, 2026-10-10)
+With PlantEverything, dandelions, berries and mushrooms are plantable. Tim decided the Farmer won't plant them: it plants
+one-harvest crops only, and picks regrowing plants that are already there (wild or player-planted) while an order is short.
+
 ## Separate caps for combat and non-combat hirelings (done in 0.7.0: plan/split-caps/; combat 1,1,2,2,3,3,4,4, workers 2,4,6,8, per-job maxPerBoard)
 Today each board level has one `hirelingCap` (2, 3, 4, 5, 6, 7, 8, 10). Split it in two so a base can be **fully
 automated early** (workers) without an **army late** (combat):
