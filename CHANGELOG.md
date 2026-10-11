@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.9.0
+
+**Everyone updates together:** a new job, new order kinds and new data-file entries; the server and every player need 0.9.0.
+
+- **The Rancher,** a new worker (level 2 board, one per board, with a butcher knife) who keeps your tamed animals:
+  - **Ranch orders** on the board's Orders tab: meat ("keep 40 raw meat"), eggs, and breeding pools ("keep 4 boars
+    breeding", never below 2).
+  - **Slaughters** only while a meat order is short and only above a kind's pool, the **lowest-star adult first**, so the
+    pool is always your best animals and the herd breeds upward. Never young animals, never a pet a player has named,
+    never a kind with no pool. Picks up everything dropped and stores it.
+  - **Eggs** are collected up to the egg order; the rest are left to hatch.
+  - **Feeds** the herd; a Steward on the same board leaves feeding to him (with PetPantry, both leave it to PetPantry).
+  - Works with any tameable animal that breeds and drops meat, modded ones included.
+  - His Shift+E **Problems** list says why an order isn't met or a pen isn't breeding (crowded, no partner, hungry, no feed).
+  - Settings in *12 - Rancher*.
+
 ## 0.8.2
 
 **The server needs 0.8.2;** players on 0.8.1 can still play (the fixes run on the server and on the game running each hireling), but should update too.

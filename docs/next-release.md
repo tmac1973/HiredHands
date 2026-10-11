@@ -3,6 +3,18 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.9.0 (not released): the Rancher
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (rancher branch) | The Rancher (plan/rancher): ranch orders (meat, eggs, breeding pools ≥ 2) on the Orders tab; RanchPlanner (slaughter the lowest-star adult above its kind's pool while its meat is short; never young, named or unpooled; eggs while short; reasons); AnimalCatalog/HerdScan from the game (modded animals too); feeding (the Steward and PetPantry step aside); SlaughterChore (one killing blow, drops collected and delivered; only a Rancher's hits land on tames); EggsChore (the Steward's tidy leaves eggs on a ranch board); Problems list. Rows VFH-RANCH-1 to -11 | the game simulating the Rancher; orders on the board owner's |
+
+### To test (batch)
+- [ ] Macro (single player): `vfh_t_ranch_all` (VFH-RANCH-1, -2, -3, -3b, -4, -5, -6, -7, -7b, -8, -9, -10, -11); regression `vfh_test_chain animals tidy orders farm_seeds cook_spit cook_cauldron combat1 stance4 noeffect store1 hire4 why1 why2`.
+- [ ] By hand: the Orders tab's ranch picker and rows, the Rancher's Problems view.
+- [ ] By hand (live server): a Rancher works a real herd for a session (orders, slaughter, a named pet spared, Problems readable).
+
 ## 0.8.2 (packaged 2026-10-11, in-game tests deferred): no ghost followers at portals, no working through floors
 
 ### Fixed or added
