@@ -140,8 +140,8 @@ A wizard is a combat hireling (it counts against the board's combat cap) that fi
 - **Robes:** Wizardry's Spellslinger robes and capes by biome; without it, Eitr-weave robes from level 6 and Embla robes
   at 7-8. Looks only: a hireling's armour comes from its level.
 - **What spells may hit:** enemies only, never players, hirelings, tames or buildings. `WizardSpellsHit` (Combat)
-  decides props: `EnemiesOnly` (default), or `EnemiesAndTerrain` to let a blast damage things like greydwarf nests, as
-  your own staff would (trees and rocks only take chop and pickaxe damage either way).
+  decides props: `EnemiesOnly` (default), or `EnemiesAndTerrain` to let a blast damage breakable props like bushes and
+  barrels, as your own staff would (greydwarf nests, trees and rocks shrug off spells either way).
 - **How hard they hit:** `WizardDamage` (Combat, default 1), like `GuardMeleeDamage`.
 - **Price:** 1.5x the base hire fee and upkeep (guards and archers: 1.3x).
 - **If Wizardry is removed:** wizards already hired stay and carry the vanilla staff for their level (the Staff of

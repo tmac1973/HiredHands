@@ -3,7 +3,7 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## 0.8.0 (not released): the Wizard, with the 0.7.8 playtest fixes
+## 0.8.0 (packaged 2026-10-11): the Wizard, with the 0.7.8 playtest fixes
 
 ### Fixed or added
 | Commit | What | Where it runs |
