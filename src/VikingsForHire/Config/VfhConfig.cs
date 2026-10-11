@@ -101,6 +101,8 @@ namespace VikingsForHire.Config
         public static ConfigEntry<bool> LowFundsMessages = null!;
         public static ConfigEntry<bool> LowFundsMapPins = null!;
         public static ConfigEntry<bool> ChestPuffs = null!;
+        public static ConfigEntry<bool> HirelingChatter = null!;
+        public static ConfigEntry<float> ChatterMinutes = null!;
         public static ConfigEntry<KeyboardShortcut> RetreatKey = null!;
         public static ConfigEntry<bool> UpgradeFromNearbyChests = null!;
         public static ConfigEntry<int> BalanceLogMaxMB = null!;
@@ -175,6 +177,8 @@ namespace VikingsForHire.Config
             LowFundsMessages = Synced(h, "LowFundsMessages", true, "Tell the players at a base, once a day, when its hiring board is running low.");
             LowFundsMapPins = _file.Bind(h, "LowFundsMapPins", true, "Your own setting: show a map pin on hiring boards you built while they're running low.");
             ChestPuffs = _file.Bind(w, "ChestPuffs", true, "Your own setting: a puff of dust at a chest when a hireling puts something in or takes something out.");
+            HirelingChatter = _file.Bind(g, "HirelingChatter", true, "Your own setting: hirelings near you say something now and then (about their job, what they're doing, or you standing there watching).");
+            ChatterMinutes = _file.Bind(g, "ChatterMinutes", 5f, "Your own setting: roughly how many minutes between lines from each hireling (with only one line every 20 s from anyone).");
             UpgradeFromNearbyChests = _file.Bind(h, "UpgradeFromNearbyChests", true, "Your own setting: with AzuCraftyBoxes installed, board upgrades also take their materials from chests near the board that CraftyBoxes lets you pull from (your inventory is used first).");
             HirelingTombstones = Synced(g, "HirelingTombstones", true, "A dead hireling's cargo goes into a grave named after it (it doesn't despawn; a follower's grave opens only for its owner, a base worker's for anyone with ward access). Off: the cargo falls to the ground as loose items.");
             ArrivalDelayMinSeconds = Synced(h, "ArrivalDelayMinSeconds", 90f, "Shortest wait before a hired viking arrives.");
