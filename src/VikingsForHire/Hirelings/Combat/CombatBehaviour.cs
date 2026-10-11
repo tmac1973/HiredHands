@@ -436,7 +436,12 @@ namespace VikingsForHire.Hirelings.Combat
                 float flight = speed > 1f ? line.magnitude / speed : 0f;
                 // Slow spells (a fireball) miss a creature on the move: aim where it will be when the spell gets there.
                 Vector3 ahead = lead ? Vector3.ProjectOnPlane(target.GetVelocity(), Vector3.up) * flight : Vector3.zero;
-                return point + ahead + Vector3.up * (0.5f * gravity * flight * flight);
+                Vector3 want = point + ahead + Vector3.up * (0.5f * gravity * flight * flight) - from;
+                // Most staffs launch tilted (launch angle -5 = 5 degrees up): vanilla turns the look direction by it, so turn
+                // the aim the other way first or the spell sails over the target.
+                if (attack.m_launchAngle != 0f && want.sqrMagnitude > 0.01f)
+                    want = Quaternion.AngleAxis(-attack.m_launchAngle, Vector3.Cross(Vector3.up, want.normalized)) * want;
+                return from + want;
             }
             return null;
         }

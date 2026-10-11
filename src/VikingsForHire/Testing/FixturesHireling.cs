@@ -88,7 +88,12 @@ namespace VikingsForHire.Testing
             int moved = 0;
             for (int i = 0; i < stacks; i++)
             {
-                ItemDrop.ItemData? item = player.AddItem(prefab, size, 1, 0, 0L, "", false);
+                // Into an empty slot: a plain AddItem tops up what the tester already carries (wood picked up in an
+                // earlier row) and hands back a short stack.
+                Vector2i slot = player.FindEmptySlot(topFirst: false);
+                if (slot.x < 0)
+                    break;
+                ItemDrop.ItemData? item = player.AddItem(prefab, size, 1, 0, 0L, "", slot, false, false, false);
                 if (item == null)
                     break;
                 h.CargoInventory!.MoveItemToThis(player, item);

@@ -187,6 +187,27 @@ namespace VikingsForHire.Hirelings
             }
         }
 
+        /// <summary>
+        /// Weapons that need reloading (crossbows, Dundr) only fire when loaded, and only players ever load: a hireling's
+        /// is always loaded, paced by its attack cooldown instead.
+        /// </summary>
+        [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.IsWeaponLoaded))]
+        private static class LoadedPatch
+        {
+            private static void Postfix(Humanoid __instance, ref bool __result)
+            {
+                try
+                {
+                    if (!__result && Hireling.Of(__instance) != null)
+                        __result = true;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("DamagePatches.IsWeaponLoaded", e);
+                }
+            }
+        }
+
         public static float DamageMultiplier(Hireling h)
         {
             HirelingLevelData level = h.LevelData;

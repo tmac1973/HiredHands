@@ -60,6 +60,29 @@ namespace VikingsForHire.Testing
                 VfhLog.I(LogCat.Test, "fixture.spell_props", ("n", names.Count), ("props", string.Join(" ", names.OrderBy(n => n))));
                 return Pause(0.1f);
             });
+            Fixtures.Add("staff_info", "<item> ... - log a weapon's main attack (type, animation, projectile speed, launch angle, gravity, accuracy, burst)", args =>
+            {
+                foreach (string name in args)
+                {
+                    ItemDrop.ItemData.SharedData? sh = ObjectDB.instance.GetItemPrefab(name)?.GetComponent<ItemDrop>()?.m_itemData.m_shared;
+                    Attack? a = sh?.m_attack;
+                    if (a == null)
+                    {
+                        VfhLog.I(LogCat.Test, "fixture.staff_info", ("item", name), ("found", false));
+                        continue;
+                    }
+                    Projectile? p = a.m_attackProjectile != null ? a.m_attackProjectile.GetComponent<Projectile>() : null;
+                    VfhLog.I(LogCat.Test, "fixture.staff_info", ("item", name), ("type", a.m_attackType), ("anim", a.m_attackAnimation),
+                        ("chain", a.m_attackChainLevels), ("vel", a.m_projectileVel), ("velMin", a.m_projectileVelMin),
+                        ("angle", a.m_launchAngle), ("accuracy", a.m_projectileAccuracy), ("projectiles", a.m_projectiles),
+                        ("bursts", a.m_projectileBursts), ("eitr", a.m_attackEitr), ("health", a.m_attackHealth), ("draw", a.m_drawDurationMin),
+                        ("reload", a.m_requiresReload), ("range", a.m_attackRange), ("height", a.m_attackHeight), ("dungeon", a.m_cantUseInDungeon),
+                        ("proj", a.m_attackProjectile != null ? a.m_attackProjectile.name : "none"), ("gravity", p != null ? p.m_gravity : -1f),
+                        ("ttl", p != null ? p.m_ttl : -1f), ("aoe", p != null ? p.m_aoe : -1f), ("projDmg", p != null ? p.m_damage.GetTotalDamage() : -1f),
+                        ("itemDmg", sh!.m_damages.GetTotalDamage()), ("spawnOnHit", p != null && p.m_spawnOnHit != null ? p.m_spawnOnHit.name : "none"));
+                }
+                return Pause(0.1f);
+            });
             Fixtures.Add("hit_me_by_hireling", "<share=0.2> - as hit_me, but the hit comes from the last spawned hireling (hirelings never hurt players)", HitMeByHireling);
             Fixtures.Add("protect", "<on|off> - the tester's protection: off lets hits reach you for the rest of this test (the next test turns it on again)", args =>
             {
