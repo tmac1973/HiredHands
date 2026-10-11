@@ -9,8 +9,10 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | Commit | What | Where it runs |
 |---|---|---|
 | 50d6faa | A puff of dust at a chest when a hireling puts something in or takes something out: the chest's own "placed" dust (no sound), shown on every game that has the chest loaded, at most once a second per chest. `ChestPuffs` (Work, your own setting) turns it off for you. Players on older versions would log a missing-RPC line for each puff: update together | the game simulating the hireling (sends); every nearby game (shows) |
+| 24b70f6 | Sigrid (a follower miner) vanished entering a sunken crypt: our travel moved her to the crypt's interior, she never appeared, and her world object was gone with no death or grave (cause not found: the server didn't roll back; the profile has two new teleport mods, OdinPlus QuickTeleport and Zenox TeleportEverything). The board showed her "away" until the server's 10-minute check settled her as a death (3 days). Now that check marks a vanished hireling lost: it comes back after the usual walk-in time, free, posts cleared (`contract.lost`). And any deletion of a living hireling's object is logged with what called it (`hireling.zdo_destroyed`), to find the culprit next time | the server (check); the board owner's machine (roster); every game (watch) |
 
 ### To test (batch)
+- [ ] By hand (live server): if a hireling vanishes again, its log line `hireling.zdo_destroyed` names the caller; 10 minutes later the board says it's arriving (not "returning" in days).
 - [ ] By hand: a woodcutter delivering wood, a Steward taking ore: a small puff at the chest each time; a second player nearby sees it too; `ChestPuffs` off: you don't.
 
 ## 0.7.6 (released 2026-10-10): playtest fixes (turnips, planting, CoalPaste, mead ketill, roster and upgrade buttons)
