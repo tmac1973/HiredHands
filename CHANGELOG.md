@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.7
+
+**Everyone updates together:** chest puffs use a new network message; a player on an older version would log an error for each one.
+
+- **Hirelings talk.** Now and then a hireling near you says something snarky in a speech bubble: about its job, about what it's doing (following you, idle, full up, fighting, out in the rain), or about you standing there watching. `HirelingChatter` turns it off and `ChatterMinutes` (default 5) sets how often; both are your own settings.
+- **Puffs of dust at chests** when a hireling puts something in or takes something out, so you can see who's at your chests. `ChestPuffs` (your own setting) turns them off.
+- **Hirelings walk instead of swimming.** They path with the game's water-avoiding agent, so they walk out of a seaside house over land instead of jumping in and swimming round. With no way over land they still head straight there.
+- **The Cook watches the food.** With something on the spit or in the oven and nothing more urgent, the Cook stays by the stove until it's done, instead of walking back to the board and running back before it burns.
+- **Followers left at the base go back to work.** A follower left in Stay at its base while its owner portals away (or logs off) is released back to work after the usual wait, so anyone can manage it again. Before, it stayed that owner's follower for good.
+- **Lost hirelings come back.** A hireling whose world object vanishes without dying (one disappeared entering a crypt) now comes back to its board after the usual walk-in time, free, instead of being treated as dead. Any such deletion is logged with what caused it (`hireling.zdo_destroyed`), to track it down.
+
 ## 0.7.6
 
 - **Turnips are produce.** The farm order picker listed turnips as a seed ("Turnip (seed)"): raw turnips aren't food, and planting one grows turnip seeds. Turnips and onions are now plain produce orders. (A turnip order added through the old "(seed)" entry is still a seed order: remove it and add Turnip again.)
