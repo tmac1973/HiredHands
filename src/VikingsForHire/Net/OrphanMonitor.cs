@@ -15,8 +15,8 @@ namespace VikingsForHire.Net
     /// knows where every player is, so this works for followers in unloaded areas too. Rules (OrphanRules.Check):
     /// following but more than OrphanDistance from its owner for OrphanDistanceSeconds; in Stay or Gather Here with its
     /// owner more than OrphanStayDistance away for OrphanStaySeconds; or its owner offline for OrphanOfflineSeconds (5 min). Distances are along
-    /// the ground, so a dungeon (5000 m up) doesn't count as far. Followers inside their board's area never head home
-    /// this way, and passengers stay aboard while their owner is online.
+    /// the ground, so a dungeon (5000 m up) doesn't count as far. Followers inside their board's area are released back
+    /// to work there instead, and passengers stay aboard while their owner is online.
     /// </summary>
     internal static class OrphanMonitor
     {
@@ -75,6 +75,16 @@ namespace VikingsForHire.Net
                 if (reason == OrphanReason.None)
                     continue;
                 string name = zdo.GetString(HirelingZdo.Name);
+                if (FollowerServer.InsideHome(zdo))
+                {
+                    // Already home: back to work, so everyone can manage it again.
+                    FollowerServer.ReleaseAtHome(zdo, reason.ToString());
+                    Tracks.Remove(hid);
+                    VfhLog.I(LogCat.Follow, "follow.orphan_released", ("hid", hid), ("owner", owner), ("reason", reason), ("distance", distance));
+                    if (online)
+                        FollowerServer.Tell(owner, Localization.instance.Localize("$vfh_follow_left_at_home", name));
+                    continue;
+                }
                 float seconds = HomeReturn.Order(zdo, reason.ToString());
                 Tracks.Remove(hid);
                 VfhLog.I(LogCat.Follow, "follow.orphaned", ("hid", hid), ("owner", owner), ("reason", reason), ("distance", distance), ("seconds", seconds));

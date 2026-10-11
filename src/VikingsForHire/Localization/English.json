@@ -76,6 +76,7 @@
   "vfh_rename_topic": "Name this hireling",
   "vfh_follow_sent_home": "$1 is heading home (about $2 min)",
   "vfh_follow_lost": "$1 lost track of you and is heading home (about $2 min)",
+  "vfh_follow_left_at_home": "$1 got tired of waiting and went back to work",
   "vfh_status_returning_home": "Returning home",
   "vfh_ship_aboard": "Aboard: $1",
   "vfh_ship_ashore": "$1 followers came ashore with you",

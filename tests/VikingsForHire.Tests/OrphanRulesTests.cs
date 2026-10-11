@@ -24,8 +24,11 @@ namespace VikingsForHire.Tests
         [InlineData(FollowMode.GatherHere, false, false, true, 120f, 0f, OrphanReason.LeftStaying)]
         [InlineData(FollowMode.Stay, false, false, true, 119f, 0f, OrphanReason.None)]
         [InlineData(FollowMode.Stay, false, false, true, 120f, 0f, OrphanReason.LeftStaying)]
-        [InlineData(FollowMode.Follow, true, false, true, 999f, 0f, OrphanReason.None)]
-        [InlineData(FollowMode.Follow, true, false, false, 0f, 999f, OrphanReason.None)]
+        // Inside the home area the same answers: the monitor releases it to work there instead of sending it home.
+        [InlineData(FollowMode.Follow, true, false, true, 999f, 0f, OrphanReason.TooFar)]
+        [InlineData(FollowMode.Stay, true, false, true, 120f, 0f, OrphanReason.LeftStaying)]
+        [InlineData(FollowMode.Stay, true, false, true, 119f, 0f, OrphanReason.None)]
+        [InlineData(FollowMode.Follow, true, false, false, 0f, 999f, OrphanReason.OwnerOffline)]
         [InlineData(FollowMode.Stay, false, false, false, 0f, 29f, OrphanReason.None)]
         [InlineData(FollowMode.Stay, false, false, false, 0f, 30f, OrphanReason.OwnerOffline)]
         [InlineData(FollowMode.Follow, false, true, true, 999f, 0f, OrphanReason.None)]

@@ -41,6 +41,25 @@ namespace VikingsForHire.Testing
                 }
                 return Done();
             });
+            Fixtures.Add("player_away", "<m> [back] - move yourself that far east (back: return to where you were)", args =>
+            {
+                Player me = Player.m_localPlayer;
+                if (args.ElementAtOrDefault(0) == "back" || args.ElementAtOrDefault(1) == "back")
+                {
+                    if (_awayFrom is Vector3 from)
+                        me.TeleportTo(from, me.transform.rotation, distantTeleport: false);
+                    _awayFrom = null;
+                }
+                else
+                {
+                    float m = float.Parse(args.ElementAtOrDefault(0) ?? "200", CultureInfo.InvariantCulture);
+                    _awayFrom = me.transform.position;
+                    Vector3 to = me.transform.position + Vector3.right * m;
+                    to.y = ZoneSystem.instance.GetGroundHeight(to) + 0.5f;
+                    me.TeleportTo(to, me.transform.rotation, distantTeleport: false);
+                }
+                return WaitAway();
+            });
             Fixtures.Add("transfer_posted", "- move your follower from the last contract next to your other board and ask that board to take it (the stone's right click there)", _ => TransferPosted());
             TestHarness.RegisterCheck("posted_board", "- after transfer_posted: which board the hireling from the last contract belongs to (from, to, or another)", _ =>
             {
@@ -193,6 +212,13 @@ namespace VikingsForHire.Testing
         private static IEnumerator Done()
         {
             yield return null;
+        }
+
+        private static Vector3? _awayFrom;
+
+        private static IEnumerator WaitAway()
+        {
+            yield return new WaitForSeconds(3f);
         }
 
         private static string _transferFrom = "", _transferTo = "";

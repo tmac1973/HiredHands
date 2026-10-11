@@ -39,14 +39,15 @@ namespace VikingsForHire.Core
         /// <summary>
         /// Whether a follower should head home. <paramref name="secondsBeyond"/> is how long it has been continuously
         /// farther than <see cref="DistanceLimit"/> from its (online) owner; <paramref name="secondsOffline"/> how long its
-        /// owner has been gone. Followers inside their board's area never head home this way (they go back to work),
-        /// and passengers aboard a ship stay with their (online) owner.
+        /// owner has been gone. Inside its board's area the answer is the same (the caller releases it to work there
+        /// instead of sending it home), and passengers aboard a ship stay with their (online) owner.
         /// </summary>
         public static OrphanReason Check(FollowMode mode, bool insideHome, bool stowed, bool ownerOnline, float secondsBeyond,
             float secondsOffline, OrphanLimits limits)
         {
-            if (insideHome)
-                return OrphanReason.None;
+            // Inside its board's area the same rules apply: the follower is released there, back to work, instead of
+            // walking home (OrphanMonitor). Before, it stayed its owner's follower for good: a miner left in Stay at the
+            // base while its owner went through a portal could be managed by nobody else.
             if (!ownerOnline)
                 return secondsOffline >= limits.OfflineSeconds ? OrphanReason.OwnerOffline : OrphanReason.None;
             if (stowed)

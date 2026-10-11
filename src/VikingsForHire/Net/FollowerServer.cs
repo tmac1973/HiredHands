@@ -376,6 +376,9 @@ namespace VikingsForHire.Net
             return Localization.instance.Localize("$vfh_follow_released_all", released.ToString(), away.ToString());
         }
 
+        /// <summary>Server: a follower left at home by an owner who went far away goes back to work (OrphanMonitor).</summary>
+        public static void ReleaseAtHome(ZDO zdo, string why) => ReleaseOne(zdo, "orphan:" + why);
+
         private static void ReleaseOne(ZDO zdo, string why)
         {
             string hid = zdo.GetString(HirelingZdo.Hid);
