@@ -121,7 +121,7 @@ namespace VikingsForHire.Core.Data
                     StationLevels = new Dictionary<string, int>
                     {
                         ["piece_cookingstation"] = 1, ["piece_cauldron"] = 2, ["piece_cookingstation_iron"] = 3,
-                        ["piece_oven"] = 5, ["piece_preptable"] = 6, ["piece_MeadCauldron"] = 7,
+                        ["piece_oven"] = 5, ["piece_preptable"] = 6, ["piece_MeadCauldron"] = 2,
                     },
                 },
                 [JobType.GuardMelee] = new()

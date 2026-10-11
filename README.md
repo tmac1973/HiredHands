@@ -141,7 +141,7 @@ Both work to the board's **Orders** tab: a list of "keep at least X of this in t
 - **Spits and the oven:** it loads raw food for short orders, keeps the oven fuelled with wood, and takes food off as soon as it's done. While its food is cooking it stays near the stoves, so nothing burns.
 - **Cauldron, food preparation table, mead ketill:** it crafts what the station offers at its upgrade level, like you: fire under the cauldron and ketill, a roof over the prep table. When an order needs something it can make first (bread needs dough), it makes that and carries it straight on.
 - Ingredients come from the chests above their reserves; it never uses what a seed order keeps, nor the produce the Farmer needs to grow seeds. Its status says what's missing ("Carrot soup: needs 2 more Carrot").
-- Recipes unlock by the station: spits 1, cauldron 2 (+1 per cauldron upgrade level), iron spit 3, oven 5, prep table 6, mead ketill 7 (`stationLevels`, with per-item `recipeLevels`). `vfh_recipes` lists them.
+- Recipes unlock by the station: spits 1, cauldron 2 (+1 per cauldron upgrade level), iron spit 3, oven 5, prep table 6, mead ketill 2 (`stationLevels`, with per-item `recipeLevels`). `vfh_recipes` lists them.
 
 Both have Shift+E chore toggles (Harvesting / Planting, Spits and ovens / Cauldron…) and server settings in *11 - Farmer and Cook* (`FarmerHarvest`, `FarmerPlant`, `CookStoves`, `CookCraft`). The Steward's Board food chore puts the Cook's food on the board, so a base can feed its own hirelings.
 
