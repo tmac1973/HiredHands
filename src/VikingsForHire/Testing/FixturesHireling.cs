@@ -98,7 +98,7 @@ namespace VikingsForHire.Testing
             yield return null;
         }
 
-        private static Hireling Select(string selector)
+        internal static Hireling Select(string selector)
         {
             if (selector == "nearest")
                 return HirelingCommands.NearestOrThrow();
@@ -152,6 +152,7 @@ namespace VikingsForHire.Testing
                 case "order": return h.Ai.Order?.Kind.ToString() ?? "none";
                 case "said": return VikingsForHire.Hirelings.HirelingChatter.Said(h.Hid).Length > 0 ? "true" : "false";
                 case "target": return h.Ai.CombatTarget != null ? h.Ai.CombatTarget.m_name : "none";
+                case "cast_dist": return h.Ai.LastCastDistance < 0f ? "none" : h.Ai.LastCastDistance.ToString("0.0", CultureInfo.InvariantCulture);
                 case "retreating": return h.Ai.Retreating ? "true" : "false";
                 case "alive": return h.Humanoid.IsDead() ? "false" : "true";
                 case "cargo_used": return (h.CargoInventory?.GetAllItems().Count ?? 0).ToString();

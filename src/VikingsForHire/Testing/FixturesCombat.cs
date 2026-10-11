@@ -24,6 +24,27 @@ namespace VikingsForHire.Testing
                 FixturesWork.FindTagged("tame") is GameObject t && t.GetComponent<Character>() is Character c && !c.IsDead() ? "true" : "false");
             TestHarness.RegisterCheck("damage_blocked", "<reason> - hits between hirelings and others blocked since login (e.g. tame_on_hireling)", args =>
                 Hirelings.DamagePatches.BlockedCount(args.ElementAtOrDefault(0) ?? "").ToString());
+            TestHarness.RegisterCheck("enemy_dist", "<last|posted|nearest> - metres from that hireling to the nearest living enemy (none without one)", args =>
+            {
+                Hireling h = FixturesHireling.Select(args.ElementAtOrDefault(0) ?? "last");
+                Character? e = NearestEnemy(h.transform.position, 60f);
+                return e == null ? "none" : Vector3.Distance(e.transform.position, h.transform.position).ToString("0.0", CultureInfo.InvariantCulture);
+            });
+            Fixtures.Add("order_attack_nearest", "- the Command Stone's attack order from you, on the enemy nearest your followers", _ =>
+            {
+                Player me = Player.m_localPlayer;
+                var followers = Hireling.Loaded.Where(f => f != null && f.Mode == HirelingMode.Following && f.OwnerId == me.GetPlayerID()).ToList();
+                Character enemy = NearestEnemy(followers.Count > 0 ? followers[0].transform.position : me.transform.position, 60f)
+                                  ?? throw new InvalidOperationException("no enemy near your followers");
+                foreach (Hireling f in followers.Where(f => f.Job.IsGuard()))
+                    f.Ai.Order = new Followers.FieldOrder
+                    {
+                        Kind = Followers.FieldOrder.OrderKind.Attack, Enemy = enemy, Position = enemy.transform.position,
+                        Until = Time.time + Followers.FieldOrder.Lifetime,
+                    };
+                VfhLog.I(LogCat.Test, "fixture.order_attack_nearest", ("enemy", enemy.m_name), ("followers", followers.Count));
+                return Pause(0.2f);
+            });
             Fixtures.Add("hit_me_by_hireling", "<share=0.2> - as hit_me, but the hit comes from the last spawned hireling (hirelings never hurt players)", HitMeByHireling);
             Fixtures.Add("protect", "<on|off> - the tester's protection: off lets hits reach you for the rest of this test (the next test turns it on again)", args =>
             {
@@ -106,6 +127,8 @@ namespace VikingsForHire.Testing
             string prefab = args.ElementAtOrDefault(0) ?? "Greyling";
             int n = int.Parse(args.ElementAtOrDefault(1) ?? "1", CultureInfo.InvariantCulture);
             float dist = float.Parse(args.ElementAtOrDefault(2) ?? "10", CultureInfo.InvariantCulture);
+            // still: its AI off for as long as it lives (it stands there and doesn't fight back).
+            bool still = args.Contains("still");
             GameObject go = ZNetScene.instance.GetPrefab(prefab) ?? throw new ArgumentException($"no prefab {prefab}");
             Vector3 center = Last().transform.position;
             float start = UnityEngine.Random.Range(0f, 360f);
@@ -115,8 +138,10 @@ namespace VikingsForHire.Testing
                 p.y = ZoneSystem.instance.GetGroundHeight(p) + 0.5f;
                 GameObject e = Object.Instantiate(go, p, Quaternion.LookRotation(center - p));
                 e.GetComponent<ZNetView>()?.GetZDO()?.Set(BoardZdo.Fixture, true);
+                if (still && e.GetComponent<BaseAI>() is BaseAI brain)
+                    brain.enabled = false;
             }
-            VfhLog.I(LogCat.Test, "fixture.enemies", ("prefab", prefab), ("n", n), ("dist", dist), ("around", Last().Hid));
+            VfhLog.I(LogCat.Test, "fixture.enemies", ("prefab", prefab), ("n", n), ("dist", dist), ("around", Last().Hid), ("still", still));
             yield return new WaitForSeconds(0.5f);
         }
 
@@ -215,6 +240,11 @@ namespace VikingsForHire.Testing
             yield return new WaitForSeconds(0.5f);
             VfhLog.I(LogCat.Test, "fixture.hit_me_after", ("health", me.GetHealth()), ("max", me.GetMaxHealth()));
         }
+
+        private static Character? NearestEnemy(Vector3 at, float within) =>
+            Character.GetAllCharacters().Where(c => c != null && !c.IsDead() && !c.IsPlayer() && !c.IsTamed() && Hireling.Of(c) == null &&
+                                                    Vector3.Distance(c.transform.position, at) <= within)
+                .OrderBy(c => Vector3.Distance(c.transform.position, at)).FirstOrDefault();
 
         private static IEnumerator HitMeByHireling(string[] args)
         {

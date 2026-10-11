@@ -39,6 +39,9 @@ namespace VikingsForHire.Hirelings
         public Stance Stance => (Stance)(Hireling.Zdo?.GetInt(HirelingZdo.Stance) ?? 0);
         public Character? CombatTarget => _combat?.Target;
 
+        /// <summary>A wizard's distance to its target at its last cast (-1 before any).</summary>
+        public float LastCastDistance => _combat?.LastCastDistance ?? -1f;
+
         /// <summary>Badly hurt and falling back (with hysteresis), unless an aggressive guard.</summary>
         public bool Retreating { get; private set; }
 

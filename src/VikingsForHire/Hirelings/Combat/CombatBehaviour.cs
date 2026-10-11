@@ -16,6 +16,10 @@ namespace VikingsForHire.Hirelings.Combat
         private const float MeleeReach = 2.2f;
         private const float RangedMin = 8f;
         private const float RangedMax = 20f;
+        // Wizards cast from a little further than archers, and back off from anything inside CastBackOff.
+        private const float CastMin = 10f;
+        private const float CastMax = 22f;
+        private const float CastBackOff = 8f;
         private const float SidearmRange = 6f;
         private const float QuietSeconds = 10f;
         private const float BlockSeconds = 0.8f;
@@ -44,11 +48,11 @@ namespace VikingsForHire.Hirelings.Combat
         public int Priority => 900;
         public Character? Target => _target;
 
+        /// <summary>How far the target was at this wizard's last cast (-1 before any), for tests.</summary>
+        public float LastCastDistance { get; private set; } = -1f;
+
         public bool Wants(HirelingAI ai)
         {
-            // Wizards fight from phase 04 of plan/wizard; until then they don't fight at all.
-            if (ai.Hireling.Job == JobType.Wizard)
-                return false;
             if (ai.Retreating)
                 return Drop(ai, "retreat");
             if (ai.RetreatOrdered)
@@ -99,6 +103,8 @@ namespace VikingsForHire.Hirelings.Combat
             float dist = Vector3.Distance(target.transform.position, ai.transform.position) - target.GetRadius();
             if (ai.Hireling.Job == JobType.GuardRanged)
                 Ranged(ai, me, target, dist, dt);
+            else if (ai.Hireling.Job == JobType.Wizard)
+                Cast(ai, me, target, dist, dt);
             else
                 Melee(ai, me, target, dist, dt);
             if (!ai.Block.On && Time.time > _blockUntil && me.m_blocking)
@@ -287,6 +293,65 @@ namespace VikingsForHire.Hirelings.Combat
                     float draw = me.GetCurrentWeapon()?.m_shared.m_attack.m_drawDurationMin ?? 0f;
                     Attacked(Mathf.Max(Config.VfhConfig.RangedAttackCooldown.Value, draw + 0.8f));
                 }
+            }
+        }
+
+        /// <summary>
+        /// A wizard: the staff's main spell from CastMin-CastMax, one every WizardAttackCooldown. Fragile up close, so it
+        /// steps back from anything inside CastBackOff instead of fighting hand to hand (no sidearm, no shield). Casting
+        /// costs it nothing: vanilla only keeps an eitr bar for players.
+        /// </summary>
+        private void Cast(HirelingAI ai, Humanoid me, Character target, float dist, float dt)
+        {
+            bool posted = ai.Hireling.HasPost && ai.Hireling.Mode == HirelingMode.Working;
+            if (!posted && dist < CastBackOff)
+            {
+                Vector3 away = (ai.transform.position - target.transform.position).normalized;
+                ai.WalkTo(dt, ai.transform.position + away * (CastMin - dist + 2f), 1f, run: true);
+                return;
+            }
+            float flat = Utils.DistanceXZ(target.transform.position, ai.transform.position) - target.GetRadius();
+            if (!posted && flat > CastMax)
+            {
+                if (WaterRules.Out(target) && !me.InWater())
+                {
+                    BlockedShot(ai, target, "combat.target_in_water");
+                    if (Time.time - _blockedSince > BlockedGiveUpSeconds)
+                    {
+                        Ignore(ai, target, "in the water", BlockedIgnoreSeconds);
+                        Drop(ai, "in the water");
+                    }
+                    else
+                        ai.Halt();
+                    return;
+                }
+                ai.WalkTo(dt, target.transform.position, CastMax * 0.8f, run: true);
+                return;
+            }
+            // Spells are projectiles too: the same clear-line check and drop as an arrow.
+            Vector3? aim = ArrowAim(me, target, out Vector3 from);
+            if (aim == null)
+            {
+                BlockedShot(ai, target);
+                if (posted)
+                {
+                    ai.Halt();
+                    ai.Face(target.GetCenterPoint());
+                }
+                else
+                {
+                    ai.WalkTo(dt, target.transform.position, CastBackOff + 1f, run: true);
+                }
+                return;
+            }
+            _blockedSince = -1f;
+            ai.Halt();
+            ai.LookTowards((aim.Value - from).normalized);
+            if (dist <= CastMax + 10f && Time.time >= _nextAttack && !ai.Dodge.HoldAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f) &&
+                ai.Attack(target))
+            {
+                LastCastDistance = dist;
+                Attacked(Mathf.Max(0.5f, Config.VfhConfig.WizardAttackCooldown.Value));
             }
         }
 

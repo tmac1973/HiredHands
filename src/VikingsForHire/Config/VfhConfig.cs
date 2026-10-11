@@ -127,6 +127,7 @@ namespace VikingsForHire.Config
         {
             JobType.GuardMelee => System.Math.Max(0f, GuardMeleeDamage.Value),
             JobType.GuardRanged => System.Math.Max(0f, GuardRangedDamage.Value),
+            JobType.Wizard => System.Math.Max(0f, WizardDamage.Value),
             _ => 1f,
         };
 
