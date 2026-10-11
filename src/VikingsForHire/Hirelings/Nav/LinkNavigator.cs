@@ -335,6 +335,14 @@ namespace VikingsForHire.Hirelings.Nav
                 Failed("door_gone");
                 return;
             }
+            // A door marked for hirelings to leave alone (a pen's gate) isn't a way through, even standing open.
+            if (DoorRules.Avoided(door))
+            {
+                link.BlockedUntil = ZNet.instance.GetTimeSeconds() + 600.0;
+                VfhLog.I(LogCat.Nav, "navlinks.door_blocked", ("hid", _ai.Hireling.Hid), ("door", door.transform.position), ("why", "marked"));
+                Failed("door_blocked");
+                return;
+            }
             if (!_stepStarted)
             {
                 _stepStarted = true;

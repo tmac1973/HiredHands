@@ -108,13 +108,13 @@ namespace VikingsForHire.Hirelings
             if (!VfhConfig.HirelingsOpenDoors.Value || _throughDoor != null)
                 return null;
             Vector3 me = _ai.transform.position;
-            if (_detour != null && (_detour.m_nview == null || !_detour.m_nview.IsValid()))
+            if (_detour != null && (_detour.m_nview == null || !_detour.m_nview.IsValid() || Nav.DoorRules.Avoided(_detour)))
                 _detour = null;
             if (_detour == null)
             {
                 float straight = Vector3.Distance(me, goal);
                 _detour = Doors(me, DetourRange)
-                    .Where(d => (IsOpen(d) || Usable(d)) && Vector3.Distance(d.transform.position, goal) < straight)
+                    .Where(d => !Nav.DoorRules.Avoided(d) && (IsOpen(d) || Usable(d)) && Vector3.Distance(d.transform.position, goal) < straight)
                     .OrderBy(d => Vector3.Distance(me, d.transform.position) + Vector3.Distance(d.transform.position, goal))
                     .FirstOrDefault();
                 if (_detour == null)

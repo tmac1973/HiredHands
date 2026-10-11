@@ -131,6 +131,15 @@ namespace VikingsForHire.Testing
                 VfhLog.I(LogCat.Test, "fixture.chest_mode", ("tag", args.ElementAtOrDefault(0)), ("mode", mode));
                 return Brief();
             });
+            Fixtures.Add("door_mark", "<tag> <avoid|use> - mark a tagged door for hirelings to leave shut, or clear it (as Shift+E on it does)", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Door d = go.GetComponentInChildren<Door>() ?? throw new InvalidOperationException("not a door");
+                d.m_nview.ClaimOwnership();
+                d.m_nview.GetZDO().Set(Hirelings.Nav.DoorRules.AvoidKey, (args.ElementAtOrDefault(1) ?? "avoid") == "avoid" ? 1 : 0);
+                Hirelings.Nav.NavLinkRegistry.MarkDirty(d.transform.position);
+                return Brief();
+            });
             Fixtures.Add("ranch_stats_reset", "- start counting Rancher slaughters from zero (slaughtered_by_rancher)", _ =>
             {
                 Hirelings.Work.Ranch.SlaughterChore.Slaughtered = 0;

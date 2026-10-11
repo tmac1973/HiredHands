@@ -28,6 +28,8 @@
   10 freeze glands from drakes; level 2's 3 hard antlers (all of Eikthyr's) are now 10 more deer hide. Existing servers
   keep their data file's costs: change `DragonTear: 5` to `FreezeGland: 10` under level 5, and `HardAntler: 3` /
   `DeerHide: 20` to `DeerHide: 30` under level 2, in `Spronglehump.HiredHands.yml`.
+- **Doors hirelings leave shut:** Shift+E on a door near a board marks it (a pen's gates); hirelings never open it or route
+  through it, even when it's open. Shift+E again clears it.
 - **Chest modes:** Shift+E on a chest near a board sets what workers may do with it: put in and take out (default), put
   in only (not counted as stock: a pen's feed chest the Cook leaves alone), take out only, or leave alone. Shown in the
   chest's hover text; follows the wards.

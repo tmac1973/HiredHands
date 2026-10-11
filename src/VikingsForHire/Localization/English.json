@@ -149,6 +149,8 @@
   "vfh_chest_put_only": "put in only (not counted as stock)",
   "vfh_chest_take_only": "take out only",
   "vfh_chest_off": "leave alone",
+  "vfh_door_use": "Hirelings: may use this door",
+  "vfh_door_avoid": "Hirelings: leave this door shut",
   "vfh_why_piled": "$1: $2 left at the board (no chest holds any yet: put one in a chest and it's stored there from then on)",
   "vfh_why_no_orders": "No orders for this job on the board.",
   "vfh_why_age": "Checked $1 s ago",

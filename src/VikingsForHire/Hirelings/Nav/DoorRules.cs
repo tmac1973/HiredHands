@@ -9,10 +9,15 @@ namespace VikingsForHire.Hirelings.Nav
     {
         public static bool IsOpen(Door d) => d.m_nview != null && d.m_nview.IsValid() && d.m_nview.GetZDO().GetInt(ZDOVars.s_state) != 0;
 
-        // Not locked, can be closed again, and the board's owner has access under any ward covering it.
+        /// <summary>Marked by a player (Shift+E on it) for hirelings to leave alone: a pen's gate.</summary>
+        public const string AvoidKey = "vfh_door_avoid";
+
+        public static bool Avoided(Door? d) => d != null && d.m_nview != null && d.m_nview.IsValid() && d.m_nview.GetZDO().GetInt(AvoidKey) != 0;
+
+        // Not locked, can be closed again, not marked to leave alone, and the board's owner has access under any ward covering it.
         public static bool Usable(Door? d, long boardOwner)
         {
-            if (d == null || d.m_nview == null || !d.m_nview.IsValid() || d.m_keyItem != null || d.m_canNotBeClosed)
+            if (d == null || d.m_nview == null || !d.m_nview.IsValid() || d.m_keyItem != null || d.m_canNotBeClosed || Avoided(d))
                 return false;
             if (!d.m_checkGuardStone)
                 return true;

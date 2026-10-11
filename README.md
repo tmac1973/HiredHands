@@ -100,6 +100,10 @@ text says which):
 Changing it follows the wards, like the board. If another mod already uses Shift+E on chests, turn `ChestModeOnShiftUse`
 off in *4 - Work* (your own setting).
 
+**Doors:** Shift+E on a door near a hiring board marks it for hirelings to leave shut (a pen's gates, so they don't walk
+through the pen and let the animals out); again to clear it. Hirelings never open a marked door, never use it on their
+routes, and don't walk through it even when it's standing open.
+
 ## How hirelings fight
 
 Guards patrol and fight by stance; everyone else defends themselves, weakly, and flees or defends by stance. Since
