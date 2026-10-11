@@ -16,7 +16,9 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
     /// </summary>
     internal sealed class StovesChore : IChore
     {
-        private const int VariantTakeOff = 0, VariantFuel = 1, VariantLoad = 2;
+        private const int VariantTakeOff = 0, VariantFuel = 1, VariantLoad = 2, VariantTend = 3;
+        // Watching food cook re-plans this often, so fuel or the next load still get done.
+        private const float TendSeconds = 10f;
         private const float StuckSeconds = 20f;
         private const float ItemEvery = 0.3f;
         private const float ChestSkipSeconds = 60f;
@@ -104,6 +106,11 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             }
             else if (r.Task == null && r.Missing != null)
                 Missing ??= r.Missing;
+
+            // Something cooking and nothing else to do: stand by the stove and watch it, rather than wander back to the
+            // board and have to run back before it burns.
+            foreach (CookingStation s in stoves.Where(s => Near(s) && KitchenState.HasSlot(s, CookingStation.Status.NotDone) && KitchenState.Heated(s)))
+                jobs.Add(Job(s, 0.15f, VariantTend, ctx, "$vfh_cook_tend"));
             return jobs;
         }
 
@@ -129,6 +136,12 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             if (_variant == VariantTakeOff)
             {
                 h.HoldDeliveries = true;
+                return;
+            }
+            if (_variant == VariantTend)
+            {
+                h.HoldDeliveries = true; // what it carries can wait: the food can't
+                _tendUntil = Time.time + TendSeconds;
                 return;
             }
             if (_variant == VariantFuel)
@@ -161,6 +174,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
         }
 
         private int _fetchAmount;
+        private float _tendUntil;
 
         public ChoreProgress Tick(HirelingAI ai, float dt)
         {
@@ -198,6 +212,12 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             _nextAt = Time.time + ItemEvery;
             switch (_variant)
             {
+                case VariantTend:
+                    // Done (or burning): end now so the take-off job, the most urgent, comes straight away.
+                    if (KitchenState.HasSlot(s, CookingStation.Status.Done) || KitchenState.HasSlot(s, CookingStation.Status.Burnt) ||
+                        !KitchenState.HasSlot(s, CookingStation.Status.NotDone) || Time.time > _tendUntil)
+                        return End(h, 0f);
+                    return ChoreProgress.Running;
                 case VariantTakeOff:
                     if (KitchenState.HasSlot(s, CookingStation.Status.Done) || KitchenState.HasSlot(s, CookingStation.Status.Burnt))
                     {

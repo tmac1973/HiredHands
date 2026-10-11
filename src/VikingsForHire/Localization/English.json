@@ -160,6 +160,7 @@
   "vfh_cook_idle": "Kitchen tidy",
   "vfh_cook_load": "Cooking $1",
   "vfh_cook_takeoff": "Taking food off the $1",
+  "vfh_cook_tend": "Watching the $1",
   "vfh_cook_fuel": "Fuelling the $1",
   "vfh_need_fire": "$1: no fire under it",
   "vfh_cook_craft": "Making $1 at the $2",
