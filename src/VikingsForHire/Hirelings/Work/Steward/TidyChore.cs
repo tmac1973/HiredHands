@@ -58,6 +58,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
         // Inside the area, under a ward the board's owner may use, not at a player's feet (they may want it back).
         private static bool Tidyable(ItemDrop d, WorkContext ctx)
         {
+            // On a board with a Rancher, eggs are his: collected for the egg order or left to hatch.
+            string item = d.m_itemData.m_dropPrefab.name;
+            if (Ranch.AnimalCatalog.Kinds.Any(k => k.EggItem == item) && ChoreLoop.RancherOnBoard(ctx.Hireling.BoardId))
+                return false;
             Vector3 p = d.transform.position;
             return Utils.DistanceXZ(p, ctx.Home) <= ctx.Radius && Player.GetClosestPlayer(p, PlayerClearance) == null && ctx.BoardOwnerMayUse(p);
         }

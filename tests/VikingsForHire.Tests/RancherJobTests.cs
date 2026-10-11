@@ -16,7 +16,7 @@ namespace VikingsForHire.Tests
             Assert.Equal(2, j.MinBoardLevel);
             Assert.Equal(0.9f, j.CostMult);
             Assert.Equal(1, j.MaxPerBoard);
-            Assert.Equal(new[] { ChoreKind.RanchFeed, ChoreKind.Slaughter }, ChoreRules.ChoresFor(JobType.Rancher));
+            Assert.Equal(new[] { ChoreKind.RanchFeed, ChoreKind.Slaughter, ChoreKind.Eggs }, ChoreRules.ChoresFor(JobType.Rancher));
             Assert.True(ChoreKeys.TryParse("ranch_feed", out ChoreKind k) && k == ChoreKind.RanchFeed);
         }
 
