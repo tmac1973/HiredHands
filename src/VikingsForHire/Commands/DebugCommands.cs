@@ -73,6 +73,13 @@ namespace VikingsForHire.Commands
                                      ": " + string.Join(", ", k.Inputs.Select(i => $"{i.Value} {i.Key}")));
             }));
             Add(new VfhCommand("vfh_dump_data", "- print the data tables in effect (server's when connected)", false, _ => DumpData()));
+            Add(new VfhCommand("vfh_send_log", "[lines=2000] - send this game's last Hired Hands log lines to the server (BepInEx/HiredHands/clients/<you>.log there), for troubleshooting", false, args =>
+            {
+                int lines = args.Length > 0 && int.TryParse(args[0], out int n) ? Math.Max(1, Math.Min(n, 3000)) : 2000;
+                int sent = ClientLogRelay.SendRecent(lines);
+                VfhCommand.Print(sent < 0 ? "vfh_send_log: only from a player connected to a server" : $"Sent {sent} lines to the server.");
+                VfhLog.I(LogCat.Core, "clientlog.sent", ("lines", sent));
+            }));
             Add(new VfhCommand("vfh_perf", "- hireling AI and Harmony patch cost on this machine (rolling 10 s window)", false, _ =>
             {
                 string report = PerfCounters.Report() + "\n" + PerfCounters.PatchReport();

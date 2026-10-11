@@ -9,9 +9,13 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | Commit | What | Where it runs |
 |---|---|---|
 | (order-reasons branch) | Shift+E "Problems (n)" view for Farmers, Cooks and Stewards: every order the job works (have / target, then done, on it, or why not) and every chore problem, not just the one the hover shows. The planners now give a reason per order (Cook: no station, ingredient, level, nothing makes it; Farmer: no field, no seed, seed reserve, level, nothing grows it); chores note all their reasons. Farm reasons now show item names ("Carrots", not "Carrot") in the hover too. Rows VFH-WHY-1, -2 | the game simulating the hireling (the list is stored on it); the panel on yours |
+| (order-reasons branch) | A follower recruited at someone else's base didn't follow its new owner through a portal (Una, 2026-10-11): portals only took followers your own game was running, and nothing handed a follower to the player it follows. Now your game takes over your followers within 64 m every second, and a portal takes any of yours in range (claiming them first); one left behind is logged with why (`follow.travel_left`) | your game |
+| (order-reasons branch) | Players' logs on the server: `ClientLogsToServer` (Debug, server setting, off) has every player's game send its Hired Hands lines at `ClientLogLevel` (default Info) to the server every 5 s, into `BepInEx/HiredHands/clients/<player>.log`; `vfh_send_log [lines]` sends a player's last lines once, whatever the setting. Rate-limited on the server | every player's game; the server writes |
 
 ### To test (batch)
 - [ ] Macro (single player): `vfh_test_chain why1 why2`; regression `vfh_test_chain orders farm_bush farm_seeds`.
+- [ ] By hand (live server, two players): player B recruits a guard posted at player A's base (A standing there), walks through a portal and back and through again: the guard goes every time (B's log: follow.claimed / follow.travel_claimed).
+- [ ] By hand (live server): `ClientLogsToServer = true` on the server; after a minute of play `BepInEx/HiredHands/clients/<name>.log` exists for each player; with it off, `vfh_send_log` from a player still writes theirs.
 - [ ] By hand (live server): a Cook and a Farmer with several stuck orders: Shift+E, Problems; the list matches and updates as you fix things (add a stove, stock seeds). A Steward's list shows fuel, paused stations and the like.
 
 ## 0.8.0 (packaged 2026-10-11): the Wizard, with the 0.7.8 playtest fixes

@@ -58,6 +58,7 @@ namespace VikingsForHire
             Hirelings.Work.Kitchen.KitchenCatalog.Register();
             Net.FollowerServer.Register();
             Telemetry.BalanceLog.Register();
+            Diagnostics.ClientLogRelay.Register();
             Board.LowFunds.Register();
             Followers.HirelingMapPins.Register();
             BoardRegistry.Register();
@@ -101,8 +102,10 @@ namespace VikingsForHire
             VfhLog.Guard(LogCat.Follow, "orphan.tick_failed", Net.OrphanMonitor.Tick);
             VfhLog.Guard(LogCat.Roster, "reconcile.tick_failed", Net.RosterReconciler.Tick);
             VfhLog.Guard(LogCat.Core, "balance.tick_failed", Telemetry.BalanceLog.Tick);
+            VfhLog.Guard(LogCat.Core, "clientlog.tick_failed", Diagnostics.ClientLogRelay.Tick);
             Followers.StoneInput.Tick();
             VfhLog.Guard(LogCat.Follow, "travel.tick_failed", Followers.TeleportTravel.Tick);
+            VfhLog.Guard(LogCat.Follow, "claim.tick_failed", Followers.TeleportTravel.ClaimFollowers);
             VfhLog.Guard(LogCat.Follow, "ship.tick_failed", Followers.ShipStowage.Tick);
             VfhLog.Guard(LogCat.UI, "hud.tick_failed", Followers.FollowerHud.Tick);
             VfhLog.Guard(LogCat.Board, "funds.tick_failed", Board.LowFunds.Tick);
@@ -112,6 +115,10 @@ namespace VikingsForHire
             VfhLog.Guard(LogCat.Nav, "navlinks.tick_failed", Hirelings.Nav.NavLinkRegistry.Tick);
         }
 
-        private void OnDestroy() => VfhLog.Shutdown();
+        private void OnDestroy()
+        {
+            Diagnostics.ClientLogRelay.Shutdown();
+            VfhLog.Shutdown();
+        }
     }
 }

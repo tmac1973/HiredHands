@@ -197,6 +197,7 @@ namespace VikingsForHire.Diagnostics
                 default: _source.LogDebug(text); break;
             }
             _file?.Write(text);
+            ClientLogRelay.Offer(level, text);
         }
 
         private static string Indent(string text) => "    " + text.Replace("\r", "").Replace("\n", "\n    ");

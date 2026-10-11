@@ -65,9 +65,25 @@ namespace VikingsForHire.Followers
         {
             bool portal = _portal != null;
             bool takesAnything = !portal || _portal!.m_allowAllItems || VfhConfig.AllowNonTeleportableThroughPortals.Value;
-            List<Hireling> going = Hireling.Loaded.Where(f => f != null && f.Zdo != null && f.IsOwner && f.Mode == HirelingMode.Following &&
-                                                             f.OwnerId == me.GetPlayerID() && !f.IsStowed && f.FollowMode != FollowMode.Stay &&
-                                                             Vector3.Distance(f.transform.position, me.transform.position) <= VfhConfig.PortalFollowRadius.Value).ToList();
+            var going = new List<Hireling>();
+            foreach (Hireling f in Hireling.Loaded.Where(f => f != null && f.Zdo != null && f.Mode == HirelingMode.Following && f.OwnerId == me.GetPlayerID()))
+            {
+                float dist = Vector3.Distance(f.transform.position, me.transform.position);
+                string? why = f.IsStowed ? "aboard a ship" : f.FollowMode == FollowMode.Stay ? "told to stay"
+                    : dist > VfhConfig.PortalFollowRadius.Value ? "too far" : null;
+                if (why != null)
+                {
+                    VfhLog.I(LogCat.Follow, "follow.travel_left", ("hid", f.Hid), ("why", why), ("dist", dist), ("portal", portal));
+                    continue;
+                }
+                // Another player's game may be running it (it was by them when you recruited it): take it over to move it.
+                if (!f.IsOwner)
+                {
+                    VfhLog.I(LogCat.Follow, "follow.travel_claimed", ("hid", f.Hid), ("from", f.Zdo!.GetOwner()));
+                    f.GetComponent<ZNetView>().ClaimOwnership();
+                }
+                going.Add(f);
+            }
             int slot = 0;
             foreach (Hireling f in going)
             {
@@ -88,6 +104,34 @@ namespace VikingsForHire.Followers
                 f.Ai.TravelPin = dest;
                 Travelers.Add(new Traveler { Hid = f.Hid, Zdo = f.Zdo!.m_uid, Deadline = Time.time + ArriveTimeoutSeconds });
                 VfhLog.I(LogCat.Follow, "follow.travel_start", ("hid", f.Hid), ("to", dest), ("portal", portal), ("distant", distant));
+            }
+        }
+
+        private const float ClaimSeconds = 1f;
+        private const float ClaimRange = 64f;
+        private static float _nextClaim;
+
+        /// <summary>
+        /// Every frame (Plugin.Update), each second: your game runs your followers near you, so it can take them through
+        /// portals and keep them up with you. Vanilla leaves a creature with whoever's game had it (a guard recruited at
+        /// someone else's base stayed theirs).
+        /// </summary>
+        public static void ClaimFollowers()
+        {
+            if (Time.time < _nextClaim)
+                return;
+            _nextClaim = Time.time + ClaimSeconds;
+            Player me = Player.m_localPlayer;
+            if (me == null || ZNet.instance == null || me.IsTeleporting())
+                return;
+            long pid = me.GetPlayerID();
+            foreach (Hireling f in Hireling.Loaded)
+            {
+                if (f == null || f.Zdo == null || f.IsOwner || f.Mode != HirelingMode.Following || f.OwnerId != pid ||
+                    Vector3.Distance(f.transform.position, me.transform.position) > ClaimRange)
+                    continue;
+                VfhLog.I(LogCat.Follow, "follow.claimed", ("hid", f.Hid), ("from", f.Zdo.GetOwner()));
+                f.GetComponent<ZNetView>().ClaimOwnership();
             }
         }
 

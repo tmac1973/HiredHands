@@ -106,6 +106,8 @@ namespace VikingsForHire.Config
         public static ConfigEntry<KeyboardShortcut> RetreatKey = null!;
         public static ConfigEntry<bool> UpgradeFromNearbyChests = null!;
         public static ConfigEntry<int> BalanceLogMaxMB = null!;
+        public static ConfigEntry<bool> ClientLogsToServer = null!;
+        public static ConfigEntry<Core.Diagnostics.LogLevel> ClientLogLevel = null!;
         public static ConfigEntry<float> ReturnSecondsPer100m = null!;
         public static ConfigEntry<float> ReturnMinSeconds = null!;
         public static ConfigEntry<float> ReturnMaxSeconds = null!;
@@ -259,6 +261,8 @@ namespace VikingsForHire.Config
 
             BalanceLog = Synced("9 - Balance log", "BalanceLog", false, "Record how hirelings fight and work (each fight, death, delivery and upkeep day) to BepInEx/HiredHands/balance/*.jsonl on the server, for tuning the mod. Off by default. Set it on the server: every player's game then sends its summaries there once a minute.");
             BalanceLogMaxMB = _file.Bind("9 - Balance log", "BalanceLogMaxMB", 20, "Server: total size (MB) of the balance log files kept; the oldest days are deleted beyond it.");
+            ClientLogsToServer = Synced("7 - Debug", "ClientLogsToServer", false, "Every player's game sends its Hired Hands log lines (only this mod's, at ClientLogLevel or worse) to the server every few seconds, written to BepInEx/HiredHands/clients/<player>.log there, for troubleshooting multiplayer. Off by default. A player can always send their recent lines once with vfh_send_log.");
+            ClientLogLevel = Synced("7 - Debug", "ClientLogLevel", Core.Diagnostics.LogLevel.Info, "With ClientLogsToServer on: the least serious lines sent (Error, Warning, Info, or Debug for the categories each player has DebugCategories on for).");
 
             MeleeAttackCooldown = Synced("8 - Combat", "MeleeAttackCooldown", 1.2f, "Seconds between a hireling's melee swings.");
             GuardMeleeDamage = Synced("8 - Combat", "GuardMeleeDamage", 1f, "Damage multiplier for melee guards' hits, on top of the levels table's guardDamageMult (1 at level 1 up to 5.2 at level 8). 0.5 halves it; 1 is the default.");
