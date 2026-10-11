@@ -15,10 +15,40 @@ namespace VikingsForHire.Testing
     {
         private static int _placed;
 
+        private static IEnumerator FloorOver(string[] args)
+        {
+            GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+            float height = float.Parse(args.ElementAtOrDefault(1) ?? "2", CultureInfo.InvariantCulture);
+            Vector3 at = go.transform.position;
+            at.y = ZoneSystem.instance.GetSolidHeight(at) + height;
+            GameObject floor = FixturesBoard.Spawn("wood_floor", at, Quaternion.identity);
+            floor.GetComponent<ZNetView>().GetZDO().Set(FixturesWork.TagKey, args.ElementAtOrDefault(2) ?? "F");
+            VfhLog.I(LogCat.Test, "fixture.floor_over", ("over", args.ElementAtOrDefault(0)), ("pos", at));
+            yield return new WaitForSeconds(0.5f);
+        }
+
         public static void Register()
         {
             Fixtures.Add("stove", "<prefab> [lit] [fuel <n>] [tag] - a cooking station over a campfire (lit: fuelled) or an oven with n wood (default 5), beside the nearest board", Stove);
             Fixtures.Add("craftstation", "<prefab> [level] [tag] - a cauldron or mead ketill over a lit campfire, or a prep table, beside the nearest board; level adds that many of its extensions", CraftStation);
+            Fixtures.Add("floor_over", "<tag> [height=2] [newtag=F] - a wood floor piece over a tagged object, that high above its base (an upper storey)", FloorOver);
+            TestHarness.RegisterCheck("usable_from", "<tag> <beside|above> - whether a worker could use a tagged object standing beside it on its floor, or on the floor above it (floor_over)", args =>
+            {
+                GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Component obj = go.GetComponentInChildren<CookingStation>() as Component ?? go.transform;
+                Vector3 at = obj.transform.position;
+                Vector3 feet;
+                if ((args.ElementAtOrDefault(1) ?? "beside") == "above")
+                {
+                    Vector3 from = at + Vector3.right * 1f + Vector3.up * 4f;
+                    feet = Physics.Raycast(from, Vector3.down, out RaycastHit hit, 4f, Hirelings.Nav.StairSampler.FloorMask, QueryTriggerInteraction.Ignore)
+                        ? hit.point : throw new InvalidOperationException("no floor above");
+                }
+                else
+                    feet = new Vector3(at.x + 1.6f, ZoneSystem.instance.GetSolidHeight(at + Vector3.right * 1.6f), at.z);
+                return Hirelings.Work.Chores.WorkSteps.UsableFrom(feet, obj, at, Hirelings.Work.Chores.WorkSteps.Footprint(obj), Hirelings.Work.Chores.WorkSteps.PlayerReach)
+                    ? "true" : "false";
+            });
             Fixtures.Add("cook_stats_reset", "- start counting what Cooks craft from zero (crafted_by_cook)", _ => ResetCookStats());
             TestHarness.RegisterCheck("crafted_by_cook", "<item> - how many of an item Cooks have crafted since login or the last cook_stats_reset", args =>
                 (CraftChore.Crafted.TryGetValue(args.ElementAtOrDefault(0) ?? "", out int n) ? n : 0).ToString(CultureInfo.InvariantCulture));

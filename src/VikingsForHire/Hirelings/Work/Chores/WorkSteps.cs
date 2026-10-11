@@ -84,8 +84,10 @@ namespace VikingsForHire.Hirelings.Work.Chores
         // Close enough to use it from where the feet are. Height against the object's base, not the switch (a smelter's ore
         // input is 2 m up): on its floor, not below. Or, like a player's reach, within 3 m of its nearest surface (a wall's
         // upper row, a sconce up high).
-        private static bool UsableFrom(Vector3 feet, Component obj, Vector3 target, float half, float reach) =>
-            (Utils.DistanceXZ(feet, target) <= half + Reach && Mathf.Abs(feet.y - obj.transform.position.y) < 1.8f) || WithinReach(feet, obj, reach);
+        // Standing above it (the floor upstairs, over a cooking station raised on its fire): only with no floor in between.
+        internal static bool UsableFrom(Vector3 feet, Component obj, Vector3 target, float half, float reach) =>
+            (Utils.DistanceXZ(feet, target) <= half + Reach && Mathf.Abs(feet.y - obj.transform.position.y) < 1.8f &&
+             (feet.y <= obj.transform.position.y + 0.5f || !PieceBetween(feet + Vector3.up * 0.3f, target, obj))) || WithinReach(feet, obj, reach);
 
         // A spot just outside the object it can use it from: the side facing us if we can get there (the game's map or the
         // base's links), else another side we can reach (nearest first). Not the ground below a chest upstairs: close by,
