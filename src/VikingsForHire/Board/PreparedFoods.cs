@@ -55,7 +55,8 @@ namespace VikingsForHire.Board
             foreach (GameObject item in ObjectDB.instance.m_items)
             {
                 ItemDrop.ItemData.SharedData? s = item != null ? item.GetComponent<ItemDrop>()?.m_itemData?.m_shared : null;
-                if (s != null && (s.m_food > 0f || s.m_foodStamina > 0f || s.m_foodEitr > 0f) && !made.Contains(item!.name))
+                if (s != null && s.m_itemType == ItemDrop.ItemData.ItemType.Consumable && (s.m_food > 0f || s.m_foodStamina > 0f || s.m_foodEitr > 0f) &&
+                    !made.Contains(item!.name))
                     raw.Add(item.name);
             }
             VfhLog.I(LogCat.Payment, "food.raw_unmade", ("count", raw.Count), ("items", string.Join(",", raw.OrderBy(n => n))));

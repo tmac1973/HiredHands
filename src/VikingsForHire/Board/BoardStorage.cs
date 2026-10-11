@@ -31,7 +31,9 @@ namespace VikingsForHire.Board
         public static bool IsFood(ItemDrop.ItemData item)
         {
             ItemDrop.ItemData.SharedData s = item.m_shared;
-            bool hasFood = s.m_food > 0f || s.m_foodStamina > 0f || s.m_foodEitr > 0f;
+            // Edible: a consumable with food values. Mods give food values to things you can't eat (Balrond's CoalPaste, a
+            // shipbuilding material), which then filled a board as "food".
+            bool hasFood = s.m_itemType == ItemDrop.ItemData.ItemType.Consumable && (s.m_food > 0f || s.m_foodStamina > 0f || s.m_foodEitr > 0f);
             string prefab = item.m_dropPrefab != null ? item.m_dropPrefab.name : "";
             return FoodPoints.IsAcceptable(prefab, hasFood, VfhConfig.AllowRawFood.Value, DataStore.Current.Food.RawFoods, PreparedFoods.Get());
         }

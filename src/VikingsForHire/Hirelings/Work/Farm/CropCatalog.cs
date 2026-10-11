@@ -156,7 +156,8 @@ namespace VikingsForHire.Hirelings.Work.Farm
                 ("type", item.GetComponent<ItemDrop>()?.m_itemData.m_shared.m_itemType.ToString() ?? "?"), ("why", why));
 
         public static bool IsFood(GameObject item) =>
-            item.GetComponent<ItemDrop>()?.m_itemData.m_shared is ItemDrop.ItemData.SharedData s && (s.m_food > 0f || s.m_foodStamina > 0f || s.m_foodEitr > 0f);
+            item.GetComponent<ItemDrop>()?.m_itemData.m_shared is ItemDrop.ItemData.SharedData s && s.m_itemType == ItemDrop.ItemData.ItemType.Consumable &&
+            (s.m_food > 0f || s.m_foodStamina > 0f || s.m_foodEitr > 0f);
 
         private static void AddPlanted(GameObject go, Plant plant)
         {
