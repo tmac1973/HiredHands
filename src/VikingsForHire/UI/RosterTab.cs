@@ -74,7 +74,8 @@ namespace VikingsForHire.UI
 
             if (e.State == ContractState.Pending)
             {
-                PanelUi.Button(root, "$vfh_roster_cancel", x, -320f, 200f, 38f, () => BoardContracts.Cancel(board, e.ContractId));
+                // Coming back from death: the hire fee was spent on them, so ending it now gives nothing back.
+                PanelUi.Button(root, e.RespawnPending ? "$vfh_roster_cancel_dead" : "$vfh_roster_cancel", x, -320f, 240f, 38f, () => BoardContracts.Cancel(board, e.ContractId));
                 return;
             }
             if (e.State != ContractState.Active)

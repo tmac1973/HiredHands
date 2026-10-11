@@ -265,6 +265,7 @@
   "vfh_stance_defensive": "Defensive",
   "vfh_stance_aggressive": "Aggressive",
   "vfh_roster_cancel": "Cancel (refund)",
+  "vfh_roster_cancel_dead": "End contract (no refund)",
   "vfh_roster_promote": "Promote to level $1",
   "vfh_roster_dismiss": "Dismiss",
   "vfh_confirm_dismiss": "Dismiss $1? They'll leave and the contract ends. No refund.",
