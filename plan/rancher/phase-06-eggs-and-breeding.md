@@ -1,6 +1,6 @@
 # Phase 06 — Eggs, and breeding problems reported
 
-**Depends on:** 04 (`RanchState`, the reasons in Problems), 05 (`DropCollect`) · **Enables:** 07
+**Depends on:** 04 (`RanchState`, the reasons in Problems), 05 (`DropCollect`) · **Enables:** 07, 08
 
 ## Goal
 The Rancher collects eggs while the egg order is short and leaves them to hatch once it's met (the Steward's tidy

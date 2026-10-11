@@ -1,6 +1,6 @@
-# Phase 07 — Docs, full regression, 0.9.0
+# Phase 08 — Docs, full regression, 0.9.0
 
-**Depends on:** 01–06 · **Enables:** the release
+**Depends on:** 01–07 · **Enables:** the release
 
 ## Goal
 Document the Rancher, run every ranch row and the regression list together, and package 0.9.0 (released on Tim's go).
@@ -10,7 +10,7 @@ Document the Rancher, run every ranch row and the regression list together, and 
   feeding and the Steward/PetPantry, settings.
 - `CHANGELOG.md` — 0.9.0 ("Everyone updates together": new job, order kinds and data-file entries).
 - `docs/next-release.md` — the 0.9.0 tab with each change, rows and by-hand checks.
-- `test/alias_vfh.yaml` — chain `vfh_t_ranch_all` (VFH-RANCH-1 to -11).
+- `test/alias_vfh.yaml` — chain `vfh_t_ranch_all` (VFH-RANCH-1 to -14).
 - `package/manifest.json`, `src/VikingsForHire/Plugin.cs`, `src/VikingsForHire/VikingsForHire.csproj` — version 0.9.0.
 
 ## Steps
