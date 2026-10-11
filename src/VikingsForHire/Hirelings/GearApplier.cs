@@ -3,6 +3,8 @@ using System.Linq;
 using VikingsForHire.Config;
 using VikingsForHire.Core;
 using VikingsForHire.Core.Data;
+using VikingsForHire.Core.Diagnostics;
+using VikingsForHire.Diagnostics;
 using UnityEngine;
 
 namespace VikingsForHire.Hirelings
@@ -20,17 +22,27 @@ namespace VikingsForHire.Hirelings
         public static GameObject[] GearFor(JobType job, int level)
         {
             VfhData data = DataStore.Current;
+            var rules = new LevelRules(data);
             var names = new List<string>();
-            ArmorSetData? armor = data.ArmorSets.FirstOrDefault(a => a.Level == level);
-            if (armor != null)
-                names.AddRange(new[] { armor.Helmet, armor.Chest, armor.Legs });
-            WeaponSetData? weapons = data.Jobs.TryGetValue(job, out JobData? j) ? j.Gear.FirstOrDefault(g => g.Level == level) : null;
-            if (weapons != null)
+            // The job's own outfit (a wizard's robes) where it has one for the level, piece by piece over the shared armour.
+            names.AddRange(GearRules.Armor(level, rules.Outfit(job), data.ArmorSets, Exists));
+            WeaponSetData? weapons = rules.Gear(job).FirstOrDefault(g => g.Level == level);
+            if (job == JobType.Wizard)
+            {
+                // A staff whatever happens: a removed mod's staff falls back to the vanilla one for the level.
+                string staff = GearRules.Staff(level, rules.Gear(job), rules.GearWithoutMods(job), Exists, out bool fellBack);
+                if (fellBack)
+                    VfhLog.I(LogCat.Hireling, "gear.fallback", ("job", job), ("level", level), ("wanted", weapons?.Main ?? ""), ("used", staff));
+                names.Add(staff);
+            }
+            else if (weapons != null)
                 names.AddRange(new[] { weapons.Main, weapons.Offhand, weapons.Ammo });
             return names.Where(n => !string.IsNullOrEmpty(n))
                 .Select(n => ObjectDB.instance != null ? ObjectDB.instance.GetItemPrefab(n) : null)
                 .Where(p => p != null).Select(p => p!).ToArray();
         }
+
+        private static bool Exists(string prefab) => ObjectDB.instance != null && ObjectDB.instance.GetItemPrefab(prefab) != null;
 
         /// <summary>Before Humanoid.Start: vanilla then equips these exactly like a monster's weapons.</summary>
         public static void Prepare(Humanoid humanoid, JobType job, int level) => humanoid.m_defaultItems = GearFor(job, level);
@@ -78,7 +90,7 @@ namespace VikingsForHire.Hirelings
 
         public static string Describe(Humanoid h) => string.Join(",", new[]
         {
-            Name(h.GetRightItem()), Name(h.GetLeftItem()), Name(h.m_helmetItem), Name(h.m_chestItem), Name(h.m_legItem), Name(h.GetAmmoItem()),
+            Name(h.GetRightItem()), Name(h.GetLeftItem()), Name(h.m_helmetItem), Name(h.m_chestItem), Name(h.m_legItem), Name(h.m_shoulderItem), Name(h.GetAmmoItem()),
         }.Where(n => n.Length > 0));
 
         public static string Name(ItemDrop.ItemData? item) => item?.m_dropPrefab != null ? item.m_dropPrefab.name : "";

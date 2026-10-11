@@ -101,6 +101,45 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void StaffAndRobesFallBack()
+        {
+            try
+            {
+                VfhData data = DefaultData.Create();
+                var rules = new LevelRules(data);
+                var everything = new System.Func<string, bool>(_ => true);
+                var noWizardry = new System.Func<string, bool>(n => !n.EndsWith("_TW"));
+
+                ModPresence.SetLoaded(new[] { Wizardry });
+                Assert.Equal("StaffBlackforest_TW", GearRules.Staff(2, rules.Gear(JobType.Wizard), rules.GearWithoutMods(JobType.Wizard), everything, out bool fell));
+                Assert.False(fell);
+                string[] robes = GearRules.Armor(2, rules.Outfit(JobType.Wizard), data.ArmorSets, everything);
+                Assert.Equal(new[] { "HelmetSpellslinger_BlackForest_TW", "ArmorSpellSlingerChest_BlackForest_TW", "ArmorSpellslingerLegs_BlackForest_TW", "CapeSpellslinger_Blackforest_TW" }, robes);
+
+                // Wizardry gone: a level 3 wizard hired while it was there gets the Staff of Embers and the shared armour.
+                ModPresence.SetLoaded(new string[0]);
+                Assert.Equal("StaffFireball", GearRules.Staff(3, rules.Gear(JobType.Wizard), rules.GearWithoutMods(JobType.Wizard), noWizardry, out fell));
+                Assert.Equal(new[] { "HelmetBronze", "ArmorBronzeChest", "ArmorBronzeLegs", "" }, GearRules.Armor(3, rules.Outfit(JobType.Wizard), data.ArmorSets, noWizardry));
+                Assert.Equal("StaffLightning", GearRules.Staff(8, rules.Gear(JobType.Wizard), rules.GearWithoutMods(JobType.Wizard), noWizardry, out _));
+
+                // Still loaded, but one of its items is missing (a renamed staff, a missing cape): fall back piece by piece.
+                ModPresence.SetLoaded(new[] { Wizardry });
+                var noSwampStaffNoCapes = new System.Func<string, bool>(n => n != "StaffSwamp_TW" && !n.StartsWith("Cape"));
+                Assert.Equal("StaffFireball", GearRules.Staff(3, rules.Gear(JobType.Wizard), rules.GearWithoutMods(JobType.Wizard), noSwampStaffNoCapes, out fell));
+                Assert.True(fell);
+                Assert.Equal("", GearRules.Armor(3, rules.Outfit(JobType.Wizard), data.ArmorSets, noSwampStaffNoCapes)[3]);
+                // Nothing at all: the Staff of Embers, then a club.
+                Assert.Equal("Club", GearRules.Staff(3, rules.Gear(JobType.Wizard), rules.GearWithoutMods(JobType.Wizard), n => n == "Club", out _));
+                // Other jobs: the shared armour, no cape.
+                Assert.Equal(new[] { "HelmetBronze", "ArmorBronzeChest", "ArmorBronzeLegs", "" }, GearRules.Armor(3, rules.Outfit(JobType.Miner), data.ArmorSets, everything));
+            }
+            finally
+            {
+                ModPresence.SetLoaded(new string[0]);
+            }
+        }
+
+        [Fact]
         public void OlderFilesGetTheWizard()
         {
             VfhData old = DefaultData.Create();

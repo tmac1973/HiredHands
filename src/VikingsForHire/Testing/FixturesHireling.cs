@@ -38,6 +38,7 @@ namespace VikingsForHire.Testing
                 VikingsForHire.Hirelings.HirelingChatter.Say(Select(args.ElementAtOrDefault(0) ?? "nearest"), Player.m_localPlayer);
                 return Delay(0.2f);
             });
+            Fixtures.Add("regear", "- dress the hireling from your last contract again now, from the current data (as when it loads)", _ => Regear());
             TestHarness.RegisterCheck("hireling", "<last|posted|nearest|short-hid> <field> - last = most recently spawned, posted = from your last contract; name, job, level, health, maxhealth, charlevel, tamed, faction, armor, behaviour, post_dist, posted, follow_mode, retreat, owner_dist (from you), order, gear.right|left|helmet|chest|legs|ammo|sidearm (none when empty), cargo.<item>, cargo_used, cargo_slots, cargo_weight, or any vfh_ key",
                 args => Field(Select(args.ElementAtOrDefault(0) ?? "nearest"), args.ElementAtOrDefault(1) ?? ""));
             TestHarness.RegisterCheck("snapshot_roundtrip", "- result of the last snapshot test: true, or false with the differing values", _ => SnapshotTest.LastResult);
@@ -46,6 +47,15 @@ namespace VikingsForHire.Testing
         private static IEnumerator Delay(float seconds)
         {
             yield return new WaitForSeconds(seconds);
+        }
+
+        private static IEnumerator Regear()
+        {
+            Hireling h = Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == Board.BoardContracts.LastPostedHid)
+                         ?? throw new InvalidOperationException("the hireling from your last contract isn't loaded");
+            GearApplier.Regear(h.Humanoid, h.Job, h.Level);
+            VfhLog.I(LogCat.Test, "fixture.regear", ("hid", h.Hid), ("gear", GearApplier.Describe(h.Humanoid)));
+            yield return new WaitForSeconds(0.5f);
         }
 
         private static IEnumerator Hirelings(string[] args)
@@ -165,6 +175,7 @@ namespace VikingsForHire.Testing
             "gear.helmet" => GearApplier.Name(hum.m_helmetItem),
             "gear.chest" => GearApplier.Name(hum.m_chestItem),
             "gear.legs" => GearApplier.Name(hum.m_legItem),
+            "gear.cape" => GearApplier.Name(hum.m_shoulderItem),
             "gear.ammo" => GearApplier.Name(hum.GetAmmoItem()),
             "gear.sidearm" => GearApplier.Name(GearApplier.Sidearm(hum, h.Job, h.Level)),
             _ => throw new ArgumentException($"unknown gear slot {f}"),
