@@ -3,6 +3,16 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.7.7 (not released): live playtest
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| 50d6faa | A puff of dust at a chest when a hireling puts something in or takes something out: the chest's own "placed" dust (no sound), shown on every game that has the chest loaded, at most once a second per chest. `ChestPuffs` (Work, your own setting) turns it off for you. Players on older versions would log a missing-RPC line for each puff: update together | the game simulating the hireling (sends); every nearby game (shows) |
+
+### To test (batch)
+- [ ] By hand: a woodcutter delivering wood, a Steward taking ore: a small puff at the chest each time; a second player nearby sees it too; `ChestPuffs` off: you don't.
+
 ## 0.7.6 (released 2026-10-10): playtest fixes (turnips, planting, CoalPaste, mead ketill, roster and upgrade buttons)
 
 ### Fixed or added
