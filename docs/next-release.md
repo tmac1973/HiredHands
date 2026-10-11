@@ -12,7 +12,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | (follower-ghost branch) | Workers used things through the floor below them (Inga cooked from the floor above the kitchen): the height check used the cooking station's own height, raised on its fire, and nothing looked for a floor in between. Standing above something now needs no building piece between. Row VFH-COOK-9 | the game simulating the hireling |
 
 ### To test (batch)
-- [ ] Macro (single player): `vfh_test_chain cook_floor`; regression `vfh_test_chain store1 gather1 cook1 farm_seeds` (all chores share the reach check).
+- [ ] Macro (single player): `vfh_test_chain cook_floor`; regression `vfh_test_chain store1 gather1 cook_spit cook_cauldron farm_seeds` (all chores share the reach check).
 - [ ] By hand (live server, two players): A stands by a portal; B goes through it with a follower: A doesn't see the follower left standing there (server debug log, Follow on: ghost.resent).
 
 ## 0.8.1 (packaged 2026-10-11, in-game tests deferred): follower fixes, Shift+E problems list, players' logs
