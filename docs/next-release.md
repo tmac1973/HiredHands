@@ -3,6 +3,16 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.7.6 (not released): live playtest
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| 6407847 | The farm order picker listed turnips as a seed ("Turnip (seed (kept in reserve))"): raw turnips aren't food, and planting one grows turnip seeds, which was the seed rule. Now food or a cooking ingredient is never a seed, so turnips and onions are produce orders | your game (picker) |
+
+### To test (batch)
+- [ ] By hand: Orders → Add farm order: "Turnip" (no "(seed)") and "Turnip Seeds (seed)" both listed; an order for turnips makes the Farmer plant turnip seeds.
+
 ## 0.7.5 (released 2026-10-10): keep to dry land, Gather Here stays put
 
 ### Fixed or added
