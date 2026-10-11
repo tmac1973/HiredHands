@@ -186,6 +186,13 @@ namespace VikingsForHire.Hirelings.Work.Chores
             if (orders != null)
                 foreach (KeyValuePair<string, string> kv in orders)
                     lines.Add(kv.Key + "\t" + kv.Value);
+            // Ordered things waiting in the board's pile: no chest takes them yet (a chest takes what it already holds).
+            if (board != null)
+            {
+                Dictionary<string, int> piled = Board.BoardOrders.Stock(board).Piled;
+                foreach (Core.Orders.ProductionOrder o in Board.BoardOrders.For(board).Orders.Where(o => piled.ContainsKey(o.Item)))
+                    lines.Add("\t" + ActivityText.Make("$vfh_why_piled", o.Item, piled[o.Item].ToString()));
+            }
             foreach (string note in ChoreNotes.All.Take(MaxNotes))
                 if (orders == null || !orders.Values.Contains(note))
                     lines.Add("\t" + note);

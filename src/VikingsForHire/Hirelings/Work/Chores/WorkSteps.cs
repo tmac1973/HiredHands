@@ -84,10 +84,27 @@ namespace VikingsForHire.Hirelings.Work.Chores
         // Close enough to use it from where the feet are. Height against the object's base, not the switch (a smelter's ore
         // input is 2 m up): on its floor, not below. Or, like a player's reach, within 3 m of its nearest surface (a wall's
         // upper row, a sconce up high).
-        // Standing above it (the floor upstairs, over a cooking station raised on its fire): only with no floor in between.
+        // Standing above it, it must be in sight as a player's would be: over the edge of a raised floor to a chest tucked
+        // under it, yes; straight down through the floor (a cooking station in the room below), no.
         internal static bool UsableFrom(Vector3 feet, Component obj, Vector3 target, float half, float reach) =>
             (Utils.DistanceXZ(feet, target) <= half + Reach && Mathf.Abs(feet.y - obj.transform.position.y) < 1.8f &&
-             (feet.y <= obj.transform.position.y + 0.5f || !PieceBetween(feet + Vector3.up * 0.3f, target, obj))) || WithinReach(feet, obj, reach);
+             (feet.y <= obj.transform.position.y + 0.5f || SeenFromAbove(feet + Vector3.up * 1.5f, obj))) || WithinReach(feet, obj, reach);
+
+        // A clear line from the eye to the thing's middle, top or nearest point (no other building piece in the way).
+        private static bool SeenFromAbove(Vector3 eye, Component obj)
+        {
+            foreach (Collider c in obj.GetComponentsInChildren<Collider>())
+            {
+                if (!c.enabled || c.isTrigger)
+                    continue;
+                Bounds b = c.bounds;
+                Vector3 nearest = c is MeshCollider { convex: false } ? b.ClosestPoint(eye) : c.ClosestPoint(eye);
+                Vector3 top = new(b.center.x, b.max.y - 0.05f, b.center.z);
+                if (!PieceBetween(eye, b.center, obj) || !PieceBetween(eye, top, obj) || !PieceBetween(eye, nearest, obj))
+                    return true;
+            }
+            return false;
+        }
 
         // A spot just outside the object it can use it from: the side facing us if we can get there (the game's map or the
         // base's links), else another side we can reach (nearest first). Not the ground below a chest upstairs: close by,
@@ -104,13 +121,18 @@ namespace VikingsForHire.Hirelings.Work.Chores
             Vector3? closer = null;
             foreach (Vector3 spot in spots.OrderBy(p => Vector3.Distance(p, ai.transform.position)))
             {
-                Vector3 grounded = spot;
-                grounded.y = Floor(spot, target.y);
-                if (!ai.CanReach(grounded))
-                    continue;
-                if (UsableFrom(grounded, obj, target, half, reach))
-                    return grounded;
-                closer ??= grounded;
+                // The floor at about its height, else the floor at the hireling's own (a drawer high on a stack is reached
+                // from the floor below it, pointing up).
+                foreach (float y in new[] { Floor(spot, target.y), Floor(spot, ai.transform.position.y) }.Distinct())
+                {
+                    Vector3 grounded = spot;
+                    grounded.y = y;
+                    if (!ai.CanReach(grounded))
+                        continue;
+                    if (UsableFrom(grounded, obj, target, half, reach))
+                        return grounded;
+                    closer ??= grounded;
+                }
             }
             reachable = false;
             return closer ?? spots[0];
@@ -156,8 +178,23 @@ namespace VikingsForHire.Hirelings.Work.Chores
                     return true;
                 if (d <= reach && InSight(eye, p, obj))
                     return true;
+                // As a player aims: at a spot just inside it, and it's the first thing hit. A drawer stacked on others is
+                // reached by pointing up at it, though a line to its very edge grazes the drawer below.
+                if (d <= Mathf.Max(reach, PlayerReach) && Aimed(eye, c, p, obj))
+                    return true;
             }
             return false;
+        }
+
+        private static bool Aimed(Vector3 eye, Collider c, Vector3 nearest, Component obj)
+        {
+            Vector3 inside = Vector3.MoveTowards(nearest, c.bounds.center, 0.15f);
+            Vector3 to = inside - eye;
+            float length = to.magnitude;
+            if (length < 0.05f)
+                return true;
+            return Physics.Raycast(eye, to / length, out RaycastHit hit, length + 0.1f, SightMask, QueryTriggerInteraction.Ignore) &&
+                   hit.collider.transform.IsChildOf(obj.transform);
         }
 
         // Another building piece (not terrain, not the thing itself or its own parts) between the eye and a point on it.

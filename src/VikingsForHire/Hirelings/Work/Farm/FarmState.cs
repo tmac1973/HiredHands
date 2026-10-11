@@ -31,7 +31,11 @@ namespace VikingsForHire.Hirelings.Work.Farm
             foreach (Hireling h in Hireling.Loaded.Where(h => h != null && h.Job == JobType.Farmer && h.BoardId == board.Id && h.CargoInventory != null))
                 foreach (ItemDrop.ItemData i in h.CargoInventory!.GetAllItems().Where(i => i.m_dropPrefab != null))
                     have[i.m_dropPrefab.name] = (have.TryGetValue(i.m_dropPrefab.name, out int n) ? n : 0) + i.m_stack;
-            FarmPlan plan = FarmPlanner.Plan(CropCatalog.Infos, BoardOrders.For(board), have, stock.Growing, level, spots);
+            // What's in the board's pile counts like what's growing: toward the target, never as seed to plant.
+            var coming = new Dictionary<string, int>(stock.Growing);
+            foreach (KeyValuePair<string, int> kv in stock.Piled)
+                coming[kv.Key] = (coming.TryGetValue(kv.Key, out int g) ? g : 0) + kv.Value;
+            FarmPlan plan = FarmPlanner.Plan(CropCatalog.Infos, BoardOrders.For(board), have, coming, level, spots);
             Plans[board.Id] = (Time.time, plan);
             return plan;
         }

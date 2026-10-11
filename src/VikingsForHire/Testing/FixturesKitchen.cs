@@ -15,6 +15,26 @@ namespace VikingsForHire.Testing
     {
         private static int _placed;
 
+        private static IEnumerator ChestStack(string[] args)
+        {
+            string tag = args.ElementAtOrDefault(0) ?? "S";
+            int count = int.Parse(args.ElementAtOrDefault(1) ?? "3", CultureInfo.InvariantCulture);
+            HiringBoard board = FixturesWork.Board();
+            Vector3 at = board.transform.position + board.transform.forward * 6f;
+            at.y = ZoneSystem.instance.GetSolidHeight(at);
+            GameObject? top = null;
+            float y = 0f;
+            for (int i = 0; i < count; i++)
+            {
+                top = FixturesBoard.Spawn("piece_chest_wood", at + Vector3.up * y, Quaternion.LookRotation(-board.transform.forward));
+                yield return null;
+                y += top.GetComponentsInChildren<Collider>().Where(c => !c.isTrigger).Select(c => c.bounds.size.y).DefaultIfEmpty(0.9f).Max();
+            }
+            top!.GetComponent<ZNetView>().GetZDO().Set(FixturesWork.TagKey, tag);
+            VfhLog.I(LogCat.Test, "fixture.chest_stack", ("tag", tag), ("count", count), ("height", y));
+            yield return new WaitForSeconds(0.5f);
+        }
+
         private static IEnumerator FloorOver(string[] args)
         {
             GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
@@ -31,6 +51,7 @@ namespace VikingsForHire.Testing
         {
             Fixtures.Add("stove", "<prefab> [lit] [fuel <n>] [tag] - a cooking station over a campfire (lit: fuelled) or an oven with n wood (default 5), beside the nearest board", Stove);
             Fixtures.Add("craftstation", "<prefab> [level] [tag] - a cauldron or mead ketill over a lit campfire, or a prep table, beside the nearest board; level adds that many of its extensions", CraftStation);
+            Fixtures.Add("chest_stack", "<tag> [count=3] - wooden chests stacked in a column 6 m from the board, the top one tagged (drawers stacked on drawers)", ChestStack);
             Fixtures.Add("floor_over", "<tag> [height=2] [newtag=F] - a wood floor piece over a tagged object, that high above its base (an upper storey)", FloorOver);
             TestHarness.RegisterCheck("usable_from", "<tag> <beside|above> - whether a worker could use a tagged object standing beside it on its floor, or on the floor above it (floor_over)", args =>
             {

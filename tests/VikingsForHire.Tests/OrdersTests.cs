@@ -176,6 +176,17 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void WhatsInTheBoardsPileCountsTowardTheOrderButIsNoIngredient()
+        {
+            OrderList l = Orders(("CookedMeat", OrderKind.Kitchen, 4));
+            // 4 cooked meat in the pile: the order is met, nothing more is cooked.
+            Assert.Null(KitchenPlanner.Next(Kitchen, l, D(("RawMeat", 10)), D(), 1, AllStations, D(("CookedMeat", 4))).Task);
+            // Raw meat in the pile only: nothing to cook with.
+            KitchenResult r = KitchenPlanner.Next(Kitchen, l, D(), D(), 1, AllStations, D(("RawMeat", 10)));
+            Assert.Null(r.Task);
+        }
+
+        [Fact]
         public void CooksTheFirstShortOrder()
         {
             OrderList l = Orders(("CookedMeat", OrderKind.Kitchen, 4));

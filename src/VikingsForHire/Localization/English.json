@@ -143,6 +143,7 @@
   "vfh_why_on_it": "on it",
   "vfh_why_done": "done",
   "vfh_why_none": "Nothing in the way.",
+  "vfh_why_piled": "$1: $2 left at the board (no chest holds any yet: put one in a chest and it's stored there from then on)",
   "vfh_why_no_orders": "No orders for this job on the board.",
   "vfh_why_age": "Checked $1 s ago",
   "vfh_limits_title": "$1: limits",
