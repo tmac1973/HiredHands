@@ -305,10 +305,10 @@ navLinks:
 | Level | Upgrade needs | Combat | Workers | Max radius |
 |---|---|---|---|---|
 | 1 | (build cost) | 1 | 2 | 20 m |
-| 2 | Eikthyr trophy, Hard antler 3, Deer hide 20, Flint 20, Wood 50 | 1 | 4 | 25 m |
+| 2 | Eikthyr trophy, Deer hide 30, Flint 20, Wood 50 | 1 | 4 | 25 m |
 | 3 | The Elder trophy, Bronze 10, Core wood 40, Troll hide 5, Greydwarf eye 20 | 2 | 6 | 30 m |
 | 4 | Bonemass trophy, Iron 20, Ancient bark 40, Guck 10, Withered bone 10 | 2 | 8 | 35 m |
-| 5 | Moder trophy, Silver 20, Dragon tear 5, Wolf pelt 10, Obsidian 20 | 3 | 8 | 40 m |
+| 5 | Moder trophy, Silver 20, Freeze gland 10, Wolf pelt 10, Obsidian 20 | 3 | 8 | 40 m |
 | 6 | Yagluth trophy, Black metal 20, Linen thread 20, Needle 20, Lox pelt 5 | 3 | 8 | 45 m |
 | 7 | The Queen trophy, Black core 3, Eitr 15, Yggdrasil wood 40, Carapace 20 | 4 | 8 | 50 m |
 | 8 | Fader trophy, Flametal 20, Blackwood 40, Asksvin hide 10, Molten core 3 | 4 | 8 | 60 m |

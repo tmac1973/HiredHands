@@ -8,13 +8,15 @@ namespace VikingsForHire.Core.Data
     {
         public static VfhData Create() => new()
         {
+            // One boss item per level, its trophy: nothing that only a boss drops beyond that (dragon tears took a second
+            // Moder kill; hard antlers used up all of Eikthyr's).
             BoardLevels = new List<BoardLevelData>
             {
                 Board(1, 2, 1, 2, 20, ("Wood", 40), ("Stone", 20), ("DeerHide", 10), ("LeatherScraps", 10), ("Resin", 10)),
-                Board(2, 3, 1, 4, 25, ("TrophyEikthyr", 1), ("HardAntler", 3), ("DeerHide", 20), ("Flint", 20), ("Wood", 50)),
+                Board(2, 3, 1, 4, 25, ("TrophyEikthyr", 1), ("DeerHide", 30), ("Flint", 20), ("Wood", 50)),
                 Board(3, 4, 2, 6, 30, ("TrophyTheElder", 1), ("Bronze", 10), ("RoundLog", 40), ("TrollHide", 5), ("GreydwarfEye", 20)),
                 Board(4, 5, 2, 8, 35, ("TrophyBonemass", 1), ("Iron", 20), ("ElderBark", 40), ("Guck", 10), ("WitheredBone", 10)),
-                Board(5, 6, 3, 8, 40, ("TrophyDragonQueen", 1), ("Silver", 20), ("DragonTear", 5), ("WolfPelt", 10), ("Obsidian", 20)),
+                Board(5, 6, 3, 8, 40, ("TrophyDragonQueen", 1), ("Silver", 20), ("FreezeGland", 10), ("WolfPelt", 10), ("Obsidian", 20)),
                 Board(6, 7, 3, 8, 45, ("TrophyGoblinKing", 1), ("BlackMetal", 20), ("LinenThread", 20), ("Needle", 20), ("LoxPelt", 5)),
                 Board(7, 8, 4, 8, 50, ("TrophySeekerQueen", 1), ("BlackCore", 3), ("Eitr", 15), ("YggdrasilWood", 40), ("Carapace", 20)),
                 Board(8, 10, 4, 8, 60, ("TrophyFader", 1), ("FlametalNew", 20), ("Blackwood", 40), ("AskHide", 10), ("MoltenCore", 3)),
