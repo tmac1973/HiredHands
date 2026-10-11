@@ -34,7 +34,7 @@ have nothing to hire that matches how they play.
 - **Priced at 1.5x** (`costMult`), against 1.3x for guards and archers.
 - **Removing Wizardry doesn't break a base:** existing wizards stay and carry the nearest vanilla staff (Staff of
   Embers below level 6); only new wizard contracts below board level 6 are refused. Nobody is sent away.
-- **Ships as 0.8.0**, together with the unreleased 0.7.6 playtest fixes.
+- **Ships as 0.8.0.** (The playtest fixes once planned to ride along shipped on their own as 0.7.6.)
 
 ## Non-goals
 - **The Healer.** A separate later job (Wizardry's healing areas spawned directly, plus a vanilla fallback).
@@ -124,4 +124,4 @@ have nothing to hire that matches how they play.
   people, tames or buildings.
 - **Abilities** → everything an archer can do (stances, posts, following, orders).
 - **Testing** → Wizardry added to the dev profile; a test switch for the without-Wizardry case.
-- **Release** → 0.8.0, together with the 0.7.6 playtest fixes (Tim, after approving the plan).
+- **Release** → 0.8.0 (the 0.7.6 fixes were released on their own first, at Tim's request).

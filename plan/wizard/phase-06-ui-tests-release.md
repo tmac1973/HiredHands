@@ -4,8 +4,7 @@
 
 ## Goal
 Everything the earlier phases added is documented, the whole wizard chain and the combat regression pass with Wizardry
-in the dev profile, and 0.8.0 is released. 0.8.0 also carries the unreleased 0.7.6 playtest fixes (Tim, 2026-10-10):
-their tab in `docs/next-release.md` merges into the 0.8.0 tab and their CHANGELOG lines go under 0.8.0.
+in the dev profile, and 0.8.0 is released.
 
 ## Files touched
 - `README.md`: a Wizard section (unlock levels with and without Wizardry, staffs and robes per level, the three
