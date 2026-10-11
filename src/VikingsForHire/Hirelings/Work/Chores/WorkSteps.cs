@@ -121,13 +121,18 @@ namespace VikingsForHire.Hirelings.Work.Chores
             Vector3? closer = null;
             foreach (Vector3 spot in spots.OrderBy(p => Vector3.Distance(p, ai.transform.position)))
             {
-                Vector3 grounded = spot;
-                grounded.y = Floor(spot, target.y);
-                if (!ai.CanReach(grounded))
-                    continue;
-                if (UsableFrom(grounded, obj, target, half, reach))
-                    return grounded;
-                closer ??= grounded;
+                // The floor at about its height, else the floor at the hireling's own (a drawer high on a stack is reached
+                // from the floor below it, pointing up).
+                foreach (float y in new[] { Floor(spot, target.y), Floor(spot, ai.transform.position.y) }.Distinct())
+                {
+                    Vector3 grounded = spot;
+                    grounded.y = y;
+                    if (!ai.CanReach(grounded))
+                        continue;
+                    if (UsableFrom(grounded, obj, target, half, reach))
+                        return grounded;
+                    closer ??= grounded;
+                }
             }
             reachable = false;
             return closer ?? spots[0];
@@ -173,8 +178,23 @@ namespace VikingsForHire.Hirelings.Work.Chores
                     return true;
                 if (d <= reach && InSight(eye, p, obj))
                     return true;
+                // As a player aims: at a spot just inside it, and it's the first thing hit. A drawer stacked on others is
+                // reached by pointing up at it, though a line to its very edge grazes the drawer below.
+                if (d <= Mathf.Max(reach, PlayerReach) && Aimed(eye, c, p, obj))
+                    return true;
             }
             return false;
+        }
+
+        private static bool Aimed(Vector3 eye, Collider c, Vector3 nearest, Component obj)
+        {
+            Vector3 inside = Vector3.MoveTowards(nearest, c.bounds.center, 0.15f);
+            Vector3 to = inside - eye;
+            float length = to.magnitude;
+            if (length < 0.05f)
+                return true;
+            return Physics.Raycast(eye, to / length, out RaycastHit hit, length + 0.1f, SightMask, QueryTriggerInteraction.Ignore) &&
+                   hit.collider.transform.IsChildOf(obj.transform);
         }
 
         // Another building piece (not terrain, not the thing itself or its own parts) between the eye and a point on it.
