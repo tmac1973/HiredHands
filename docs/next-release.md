@@ -10,10 +10,13 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 |---|---|---|
 | (rancher branch) | The Rancher (plan/rancher): ranch orders (meat, eggs, breeding pools ≥ 2) on the Orders tab; RanchPlanner (slaughter the lowest-star adult above its kind's pool while its meat is short; never young, named or unpooled; eggs while short; reasons); AnimalCatalog/HerdScan from the game (modded animals too); feeding (the Steward and PetPantry step aside); SlaughterChore (one killing blow, drops collected and delivered; only a Rancher's hits land on tames); EggsChore (the Steward's tidy leaves eggs on a ranch board); Problems list. Rows VFH-RANCH-1 to -11 | the game simulating the Rancher; orders on the board owner's |
 | (rancher branch) | Pen safety (plan/rancher phase 07, Tim: boars can't be led back): over the fence first (a piece below the eye doesn't block reaching a creature; spots further out are tried); any hireling waits while a tame is within 3 m of a door (20 s at most) and shuts a door at once (1.5 m past) with tames about; a herd animal seen penned and now out is reported (Problems). Rows VFH-RANCH-12, -13, -14 | the game simulating the hireling |
+| (rancher branch) | Combat balance: the default level table's guardDamageMult was 1.0-5.2 on top of gear that already rises with level (Thorvald, level 4 archer: 160-185 per arrow, about 2.2x a player with the same bow; the Elder in 44 s). Now 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.3. Existing data files keep theirs (CHANGELOG says what to set) | the game hitting |
 
 ### To test (batch)
 - [ ] Macro (single player): `vfh_t_ranch_all` (VFH-RANCH-1 to -14 with -3b, -7b); regression `vfh_test_chain animals tidy orders farm_seeds cook_spit cook_cauldron combat1 stance4 noeffect store1 hire4 why1 why2`.
 - [ ] By hand: the Orders tab's ranch picker and rows, the Rancher's Problems view.
+- [ ] By hand (live server, after setting the new guardDamageMult in the server's data file): Thorvald's arrows land about 80-100 on Black Forest monsters; the balance log's fights show it.
+- [ ] Regression: the combat and wizard rows still pass with the gentler multiplier (`vfh_t_wiz_all`, `vfh_test_chain combat1 stance4 stance5 block2 dodge1 noeffect`).
 - [ ] By hand (live server): a Rancher works a real herd for a session (orders, slaughter, a named pet spared, Problems readable).
 
 ## 0.8.3 (not released): arrows go where the archer aims, orders count the board's pile

@@ -22,16 +22,18 @@ namespace VikingsForHire.Core.Data
             // Hiring is paid in coins and upkeep in food. Coins are scarce (the trader, dungeon chests), so they're a
             // one-time cost (hiring, promoting, respawning); daily coin upkeep added up to hundreds of coins an hour. Level
             // 1 is hired for food: there are hardly any coins before the Black Forest.
+            // guardDamageMult only nudges damage up (1.0 to 1.3): the weapon a hireling carries already rises with its level, as a
+            // player's does. Before 0.9.0 it climbed to 5.2 on top of that (a level 4 archer hit 2.2x a player with the same bow).
             HirelingLevels = new List<HirelingLevelData>
             {
                 Hireling(1, 80, 4, 1.0f, 1.0f, 8, 150, 0, 40, 0),
-                Hireling(2, 120, 8, 1.3f, 1.2f, 10, 0, 50, 60, 0),
-                Hireling(3, 180, 14, 1.7f, 1.4f, 12, 0, 150, 90, 0),
-                Hireling(4, 250, 20, 2.2f, 1.6f, 16, 0, 300, 120, 0),
-                Hireling(5, 330, 26, 2.8f, 1.8f, 20, 0, 500, 160, 0),
-                Hireling(6, 420, 32, 3.5f, 2.0f, 24, 0, 800, 200, 0),
-                Hireling(7, 520, 38, 4.3f, 2.2f, 28, 0, 1200, 250, 0),
-                Hireling(8, 650, 44, 5.2f, 2.4f, 32, 0, 1800, 300, 0),
+                Hireling(2, 120, 8, 1.05f, 1.2f, 10, 0, 50, 60, 0),
+                Hireling(3, 180, 14, 1.1f, 1.4f, 12, 0, 150, 90, 0),
+                Hireling(4, 250, 20, 1.15f, 1.6f, 16, 0, 300, 120, 0),
+                Hireling(5, 330, 26, 1.2f, 1.8f, 20, 0, 500, 160, 0),
+                Hireling(6, 420, 32, 1.25f, 2.0f, 24, 0, 800, 200, 0),
+                Hireling(7, 520, 38, 1.3f, 2.2f, 28, 0, 1200, 250, 0),
+                Hireling(8, 650, 44, 1.3f, 2.4f, 32, 0, 1800, 300, 0),
             },
             ArmorSets = new List<ArmorSetData>
             {

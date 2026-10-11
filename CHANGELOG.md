@@ -16,6 +16,12 @@
   - **Keeps pens shut:** works over the fence when he can reach; otherwise waits for the gate to clear and shuts it behind
     him. An animal that gets out is reported.
   - His Shift+E **Problems** list says why an order isn't met or a pen isn't breeding (crowded, no partner, hungry, no feed).
+- **Hirelings hit like a player with the same weapon, not twice as hard.** Their weapons already get better with level;
+  the level table's `guardDamageMult` multiplied that again (2.2 at level 4, 5.2 at level 8), so a level 4 archer one-shot
+  Black Forest monsters and took the Elder down in 44 s. The default is now 1.0 at level 1 to 1.3 at levels 7-8.
+  **Existing servers keep their data file's numbers:** to take the new ones, set `guardDamageMult` under each of the
+  `hirelingLevels` in `Spronglehump.HiredHands.yml` (1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.3), or turn
+  `GuardMeleeDamage` / `GuardRangedDamage` / `WizardDamage` down instead.
 - **Every hireling minds the gate:** with tame animals near a door, hirelings wait for them to move off before opening it
   and shut it as soon as they're through.
   - Settings in *12 - Rancher*.
