@@ -31,7 +31,11 @@ namespace VikingsForHire.Hirelings
         private JobType _gearJob;
         private int _gearLevel = -1;
         private float _nextPoll;
-        private float _nextBoardCheck;
+        // First check a while after appearing, and leave only after two misses in a row: a board placed a moment ago may
+        // not be in the server's index yet (two fresh hirelings left a fresh board as "gone").
+        private float _nextBoardCheck = -1f;
+        private int _boardMisses;
+        private const float FirstBoardCheckSeconds = 30f;
         private const float BoardCheckSeconds = 60f;
 
         public ZDO? Zdo => _nview != null && _nview.IsValid() ? _nview.GetZDO() : null;
@@ -398,13 +402,25 @@ namespace VikingsForHire.Hirelings
                     EnsureArmed();
                     EnsureWeaponAnimation();
                 }
+                if (_nextBoardCheck < 0f)
+                    _nextBoardCheck = Time.time + FirstBoardCheckSeconds;
                 if (IsOwner && BoardId.Length > 0 && Mode != HirelingMode.Leaving && Time.time >= _nextBoardCheck)
                 {
-                    _nextBoardCheck = Time.time + BoardCheckSeconds;
+                    _nextBoardCheck = Time.time + (_boardMisses > 0 ? FirstBoardCheckSeconds : BoardCheckSeconds);
                     Net.BoardServer.CheckBoardExists(BoardId, exists =>
                     {
-                        if (exists || this == null || Zdo == null || Mode == HirelingMode.Leaving)
+                        if (this == null || Zdo == null || Mode == HirelingMode.Leaving)
                             return;
+                        if (exists)
+                        {
+                            _boardMisses = 0;
+                            return;
+                        }
+                        if (++_boardMisses < 2)
+                        {
+                            VfhLog.D(LogCat.Hireling, "hireling.board_missing_once", ("hid", Hid), ("board", BoardId));
+                            return;
+                        }
                         VfhLog.I(LogCat.Hireling, "hireling.board_gone", ("hid", Hid), ("board", BoardId));
                         Net.MutationService.SubmitHireling(Hid, new HirelingOp { Mode = HirelingMode.Leaving, LeavingSince = (long)ZNet.instance.GetTimeSeconds(), Status = "$vfh_status_board_gone" });
                     });
