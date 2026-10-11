@@ -54,16 +54,41 @@ namespace VikingsForHire.Net
         }
 
         /// <summary>Server: tell the game simulating a follower to send it home (HomeReturn.Order).</summary>
-        public static void SendHomeOrder(long peer, string hid, string why)
+        public static void SendHomeOrder(long peer, string hid, string why, int hop = 0)
         {
             var pkg = new ZPackage();
             pkg.Write(hid);
             pkg.Write(why);
+            pkg.Write(hop);
             _homeRpc.SendPackage(peer, pkg);
         }
 
+        // A game that got a home order for a follower it doesn't have loaded hands it back: send it on once to whoever
+        // runs the follower now, else (nobody, or it came back again) take the follower over here and send it home.
+        // Before, the order was just dropped, and a follower left behind stayed its far-away owner's for good (Una).
         private static IEnumerator OnHomeServer(long sender, ZPackage pkg)
         {
+            string hid = pkg.ReadString();
+            string why = pkg.ReadString();
+            int hop = pkg.ReadInt();
+            VfhLog.Guard(LogCat.Follow, "follow.home_bounce_failed", () =>
+            {
+                if (!ZNet.instance.IsServer())
+                    return;
+                ZDO? zdo = WorldIndex.AllHirelings().FirstOrDefault(z => z.GetString(HirelingZdo.Hid) == hid);
+                if (zdo == null || zdo.GetInt(HirelingZdo.Mode) != (int)HirelingMode.Following)
+                    return;
+                long owner = zdo.GetOwner();
+                if (hop == 0 && owner != 0L && owner != sender && owner != ZDOMan.GetSessionID() && ZNet.instance.GetPeer(owner) != null)
+                {
+                    VfhLog.I(LogCat.Follow, "follow.home_order_forwarded", ("hid", hid), ("from", sender), ("to", owner));
+                    SendHomeOrder(owner, hid, why, hop + 1);
+                    return;
+                }
+                zdo.SetOwner(ZDOMan.GetSessionID());
+                VfhLog.I(LogCat.Follow, "follow.home_order_server", ("hid", hid), ("was", owner), ("why", why));
+                Followers.HomeReturn.Begin(zdo, why);
+            });
             yield break;
         }
 
@@ -72,14 +97,19 @@ namespace VikingsForHire.Net
         {
             string hid = pkg.ReadString();
             string why = pkg.ReadString();
+            int hop = pkg.ReadInt();
             VfhLog.Guard(LogCat.Follow, "follow.home_order_failed", () =>
             {
                 Hireling? h = Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == hid);
                 if (h?.Zdo == null)
                 {
-                    VfhLog.W(LogCat.Follow, "follow.home_order_lost", ("hid", hid), ("why", "not loaded here"));
+                    // Not here any more (its player went on and another game runs it): back to the server.
+                    VfhLog.W(LogCat.Follow, "follow.home_order_bounced", ("hid", hid), ("why", "not loaded here"));
+                    SendHomeOrder(ZRoutedRpc.instance.GetServerPeerID(), hid, why, hop);
                     return;
                 }
+                if (!h.IsOwner)
+                    h.GetComponent<ZNetView>().ClaimOwnership();
                 Followers.HomeReturn.Begin(h.Zdo, why);
             });
             yield break;
