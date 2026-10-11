@@ -3,6 +3,16 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.8.2 (not released): no ghost followers at portals
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (follower-ghost branch) | A follower taken through a portal could leave a frozen copy at the departure portal for players standing there (the vanilla portal "ghost": the server only sends a player what's near them, so they never heard it had gone). The server now resends a hireling's position to everyone when it jumps 64 m or more | the server |
+
+### To test (batch)
+- [ ] By hand (live server, two players): A stands by a portal; B goes through it with a follower: A doesn't see the follower left standing there (server debug log, Follow on: ghost.resent).
+
 ## 0.8.1 (packaged 2026-10-11, in-game tests deferred): follower fixes, Shift+E problems list, players' logs
 
 ### Fixed or added

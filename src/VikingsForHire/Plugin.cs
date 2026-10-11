@@ -100,6 +100,7 @@ namespace VikingsForHire
             VfhLog.Guard(LogCat.Roster, "server.tick_failed", Net.BoardServer.Tick);
             VfhLog.Guard(LogCat.Follow, "follow.tick_failed", Net.FollowerServer.Tick);
             VfhLog.Guard(LogCat.Follow, "orphan.tick_failed", Net.OrphanMonitor.Tick);
+            VfhLog.Guard(LogCat.Follow, "ghost.tick_failed", Net.HirelingGhostGuard.Tick);
             VfhLog.Guard(LogCat.Roster, "reconcile.tick_failed", Net.RosterReconciler.Tick);
             VfhLog.Guard(LogCat.Core, "balance.tick_failed", Telemetry.BalanceLog.Tick);
             VfhLog.Guard(LogCat.Core, "clientlog.tick_failed", Diagnostics.ClientLogRelay.Tick);
