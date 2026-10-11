@@ -97,6 +97,13 @@ namespace VikingsForHire.Testing
                 Character c = go.GetComponent<Character>();
                 return (Hirelings.Work.Steward.AnimalsChore.Fed.TryGetValue(c.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
             });
+            Fixtures.Add("ranch_stats_reset", "- start counting Rancher slaughters from zero (slaughtered_by_rancher)", _ =>
+            {
+                Hirelings.Work.Ranch.SlaughterChore.Slaughtered = 0;
+                return Brief();
+            });
+            TestHarness.RegisterCheck("slaughtered_by_rancher", "- animals Ranchers have slaughtered since ranch_stats_reset", _ =>
+                Hirelings.Work.Ranch.SlaughterChore.Slaughtered.ToString(CultureInfo.InvariantCulture));
             TestHarness.RegisterCheck("fed_by_rancher", "<tag> - food items Ranchers have dropped for a tagged animal", args =>
             {
                 GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged animal");
@@ -392,6 +399,11 @@ namespace VikingsForHire.Testing
             int level = levelArg == "full" ? max : int.Parse(levelArg, CultureInfo.InvariantCulture);
             go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_level, level);
             VfhLog.I(LogCat.Test, "fixture.producer", ("prefab", prefab), ("level", level), ("max", max), ("tag", tag));
+            yield return null;
+        }
+
+        private static IEnumerator Brief()
+        {
             yield return null;
         }
 

@@ -124,6 +124,8 @@
   "vfh_steward_collect": "Collecting from $1",
   "vfh_steward_feed": "Feeding $1",
   "vfh_ranch_feed": "Feeding $1",
+  "vfh_ranch_slaughter": "Slaughtering $1",
+  "vfh_chore_slaughter": "Slaughter for meat orders",
   "vfh_steward_repair": "Repairing $1",
   "vfh_steward_ferment": "Tending $1",
   "vfh_steward_shield": "Feeding $1",

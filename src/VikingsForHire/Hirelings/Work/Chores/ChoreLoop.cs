@@ -248,6 +248,7 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 ChoreKind.Stoves => VfhConfig.CookStoves,
                 ChoreKind.Craft => VfhConfig.CookCraft,
                 ChoreKind.RanchFeed => VfhConfig.RancherFeed,
+                ChoreKind.Slaughter => VfhConfig.RancherSlaughter,
                 _ => VfhConfig.StewardRepairs,
             };
             return setting.Value;
