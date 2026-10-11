@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.2
+
+**The server needs 0.8.2;** players on 0.8.1 can still play (the fixes run on the server and on the game running each hireling), but should update too.
+
+- **No ghost followers at portals.** A follower taken through a portal could leave a frozen copy standing at the portal it left, seen by players there (the same vanilla glitch that leaves player "ghosts"). The server now tells everyone when a hireling jumps far.
+- **No working through the floor.** Workers could use things on the floor below them (a Cook tending a cooking station from the room above). Standing above something now needs a clear way to it.
+
 ## 0.8.1
 
 **Everyone updates together:** new network messages (players' logs, follower orders); a player on 0.8.0 would miss them.
