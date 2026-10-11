@@ -14,7 +14,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | 55d539e | Hirelings still swam where they could walk (Brand jumped in the sea and swam round instead of walking out of the house): the game's Humanoid path agent costs water only 4x land, so any walk round longer than that lost. They now use the game's HumanoidAvoidWater agent: water isn't walkable for it, so a land route always wins; with no land route they still head straight there. Arrival spots and the doors/stairs planner use the same agent | the game simulating the hireling |
 
 ### To test (batch)
-- [ ] Macro (navigation regression, every route changed): `vfh_test_chain nav1 nav2 house1 house2 stairs1 door1 portal1 catchup1 home1 home3 gather1 farm_harvest pass` (row names as in alias_vfh.yaml).
+- [ ] Macro (navigation regression, every route changed): `vfh_test_chain navscan1 navscan2 navscan3 nav1 nav2 nav3 nav4 nav5 nav6 door1 portal1 catchup1 home1 home3 gather1 farm_harvest pass`.
 - [ ] By hand (live server): Brand at the seaside house walks out over land.
 - [ ] Macro: `vfh_test_chain home3 home1 recruit1 retreat1`.
 - [ ] By hand (live server): a friend parks a follower at the base and portals away: within about 2 minutes it's back at work and you can recruit it.
