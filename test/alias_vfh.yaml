@@ -302,3 +302,7 @@ vfh_t_home3: vfh_test_begin VFH-HOME-3;vfh_fixture fast_timers on;vfh_fixture ba
 vfh_t_chat1: vfh_test_begin VFH-CHAT-1;vfh_fixture hirelings Woodcutter 2;vfh_fixture chatter_now last;vfh_assert hireling last said == true;vfh_fixture kill_hirelings;vfh_assert log_errors == 0;vfh_test_end
 # Test debt from the 0.7.6-0.7.8 playtest releases (run before the next release): new rows, then everything the swim-avoiding paths, the Cook's watching, the farm fixes and the follower rules touch. About 40 minutes.
 vfh_t_debt: vfh_test_reset;vfh_fixture clear_area 100;vfh_test_chain home3 chat1 store1 store2 cook_spit cook_oven cook_cauldron cook_chain cook_protect farm_harvest farm_seeds farm_rows navscan1 navscan2 navscan3 nav1 nav2 nav3 nav4 nav5 nav6 door1 portal1 catchup1 home1 recruit1 retreat1 gather1 order1 order2 move1 death5 pass;vfh_test_summary
+
+# 0.8.0: the Wizard (plan/wizard/).
+# VFH-COMBAT-10 (SP): a hit from a hireling never hurts a player (a control hit from no one does).
+vfh_t_combat10: vfh_test_begin VFH-COMBAT-10;vfh_fixture hirelings GuardMelee 2;vfh_fixture stance last Passive;vfh_fixture protect off;vfh_fixture hit_me 0.2;vfh_assert player_health < 0.99;vfh_fixture heal_me;vfh_fixture hit_me_by_hireling 0.2;vfh_assert player_health >= 0.99;vfh_fixture protect on;vfh_fixture kill_hirelings;vfh_assert log_errors == 0;vfh_test_end

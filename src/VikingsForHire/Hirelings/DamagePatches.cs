@@ -62,6 +62,9 @@ namespace VikingsForHire.Hirelings
 
                     if (__instance.IsTamed())
                         return Blocked("hireling_on_tame", from!, __instance);
+                    // Nor players, whatever PvP says: a stray splash or a spell's blast landed on whoever stood by the target.
+                    if (__instance is Player)
+                        return Blocked("hireling_on_player", from!, __instance);
 
                     float mult = DamageMultiplier(from!);
                     hit.m_damage.Modify(mult);

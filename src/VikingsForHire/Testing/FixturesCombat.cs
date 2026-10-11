@@ -24,6 +24,19 @@ namespace VikingsForHire.Testing
                 FixturesWork.FindTagged("tame") is GameObject t && t.GetComponent<Character>() is Character c && !c.IsDead() ? "true" : "false");
             TestHarness.RegisterCheck("damage_blocked", "<reason> - hits between hirelings and others blocked since login (e.g. tame_on_hireling)", args =>
                 Hirelings.DamagePatches.BlockedCount(args.ElementAtOrDefault(0) ?? "").ToString());
+            Fixtures.Add("hit_me_by_hireling", "<share=0.2> - as hit_me, but the hit comes from the last spawned hireling (hirelings never hurt players)", HitMeByHireling);
+            Fixtures.Add("protect", "<on|off> - the tester's protection: off lets hits reach you for the rest of this test (the next test turns it on again)", args =>
+            {
+                bool on = (args.ElementAtOrDefault(0) ?? "on") != "off";
+                TestProtection.Set(on);
+                VfhLog.I(LogCat.Test, "fixture.protect", ("on", on));
+                return Pause(0.1f);
+            });
+            Fixtures.Add("heal_me", "- back to full health", _ =>
+            {
+                Player.m_localPlayer.SetHealth(Player.m_localPlayer.GetMaxHealth());
+                return Pause(0.1f);
+            });
             Fixtures.Add("hit_me", "<share=0.5> - heal yourself to full, then take a blunt hit worth that share of your max health after armor (to check the tester's protection)", HitMe);
             TestHarness.RegisterCheck("player_health", "- your health as a share of your max", _ =>
                 (Player.m_localPlayer.GetHealth() / Player.m_localPlayer.GetMaxHealth()).ToString("0.00", CultureInfo.InvariantCulture));
@@ -201,6 +214,20 @@ namespace VikingsForHire.Testing
                 ("healthNow", me.GetHealth()), ("god", me.InGodMode()), ("ghost", me.InGhostMode()), ("flying", me.IsDebugFlying()), ("teleporting", me.IsTeleporting()));
             yield return new WaitForSeconds(0.5f);
             VfhLog.I(LogCat.Test, "fixture.hit_me_after", ("health", me.GetHealth()), ("max", me.GetMaxHealth()));
+        }
+
+        private static IEnumerator HitMeByHireling(string[] args)
+        {
+            Player me = Player.m_localPlayer;
+            Hireling from = Last();
+            me.SetHealth(me.GetMaxHealth());
+            float share = float.Parse(args.ElementAtOrDefault(0) ?? "0.2", CultureInfo.InvariantCulture);
+            var hit = new HitData { m_point = me.transform.position, m_dir = Vector3.forward };
+            hit.m_damage.m_blunt = share * me.GetMaxHealth() + me.GetBodyArmor();
+            hit.SetAttacker(from.Humanoid);
+            me.Damage(hit);
+            VfhLog.I(LogCat.Test, "fixture.hit_me_by_hireling", ("hid", from.Hid), ("damage", hit.m_damage.m_blunt), ("protected", TestProtection.On));
+            yield return new WaitForSeconds(0.5f);
         }
 
         private static IEnumerator Ghost(string[] args)
