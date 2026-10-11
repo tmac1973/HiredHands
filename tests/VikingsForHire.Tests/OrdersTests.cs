@@ -139,6 +139,19 @@ namespace VikingsForHire.Tests
         private static readonly Dictionary<string, int> AllStations = new() { ["piece_cookingstation"] = 1, ["piece_cauldron"] = 1, ["piece_preptable"] = 1, ["piece_oven"] = 1 };
 
         [Fact]
+        public void AStuckSeedOrderDoesntHoldItsCropBack()
+        {
+            // 7 seeds under a 100-seed order, no carrots: the seed order can't plant (no carrots), so the carrot order may
+            // plant the seeds; the carrots then feed the seed order.
+            OrderList l = Orders(("CarrotSeeds", OrderKind.Seed, 100), ("Carrot", OrderKind.Crop, 20));
+            FarmPlan p = FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 7)), D(), 2, Spots(20));
+            Assert.Contains(p.Plant, x => x.Crop.Plant == "sapling_carrot" && x.Count == 7);
+            // With carrots to plant for seeds the reserve holds as before.
+            FarmPlan q = FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 7), ("Carrot", 2)), D(), 2, Spots(20));
+            Assert.DoesNotContain(q.Plant, x => x.Crop.Plant == "sapling_carrot");
+        }
+
+        [Fact]
         public void FarmGivesAReasonForEveryBlockedOrder()
         {
             OrderList l = Orders(("CarrotSeeds", OrderKind.Seed, 6), ("Barley", OrderKind.Crop, 10), ("Wood", OrderKind.Crop, 5),

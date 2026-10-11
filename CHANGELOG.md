@@ -28,6 +28,12 @@
   10 freeze glands from drakes; level 2's 3 hard antlers (all of Eikthyr's) are now 10 more deer hide. Existing servers
   keep their data file's costs: change `DragonTear: 5` to `FreezeGland: 10` under level 5, and `HardAntler: 3` /
   `DeerHide: 20` to `DeerHide: 30` under level 2, in `Spronglehump.HiredHands.yml`.
+- **Torches up high:** a torch the Steward can't reach (placed high, for looks) is remembered after two tries and left
+  alone for the session, and his Problems list names it so you fuel it. Shift+E on a fire or torch near a board marks it
+  for workers to leave alone altogether.
+- **Seed orders no longer lock up their crop:** with a few seeds under a big seed order and none of the produce to plant
+  for seeds (7 onion seeds, an order for 100, no onions), the crop order may now plant those seeds; the crop then feeds
+  the seed order. Before, neither moved.
 - **Doors hirelings leave shut:** Shift+E on a door near a board marks it (a pen's gates); hirelings never open it or route
   through it, even when it's open. Shift+E again clears it.
 - **Chest modes:** Shift+E on a chest near a board sets what workers may do with it: put in and take out (default), put

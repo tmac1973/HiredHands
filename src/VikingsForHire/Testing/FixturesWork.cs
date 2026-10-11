@@ -140,6 +140,14 @@ namespace VikingsForHire.Testing
                 Hirelings.Nav.NavLinkRegistry.MarkDirty(d.transform.position);
                 return Brief();
             });
+            Fixtures.Add("fire_mark", "<tag> <avoid|use> - mark a tagged fire or torch for workers to leave alone, or clear it (as Shift+E on it does)", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Fireplace f = go.GetComponentInChildren<Fireplace>() ?? throw new InvalidOperationException("not a fire");
+                f.m_nview.ClaimOwnership();
+                f.m_nview.GetZDO().Set(Hirelings.Work.Steward.FiresChore.AvoidKey, (args.ElementAtOrDefault(1) ?? "avoid") == "avoid" ? 1 : 0);
+                return Brief();
+            });
             Fixtures.Add("ranch_stats_reset", "- start counting Rancher slaughters from zero (slaughtered_by_rancher)", _ =>
             {
                 Hirelings.Work.Ranch.SlaughterChore.Slaughtered = 0;
