@@ -70,6 +70,7 @@ Either way its slot on the board stays taken while it's away. Configs from older
 | Cook | Cooks on your spits and in your oven, crafts at the cauldron, prep table and mead ketill, to the board's orders | Needs a level 2 board; one per board. Carries a ladle |
 | Guard (melee) | Patrols the radius and fights | Stances: Passive, Defensive, Aggressive |
 | Guard (ranged) | Same, with a bow | |
+| Wizard | Same, casting a staff's spell from range | Needs a level 6 board, or level 2 with Therzie's Wizardry. See *Wizards* below |
 
 Woodcutters and miners work twice the board's radius. Everyone defends themselves; non-guards fight weakly and flee or defend by stance. **Chopping and mining make noise**, as yours does, so nearby monsters come for a worker (`GatheringMakesNoise` turns it off).
 
@@ -108,9 +109,45 @@ Guards patrol and fight by stance; everyone else defends themselves, weakly, and
 - **How hard they hit.** `GuardMeleeDamage` and `GuardRangedDamage` (Combat, server-synced) scale melee guards' and
   archers' damage on top of the levels table (`guardDamageMult`, 1 at level 1 up to 5.2 at level 8). The default is 1;
   0.5 halves it.
+- **Never on you.** No hireling's hit hurts a player, whatever PvP is set to: a stray splash or a spell's blast landing
+  by its target spares you.
 - **Healing.** A hireling that hasn't been hit for 10 s heals 1% of its health every 2 s, a full heal in about 3.5
   minutes. `HealthRegen` (Combat, server-synced) scales that: 0.5 is about 7 minutes, 0 means no healing of their own
   (only the game's slow trickle), and the maximum is 3.
+
+## Wizards
+
+A wizard is a combat hireling (it counts against the board's combat cap) that fights with a staff's main spell:
+
+- **When:** from a level 6 board, when the Mistlands and the Galdr table's staffs open up. With **Therzie's Wizardry**
+  installed, from a level 2 board, as soon as Wizardry's first staff can be crafted in the Black Forest.
+- **How it fights:** it casts from 10 to 22 m, one spell every 3 s (`WizardAttackCooldown`), and steps back from anything
+  that gets within 8 m: strong at range, fragile up close. No sidearm and no shield; it dodges like everyone. Casting
+  costs it nothing (no eitr bar). It takes stances, posts, orders and following like a guard or archer.
+- **Staffs by level:**
+
+  | Level | With Wizardry | Without |
+  |---|---|---|
+  | 2 | Evergrowth | |
+  | 3 | Wizardry's Swamp staff | |
+  | 4 | Wizardry's Mountain staff | |
+  | 5 | Wizardry's Plains staff | |
+  | 6 | Wizardry's Mistlands staff | Staff of Embers |
+  | 7 | Dundr | Staff of Frost |
+  | 8 | Dundr | Dundr |
+
+  Only the main attack is used: no conjured roots, meteors, healing or summons.
+- **Robes:** Wizardry's Spellslinger robes and capes by biome; without it, Eitr-weave robes from level 6 and Embla robes
+  at 7-8. Looks only: a hireling's armour comes from its level.
+- **What spells may hit:** enemies only, never players, hirelings, tames or buildings. `WizardSpellsHit` (Combat)
+  decides props: `EnemiesOnly` (default), or `EnemiesAndTerrain` to let a blast damage things like greydwarf nests, as
+  your own staff would (trees and rocks only take chop and pickaxe damage either way).
+- **How hard they hit:** `WizardDamage` (Combat, default 1), like `GuardMeleeDamage`.
+- **Price:** 1.5x the base hire fee and upkeep (guards and archers: 1.3x).
+- **If Wizardry is removed:** wizards already hired stay and carry the vanilla staff for their level (the Staff of
+  Embers below 6); new wizards then need a level 6 board.
+- **In the data file:** the wizard's staffs (`gear`), robes (`outfit`, with `cape`) and unlock level, and the same again
+  under `withMods` for Therzie.Wizardry, which applies while that mod is loaded. Any job can have `withMods` entries.
 
 ## The Steward
 
@@ -234,7 +271,7 @@ navLinks:
 
 **The board's area** is its max radius: look at the board (or open its panel), or place one with the hammer, and it's drawn on the ground as a gold circle. Woodcutters and miners work twice that.
 
-**Workers only.** A server can turn combat hirelings off (`CombatHirelings`, Hiring): no guards or archers can be hired,
+**Workers only.** A server can turn combat hirelings off (`CombatHirelings`, Hiring): no guards, archers or wizards can be hired,
 and the board offers workers only. Ones already hired stay.
 
 **How many hirelings.** A board has two caps (since 0.7.0):
@@ -281,12 +318,13 @@ jobs:
     pickupItems: [Stone, CopperOre, TinOre, ...]
 ```
 
-## AzuAutoStore, AzuCraftyBoxes, PullMats, PetPantry, Torches Eternal, PlantEverything, PlantEasily
+## AzuAutoStore, AzuCraftyBoxes, PullMats, PetPantry, Torches Eternal, PlantEverything, PlantEasily, Wizardry
 
 - The board's funds and hirelings' cargo are excluded from AzuAutoStore and AzuCraftyBoxes (and so from PullMats), so they never take your hireling money or cargo.
 - With AzuCraftyBoxes, **board upgrades take their materials from nearby chests** too (your inventory first, then the chests CraftyBoxes lets you pull from within its own range of the board). The Upgrade tab counts them ("Requires (counting nearby chests)"). Turn it off for yourself with `UpgradeFromNearbyChests` in the *Hiring* section of the cfg.
 - With AzuAutoStore, stewards leave bars and other station output for Azu to store into a chest that already holds it (seed one bar into a chest). Stations that keep their output inside, like the spinning wheel, are still emptied by the Steward.
 - With PetPantry the Steward doesn't feed animals; with Torches Eternal it doesn't fuel fires (the Shift+E chore list says "handled by PetPantry/TorchesEternal").
+- With Therzie's Wizardry, wizards can be hired from a level 2 board and carry its staffs and robes (see *Wizards*).
 - With PlantEverything, the Farmer picks the bushes and other plants you planted with it (for short orders); with PlantEasily, its rows use PlantEasily's spacing and it harvests within PlantEasily's harvest radius.
 
 ## Balance log (for server owners)
@@ -299,7 +337,7 @@ Logs go to `BepInEx/LogOutput.log` and `BepInEx/HiredHands.log`, one line per ev
 
 ## Coming next
 
-Ideas being considered: smarter fighting (blocking, dodging, and tactics such as tank, hit and run, or shooting from cover), woodcutters replanting, meal plans (more food for stronger hirelings), a scout. Balance tuning from the balance logs.
+Ideas being considered: a Healer (with Therzie's Wizardry healing spells), fighting tactics (tank, hit and run, shooting from cover), skill trees for combat hirelings, meal plans (more food for stronger hirelings), a scout. Balance tuning from the balance logs.
 
 ## License
 

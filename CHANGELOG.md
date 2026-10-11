@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.8.0
+
+**Everyone updates together:** a new job and new data-file entries; the server and every player need 0.8.0.
+
+- **The Wizard,** a new combat hireling that fights with a staff's main spell. It casts from 10-22 m, one spell every 3 s, and steps back from anything that gets close: strong at range, fragile up close. It takes stances, posts, orders and following like guards and archers, and costs 1.5x.
+  - **Without other mods:** from a level 6 board (the Mistlands), with the Staff of Embers, then Frost, then Dundr, in Eitr-weave and Embla robes.
+  - **With Therzie's Wizardry:** from a level 2 board (the Black Forest), with Wizardry's staffs biome by biome (Evergrowth first) and its Spellslinger robes and capes.
+  - **If Wizardry is removed,** wizards already hired stay and carry the vanilla staff for their level.
+  - **Settings (Combat):** `WizardDamage` (default 1), `WizardAttackCooldown` (3 s), and `WizardSpellsHit`: `EnemiesOnly` (default) or `EnemiesAndTerrain` to let a blast damage props like greydwarf nests.
+  - **Data file:** a job can now have its own `outfit` (with a `cape`) and `withMods` entries that apply while another mod is loaded.
+- **Hirelings never hurt players.** A stray hit from any hireling (an arrow's splash, a spell's blast) no longer lands on a player by its target, whatever PvP is set to.
 ## 0.7.7
 
 **Everyone updates together:** chest puffs use a new network message; a player on an older version would log an error for each one.

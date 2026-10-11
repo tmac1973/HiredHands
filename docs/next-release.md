@@ -3,15 +3,23 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## 0.7.8 (not released): live playtest
+## 0.8.0 (not released): the Wizard, with the 0.7.8 playtest fixes
 
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
+| (wizard branch) | No hireling's hit ever damages a player, whatever PvP says (a stray splash or blast landed on players by the target). Row VFH-COMBAT-10 | the game hit |
+| (wizard branch) | Wizard job (plan/wizard): combat, 1.5x, board level 6, or 2 with Therzie's Wizardry (`withMods`); per-job outfits with capes; `WizardDamage`, `WizardSpellsHit`, `WizardAttackCooldown`. Rows VFH-WIZ-1, -12 | the board owner's machine (contracts) |
+| (wizard branch) | Wizard's staff and robes per level (Wizardry's or vanilla), with fallbacks when an item is missing (Wizardry removed: vanilla staff, shared armour; nobody dismissed). Row VFH-WIZ-2 | every game (gear) |
+| (wizard branch) | Wizards cast their staff's main spell from 10-22 m every 3 s, step back from anything inside 8 m, hold posts, follow, obey attack and retreat orders. Rows VFH-WIZ-3, -4, -5, -8, -9, -10, -11 | the game simulating the hireling |
+| (wizard branch) | `WizardSpellsHit`: wizard hits spare props by default (EnemiesOnly) or may damage them (EnemiesAndTerrain). Rows VFH-WIZ-6, -7 | the game hit |
 | e98bc65 | As a passenger on someone else's ship, your followers didn't board: "under way" was read from the ship's rigidbody velocity, which is zero on every game but its owner's (it's moved by position updates there). Thorvald stayed on the dock and was sent home as too far behind. Now the speed is measured from how far the ship moved between checks | your game |
 | 95d37ee | Two hirelings spawned beside a board placed a moment before left it as "gone" (the first board check ran at once, and the new board wasn't in the server's index yet). The check now runs 30 s after a hireling appears and needs two misses in a row (a minute apart) before it leaves | the game simulating the hireling |
 
 ### To test (batch)
+- [ ] Setup (Tim, once, in Gale): add Therzie-Wizardry and its dependencies to the vikingsforhire-dev profile.
+- [ ] Macro (single player, Wizardry in the dev profile): `vfh_t_wiz_all` (VFH-WIZ-1 to -12, VFH-COMBAT-10), all pass; regression `vfh_test_chain store1 orders death3 recruit1 post1 retreat1 catchup1 combat1 stance4 stance5 block2 dodge1 noeffect move1 cap1 cap3 gather1 hire4 hire5`.
+- [ ] By hand (live server, Wizardry): wizards look right (robes, cape, staff, casting animation); one on a post and one following; `WizardDamage 0.5` visibly weakens them.
 - [x] Test debt (2026-10-11): `vfh_t_debt`, 32 of 33 pass first time: home3 chat1 store1 store2, all five Cook rows, farm 1/3/4, NAVLINK-1 to -9 and NAV-2 (the new water-avoiding agent), portal1 catchup1 home1 recruit1 retreat1 gather1 order1 order2 move1 death5. VFH-PASS-1 failed once (its hirelings left the brand-new board as "gone"): fixed above; then `pass con1 con3 charter1 home1 home3 move1`, all pass. By-hand items in those tabs still open.
 - [ ] By hand (live server, two players): one steers, you ride along with a follower nearby: as the ship gets going the follower goes below deck; it steps off with you when you land.
 
