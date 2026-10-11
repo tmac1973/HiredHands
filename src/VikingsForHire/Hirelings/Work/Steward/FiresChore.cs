@@ -61,6 +61,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         private static float Urgency(Fireplace f) => ChoreUrgency.Fire(Fuel(f), f.m_maxFuel, VfhConfig.StewardFireRefillFraction.Value);
 
+        private const float FireSkipSeconds = 300f;
+
         public IEnumerable<ChoreJob> Candidates(WorkContext ctx)
         {
             Missing = null;
@@ -120,8 +122,14 @@ namespace VikingsForHire.Hirelings.Work.Steward
             Hireling h = ai.Hireling;
             if (_walk.SinceProgress > StuckSeconds)
             {
-                VfhLog.I(LogCat.Smelter, "steward.fire_stuck", ("hid", h.Hid), ("step", _step), ("pos", h.transform.position));
-                if (_chest != null)
+                // Leave the one it couldn't get to, not just the trip's first fire (the loop's failure count only knows
+                // that one): Brand walked to an unreachable torch every 30 s for hours, never setting it aside.
+                Fireplace? stuckAt = _step == Step.Fuel && _route.Count > 0 ? _route[0] : null;
+                VfhLog.I(LogCat.Smelter, "steward.fire_stuck", ("hid", h.Hid), ("step", _step), ("pos", h.transform.position),
+                    ("fire", stuckAt != null ? $"{stuckAt.m_name}@{stuckAt.transform.position}" : ""));
+                if (stuckAt != null)
+                    Reservations.Skip(stuckAt, FireSkipSeconds);
+                if (_chest != null && _step == Step.Fetch)
                     Reservations.Skip(_chest, ChestSkipSeconds);
                 return End(h, 5f, ChoreProgress.Failed);
             }

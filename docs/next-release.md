@@ -11,12 +11,14 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | (arrow-aim branch) | Archers' arrows (and wizards' spells) could fly off up to 90 degrees to the side (Thorvald, 2026-10-11): vanilla turns every projectile towards the AI's own target creature, which for a hireling was whatever last hit it, not what it was shooting at. Hirelings now report no vanilla target, so shots follow their aim | the game simulating the hireling |
 | (arrow-aim branch) | A Cook made mead base without end (Inga, 5 ordered): the first of a new item goes to the board's pile (a chest only takes what it already holds), and the order counted only the chests, so it stayed short. What's in the board's pile now counts toward farm and kitchen orders and the Steward's limits (never as an ingredient), and the Problems list says it's waiting at the board: put one in a chest | the game simulating the hireling |
 | (arrow-aim branch) | Grima piled carrots at the board: the carrot drawer (MissingPieces, stacked on three others) was "unreachable". From the floor, the reach check's line to its bottom edge grazed the drawer below; so it looked for a higher spot, where 0.8.2's floor rule refused it. Now reaching is also checked as a player aims (at a point just inside it, it's the first thing hit), spots on the hireling's own floor are tried too, and standing above something needs it in sight from the eye (over a floor's edge yes, straight down through a floor no). Row VFH-REACH-1 | the game simulating the hireling |
+| (arrow-aim branch) | A Steward stuck walking to one torch never set it aside (Brand: 38 tries in a row, fermenters never emptied, fuelling outranks them): a fuelling trip visits every low fire, and a stuck walk counted a failure against the trip's first fire, not the one it was stuck on. Now that fire is skipped for 5 minutes at once, and `steward.fire_stuck` says which fire and where | the game simulating the hireling |
 
 ### To test (batch)
 - [ ] Macro (single player): `vfh_test_chain combat1 stance4 stance5 block2 dodge1 noeffect post1 retreat1 catchup1` and `vfh_t_wiz_all` (archer and wizard rows, all shots now through the look direction).
 - [ ] By hand: an archer hit by one creature, then shooting another off to the side: the arrows go to the one it's facing.
 - [ ] Macro: `vfh_test_chain reach_stack cook_floor` (stacked chest reachable; no cooking through a floor).
 - [ ] By hand: Tim's stacked carrot drawer: the Farmer stores into it again.
+- [ ] By hand: Brand empties the fermenters again; the log's `steward.fire_stuck` names the torch he couldn't reach (then we can see why).
 - [ ] By hand: a kitchen order for something no chest holds yet (mead base): the Cook makes the order's amount, it waits at the board, she stops; Problems says to put one in a chest.
 
 ## 0.8.2 (packaged 2026-10-11, in-game tests deferred): no ghost followers at portals, no working through floors
