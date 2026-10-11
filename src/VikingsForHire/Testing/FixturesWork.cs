@@ -49,10 +49,11 @@ namespace VikingsForHire.Testing
             Fixtures.Add("object", "<prefab> <tag> <dist> - any prefab that far ahead of you, tagged (a spawner's spawning switched off)", args =>
             {
                 Player me = Player.m_localPlayer;
-                string prefab = args.ElementAtOrDefault(0) ?? throw new ArgumentException("usage: object <prefab> <tag> <dist>");
+                Vector3? beside = AtTag(ref args, 2f);
+                string prefab = args.ElementAtOrDefault(0) ?? throw new ArgumentException("usage: object <prefab> <tag> <dist|at TAG>");
                 string tag = args.ElementAtOrDefault(1) ?? "";
                 float dist = float.Parse(args.ElementAtOrDefault(2) ?? "10", CultureInfo.InvariantCulture);
-                Vector3 pos = me.transform.position + Vector3.ProjectOnPlane(me.transform.forward, Vector3.up).normalized * dist;
+                Vector3 pos = beside ?? me.transform.position + Vector3.ProjectOnPlane(me.transform.forward, Vector3.up).normalized * dist;
                 pos.y = ZoneSystem.instance.GetGroundHeight(pos);
                 GameObject go = Spawn(prefab, pos, tag);
                 if (go.GetComponentInChildren<SpawnArea>() is SpawnArea area)

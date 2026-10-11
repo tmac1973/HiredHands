@@ -16,6 +16,9 @@ namespace VikingsForHire.Tests
         [InlineData("false", "!=", "true", true)]
         [InlineData("Wood", "==", "wood", true)]
         [InlineData("Wood", "!=", "Stone", true)]
+        [InlineData("none", ">=", "8", false)]
+        [InlineData("none", "<", "8", false)]
+        [InlineData("none", "!=", "8", true)]
         public void Compares(string actual, string op, string expected, bool result) =>
             Assert.Equal(result, CheckExpr.Compare(actual, op, expected));
 

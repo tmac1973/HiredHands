@@ -54,8 +54,11 @@ namespace VikingsForHire.Testing
             Hireling h = Hireling.Loaded.FirstOrDefault(x => x != null && x.Hid == Board.BoardContracts.LastPostedHid)
                          ?? throw new InvalidOperationException("the hireling from your last contract isn't loaded");
             GearApplier.Regear(h.Humanoid, h.Job, h.Level);
-            VfhLog.I(LogCat.Test, "fixture.regear", ("hid", h.Hid), ("gear", GearApplier.Describe(h.Humanoid)));
+            VfhLog.I(LogCat.Test, "fixture.regear", ("hid", h.Hid), ("gear", GearApplier.Describe(h.Humanoid)),
+                ("inventory", string.Join(",", h.Humanoid.GetInventory().GetAllItems().Select(i => $"{GearApplier.Name(i)}{(i.m_equipped ? "*" : "")}"))),
+                ("defaults", string.Join(",", h.Humanoid.m_defaultItems.Select(g => g != null ? g.name : "null"))));
             yield return new WaitForSeconds(0.5f);
+            VfhLog.I(LogCat.Test, "fixture.regear_after", ("gear", GearApplier.Describe(h.Humanoid)));
         }
 
         private static IEnumerator Hirelings(string[] args)
@@ -156,6 +159,7 @@ namespace VikingsForHire.Testing
                 case "said": return VikingsForHire.Hirelings.HirelingChatter.Said(h.Hid).Length > 0 ? "true" : "false";
                 case "target": return h.Ai.CombatTarget != null ? h.Ai.CombatTarget.m_name : "none";
                 case "cast_dist": return h.Ai.LastCastDistance < 0f ? "none" : h.Ai.LastCastDistance.ToString("0.0", CultureInfo.InvariantCulture);
+                case "cast_dist_max": return h.Ai.LongestCastDistance < 0f ? "none" : h.Ai.LongestCastDistance.ToString("0.0", CultureInfo.InvariantCulture);
                 case "retreating": return h.Ai.Retreating ? "true" : "false";
                 case "alive": return h.Humanoid.IsDead() ? "false" : "true";
                 case "cargo_used": return (h.CargoInventory?.GetAllItems().Count ?? 0).ToString();

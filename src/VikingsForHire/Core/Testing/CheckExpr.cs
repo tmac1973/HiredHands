@@ -3,7 +3,8 @@ using System.Globalization;
 
 namespace VikingsForHire.Core.Testing
 {
-    /// <summary>Comparisons used by vfh_assert: numbers compare numerically, true/false as bools, anything else as text.</summary>
+    /// <summary>Comparisons used by vfh_assert: numbers compare numerically, true/false as bools, anything else as text
+    /// (except a number against a word, which is never greater or smaller).</summary>
     public static class CheckExpr
     {
         public static readonly string[] Operators = { "==", "!=", ">=", "<=", ">", "<" };
@@ -15,7 +16,11 @@ namespace VikingsForHire.Core.Testing
             if (!IsOperator(op))
                 throw new ArgumentException($"unknown operator '{op}' (use {string.Join(" ", Operators)})");
 
-            if (TryNumber(actual, out double a) && TryNumber(expected, out double e))
+            bool numA = TryNumber(actual, out double a), numE = TryNumber(expected, out double e);
+            // A number against a word ("none" >= 8) is no number at all: ordering fails, rather than comparing as text.
+            if (numA != numE && op is not ("==" or "!="))
+                return false;
+            if (numA && numE)
             {
                 const double eps = 1e-4;
                 return op switch

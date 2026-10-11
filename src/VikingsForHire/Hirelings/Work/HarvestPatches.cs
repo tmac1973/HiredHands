@@ -1,5 +1,6 @@
 using System;
 using HarmonyLib;
+using VikingsForHire.Core;
 using VikingsForHire.Diagnostics;
 
 namespace VikingsForHire.Hirelings.Work
@@ -7,13 +8,20 @@ namespace VikingsForHire.Hirelings.Work
     /// <summary>
     /// Hirelings harvest by applying damage directly in time with their swing (GatherBehaviour sets <see cref="Direct"/>),
     /// so it doesn't depend on an NPC's aim. Stray hits from their swings on trees, logs, rocks and destructibles are
-    /// ignored, so harvesting is exactly what the behaviour decides and nothing else.
+    /// ignored, so harvesting is exactly what the behaviour decides and nothing else; the one exception is a wizard's
+    /// spell when WizardSpellsHit allows it (SpellRules.MayHitProp).
     /// </summary>
     internal static class HarvestPatches
     {
         public static bool Direct;
 
-        private static bool Allow(HitData hit) => Direct || Hireling.Of(hit?.GetAttacker()) == null;
+        private static bool Allow(HitData hit)
+        {
+            if (Direct)
+                return true;
+            Hireling? from = Hireling.Of(hit?.GetAttacker());
+            return from == null || SpellRules.MayHitProp(from.Job, VikingsForHire.Config.VfhConfig.WizardSpellsHit.Value);
+        }
 
         [HarmonyPatch(typeof(TreeBase), nameof(TreeBase.Damage))]
         private static class TreePatch

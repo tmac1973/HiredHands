@@ -140,14 +140,15 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
-        public void OnlyWizardsCanBeKeptOffProps()
+        public void OnlyWizardsMayBeLetLooseOnProps()
         {
             Assert.False(SpellRules.MayHitProp(JobType.Wizard, SpellsHit.EnemiesOnly));
             Assert.True(SpellRules.MayHitProp(JobType.Wizard, SpellsHit.EnemiesAndTerrain));
+            // Everyone else's stray hits never land on props (gatherers harvest directly, not by stray hits).
             foreach (JobType job in new[] { JobType.Woodcutter, JobType.Miner, JobType.GuardMelee, JobType.GuardRanged })
             {
-                Assert.True(SpellRules.MayHitProp(job, SpellsHit.EnemiesOnly));
-                Assert.True(SpellRules.MayHitProp(job, SpellsHit.EnemiesAndTerrain));
+                Assert.False(SpellRules.MayHitProp(job, SpellsHit.EnemiesOnly));
+                Assert.False(SpellRules.MayHitProp(job, SpellsHit.EnemiesAndTerrain));
             }
         }
 

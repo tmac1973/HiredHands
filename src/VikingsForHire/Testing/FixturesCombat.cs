@@ -49,6 +49,17 @@ namespace VikingsForHire.Testing
             TestHarness.RegisterCheck("enemy_health_pct", "- the nearest living enemy's health / max (none without one)", _ =>
                 NearestEnemy(Player.m_localPlayer.transform.position, 60f) is Character e ? e.GetHealthPercentage().ToString("0.00", CultureInfo.InvariantCulture) : "none");
             Fixtures.Add("blast_by_wizard", "<radius> at <tag> - one hit (blunt 30, fire 20) from the last spawned wizard on every creature, piece and prop within the radius of a tagged object, as a spell's area does", BlastByWizard);
+            Fixtures.Add("spell_props", "- log every destructible prop (no tool tier) a spell's blunt or fire can damage", _ =>
+            {
+                var names = new List<string>();
+                foreach (GameObject go in ZNetScene.instance.m_prefabs)
+                    if (go != null && go.GetComponent<Destructible>() is Destructible d && d.m_minToolTier <= 0 &&
+                        (d.m_damages.m_blunt is HitData.DamageModifier.Normal or HitData.DamageModifier.Weak or HitData.DamageModifier.VeryWeak ||
+                         d.m_damages.m_fire is HitData.DamageModifier.Normal or HitData.DamageModifier.Weak or HitData.DamageModifier.VeryWeak))
+                        names.Add($"{go.name}:{d.m_health}:{d.m_destructibleType}:b={d.m_damages.m_blunt}:f={d.m_damages.m_fire}");
+                VfhLog.I(LogCat.Test, "fixture.spell_props", ("n", names.Count), ("props", string.Join(" ", names.OrderBy(n => n))));
+                return Pause(0.1f);
+            });
             Fixtures.Add("hit_me_by_hireling", "<share=0.2> - as hit_me, but the hit comes from the last spawned hireling (hirelings never hurt players)", HitMeByHireling);
             Fixtures.Add("protect", "<on|off> - the tester's protection: off lets hits reach you for the rest of this test (the next test turns it on again)", args =>
             {
@@ -135,9 +146,12 @@ namespace VikingsForHire.Testing
             float dist = beside != null ? 0f : float.Parse(args.ElementAtOrDefault(2) ?? "10", CultureInfo.InvariantCulture);
             // still: its AI off for as long as it lives (it stands there and doesn't fight back).
             bool still = args.Contains("still") || beside != null;
+            // ahead: in front of the hireling (in its view), not at a random angle round it.
+            bool ahead = args.Contains("ahead");
             GameObject go = ZNetScene.instance.GetPrefab(prefab) ?? throw new ArgumentException($"no prefab {prefab}");
             Vector3 center = beside ?? Last().transform.position;
-            float start = UnityEngine.Random.Range(0f, 360f);
+            float start = ahead ? Quaternion.LookRotation(Vector3.ProjectOnPlane(Last().transform.forward, Vector3.up)).eulerAngles.y
+                : UnityEngine.Random.Range(0f, 360f);
             for (int i = 0; i < n; i++)
             {
                 Vector3 p = center + Quaternion.Euler(0f, start + i * 25f, 0f) * Vector3.forward * dist;
@@ -178,8 +192,16 @@ namespace VikingsForHire.Testing
                 c.Damage(hit);
                 n++;
             }
-            VfhLog.I(LogCat.Test, "fixture.kill_enemies", ("killed", n));
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.5f);
+            // Anything still standing (made immune by enemies_immune) is removed outright, so it can't wander into the next test.
+            int removed = 0;
+            foreach (Character c in Hostiles(r).Where(c => c != null && !c.IsDead()).ToList())
+            {
+                ZNetScene.instance.Destroy(c.gameObject);
+                removed++;
+            }
+            VfhLog.I(LogCat.Test, "fixture.kill_enemies", ("killed", n), ("removed", removed));
+            yield return new WaitForSeconds(0.5f);
         }
 
         private static IEnumerator EnemyLevel(string[] args)
@@ -252,9 +274,9 @@ namespace VikingsForHire.Testing
             int at = Array.IndexOf(args, "at");
             GameObject centre = FixturesWork.FindTagged(at >= 0 ? args.ElementAtOrDefault(at + 1) ?? "" : "") ?? throw new InvalidOperationException("usage: blast_by_wizard <radius> at <tag>");
             float radius = float.Parse(args.ElementAtOrDefault(0) ?? "3", CultureInfo.InvariantCulture);
-            Hireling wizard = HirelingCommands.LastSpawned.AsEnumerable().Reverse()
-                .Select(hid => Hireling.Loaded.FirstOrDefault(h => h != null && h.Hid == hid)).FirstOrDefault(h => h != null && h.Job == JobType.Wizard)
-                ?? throw new InvalidOperationException("no wizard spawned");
+            Hireling wizard = Hireling.Loaded.Where(h => h != null && h.Job == JobType.Wizard)
+                .OrderBy(h => Vector3.Distance(h.transform.position, centre.transform.position)).FirstOrDefault()
+                ?? throw new InvalidOperationException("no wizard near");
             var hit = new HashSet<IDestructible>();
             foreach (Collider c in Physics.OverlapSphere(centre.transform.position, radius))
                 if (c.GetComponentInParent<IDestructible>() is IDestructible d && !ReferenceEquals(d, wizard.Humanoid))

@@ -20,6 +20,10 @@ namespace VikingsForHire.Hirelings.Combat
         private const float CastMin = 10f;
         private const float CastMax = 22f;
         private const float CastBackOff = 8f;
+        // Backing off is given this long; an enemy that keeps up (a fuling, a greydwarf) is then fought where it stands,
+        // or a wizard backed off forever and never cast.
+        private const float MaxBackOffSeconds = 3f;
+        private float _backingOffSince = -1f;
         private const float SidearmRange = 6f;
         private const float QuietSeconds = 10f;
         private const float BlockSeconds = 0.8f;
@@ -36,6 +40,7 @@ namespace VikingsForHire.Hirelings.Combat
         private float _blockUntil;
         private float _nextAttack;
         private float _swingReadyAt = -1f;
+        private static string _lastBlocker = "";
         private Character? _ignored;
         private float _engagedAt = -1f;
         private float _ignoredUntil;
@@ -50,6 +55,9 @@ namespace VikingsForHire.Hirelings.Combat
 
         /// <summary>How far the target was at this wizard's last cast (-1 before any), for tests.</summary>
         public float LastCastDistance { get; private set; } = -1f;
+
+        /// <summary>The longest cast so far (tests: a swarmed wizard's last cast may be point-blank).</summary>
+        public float LongestCastDistance { get; private set; } = -1f;
 
         public bool Wants(HirelingAI ai)
         {
@@ -306,10 +314,18 @@ namespace VikingsForHire.Hirelings.Combat
             bool posted = ai.Hireling.HasPost && ai.Hireling.Mode == HirelingMode.Working;
             if (!posted && dist < CastBackOff)
             {
-                Vector3 away = (ai.transform.position - target.transform.position).normalized;
-                ai.WalkTo(dt, ai.transform.position + away * (CastMin - dist + 2f), 1f, run: true);
-                return;
+                if (_backingOffSince < 0f)
+                    _backingOffSince = Time.time;
+                if (Time.time - _backingOffSince < MaxBackOffSeconds)
+                {
+                    Vector3 away = (ai.transform.position - target.transform.position).normalized;
+                    ai.WalkTo(dt, ai.transform.position + away * (CastMin - dist + 2f), 1f, run: true);
+                    return;
+                }
+                // Couldn't shake it: stand and cast.
             }
+            else
+                _backingOffSince = -1f;
             float flat = Utils.DistanceXZ(target.transform.position, ai.transform.position) - target.GetRadius();
             if (!posted && flat > CastMax)
             {
@@ -328,8 +344,8 @@ namespace VikingsForHire.Hirelings.Combat
                 ai.WalkTo(dt, target.transform.position, CastMax * 0.8f, run: true);
                 return;
             }
-            // Spells are projectiles too: the same clear-line check and drop as an arrow.
-            Vector3? aim = ArrowAim(me, target, out Vector3 from);
+            // Spells are projectiles too: the same clear-line check and drop as an arrow, plus leading a moving target.
+            Vector3? aim = ArrowAim(me, target, out Vector3 from, lead: true);
             if (aim == null)
             {
                 BlockedShot(ai, target);
@@ -347,10 +363,11 @@ namespace VikingsForHire.Hirelings.Combat
             _blockedSince = -1f;
             ai.Halt();
             ai.LookTowards((aim.Value - from).normalized);
-            if (dist <= CastMax + 10f && Time.time >= _nextAttack && !ai.Dodge.HoldAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f) &&
+            if (dist <= CastMax + 10f && Time.time >= _nextAttack && !ai.Dodge.HoldAttack && ai.IsLookingAt(aim.Value, 15f) &&
                 ai.Attack(target))
             {
                 LastCastDistance = dist;
+                LongestCastDistance = Mathf.Max(LongestCastDistance, dist);
                 Attacked(Mathf.Max(0.5f, Config.VfhConfig.WizardAttackCooldown.Value));
             }
         }
@@ -375,7 +392,7 @@ namespace VikingsForHire.Hirelings.Combat
             if (_blockedSince >= 0f)
                 return;
             _blockedSince = Time.time;
-            VfhLog.D(LogCat.Combat, evt, ("hid", ai.Hireling.Hid), ("target", target.m_name),
+            VfhLog.D(LogCat.Combat, evt, ("hid", ai.Hireling.Hid), ("target", target.m_name), ("blocker", _lastBlocker),
                 ("dist", Vector3.Distance(target.transform.position, ai.transform.position)));
         }
 
@@ -383,7 +400,7 @@ namespace VikingsForHire.Hirelings.Combat
         /// Where to aim so the arrow reaches the target: its middle (or else its head) raised for the arrow's drop,
         /// provided the line from the bow to that point isn't blocked by terrain or buildings. Null when no shot is clear.
         /// </summary>
-        private static Vector3? ArrowAim(Humanoid me, Character target, out Vector3 from)
+        private static Vector3? ArrowAim(Humanoid me, Character target, out Vector3 from, bool lead = false)
         {
             ItemDrop.ItemData? bow = me.GetCurrentWeapon();
             Attack? attack = bow?.m_shared.m_attack;
@@ -411,10 +428,15 @@ namespace VikingsForHire.Hirelings.Combat
             foreach (Vector3 point in new[] { target.GetCenterPoint(), head })
             {
                 Vector3 line = point - from;
-                if (Physics.SphereCast(from, ShotRadius, line.normalized, out _, Mathf.Max(0f, line.magnitude - 0.3f), ShotBlockMask))
+                if (Physics.SphereCast(from, ShotRadius, line.normalized, out RaycastHit blocker, Mathf.Max(0f, line.magnitude - 0.3f), ShotBlockMask))
+                {
+                    _lastBlocker = $"{blocker.collider.name}@{blocker.distance:0.0}m layer={LayerMask.LayerToName(blocker.collider.gameObject.layer)} from={from}";
                     continue;
+                }
                 float flight = speed > 1f ? line.magnitude / speed : 0f;
-                return point + Vector3.up * (0.5f * gravity * flight * flight);
+                // Slow spells (a fireball) miss a creature on the move: aim where it will be when the spell gets there.
+                Vector3 ahead = lead ? Vector3.ProjectOnPlane(target.GetVelocity(), Vector3.up) * flight : Vector3.zero;
+                return point + ahead + Vector3.up * (0.5f * gravity * flight * flight);
             }
             return null;
         }
@@ -461,6 +483,7 @@ namespace VikingsForHire.Hirelings.Combat
             }
             _target = null;
             _blockedSince = -1f;
+            _backingOffSince = -1f;
             ai.Hireling.Humanoid.m_blocking = false;
             ai.Block.Reset();
             ai.Hireling.UseSidearm(false);

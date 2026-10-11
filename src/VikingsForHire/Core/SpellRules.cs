@@ -1,15 +1,16 @@
 namespace VikingsForHire.Core
 {
     /// <summary>
-    /// What a hireling's hits may damage among props (trees, logs, rocks, destructibles). Players, hirelings, tames and
-    /// buildings are never hit by any hireling (DamagePatches), so only props are decided here.
+    /// What a hireling's stray hits may damage among props (trees, logs, rocks, destructibles). Players, hirelings, tames
+    /// and buildings are never hit by any hireling (DamagePatches); gatherers' harvesting is applied directly
+    /// (HarvestPatches.Direct) and isn't a stray hit.
     /// </summary>
     public static class SpellRules
     {
         /// <summary>
-        /// Wizards only with EnemiesAndTerrain; every other job always (woodcutters and miners work by hitting props, and
-        /// a guard's swing was never limited).
+        /// Only a wizard's spells, and only with EnemiesAndTerrain. Other jobs' stray swings and arrows never have (a guard
+        /// fighting by a tree doesn't fell it).
         /// </summary>
-        public static bool MayHitProp(JobType job, SpellsHit setting) => job != JobType.Wizard || setting == SpellsHit.EnemiesAndTerrain;
+        public static bool MayHitProp(JobType job, SpellsHit setting) => job == JobType.Wizard && setting == SpellsHit.EnemiesAndTerrain;
     }
 }

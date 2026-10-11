@@ -54,6 +54,11 @@ namespace VikingsForHire.Hirelings
             humanoid.GetInventory().RemoveAll();
             humanoid.m_defaultItems = GearFor(job, level);
             humanoid.GiveDefaultItems();
+            // Vanilla doesn't always equip a two-handed weapon straight after unequipping everything (a staff stayed in the
+            // inventory): equip the main weapon now rather than wait for the hireling's next armed check.
+            if (humanoid.GetRightItem() == null && humanoid.GetInventory().GetAllItems()
+                    .FirstOrDefault(i => i.IsWeapon() && i.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Shield) is ItemDrop.ItemData weapon)
+                humanoid.EquipItem(weapon, triggerEquipEffects: false);
             AddSidearm(humanoid, job, level);
         }
 
