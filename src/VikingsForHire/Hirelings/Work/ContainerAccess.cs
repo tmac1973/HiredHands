@@ -56,6 +56,7 @@ namespace VikingsForHire.Hirelings.Work
             int moved = move - left;
             if (moved > 0)
             {
+                ChestPuff.Play(chest);
                 cargo.RemoveItem(template.m_shared.m_name, moved);
                 string tagged = view.GetZDO()?.GetString("vfh_tag") ?? "";
                 if (tagged.Length > 0)
@@ -106,6 +107,8 @@ namespace VikingsForHire.Hirelings.Work
                 if (added < n)
                     break; // cargo is full
             }
+            if (moved > 0)
+                ChestPuff.Play(chest);
             VfhLog.I(LogCat.Smelter, "smelter.take", ("hid", hid), ("chest", Utils.GetPrefabName(chest.m_rootObjectOverride != null ? chest.m_rootObjectOverride.gameObject : chest.gameObject)),
                 ("pos", chest.transform.position), ("tag", view.GetZDO()?.GetString("vfh_tag") ?? ""), ("item", prefab), ("asked", amount), ("moved", moved), ("keepMin", keepMin));
             return moved;
