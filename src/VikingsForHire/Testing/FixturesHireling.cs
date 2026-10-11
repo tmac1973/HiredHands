@@ -61,8 +61,10 @@ namespace VikingsForHire.Testing
         private static IEnumerator Hirelings(string[] args)
         {
             Player p = Player.m_localPlayer;
-            Vector3 at = p.transform.position + Vector3.ProjectOnPlane(p.transform.forward, Vector3.up).normalized * 4f;
-            at.y = ZoneSystem.instance.GetGroundHeight(at);
+            Vector3? beside = FixturesWork.AtTag(ref args);
+            Vector3 at = beside ?? p.transform.position + Vector3.ProjectOnPlane(p.transform.forward, Vector3.up).normalized * 4f;
+            if (beside == null)
+                at.y = ZoneSystem.instance.GetGroundHeight(at);
             HirelingCommands.Spawn(new[] { args.ElementAtOrDefault(0) ?? "Woodcutter", args.ElementAtOrDefault(1) ?? "1", args.ElementAtOrDefault(2) ?? "1" }, at);
             // Give ZNetScene a moment to instantiate them and Start to dress them.
             yield return new WaitForSeconds(1.5f);
@@ -138,6 +140,7 @@ namespace VikingsForHire.Testing
                 case "mode": return h.Mode.ToString();
                 case "stance": return ((Stance)z.GetInt(HirelingZdo.Stance)).ToString();
                 case "health": return hum.GetHealth().ToString("0.#", CultureInfo.InvariantCulture);
+                case "health_pct": return hum.GetHealthPercentage().ToString("0.00", CultureInfo.InvariantCulture);
                 case "maxhealth": return hum.GetMaxHealth().ToString("0.#", CultureInfo.InvariantCulture);
                 case "charlevel": return hum.GetLevel().ToString();
                 case "tamed": return hum.IsTamed() ? "true" : "false";

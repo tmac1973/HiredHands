@@ -46,6 +46,33 @@ namespace VikingsForHire.Testing
                 GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged producer");
                 return go.GetComponent<ZNetView>().GetZDO().GetInt(ZDOVars.s_level).ToString(CultureInfo.InvariantCulture);
             });
+            Fixtures.Add("object", "<prefab> <tag> <dist> - any prefab that far ahead of you, tagged (a spawner's spawning switched off)", args =>
+            {
+                Player me = Player.m_localPlayer;
+                string prefab = args.ElementAtOrDefault(0) ?? throw new ArgumentException("usage: object <prefab> <tag> <dist>");
+                string tag = args.ElementAtOrDefault(1) ?? "";
+                float dist = float.Parse(args.ElementAtOrDefault(2) ?? "10", CultureInfo.InvariantCulture);
+                Vector3 pos = me.transform.position + Vector3.ProjectOnPlane(me.transform.forward, Vector3.up).normalized * dist;
+                pos.y = ZoneSystem.instance.GetGroundHeight(pos);
+                GameObject go = Spawn(prefab, pos, tag);
+                if (go.GetComponentInChildren<SpawnArea>() is SpawnArea area)
+                    area.enabled = false;
+                VfhLog.I(LogCat.Test, "fixture.object", ("prefab", prefab), ("tag", tag), ("pos", pos));
+                return Wait(0.2f);
+            });
+            Fixtures.Add("player_offset", "<tag> <m> - move yourself to that distance from a tagged object (on your side of it)", args =>
+            {
+                Player me = Player.m_localPlayer;
+                GameObject target = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                float m = float.Parse(args.ElementAtOrDefault(1) ?? "2", CultureInfo.InvariantCulture);
+                Vector3 dir = Vector3.ProjectOnPlane(me.transform.position - target.transform.position, Vector3.up);
+                Vector3 p = target.transform.position + (dir.sqrMagnitude > 0.01f ? dir.normalized : Vector3.forward) * m;
+                p.y = ZoneSystem.instance.GetGroundHeight(p) + 0.1f;
+                me.transform.position = p;
+                return Wait(0.5f);
+            });
+            TestHarness.RegisterCheck("object_health", "<tag> - a tagged object's health 0..1 (creature, piece, tree, rock or destructible; 0 when it's gone)", args =>
+                ObjectHealth(FindTagged(args.ElementAtOrDefault(0) ?? "")).ToString("0.00", CultureInfo.InvariantCulture));
             Fixtures.Add("tame", "<prefab> [tag] [distance=20] - a tamed, hungry animal (Boar, Wolf…) that far from the board", Tame);
             TestHarness.RegisterCheck("animal_hungry", "<tag> - whether a tagged tamed animal is hungry", args =>
                 (FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponent<Tameable>() ?? throw new InvalidOperationException("no such tagged animal")).IsHungry() ? "true" : "false");
@@ -350,11 +377,12 @@ namespace VikingsForHire.Testing
 
         private static IEnumerator Tame(string[] args)
         {
+            Vector3? at = AtTag(ref args);
             string prefab = args.ElementAtOrDefault(0) ?? "Boar";
             string tag = args.ElementAtOrDefault(1) ?? "";
             float distance = args.Length > 2 ? float.Parse(args[2], CultureInfo.InvariantCulture) : 20f;
             HiringBoard board = Board();
-            Vector3 pos = board.transform.position - board.transform.forward * distance;
+            Vector3 pos = at ?? board.transform.position - board.transform.forward * distance;
             GameObject go = Spawn(prefab, pos, tag);
             yield return null;
             Character c = go.GetComponent<Character>() ?? throw new InvalidOperationException($"{prefab} isn't a creature");
@@ -469,11 +497,12 @@ namespace VikingsForHire.Testing
 
         private static IEnumerator Fire(string[] args)
         {
+            Vector3? at = AtTag(ref args, 2f);
             string prefab = args.ElementAtOrDefault(0) ?? "hearth";
             float fuel = float.Parse(args.ElementAtOrDefault(1) ?? "0", CultureInfo.InvariantCulture);
             string tag = args.ElementAtOrDefault(2) ?? "";
             HiringBoard board = Board();
-            Vector3 pos = board.transform.position + Quaternion.Euler(0f, 200f + 50f * (_fires++ % 6), 0f) * board.transform.forward * 7f;
+            Vector3 pos = at ?? board.transform.position + Quaternion.Euler(0f, 200f + 50f * (_fires++ % 6), 0f) * board.transform.forward * 7f;
             GameObject go = Spawn(prefab, pos, tag);
             OwnBuilt(go);
             yield return null;
@@ -528,6 +557,45 @@ namespace VikingsForHire.Testing
             if (tag.Length > 0)
                 zdo.Set(TagKey, tag);
             return go;
+        }
+
+        /// <summary>
+        /// "... at TAG" at the end of a fixture's arguments: a spot beside that tagged object (within <paramref name="spread"/>
+        /// metres, on the ground), and the arguments without it. Null when there's no "at".
+        /// </summary>
+        private static IEnumerator Wait(float seconds)
+        {
+            yield return new WaitForSeconds(seconds);
+        }
+
+        private static float ObjectHealth(GameObject? go)
+        {
+            if (go == null)
+                return 0f;
+            if (go.GetComponent<Character>() is Character c)
+                return c.IsDead() ? 0f : c.GetHealthPercentage();
+            if (go.GetComponent<WearNTear>() is WearNTear w)
+                return w.GetHealthPercentage();
+            ZDO? zdo = go.GetComponent<ZNetView>()?.GetZDO();
+            float max = go.GetComponent<Destructible>()?.m_health ?? go.GetComponent<TreeBase>()?.m_health ?? go.GetComponent<TreeLog>()?.m_health
+                        ?? go.GetComponent<MineRock>()?.m_health ?? 0f;
+            if (zdo == null || max <= 0f)
+                return 1f;
+            return Mathf.Clamp01(zdo.GetFloat(ZDOVars.s_health, max) / max);
+        }
+
+        internal static Vector3? AtTag(ref string[] args, float spread = 1.5f)
+        {
+            int i = Array.IndexOf(args, "at");
+            if (i < 0 || i + 1 >= args.Length)
+                return null;
+            string tag = args[i + 1];
+            args = args.Take(i).ToArray();
+            GameObject target = FindTagged(tag) ?? throw new InvalidOperationException($"nothing tagged {tag}");
+            Vector2 r = UnityEngine.Random.insideUnitCircle.normalized * spread;
+            Vector3 p = target.transform.position + new Vector3(r.x, 0f, r.y);
+            p.y = ZoneSystem.instance.GetGroundHeight(p) + 0.1f;
+            return p;
         }
 
         internal static GameObject? FindTagged(string tag) =>

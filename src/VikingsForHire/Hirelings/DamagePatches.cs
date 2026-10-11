@@ -109,6 +109,40 @@ namespace VikingsForHire.Hirelings
             }
         }
 
+        /// <summary>
+        /// Props (trees, logs, rocks, destructibles like greydwarf nests) hit by a hireling: a wizard's spells leave them
+        /// alone unless WizardSpellsHit allows (SpellRules.MayHitProp); everyone else as before.
+        /// </summary>
+        [HarmonyPatch]
+        private static class PropPatch
+        {
+            private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods() => new System.Reflection.MethodBase[]
+            {
+                AccessTools.Method(typeof(Destructible), nameof(Destructible.Damage)),
+                AccessTools.Method(typeof(TreeBase), nameof(TreeBase.Damage)),
+                AccessTools.Method(typeof(TreeLog), nameof(TreeLog.Damage)),
+                AccessTools.Method(typeof(MineRock), nameof(MineRock.Damage)),
+                AccessTools.Method(typeof(MineRock5), nameof(MineRock5.Damage)),
+            };
+
+            private static bool Prefix(UnityEngine.Component __instance, HitData hit)
+            {
+                try
+                {
+                    Hireling? from = Hireling.Of(hit.GetAttacker());
+                    if (from == null || SpellRules.MayHitProp(from.Job, VfhConfig.WizardSpellsHit.Value))
+                        return true;
+                    VfhLog.T(LogCat.Combat, "hireling.prop_hit_blocked", ("hid", from.Hid), ("prop", __instance.name));
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("DamagePatches.PropDamage", e);
+                    return true;
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(WearNTear), nameof(WearNTear.Damage))]
         private static class PiecePatch
         {

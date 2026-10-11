@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Collections;
 using System.Globalization;
@@ -45,6 +46,9 @@ namespace VikingsForHire.Testing
                 VfhLog.I(LogCat.Test, "fixture.order_attack_nearest", ("enemy", enemy.m_name), ("followers", followers.Count));
                 return Pause(0.2f);
             });
+            TestHarness.RegisterCheck("enemy_health_pct", "- the nearest living enemy's health / max (none without one)", _ =>
+                NearestEnemy(Player.m_localPlayer.transform.position, 60f) is Character e ? e.GetHealthPercentage().ToString("0.00", CultureInfo.InvariantCulture) : "none");
+            Fixtures.Add("blast_by_wizard", "<radius> at <tag> - one hit (blunt 30, fire 20) from the last spawned wizard on every creature, piece and prop within the radius of a tagged object, as a spell's area does", BlastByWizard);
             Fixtures.Add("hit_me_by_hireling", "<share=0.2> - as hit_me, but the hit comes from the last spawned hireling (hirelings never hurt players)", HitMeByHireling);
             Fixtures.Add("protect", "<on|off> - the tester's protection: off lets hits reach you for the rest of this test (the next test turns it on again)", args =>
             {
@@ -124,24 +128,26 @@ namespace VikingsForHire.Testing
 
         private static IEnumerator Enemies(string[] args)
         {
+            // "at TAG": right beside a tagged object (within 0.5 m), standing still.
+            Vector3? beside = FixturesWork.AtTag(ref args, 0.5f);
             string prefab = args.ElementAtOrDefault(0) ?? "Greyling";
             int n = int.Parse(args.ElementAtOrDefault(1) ?? "1", CultureInfo.InvariantCulture);
-            float dist = float.Parse(args.ElementAtOrDefault(2) ?? "10", CultureInfo.InvariantCulture);
+            float dist = beside != null ? 0f : float.Parse(args.ElementAtOrDefault(2) ?? "10", CultureInfo.InvariantCulture);
             // still: its AI off for as long as it lives (it stands there and doesn't fight back).
-            bool still = args.Contains("still");
+            bool still = args.Contains("still") || beside != null;
             GameObject go = ZNetScene.instance.GetPrefab(prefab) ?? throw new ArgumentException($"no prefab {prefab}");
-            Vector3 center = Last().transform.position;
+            Vector3 center = beside ?? Last().transform.position;
             float start = UnityEngine.Random.Range(0f, 360f);
             for (int i = 0; i < n; i++)
             {
                 Vector3 p = center + Quaternion.Euler(0f, start + i * 25f, 0f) * Vector3.forward * dist;
                 p.y = ZoneSystem.instance.GetGroundHeight(p) + 0.5f;
-                GameObject e = Object.Instantiate(go, p, Quaternion.LookRotation(center - p));
+                GameObject e = Object.Instantiate(go, p, (center - p).sqrMagnitude > 0.01f ? Quaternion.LookRotation(center - p) : Quaternion.identity);
                 e.GetComponent<ZNetView>()?.GetZDO()?.Set(BoardZdo.Fixture, true);
                 if (still && e.GetComponent<BaseAI>() is BaseAI brain)
                     brain.enabled = false;
             }
-            VfhLog.I(LogCat.Test, "fixture.enemies", ("prefab", prefab), ("n", n), ("dist", dist), ("around", Last().Hid), ("still", still));
+            VfhLog.I(LogCat.Test, "fixture.enemies", ("prefab", prefab), ("n", n), ("dist", dist), ("at", beside?.ToString() ?? Last().Hid), ("still", still));
             yield return new WaitForSeconds(0.5f);
         }
 
@@ -239,6 +245,30 @@ namespace VikingsForHire.Testing
                 ("healthNow", me.GetHealth()), ("god", me.InGodMode()), ("ghost", me.InGhostMode()), ("flying", me.IsDebugFlying()), ("teleporting", me.IsTeleporting()));
             yield return new WaitForSeconds(0.5f);
             VfhLog.I(LogCat.Test, "fixture.hit_me_after", ("health", me.GetHealth()), ("max", me.GetMaxHealth()));
+        }
+
+        private static IEnumerator BlastByWizard(string[] args)
+        {
+            int at = Array.IndexOf(args, "at");
+            GameObject centre = FixturesWork.FindTagged(at >= 0 ? args.ElementAtOrDefault(at + 1) ?? "" : "") ?? throw new InvalidOperationException("usage: blast_by_wizard <radius> at <tag>");
+            float radius = float.Parse(args.ElementAtOrDefault(0) ?? "3", CultureInfo.InvariantCulture);
+            Hireling wizard = HirelingCommands.LastSpawned.AsEnumerable().Reverse()
+                .Select(hid => Hireling.Loaded.FirstOrDefault(h => h != null && h.Hid == hid)).FirstOrDefault(h => h != null && h.Job == JobType.Wizard)
+                ?? throw new InvalidOperationException("no wizard spawned");
+            var hit = new HashSet<IDestructible>();
+            foreach (Collider c in Physics.OverlapSphere(centre.transform.position, radius))
+                if (c.GetComponentInParent<IDestructible>() is IDestructible d && !ReferenceEquals(d, wizard.Humanoid))
+                    hit.Add(d);
+            foreach (IDestructible d in hit)
+            {
+                var h = new HitData { m_point = centre.transform.position, m_dir = Vector3.down, m_toolTier = 10 };
+                h.m_damage.m_blunt = 30f;
+                h.m_damage.m_fire = 20f;
+                h.SetAttacker(wizard.Humanoid);
+                d.Damage(h);
+            }
+            VfhLog.I(LogCat.Test, "fixture.blast_by_wizard", ("hid", wizard.Hid), ("radius", radius), ("hit", string.Join(",", hit.Select(d => ((Component)d).name))));
+            yield return new WaitForSeconds(1f);
         }
 
         private static Character? NearestEnemy(Vector3 at, float within) =>

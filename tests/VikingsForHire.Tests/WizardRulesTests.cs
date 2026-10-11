@@ -140,6 +140,18 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void OnlyWizardsCanBeKeptOffProps()
+        {
+            Assert.False(SpellRules.MayHitProp(JobType.Wizard, SpellsHit.EnemiesOnly));
+            Assert.True(SpellRules.MayHitProp(JobType.Wizard, SpellsHit.EnemiesAndTerrain));
+            foreach (JobType job in new[] { JobType.Woodcutter, JobType.Miner, JobType.GuardMelee, JobType.GuardRanged })
+            {
+                Assert.True(SpellRules.MayHitProp(job, SpellsHit.EnemiesOnly));
+                Assert.True(SpellRules.MayHitProp(job, SpellsHit.EnemiesAndTerrain));
+            }
+        }
+
+        [Fact]
         public void OlderFilesGetTheWizard()
         {
             VfhData old = DefaultData.Create();
