@@ -139,6 +139,43 @@ namespace VikingsForHire.Tests
         private static readonly Dictionary<string, int> AllStations = new() { ["piece_cookingstation"] = 1, ["piece_cauldron"] = 1, ["piece_preptable"] = 1, ["piece_oven"] = 1 };
 
         [Fact]
+        public void FarmGivesAReasonForEveryBlockedOrder()
+        {
+            OrderList l = Orders(("CarrotSeeds", OrderKind.Seed, 6), ("Barley", OrderKind.Crop, 10), ("Wood", OrderKind.Crop, 5),
+                ("Raspberry", OrderKind.Crop, 5));
+            FarmPlan p = FarmPlanner.Plan(Crops, l, D(), D(), 2, Spots(20));
+            Assert.Equal("$vfh_need_seed|CarrotSeeds|Carrot", p.Why["CarrotSeeds"]);
+            Assert.Equal("$vfh_need_farmer_level|Barley|5", p.Why["Barley"]);
+            Assert.Equal("$vfh_need_no_crop|Wood", p.Why["Wood"]);
+            Assert.False(p.Why.ContainsKey("Raspberry")); // picked from bushes: being worked
+            // The hireling's own line keeps only crop problems, first first.
+            Assert.Equal(new[] { "$vfh_need_seed|CarrotSeeds|Carrot", "$vfh_need_farmer_level|Barley|5" }, p.Missing);
+            // No free ground: that order says so; one being planted has no reason.
+            FarmPlan full = FarmPlanner.Plan(Crops, Orders(("Carrot", OrderKind.Crop, 4)), D(("CarrotSeeds", 9)), D(), 2, Spots(0));
+            Assert.Equal("$vfh_need_field", full.Why["Carrot"]);
+            Assert.Empty(FarmPlanner.Plan(Crops, Orders(("Carrot", OrderKind.Crop, 4)), D(("CarrotSeeds", 9)), D(), 2, Spots(20)).Why);
+        }
+
+        [Fact]
+        public void KitchenGivesAReasonForEveryShortOrderNotJustTheFirst()
+        {
+            OrderList l = Orders(("CookedMeat", OrderKind.Kitchen, 4), ("CarrotSoup", OrderKind.Kitchen, 5), ("Bread", OrderKind.Kitchen, 2),
+                ("Unicorn", OrderKind.Kitchen, 1));
+            KitchenResult r = KitchenPlanner.Next(Kitchen, l, D(("RawMeat", 10), ("Carrot", 3), ("Mushroom", 10)), D(("Carrot", 3)), 4, AllStations);
+            Assert.Equal("CookedMeat", r.Task!.Info.Output);
+            Assert.Null(r.Missing); // it has work: the hover shows that
+            Assert.False(r.Why.ContainsKey("CookedMeat"));
+            Assert.Equal("$vfh_need_ingredient|CarrotSoup|3|Carrot", r.Why["CarrotSoup"]);
+            Assert.Equal("$vfh_need_cook_level|Bread|5", r.Why["Bread"]);
+            Assert.Equal("$vfh_need_recipe|Unicorn", r.Why["Unicorn"]);
+            // Without the meat the first order is stuck too, and the first reason is still the hover's.
+            KitchenResult none = KitchenPlanner.Next(Kitchen, l, D(("Carrot", 3), ("Mushroom", 10)), D(("Carrot", 3)), 4, AllStations);
+            Assert.Null(none.Task);
+            Assert.Equal(none.Why["CookedMeat"], none.Missing);
+            Assert.Equal(4, none.Why.Count);
+        }
+
+        [Fact]
         public void CooksTheFirstShortOrder()
         {
             OrderList l = Orders(("CookedMeat", OrderKind.Kitchen, 4));

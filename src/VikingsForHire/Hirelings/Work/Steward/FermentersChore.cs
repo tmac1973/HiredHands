@@ -81,23 +81,23 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 bool empty = status == Fermenter.Status.Empty && !f.m_exposed && f.m_hasRoof;
                 if (status == Fermenter.Status.Empty && !empty)
                 {
-                    Missing ??= ActivityText.Make("$vfh_need_cover", f.m_name);
+                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_need_cover", f.m_name));
                     continue;
                 }
                 if (empty && !Bases(f, ctx).Any(b => Have(ctx, b) > 0))
                 {
                     if (f.m_conversion.Any(c => c.m_from != null && Have(ctx, c.m_from.gameObject.name) > 0))
                     {
-                        Missing ??= ActivityText.Make("$vfh_paused_limits", f.m_name);
+                        Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_paused_limits", f.m_name));
                         continue;
                     }
-                    Missing ??= ActivityText.Make("$vfh_need_base", f.m_name);
+                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_need_base", f.m_name));
                     continue;
                 }
                 // PauseWhenStorageFull: a ready mead keeps inside the fermenter until its chests have room.
                 if (ready && MeadOf(f) is string mead0 && StorageRoom.NoRoom(ctx.AllChests, mead0))
                 {
-                    Missing ??= ActivityText.Make("$vfh_paused_full", f.m_name, WorkSteps.SharedName(mead0));
+                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_paused_full", f.m_name, WorkSteps.SharedName(mead0)));
                     continue;
                 }
                 float u = ChoreUrgency.Fermenter(ready, empty);

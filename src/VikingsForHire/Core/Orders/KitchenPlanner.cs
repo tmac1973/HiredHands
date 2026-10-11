@@ -10,6 +10,9 @@ namespace VikingsForHire.Core.Orders
 
         /// <summary>Why the first short order can't be worked, as activity text ("token|arg|arg").</summary>
         public string? Missing { get; set; }
+
+        /// <summary>Order item -> why that short order can't be worked now (activity text); ones that can be aren't here.</summary>
+        public Dictionary<string, string> Why { get; } = new();
     }
 
     /// <summary>
@@ -31,48 +34,60 @@ namespace VikingsForHire.Core.Orders
                 int shortBy = order.Target - Stock(order.Item);
                 if (shortBy <= 0)
                     continue;
-                List<KitchenInfo> makesIt = infos.Where(i => i.Output == order.Item).ToList();
-                List<KitchenInfo> makers = makesIt.Where(i => i.Level <= level && i.Inputs.Count > 0 && Usable(i, stations))
-                    .OrderBy(i => i.Kind == StationKind.Stove ? 0 : 1).ToList();
-                if (makers.Count == 0)
+                (KitchenTask? task, string? why) = Plan(order, shortBy, infos, level, stations, Avail);
+                if (task != null)
                 {
-                    result.Missing ??= makesIt.Count == 0 ? null
-                        : makesIt.All(i => i.Level > level) ? $"$vfh_need_cook_level|{order.Item}|{makesIt.Min(i => i.Level)}"
-                        : $"$vfh_need_kitchen|{order.Item}";
+                    result.Task ??= task;
                     continue;
                 }
-                foreach (KitchenInfo maker in makers)
-                {
-                    int needed = (int)Math.Ceiling(shortBy / (double)Math.Max(1, maker.OutputAmount));
-                    int possible = Possible(maker, Avail);
-                    if (possible > 0)
-                    {
-                        result.Task = new KitchenTask { Info = maker, Batches = Math.Min(needed, possible), ForOrder = order.Item };
-                        return result;
-                    }
-                    // One step of chaining: make the first missing input first, if its own inputs are there.
-                    KeyValuePair<string, int> missing = maker.Inputs.FirstOrDefault(kv => Avail(kv.Key) < kv.Value);
-                    if (missing.Key == null)
-                        continue;
-                    int want = missing.Value * needed - Avail(missing.Key);
-                    KitchenInfo? sub = infos.Where(i => i.Output == missing.Key && i.Level <= level && Usable(i, stations) && Possible(i, Avail) > 0)
-                        .OrderBy(i => i.Kind == StationKind.Stove ? 0 : 1).FirstOrDefault();
-                    if (sub != null)
-                    {
-                        int subBatches = Math.Min(Possible(sub, Avail), (int)Math.Ceiling(want / (double)Math.Max(1, sub.OutputAmount)));
-                        int made = subBatches * sub.OutputAmount;
-                        int thenBatches = Math.Min(needed, (Avail(missing.Key) + made) / Math.Max(1, missing.Value));
-                        result.Task = new KitchenTask
-                        {
-                            Info = sub, Batches = subBatches, ForOrder = order.Item,
-                            Then = thenBatches > 0 ? new KitchenTask { Info = maker, Batches = thenBatches, ForOrder = order.Item } : null,
-                        };
-                        return result;
-                    }
-                    result.Missing ??= $"$vfh_need_ingredient|{order.Item}|{missing.Value - Avail(missing.Key)}|{missing.Key}";
-                }
+                if (why == null)
+                    continue;
+                result.Why[order.Item] = why;
+                // The first reason the hireling shows, as before: only while no earlier order gave it work.
+                if (result.Task == null && !why.StartsWith("$vfh_need_recipe"))
+                    result.Missing ??= why;
             }
             return result;
+        }
+
+        // One short order: a task for it (with one step of chaining: dough for bread), or why there's none.
+        private static (KitchenTask? Task, string? Why) Plan(ProductionOrder order, int shortBy, IReadOnlyList<KitchenInfo> infos, int level,
+            IReadOnlyDictionary<string, int> stations, Func<string, int> Avail)
+        {
+            List<KitchenInfo> makesIt = infos.Where(i => i.Output == order.Item).ToList();
+            List<KitchenInfo> makers = makesIt.Where(i => i.Level <= level && i.Inputs.Count > 0 && Usable(i, stations))
+                .OrderBy(i => i.Kind == StationKind.Stove ? 0 : 1).ToList();
+            if (makers.Count == 0)
+                return (null, makesIt.Count == 0 ? $"$vfh_need_recipe|{order.Item}"
+                    : makesIt.All(i => i.Level > level) ? $"$vfh_need_cook_level|{order.Item}|{makesIt.Min(i => i.Level)}"
+                    : $"$vfh_need_kitchen|{order.Item}");
+            string? why = null;
+            foreach (KitchenInfo maker in makers)
+            {
+                int needed = (int)Math.Ceiling(shortBy / (double)Math.Max(1, maker.OutputAmount));
+                int possible = Possible(maker, Avail);
+                if (possible > 0)
+                    return (new KitchenTask { Info = maker, Batches = Math.Min(needed, possible), ForOrder = order.Item }, null);
+                KeyValuePair<string, int> missing = maker.Inputs.FirstOrDefault(kv => Avail(kv.Key) < kv.Value);
+                if (missing.Key == null)
+                    continue;
+                int want = missing.Value * needed - Avail(missing.Key);
+                KitchenInfo? sub = infos.Where(i => i.Output == missing.Key && i.Level <= level && Usable(i, stations) && Possible(i, Avail) > 0)
+                    .OrderBy(i => i.Kind == StationKind.Stove ? 0 : 1).FirstOrDefault();
+                if (sub != null)
+                {
+                    int subBatches = Math.Min(Possible(sub, Avail), (int)Math.Ceiling(want / (double)Math.Max(1, sub.OutputAmount)));
+                    int made = subBatches * sub.OutputAmount;
+                    int thenBatches = Math.Min(needed, (Avail(missing.Key) + made) / Math.Max(1, missing.Value));
+                    return (new KitchenTask
+                    {
+                        Info = sub, Batches = subBatches, ForOrder = order.Item,
+                        Then = thenBatches > 0 ? new KitchenTask { Info = maker, Batches = thenBatches, ForOrder = order.Item } : null,
+                    }, null);
+                }
+                why ??= $"$vfh_need_ingredient|{order.Item}|{missing.Value - Avail(missing.Key)}|{missing.Key}";
+            }
+            return (null, why);
         }
 
         // A station of the right kind is usable now, at the level the recipe needs.

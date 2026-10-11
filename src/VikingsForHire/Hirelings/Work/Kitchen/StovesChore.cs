@@ -99,10 +99,10 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                     if (!StorageRoom.NoRoom(ctx.AllChests, t.Info.Output))
                         jobs.Add(Job(free, 0.6f, VariantLoad, ctx, "$vfh_cook_load", WorkSteps.SharedName(t.Info.Output)));
                     else
-                        Missing ??= ActivityText.Make("$vfh_status_storage_full", WorkSteps.SharedName(t.Info.Output));
+                        Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_status_storage_full", WorkSteps.SharedName(t.Info.Output)));
                 }
                 else if (stoves.Any(s => Utils.GetPrefabName(s.gameObject) == t.Info.Station && KitchenState.FreeSlots(s) > 0))
-                    Missing ??= ActivityText.Make("$vfh_need_fire", stoves.First(s => Utils.GetPrefabName(s.gameObject) == t.Info.Station).m_name);
+                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_need_fire", stoves.First(s => Utils.GetPrefabName(s.gameObject) == t.Info.Station).m_name));
             }
             else if (r.Task == null && r.Missing != null)
                 Missing ??= r.Missing;

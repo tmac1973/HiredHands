@@ -87,12 +87,12 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 // At its limit: left in the hive or collector (it stops filling when full, as for a player).
                 if (StewardLimits.Reached(ctx, x.Item, out int cap))
                 {
-                    Missing ??= ActivityText.Make("$vfh_paused_order", x.Name, WorkSteps.SharedName(x.Item), cap.ToString());
+                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_paused_order", x.Name, WorkSteps.SharedName(x.Item), cap.ToString()));
                     continue;
                 }
                 if (StorageRoom.NoRoom(ctx.AllChests, x.Item))
                 {
-                    Missing ??= ActivityText.Make("$vfh_paused_full", x.Name, WorkSteps.SharedName(x.Item));
+                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_paused_full", x.Name, WorkSteps.SharedName(x.Item)));
                     continue;
                 }
                 // No chest holds it yet: it still gets emptied (to the pile), and the status says where to put it.

@@ -152,13 +152,13 @@ namespace VikingsForHire.Hirelings.Work.Steward
             {
                 if (!Quiet(ctx, monsters, p.transform.position))
                 {
-                    Missing ??= "$vfh_steward_wait_enemies";
+                    Missing = ChoreNotes.First(Missing, "$vfh_steward_wait_enemies");
                     continue;
                 }
                 if (Reservations.IsSkipped(wnt))
                 {
                     if (_unreachable.TryGetValue(wnt.GetInstanceID(), out string? name))
-                        Missing ??= ActivityText.Make("$vfh_repair_unreachable", name);
+                        Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_repair_unreachable", name));
                     continue;
                 }
                 if (Reservations.IsReservedByOther(wnt, ctx.Hireling.Hid) || !ctx.BoardOwnerMayUse(p.transform.position))
@@ -178,12 +178,12 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     continue;
                 if (reachable == false)
                 {
-                    Missing ??= ActivityText.Make("$vfh_repair_unreachable", p.m_name);
+                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_repair_unreachable", p.m_name));
                     continue;
                 }
                 if (MissingStation(p, p.transform.position) is CraftingStation station)
                 {
-                    Missing ??= ActivityText.Make("$vfh_need_station", p.m_name, station.m_name);
+                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_need_station", p.m_name, station.m_name));
                     continue;
                 }
                 float u = ChoreUrgency.Repair(health, below);

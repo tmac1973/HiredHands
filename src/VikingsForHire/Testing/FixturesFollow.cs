@@ -74,6 +74,13 @@ namespace VikingsForHire.Testing
             });
             TestHarness.RegisterCheck("transfer_reply", "has <text> - whether the server's last answer to transfer_posted contains the text", args =>
                 (FollowerServer.LastTransferReply.IndexOf(args.ElementAtOrDefault(1) ?? args.ElementAtOrDefault(0) ?? "", StringComparison.OrdinalIgnoreCase) >= 0).ToString().ToLowerInvariant());
+            TestHarness.RegisterCheck("why", "<count | has <text>> - the last spawned hireling's Shift+E problems list (lines, or whether one contains the text)", args =>
+            {
+                string[] lines = (FixturesHireling.Select("last").Zdo?.GetString(HirelingZdo.Why) ?? "").Split('\n').Where(l => l.Length > 0).ToArray();
+                return (args.ElementAtOrDefault(0) ?? "count") == "has"
+                    ? lines.Any(l => l.IndexOf(args.ElementAtOrDefault(1) ?? "", StringComparison.OrdinalIgnoreCase) >= 0).ToString().ToLowerInvariant()
+                    : lines.Length.ToString();
+            });
             TestHarness.RegisterCheck("map_pins", "- hireling pins on your map right now (shown while the stone is in hand)", _ => HirelingMapPins.Count.ToString());
             Fixtures.Add("retreat", "- the stone's middle click: your followers nearby retreat with you", _ => RetreatNow());
             Fixtures.Add("follow_stats_reset", "- start counting follower lag and catch-up teleports afresh", _ => ResetStats());

@@ -78,12 +78,12 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     continue;
                 st.Inputs = st.Inputs.Except(noRoom).Except(enough).ToList();
                 if (noRoom.Count > 0)
-                    paused ??= ActivityText.Make("$vfh_paused_full", s.m_name, WorkSteps.SharedName(ProductOf(s, noRoom[0])));
+                    paused = ChoreNotes.First(paused, ActivityText.Make("$vfh_paused_full", s.m_name, WorkSteps.SharedName(ProductOf(s, noRoom[0]))));
                 else
                 {
                     string product = ProductOf(s, enough[0]);
                     StewardLimits.Reached(ctx, product, out int cap);
-                    paused ??= ActivityText.Make("$vfh_paused_order", s.m_name, WorkSteps.SharedName(product), cap.ToString());
+                    paused = ChoreNotes.First(paused, ActivityText.Make("$vfh_paused_order", s.m_name, WorkSteps.SharedName(product), cap.ToString()));
                 }
             }
             var wanted = new HashSet<string>(states.SelectMany(s => s.Inputs).Concat(states.Select(s => s.FuelItem)).Where(p => p.Length > 0));
@@ -123,7 +123,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 // Ore there (in a chest or already queued) but no fuel: say the fuel; else the first input.
                 bool hasInput = st.Queue > 0 || st.Inputs.Any(i => Have(i) > 0);
                 string need = hasInput && st.FuelItem.Length > 0 ? st.FuelItem : st.Inputs.FirstOrDefault() ?? st.FuelItem;
-                Missing = ActivityText.Make("$vfh_need_item", starved.m_name, WorkSteps.SharedName(need));
+                Missing = ChoreNotes.Add(ActivityText.Make("$vfh_need_item", starved.m_name, WorkSteps.SharedName(need)));
             }
             return jobs;
         }

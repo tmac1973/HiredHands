@@ -70,7 +70,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     continue;
                 if (FoodFor(ctx, foods) == null)
                 {
-                    Missing ??= ActivityText.Make("$vfh_need_food", animal.m_name);
+                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_need_food", animal.m_name));
                     continue;
                 }
                 float u = ChoreUrgency.Animal(true);

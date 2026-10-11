@@ -75,7 +75,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 return Enumerable.Empty<ChoreJob>();
             if (Foods(ctx).Count == 0)
             {
-                Missing = "$vfh_need_board_food";
+                Missing = ChoreNotes.Add("$vfh_need_board_food");
                 return Enumerable.Empty<ChoreJob>();
             }
             return new[]

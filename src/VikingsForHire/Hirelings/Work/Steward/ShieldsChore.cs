@@ -63,7 +63,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     continue;
                 if (FuelFor(ctx, g) == null)
                 {
-                    Missing ??= ActivityText.Make("$vfh_need_fuel", g.m_name, WorkSteps.SharedName(g.m_fuelItems[0].gameObject.name));
+                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_need_fuel", g.m_name, WorkSteps.SharedName(g.m_fuelItems[0].gameObject.name)));
                     continue;
                 }
                 jobs.Add(new ChoreJob

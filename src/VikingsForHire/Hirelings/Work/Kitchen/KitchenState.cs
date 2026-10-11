@@ -99,6 +99,10 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             return r;
         }
 
+        /// <summary>Why each short kitchen order is stuck, as of this Cook's last plan (empty before the first).</summary>
+        public static IReadOnlyDictionary<string, string> Why(HiringBoard board, string hid) =>
+            Results.TryGetValue(board.Id + "|" + hid, out var hit) ? hit.Result.Why : new Dictionary<string, string>();
+
         /// <summary>A chained task's follow-up stays the Cook's next task until done or 120 s pass.</summary>
         public static void Pin(string hid, KitchenTask task) => Pinned[hid] = (task, Time.time + 120f);
 

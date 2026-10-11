@@ -3,6 +3,17 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.8.1 (not released): Shift+E problems list
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (order-reasons branch) | Shift+E "Problems (n)" view for Farmers, Cooks and Stewards: every order the job works (have / target, then done, on it, or why not) and every chore problem, not just the one the hover shows. The planners now give a reason per order (Cook: no station, ingredient, level, nothing makes it; Farmer: no field, no seed, seed reserve, level, nothing grows it); chores note all their reasons. Farm reasons now show item names ("Carrots", not "Carrot") in the hover too. Rows VFH-WHY-1, -2 | the game simulating the hireling (the list is stored on it); the panel on yours |
+
+### To test (batch)
+- [ ] Macro (single player): `vfh_test_chain why1 why2`; regression `vfh_test_chain orders farm_bush farm_seeds`.
+- [ ] By hand (live server): a Cook and a Farmer with several stuck orders: Shift+E, Problems; the list matches and updates as you fix things (add a stove, stock seeds). A Steward's list shows fuel, paused stations and the like.
+
 ## 0.8.0 (packaged 2026-10-11): the Wizard, with the 0.7.8 playtest fixes
 
 ### Fixed or added

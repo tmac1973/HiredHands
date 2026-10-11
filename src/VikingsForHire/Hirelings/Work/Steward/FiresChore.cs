@@ -74,7 +74,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 int have = ctx.Available(fuel) + (ctx.Carried.TryGetValue(fuel, out int c) ? c : 0);
                 if (have <= 0)
                 {
-                    Missing ??= ActivityText.Make("$vfh_need_fuel", f.m_name, WorkSteps.SharedName(fuel));
+                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_need_fuel", f.m_name, WorkSteps.SharedName(fuel)));
                     continue;
                 }
                 jobs.Add(new ChoreJob

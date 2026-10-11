@@ -69,7 +69,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             {
                 if (Unusable(s, t.Info) is string why)
                 {
-                    Missing ??= why;
+                    Missing = ChoreNotes.First(Missing, why);
                     continue;
                 }
                 usable = s;
@@ -80,7 +80,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                 return Enumerable.Empty<ChoreJob>();
             if (t.Then == null && StorageRoom.NoRoom(ctx.AllChests, t.Info.Output))
             {
-                Missing = ActivityText.Make("$vfh_status_storage_full", WorkSteps.SharedName(t.Info.Output));
+                Missing = ChoreNotes.Add(ActivityText.Make("$vfh_status_storage_full", WorkSteps.SharedName(t.Info.Output)));
                 return Enumerable.Empty<ChoreJob>();
             }
             const float u = 0.5f;

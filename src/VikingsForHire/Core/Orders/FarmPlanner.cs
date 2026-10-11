@@ -21,6 +21,9 @@ namespace VikingsForHire.Core.Orders
         /// <summary>Why an order can't be worked, as activity text ("token|arg|arg"), first order first.</summary>
         public List<string> Missing { get; } = new();
 
+        /// <summary>Order item -> why that order can't be worked (activity text); short orders being worked aren't here.</summary>
+        public Dictionary<string, string> Why { get; } = new();
+
         /// <summary>Items (and amounts) the Cook mustn't take: the seed reserve plus what seed-order planting needs.</summary>
         public Dictionary<string, int> Protected()
         {
@@ -98,10 +101,13 @@ namespace VikingsForHire.Core.Orders
                 }
                 if (plantedHere > 0 || regrows)
                     continue;
-                if (candidates.Count == 0 && growsIt.Count > 0)
-                    plan.Missing.Add($"$vfh_need_farmer_level|{order.Item}|{growsIt.Min(c => c.Level)}");
-                else if (blocked != null)
-                    plan.Missing.Add(blocked);
+                string? why = candidates.Count == 0 && growsIt.Count > 0 ? $"$vfh_need_farmer_level|{order.Item}|{growsIt.Min(c => c.Level)}"
+                    : blocked ?? (growsIt.Count == 0 ? $"$vfh_need_no_crop|{order.Item}" : null);
+                if (why == null)
+                    continue;
+                if (growsIt.Count > 0)
+                    plan.Missing.Add(why);
+                plan.Why[order.Item] = why;
             }
             return plan;
         }

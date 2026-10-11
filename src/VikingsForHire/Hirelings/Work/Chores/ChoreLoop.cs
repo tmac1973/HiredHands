@@ -130,6 +130,7 @@ namespace VikingsForHire.Hirelings.Work.Chores
             var skipped = new List<string>();
             var counts = new List<string>();
             string? missing = null;
+            ChoreNotes.Clear();
             foreach (IChore chore in _chores)
             {
                 string? why = WhyNot(chore.Kind, ctx, off);
@@ -145,6 +146,7 @@ namespace VikingsForHire.Hirelings.Work.Chores
                     if (best.Job == null || j.Score > best.Job.Score + 0.0001f)
                         best = (j, chore);
             }
+            h.SetWhy(WhyText(h));
             VfhLog.D(_cat, $"{_log}.survey", ("hid", h.Hid), ("level", ctx.Level), ("candidates", string.Join(",", counts)),
                 ("skipped", string.Join(",", skipped)), ("missing", missing ?? ""), ("winner", best.Job == null ? "none" : $"{best.Job.Kind}:{TargetName(best.Job)}"),
                 ("score", best.Job?.Score ?? 0f));
@@ -170,6 +172,26 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 ("score", System.Math.Round(best.Job.Score, 2)));
             _current.Begin(best.Job, ctx);
         }
+
+        // Order problems (the Farmer's and Cook's plans give one per stuck order) then the chores' own, for HirelingZdo.Why.
+        private static string WhyText(Hireling h)
+        {
+            var lines = new List<string>();
+            Board.HiringBoard? board = Board.BoardOrders.BoardOf(h.BoardId);
+            IReadOnlyDictionary<string, string>? orders = board == null ? null
+                : h.Job == JobType.Farmer ? Farm.FarmState.For(board).Why
+                : h.Job == JobType.Cook ? Kitchen.KitchenState.Why(board, h.Hid)
+                : null;
+            if (orders != null)
+                foreach (KeyValuePair<string, string> kv in orders)
+                    lines.Add(kv.Key + "\t" + kv.Value);
+            foreach (string note in ChoreNotes.All.Take(MaxNotes))
+                if (orders == null || !orders.Values.Contains(note))
+                    lines.Add("\t" + note);
+            return string.Join("\n", lines);
+        }
+
+        private const int MaxNotes = 12;
 
         private static string? WhyNot(ChoreKind kind, Hireling h)
         {

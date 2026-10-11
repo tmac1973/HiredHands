@@ -41,6 +41,11 @@ namespace VikingsForHire.Hirelings
         public const string Status = "vfh_status";
         /// <summary>What the hireling is doing right now (chopping, delivering…), shown under the status on hover.</summary>
         public const string Activity = "vfh_activity";
+        /// <summary>
+        /// Everything in its way at the last work survey, for the Shift+E problems list: lines of "item\tactivity text",
+        /// item empty for a chore problem not tied to an order.
+        /// </summary>
+        public const string Why = "vfh_why";
 
         /// <summary>Set once the first-spawn setup (full health) has run, so later loads keep the saved health.</summary>
         public const string Initialized = "vfh_initialized";

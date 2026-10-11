@@ -69,7 +69,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
                 Crop crop = CropCatalog.ByGrown(Utils.GetPrefabName(p.gameObject))!;
                 if (StorageRoom.NoRoom(ctx.AllChests, crop.Info.Yields))
                 {
-                    Missing ??= ActivityText.Make("$vfh_status_storage_full", WorkSteps.SharedName(crop.Info.Yields));
+                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_status_storage_full", WorkSteps.SharedName(crop.Info.Yields)));
                     continue;
                 }
                 float d = Vector3.Distance(ctx.Position, p.transform.position);

@@ -178,6 +178,17 @@ namespace VikingsForHire.Hirelings
             Zdo.Set(HirelingZdo.Activity, token);
         }
 
+        private string _why = "";
+
+        /// <summary>Owner: everything in its way (HirelingZdo.Why), written only when it changes.</summary>
+        public void SetWhy(string why)
+        {
+            if (why == _why || !IsOwner || Zdo == null)
+                return;
+            _why = why;
+            Zdo.Set(HirelingZdo.Why, why);
+        }
+
         public void OnPickedUp()
         {
             if (CarryingSince <= 0f)

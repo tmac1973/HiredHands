@@ -37,6 +37,8 @@ namespace VikingsForHire.UI
         private bool _all;
         private bool _limits;
         private int _limitsPage;
+        private bool _why;
+        private int _whyPage;
         private string _shown = "";
         private float _nextRefresh;
 
@@ -61,6 +63,8 @@ namespace VikingsForHire.UI
             _instance._shown = "";
             _instance._limits = false;
             _instance._limitsPage = 0;
+            _instance._why = false;
+            _instance._whyPage = 0;
             _instance._nextRefresh = 0f;
             _instance._nextHold = 0f;
             _instance.gameObject.SetActive(true);
@@ -116,13 +120,22 @@ namespace VikingsForHire.UI
             if (Time.unscaledTime < _nextRefresh)
                 return;
             _nextRefresh = Time.unscaledTime + 0.3f;
-            string signature = $"{h.Mode}|{h.FollowMode}|{h.Stance}|{h.HasPost}|{_all}|{h.DisplayName}|{h.Zdo.GetString(HirelingZdo.SkipItems)}|{h.WorksAtHome}|{h.IsParked}|{h.Level}|{(ChoreRules.ChoresFor(h.Job).Count > 0 ? h.Zdo.GetString(HirelingZdo.Activity) : "")}";
+            string signature = $"{h.Mode}|{h.FollowMode}|{h.Stance}|{h.HasPost}|{_all}|{h.DisplayName}|{h.Zdo.GetString(HirelingZdo.SkipItems)}|{h.WorksAtHome}|{h.IsParked}|{h.Level}|{(ChoreRules.ChoresFor(h.Job).Count > 0 ? h.Zdo.GetString(HirelingZdo.Activity) + "|" + h.Zdo.GetString(HirelingZdo.Why) : "")}";
             if (_limits && BoardOrders.BoardOf(h.BoardId) is HiringBoard lb)
             {
                 Core.Orders.OrderList ol = BoardOrders.For(lb);
                 List<Container> chests = ChestFinder.Find(h.Home, h.Radius).ToList();
                 signature += $"|{_limits}|{_limitsPage}|{ol.Serialize()}|" +
                              string.Join(",", ol.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Station).Select(o => Hirelings.Work.Steward.StewardLimits.Held(chests, o.Item)));
+            }
+            if (_why)
+            {
+                signature += $"|why|{_whyPage}|{h.Zdo.GetString(HirelingZdo.Why)}";
+                if (BoardOrders.BoardOf(h.BoardId) is HiringBoard wb)
+                {
+                    Stock ws = BoardOrders.Stock(wb);
+                    signature += "|" + string.Join(",", WhyOrders(h, wb).Select(o => $"{o.Item}:{o.Target}:{o.Paused}:{ws.Have(o.Item)}"));
+                }
             }
             if (signature == _shown)
                 return;
@@ -135,10 +148,15 @@ namespace VikingsForHire.UI
             PanelUi.Clear(_content);
             Transform t = _content;
             if (transform is RectTransform wide)
-                wide.sizeDelta = new Vector2(_limits ? LimitsWidth : Width, wide.sizeDelta.y);
+                wide.sizeDelta = new Vector2(_limits || _why ? LimitsWidth : Width, wide.sizeDelta.y);
             if (_limits)
             {
                 BuildLimits(h);
+                return;
+            }
+            if (_why)
+            {
+                BuildWhy(h);
                 return;
             }
             bool follower = h.Mode == HirelingMode.Following;
@@ -217,12 +235,16 @@ namespace VikingsForHire.UI
                         y -= 22f;
                     }
                 }
+                int problems = WhyLines(h).Count;
                 if (h.Job == JobType.Smelter)
                 {
                     int set = BoardOrders.For(BoardOrders.BoardOf(h.BoardId)?.Zdo).Orders.Count(o => o.Kind == Core.Orders.OrderKind.Station);
-                    PanelUi.Button(t, Localization.instance.Localize("$vfh_limits_open", set.ToString()), 0f, y - 6f, 300f, 32f, () => { _limits = true; _limitsPage = 0; _shown = ""; });
-                    y -= 44f;
+                    PanelUi.Button(t, Localization.instance.Localize("$vfh_limits_open", set.ToString()), -105f, y - 6f, 200f, 32f, () => { _limits = true; _limitsPage = 0; _shown = ""; });
+                    PanelUi.Button(t, Localization.instance.Localize("$vfh_why_open", problems.ToString()), 105f, y - 6f, 200f, 32f, OpenWhy);
                 }
+                else
+                    PanelUi.Button(t, Localization.instance.Localize("$vfh_why_open", problems.ToString()), 0f, y - 6f, 300f, 32f, OpenWhy);
+                y -= 44f;
                 y -= 10f;
                 string doing = Hirelings.Work.Chores.ActivityText.Show(h.Zdo?.GetString(HirelingZdo.Activity) ?? "");
                 if (doing.Length > 0)
@@ -345,6 +367,99 @@ namespace VikingsForHire.UI
                 PanelUi.Text(t, $"{_limitsPage + 1} / {pages}", 0f, y, 70f, 16);
                 PanelUi.Button(t, ">", 60f, y, 40f, 30f, () => { _limitsPage = Mathf.Min(pages - 1, _limitsPage + 1); _shown = ""; });
                 y -= 40f;
+            }
+            Fit(-y + 50f);
+        }
+
+        private void OpenWhy()
+        {
+            _why = true;
+            _whyPage = 0;
+            _shown = "";
+        }
+
+        // The hireling's problems as of its last work survey (HirelingZdo.Why): (order item or "", activity text).
+        private static List<(string Item, string Why)> WhyLines(Hireling h) =>
+            (h.Zdo?.GetString(HirelingZdo.Why) ?? "").Split('\n').Where(l => l.Length > 0).Select(l =>
+            {
+                int tab = l.IndexOf('\t');
+                return tab < 0 ? ("", l) : (l.Substring(0, tab), l.Substring(tab + 1));
+            }).ToList();
+
+        // The board orders this hireling works: seed and crop for a Farmer, kitchen for a Cook (Station limits have their own view).
+        private static List<Core.Orders.ProductionOrder> WhyOrders(Hireling h, HiringBoard board)
+        {
+            Core.Orders.OrderList list = BoardOrders.For(board);
+            return h.Job switch
+            {
+                JobType.Farmer => list.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Seed)
+                    .Concat(list.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Crop)).ToList(),
+                JobType.Cook => list.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Kitchen).ToList(),
+                _ => new List<Core.Orders.ProductionOrder>(),
+            };
+        }
+
+        private const int WhyRowsPerPage = 10;
+
+        // Everything in its way: each of its orders (done, on it, or why not), then chore problems not tied to an order.
+        private void BuildWhy(Hireling h)
+        {
+            Transform t = _content;
+            PanelUi.Button(t, "$vfh_orders_back", -250f, -45f, 100f, 30f, () => { _why = false; _shown = ""; });
+            PanelUi.Text(t, Localization.instance.Localize("$vfh_why_title", h.DisplayName), 20f, -45f, 380f, 22, bold: true);
+            float y = -90f;
+            List<(string Item, string Why)> lines = WhyLines(h);
+            var byItem = new Dictionary<string, string>();
+            foreach ((string item, string why) in lines.Where(l => l.Item.Length > 0))
+                byItem[item] = why;
+            HiringBoard? board = BoardOrders.BoardOf(h.BoardId);
+            if (h.Job != JobType.Smelter)
+            {
+                PanelUi.Text(t, "$vfh_why_orders", 0f, y, 560f, 17, bold: true);
+                y -= 34f;
+                List<Core.Orders.ProductionOrder> orders = board != null ? WhyOrders(h, board) : new List<Core.Orders.ProductionOrder>();
+                if (orders.Count == 0)
+                {
+                    PanelUi.Text(t, board == null ? "$vfh_limits_no_board" : "$vfh_why_no_orders", 0f, y, 560f, 15, color: PanelUi.Dim);
+                    y -= 32f;
+                }
+                int pages = Mathf.Max(1, (orders.Count + WhyRowsPerPage - 1) / WhyRowsPerPage);
+                _whyPage = Mathf.Clamp(_whyPage, 0, pages - 1);
+                Stock stock = board != null ? BoardOrders.Stock(board) : null!;
+                foreach (Core.Orders.ProductionOrder o in orders.Skip(_whyPage * WhyRowsPerPage).Take(WhyRowsPerPage))
+                {
+                    int have = stock.Have(o.Item);
+                    PanelUi.Icon(t, ObjectDB.instance.GetItemPrefab(o.Item)?.GetComponent<ItemDrop>()?.m_itemData.GetIcon(), -295f, y, 28f);
+                    PanelUi.Text(t, ItemName(o.Item), -195f, y, 170f, 15, TextAnchor.MiddleLeft, o.Paused ? PanelUi.Dim : (Color?)null);
+                    PanelUi.Text(t, $"{have} / {o.Target}", -75f, y, 80f, 15, color: have >= o.Target ? PanelUi.Good : PanelUi.Dim);
+                    (string text, Color color) = o.Paused ? (Localization.instance.Localize("$vfh_limits_paused"), PanelUi.Dim)
+                        : have >= o.Target ? (Localization.instance.Localize("$vfh_why_done"), PanelUi.Good)
+                        : byItem.TryGetValue(o.Item, out string why) ? (Hirelings.Work.Chores.ActivityText.Show(why), PanelUi.Bad)
+                        : (Localization.instance.Localize("$vfh_why_on_it"), PanelUi.Good);
+                    PanelUi.Text(t, text, 155f, y, 340f, 13, TextAnchor.MiddleLeft, color);
+                    y -= 34f;
+                }
+                if (pages > 1)
+                {
+                    PanelUi.Button(t, "<", -60f, y, 40f, 30f, () => { _whyPage = Mathf.Max(0, _whyPage - 1); _shown = ""; });
+                    PanelUi.Text(t, $"{_whyPage + 1} / {pages}", 0f, y, 70f, 16);
+                    PanelUi.Button(t, ">", 60f, y, 40f, 30f, () => { _whyPage = Mathf.Min(pages - 1, _whyPage + 1); _shown = ""; });
+                    y -= 40f;
+                }
+                y -= 10f;
+            }
+            PanelUi.Text(t, "$vfh_why_other", 0f, y, 560f, 17, bold: true);
+            y -= 32f;
+            List<string> notes = lines.Where(l => l.Item.Length == 0).Select(l => l.Why).ToList();
+            if (notes.Count == 0)
+            {
+                PanelUi.Text(t, "$vfh_why_none", 0f, y, 560f, 15, color: PanelUi.Dim);
+                y -= 30f;
+            }
+            foreach (string note in notes)
+            {
+                PanelUi.Text(t, Hirelings.Work.Chores.ActivityText.Show(note), 0f, y, 600f, 14, color: PanelUi.Bad);
+                y -= 28f;
             }
             Fit(-y + 50f);
         }
