@@ -118,6 +118,14 @@ namespace VikingsForHire.Tests
             Assert.False(CropInfo.IsSeedItem("Barley", Crops, _ => false));
             Assert.True(CropInfo.IsSeedItem("CarrotSeeds", Crops, _ => false));
             Assert.False(CropInfo.IsSeedItem("Carrot", Crops, i => i == "Carrot"));
+            // A turnip isn't edible raw but goes into soup: produce, though planting one grows turnip seeds.
+            var turnips = new List<CropInfo>
+            {
+                new CropInfo { Plant = "sapling_turnip", Consumes = "TurnipSeeds", Yields = "Turnip" },
+                new CropInfo { Plant = "sapling_seedturnip", Consumes = "Turnip", Yields = "TurnipSeeds" },
+            };
+            Assert.False(CropInfo.IsSeedItem("Turnip", turnips, i => i == "Turnip"));
+            Assert.True(CropInfo.IsSeedItem("TurnipSeeds", turnips, i => i == "Turnip"));
         }
 
         private static readonly List<KitchenInfo> Kitchen = new()

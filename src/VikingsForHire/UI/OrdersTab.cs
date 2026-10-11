@@ -162,7 +162,8 @@ namespace VikingsForHire.UI
         {
             if (string.IsNullOrEmpty(item))
                 return;
-            bool seed = CropInfo.IsSeedItem(item, crops, i => ObjectDB.instance.GetItemPrefab(i) is GameObject go && CropCatalog.IsFood(go));
+            bool seed = CropInfo.IsSeedItem(item, crops, i => ObjectDB.instance.GetItemPrefab(i) is GameObject go && CropCatalog.IsFood(go) ||
+                                                              KitchenCatalog.All.Any(k => k.Inputs.ContainsKey(i)));
             if (picks.TryGetValue(item, out Pick p))
                 p.Level = Mathf.Min(p.Level, level);
             else

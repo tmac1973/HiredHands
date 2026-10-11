@@ -33,10 +33,11 @@ namespace VikingsForHire.Core.Orders
             string.Equals(Yields, item, StringComparison.Ordinal) ? YieldPerPlant : ExtraYields.TryGetValue(item, out double x) ? x : 0d;
 
         /// <summary>
-        /// A seed: some crop uses it up to grow a different item, and it isn't food (CarrotSeeds, TurnipSeeds, KaleSeeds…).
-        /// Carrots (food), Barley and OatSeeds (each only grows more of itself) are crop items.
+        /// A seed: some crop uses it up to grow a different item, and it isn't produce, food or something cooked with
+        /// (CarrotSeeds, TurnipSeeds, KaleSeeds…). Carrots (food), turnips and onions (not edible raw, but soup ingredients,
+        /// though planting them grows their seeds), Barley and OatSeeds (each only grows more of itself) are crop items.
         /// </summary>
-        public static bool IsSeedItem(string item, IEnumerable<CropInfo> crops, Func<string, bool> isFood) =>
-            !isFood(item) && crops.Any(c => !c.Regrowing && c.Consumes == item && c.Yields != item);
+        public static bool IsSeedItem(string item, IEnumerable<CropInfo> crops, Func<string, bool> isProduce) =>
+            !isProduce(item) && crops.Any(c => !c.Regrowing && c.Consumes == item && c.Yields != item);
     }
 }
