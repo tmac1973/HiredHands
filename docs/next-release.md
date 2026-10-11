@@ -12,7 +12,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 
 ### To test (batch)
 - [ ] By hand: Grima's terrace: he walks back up the stone stairs instead of into the wall (`navlinks.hop` up in the log).
-- [ ] Regression: `vfh_test_chain stairs1 doors1 nav_links` (whatever the nav rows are named) still pass.
+- [ ] Regression: `vfh_test_chain door1 nav1 nav2 nav3 nav4 nav5 nav6 navscan1 navscan2 navscan3 pass` still pass.
 
 ## 0.8.3 (packaged 2026-10-11, in-game tests deferred): arrows go where the archer aims, orders count the board's pile, reach fixes, stuck torches
 
