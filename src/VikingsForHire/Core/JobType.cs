@@ -9,11 +9,14 @@ namespace VikingsForHire.Core
         GuardRanged,
         Farmer,
         Cook,
+        /// <summary>A caster: fights with a staff's main spell from range (plan/wizard).</summary>
+        Wizard,
     }
 
     public static class JobTypeExtensions
     {
-        public static bool IsGuard(this JobType job) => job == JobType.GuardMelee || job == JobType.GuardRanged;
+        /// <summary>The fighting jobs: guards, archers and wizards. Posts, attack orders and guard stances go by this.</summary>
+        public static bool IsGuard(this JobType job) => job == JobType.GuardMelee || job == JobType.GuardRanged || job == JobType.Wizard;
 
         /// <summary>
         /// Counts against the board's combat cap (guards today; casters later), not its worker cap. What a job is, so it's

@@ -156,6 +156,44 @@ namespace VikingsForHire.Core.Data
                         Weapon(8, "BowAshlands", ammo: "ArrowCharred"),
                     },
                 },
+                // Magic: the Mistlands staffs from the Galdr table, so board level 6 (Yagluth). With Therzie's Wizardry,
+                // from the Black Forest (its first staff, Evergrowth, is crafted there), with its staffs and robes.
+                [JobType.Wizard] = new()
+                {
+                    CostMult = 1.5f,
+                    WorkerCombatFactor = 1.0f,
+                    MinBoardLevel = 6,
+                    // Levels 1-5 only for wizards hired while Wizardry was loaded, after it's gone.
+                    Gear = Mains("StaffFireball", "StaffFireball", "StaffFireball", "StaffFireball", "StaffFireball", "StaffFireball",
+                        "StaffIceShards", "StaffLightning"),
+                    Outfit = new List<ArmorSetData>
+                    {
+                        Armor(6, "HelmetMage", "ArmorMageChest", "ArmorMageLegs"),
+                        Armor(7, "HelmetMage_Ashlands", "ArmorMageChest_Ashlands", "ArmorMageLegs_Ashlands"),
+                        Armor(8, "HelmetMage_Ashlands", "ArmorMageChest_Ashlands", "ArmorMageLegs_Ashlands"),
+                    },
+                    WithMods = new List<JobModOverride>
+                    {
+                        new()
+                        {
+                            Guid = "Therzie.Wizardry",
+                            MinBoardLevel = 2,
+                            Gear = Mains("StaffBlackforest_TW", "StaffBlackforest_TW", "StaffSwamp_TW", "StaffMountain_TW", "StaffPlains_TW",
+                                "StaffMistlands_TW", "StaffLightning", "StaffLightning"),
+                            Outfit = new List<ArmorSetData>
+                            {
+                                Spellslinger(1, "BlackForest", "Blackforest"),
+                                Spellslinger(2, "BlackForest", "Blackforest"),
+                                Spellslinger(3, "Swamp", "Swamp"),
+                                Spellslinger(4, "Mountain", "Mountain"),
+                                Spellslinger(5, "Plains", "Plains"),
+                                Spellslinger(6, "Mistlands", "Mistlands"),
+                                Spellslinger(7, "Mistlands", "Mistlands"),
+                                Spellslinger(8, "Mistlands", "Mistlands"),
+                            },
+                        },
+                    },
+                },
             },
             CommandStone = new List<StoneLevelData>
             {
@@ -214,6 +252,13 @@ namespace VikingsForHire.Core.Data
 
         private static WeaponSetData Weapon(int level, string main, string offhand = "", string ammo = "") =>
             new() { Level = level, Main = main, Offhand = offhand, Ammo = ammo, Sidearm = ammo == "" ? "" : "Club" };
+
+        // Wizardry's robes; the cape spells Blackforest with a small f.
+        private static ArmorSetData Spellslinger(int level, string biome, string capeBiome) => new()
+        {
+            Level = level, Helmet = $"HelmetSpellslinger_{biome}_TW", Chest = $"ArmorSpellSlingerChest_{biome}_TW",
+            Legs = $"ArmorSpellslingerLegs_{biome}_TW", Cape = $"CapeSpellslinger_{capeBiome}_TW",
+        };
 
         private static List<WeaponSetData> Mains(params string[] mains) =>
             mains.Select((m, i) => Weapon(i + 1, m)).ToList();

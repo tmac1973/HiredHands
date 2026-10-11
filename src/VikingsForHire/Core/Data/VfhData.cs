@@ -99,6 +99,25 @@ namespace VikingsForHire.Core.Data
         public string Helmet { get; set; } = "";
         public string Chest { get; set; } = "";
         public string Legs { get; set; } = "";
+
+        [YamlMember(Description = "A cape (job outfits only; empty for none).")]
+        public string Cape { get; set; } = "";
+    }
+
+    /// <summary>A job's settings while a mod is loaded (by its BepInEx GUID): what's set replaces the job's own.</summary>
+    public class JobModOverride
+    {
+        [YamlMember(Description = "The mod's BepInEx plugin GUID (e.g. Therzie.Wizardry).")]
+        public string Guid { get; set; } = "";
+
+        [YamlMember(Description = "Lowest board level for this job while the mod is loaded (0 = keep the job's own).")]
+        public int MinBoardLevel { get; set; }
+
+        [YamlMember(Description = "Weapons by level while the mod is loaded (empty = keep the job's own).")]
+        public List<WeaponSetData> Gear { get; set; } = new();
+
+        [YamlMember(Description = "Outfit by level while the mod is loaded (empty = keep the job's own).")]
+        public List<ArmorSetData> Outfit { get; set; } = new();
     }
 
     public class JobData
@@ -126,6 +145,12 @@ namespace VikingsForHire.Core.Data
 
         [YamlMember(Description = "Cosmetic weapons by level. The main item's real tool tier decides what a gatherer can harvest.")]
         public List<WeaponSetData> Gear { get; set; } = new();
+
+        [YamlMember(Description = "What this job wears by level, instead of the shared armorSets (empty = the shared sets). Looks only: armor comes from the hireling level. An item that doesn't exist falls back to the shared set's for that slot.")]
+        public List<ArmorSetData> Outfit { get; set; } = new();
+
+        [YamlMember(Description = "Changes while another mod is loaded, by its GUID; the first entry whose mod is loaded applies.")]
+        public List<JobModOverride> WithMods { get; set; } = new();
 
         [YamlMember(Description = "Smelter only: station prefab names this job keeps stocked.")]
         public List<string> Stations { get; set; } = new();

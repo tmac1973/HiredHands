@@ -35,6 +35,9 @@ namespace VikingsForHire.Net
         }
 
         private const float OwnershipSeconds = 5f;
+        /// <summary>The last answer to a transfer (tests).</summary>
+        internal static string LastTransferReply = "";
+
         private static CustomRPC _rpc = null!;
         private static CustomRPC _countRpc = null!;
         private static CustomRPC _homeRpc = null!;
@@ -238,6 +241,7 @@ namespace VikingsForHire.Net
         {
             void Answer(string reply)
             {
+                LastTransferReply = reply;
                 VfhLog.I(LogCat.Follow, "follow.reply", ("kind", Kind.Transfer), ("hid", hid), ("player", pid), ("board", boardId), ("reply", reply));
                 Reply(sender, reply);
             }

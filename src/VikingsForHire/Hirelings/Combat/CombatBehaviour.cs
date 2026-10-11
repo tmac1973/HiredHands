@@ -46,6 +46,9 @@ namespace VikingsForHire.Hirelings.Combat
 
         public bool Wants(HirelingAI ai)
         {
+            // Wizards fight from phase 04 of plan/wizard; until then they don't fight at all.
+            if (ai.Hireling.Job == JobType.Wizard)
+                return false;
             if (ai.Retreating)
                 return Drop(ai, "retreat");
             if (ai.RetreatOrdered)

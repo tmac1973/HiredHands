@@ -35,6 +35,7 @@ namespace VikingsForHire.Testing
             _fastTimersRpc = NetworkManager.Instance.AddRPC("VFH_TestFastTimers", OnServerFastTimers, OnClientFastTimers);
             SynchronizationManager.Instance.AddInitialSynchronization(_fastTimersRpc, () => FastTimersPackage(VfhConfig.FastTimers));
 
+            Add("mods", "<guid> <on|off|real> - pretend another mod is loaded or not (job withMods), or go back to the truth", Mods);
             Add("fast_timers", "<on|off> - short arrival/respawn waits and orphan/return timers ÷10, on the server and every client", FastTimers);
         }
 
@@ -60,6 +61,15 @@ namespace VikingsForHire.Testing
                 VfhLog.I(LogCat.Test, "fixture", ("name", args[0]), ("args", string.Join(" ", rest)));
                 return fixture.Run(rest);
             });
+        }
+
+        private static IEnumerator Mods(string[] args)
+        {
+            string guid = args.ElementAtOrDefault(0) ?? throw new ArgumentException("usage: mods <guid> <on|off|real>");
+            string state = args.ElementAtOrDefault(1) ?? "real";
+            Core.ModPresence.Pretend(guid, state == "on" ? true : state == "off" ? false : null);
+            VfhLog.I(LogCat.Test, "fixture.mods", ("guid", guid), ("state", state), ("loaded", Core.ModPresence.IsLoaded(guid)));
+            yield return null;
         }
 
         private static IEnumerator FastTimers(string[] args)

@@ -18,6 +18,7 @@ namespace VikingsForHire
     [BepInDependency("com.ValheimModding.YamlDotNetDetector")]
     // Soft dependencies load first so the compat patches can find their targets.
     [BepInDependency("Azumatt.AzuAutoStore", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("Therzie.Wizardry", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("Azumatt.AzuCraftyBoxes", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("Spronglehump.PullMats", BepInDependency.DependencyFlags.SoftDependency)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Minor)]

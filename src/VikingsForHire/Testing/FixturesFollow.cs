@@ -72,6 +72,8 @@ namespace VikingsForHire.Testing
                     ? BoardRosterOps.Read(z).Entries.Count(e => e.State == ContractState.Active) : -1;
                 return $"{Active(_transferFrom)}/{Active(_transferTo)}";
             });
+            TestHarness.RegisterCheck("transfer_reply", "has <text> - whether the server's last answer to transfer_posted contains the text", args =>
+                (FollowerServer.LastTransferReply.IndexOf(args.ElementAtOrDefault(1) ?? args.ElementAtOrDefault(0) ?? "", StringComparison.OrdinalIgnoreCase) >= 0).ToString().ToLowerInvariant());
             TestHarness.RegisterCheck("map_pins", "- hireling pins on your map right now (shown while the stone is in hand)", _ => HirelingMapPins.Count.ToString());
             Fixtures.Add("retreat", "- the stone's middle click: your followers nearby retreat with you", _ => RetreatNow());
             Fixtures.Add("follow_stats_reset", "- start counting follower lag and catch-up teleports afresh", _ => ResetStats());
