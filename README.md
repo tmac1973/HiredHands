@@ -4,6 +4,19 @@ Build a **Hiring Board** at your base and post contracts to hire wandering vikin
 
 Works in single-player and on dedicated servers. Every client and the server need the mod.
 
+> **In active development.** Hired Hands changes quickly: new versions come out often, sometimes several a day, and
+> some change how hirelings behave or what the data file holds. Read the changelog when you update, and update the server
+> and every player together.
+
+> **About balance.** I play with mods that make Valheim harder, such as Creature Level and Loot Control (CLLC), which
+> gives monsters more stars and health, so the hirelings are tuned not to tip that kind of game too far. On a normal
+> game without difficulty mods, guards and archers may make fights too easy. If so, turn their fighting down
+> (server-synced, in the Combat section):
+> - `GuardMeleeDamage` and `GuardRangedDamage`, for example 0.5 to halve their damage;
+> - `CombatSkill`, from Trained to Green, so they block and dodge less often;
+> - `HealthRegen`, below 1, so they heal more slowly between fights;
+> - or `CombatHirelings` off (Hiring), for workers only.
+
 ## Requirements
 
 - BepInExPack Valheim
@@ -132,7 +145,7 @@ A Steward works inside its board's radius from the chests there, taking on more 
 
 ## The Farmer and the Cook
 
-Both work to the board's **Orders** tab: a list of "keep at least X of this in the chests" orders. Add one with *Add farm order* or *Add kitchen order* (the list shows what your Farmer or Cook can make at its level), set the target with - / + (Shift for steps of 1), move orders up or down, pause or remove them. Orders are worked top to bottom; **seed orders always come first**. "Have" counts the chests in the board's area (above their reserves) plus what's growing in the field.
+Both work to the board's **Orders** tab: a list of "keep at least X of this in the chests" orders. Add one with *Add farm order* or *Add kitchen order* (the list shows what your Farmer or Cook can make at its level), set the target with - / + (Shift for steps of 1), move orders up or down, pause or remove them. Orders are worked top to bottom; **seed orders always come first**. "Have" counts the chests in the board's area (above their reserves) plus what's growing in the field. Growing plants count as what they'll yield: an order for 50 carrots with 20 in the chests and 30 carrot plants growing reads 50/50, so the Farmer stops planting rather than over-plant while a crop grows (a plant that can't grow, too cold or without sun, doesn't count). Until he harvests them, though, those 30 aren't in the chests for the Cook.
 
 **The Farmer** works the ground **you** cultivated inside its radius (bring your own cultivator; it never tills new ground):
 - It **harvests every ripe crop** and puts the harvest in chests that hold it, and picks **berry bushes, mushrooms and other regrowing plants** (wild, or planted with PlantEverything) only while an order for them is short. It never plants bushes. Stones, flint and branches are never picked.
