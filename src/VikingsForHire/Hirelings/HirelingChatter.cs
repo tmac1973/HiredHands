@@ -27,7 +27,7 @@ namespace VikingsForHire.Hirelings
         private static readonly Dictionary<string, int> Pools = new()
         {
             ["generic"] = 12, ["woodcutter"] = 8, ["miner"] = 8, ["steward"] = 8, ["farmer"] = 8, ["cook"] = 8, ["guard"] = 8,
-            ["archer"] = 8, ["watching"] = 6, ["following"] = 6, ["idle"] = 5, ["full"] = 4, ["fight"] = 5, ["scared"] = 4, ["wet"] = 4,
+            ["archer"] = 8, ["wizard"] = 8, ["watching"] = 6, ["following"] = 6, ["idle"] = 5, ["full"] = 4, ["fight"] = 5, ["scared"] = 4, ["wet"] = 4,
         };
 
         private static readonly Dictionary<string, float> NextAt = new();
@@ -106,6 +106,7 @@ namespace VikingsForHire.Hirelings
                 JobType.Cook => "cook",
                 JobType.GuardMelee => "guard",
                 JobType.GuardRanged => "archer",
+                JobType.Wizard => "wizard",
                 _ => null,
             };
             return job != null && Random.value < 0.65f ? job : "generic";

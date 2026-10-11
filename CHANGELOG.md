@@ -10,6 +10,8 @@
   - **If Wizardry is removed,** wizards already hired stay and carry the vanilla staff for their level.
   - **Settings (Combat):** `WizardDamage` (default 1), `WizardAttackCooldown` (3 s), and `WizardSpellsHit`: `EnemiesOnly` (default) or `EnemiesAndTerrain` to let a blast damage props like greydwarf nests.
   - **Data file:** a job can now have its own `outfit` (with a `cape`) and `withMods` entries that apply while another mod is loaded.
+- **Followers board your ship when you're a passenger.** Riding someone else's ship, your followers stayed on the dock (and were sent home as too far behind): whether the ship was moving was read in a way that only works for the player steering.
+- **New hirelings no longer leave a brand-new board as "gone".** A hireling checked its board the moment it appeared, before the server had registered a board placed a moment before; now it checks after 30 s and leaves only after two misses in a row.
 - **Hirelings never hurt players.** A stray hit from any hireling (an arrow's splash, a spell's blast) no longer lands on a player by its target, whatever PvP is set to.
 ## 0.7.7
 
