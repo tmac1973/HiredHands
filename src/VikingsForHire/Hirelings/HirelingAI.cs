@@ -151,6 +151,10 @@ namespace VikingsForHire.Hirelings
             Add(new GuardPatrolBehaviour());
             Add(new PostBehaviour());
             Add(new ParkBehaviour());
+            // Guards (melee, archers, wizards) parked in Gather Here pick up loot round their spot like a Steward, between
+            // fights (fighting outranks it); it goes to the chests when they're released or sent home.
+            if (hireling.Job.IsGuard())
+                Loot = new Work.FieldLoot();
             switch (hireling.Job)
             {
                 case JobType.Woodcutter:

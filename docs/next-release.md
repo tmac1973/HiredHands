@@ -12,12 +12,14 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | (rancher branch) | Pen safety (plan/rancher phase 07, Tim: boars can't be led back): over the fence first (a piece below the eye doesn't block reaching a creature; spots further out are tried); any hireling waits while a tame is within 3 m of a door (20 s at most) and shuts a door at once (1.5 m past) with tames about; a herd animal seen penned and now out is reported (Problems). Rows VFH-RANCH-12, -13, -14 | the game simulating the hireling |
 | (rancher branch) | Combat balance: the default level table's guardDamageMult was 1.0-5.2 on top of gear that already rises with level (Thorvald, level 4 archer: 160-185 per arrow, about 2.2x a player with the same bow; the Elder in 44 s). Now 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.3. Existing data files keep theirs (CHANGELOG says what to set) | the game hitting |
 | (rancher branch) | Chest modes (Tim: a pen's feed chest the Farmer fills and the Cook mustn't empty): Shift+E on a chest near a board cycles Normal / Put only / Take only / Off (ZDO `vfh_chest_mode`, ward-checked, hover shows it, `ChestModeOnShiftUse` to turn the key off). Taking uses only Normal/Take-only chests, storing and room only Normal/Put-only, stock counts (orders, limits, panels) only Normal/Take-only. Rows VFH-CHEST-1, -2 | every game (taking, storing); the player setting it |
+| (rancher branch) | Gather Here for guards (melee, archers, wizards) now picks up loot round their spot between fights, like the Steward (FieldLoot, `LootRadius`); delivered when released or sent home. Row VFH-LOOT-2 | the game simulating the hireling |
 
 ### To test (batch)
 - [ ] Macro (single player): `vfh_t_ranch_all` (VFH-RANCH-1 to -14 with -3b, -7b); regression `vfh_test_chain animals tidy orders farm_seeds cook_spit cook_cauldron combat1 stance4 noeffect store1 hire4 why1 why2`.
 - [ ] By hand: the Orders tab's ranch picker and rows, the Rancher's Problems view.
 - [ ] By hand (live server, after setting the new guardDamageMult in the server's data file): Thorvald's arrows land about 80-100 on Black Forest monsters; the balance log's fights show it.
 - [ ] Regression: the combat and wizard rows still pass with the gentler multiplier (`vfh_t_wiz_all`, `vfh_test_chain combat1 stance4 stance5 block2 dodge1 noeffect`).
+- [ ] Macro: `vfh_test_chain loot loot_guard` (Steward and archer Gather Here pick up loot).
 - [ ] Macro: `vfh_test_chain chest_putonly chest_put`. By hand: Shift+E on a chest cycles the four modes, the hover text shows it, a chest outside your ward can't be changed.
 - [ ] By hand (live server): a Rancher works a real herd for a session (orders, slaughter, a named pet spared, Problems readable).
 

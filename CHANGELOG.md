@@ -22,6 +22,8 @@
   **Existing servers keep their data file's numbers:** to take the new ones, set `guardDamageMult` under each of the
   `hirelingLevels` in `Spronglehump.HiredHands.yml` (1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.3), or turn
   `GuardMeleeDamage` / `GuardRangedDamage` / `WizardDamage` down instead.
+- **Guards' Gather Here does something:** a guard, archer or wizard parked with Gather Here picks up loot lying round its
+  spot between fights, like a Steward, and brings it to the chests when released or sent home.
 - **Chest modes:** Shift+E on a chest near a board sets what workers may do with it: put in and take out (default), put
   in only (not counted as stock: a pen's feed chest the Cook leaves alone), take out only, or leave alone. Shown in the
   chest's hover text; follows the wards.

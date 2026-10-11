@@ -79,7 +79,7 @@ namespace VikingsForHire.Followers
                 }
             }
 
-            // A Steward parked in Gather Here picks up loot lying around its spot.
+            // A Steward or a guard parked in Gather Here picks up loot lying around its spot.
             if (!retreat && ai.Loot != null && h.FollowMode == FollowMode.GatherHere && ai.Order == null && ai.WorkArea != null)
             {
                 if (h.CargoFull)
