@@ -11,9 +11,9 @@ namespace VikingsForHire.Net
 {
     /// <summary>
     /// Server, every minute: a board's contract whose hireling no longer exists anywhere in the world (the server holds
-    /// every ZDO) for 10 minutes is settled, so a board never keeps an "away" hireling forever because the news of a
-    /// death or departure was lost on the way. An active contract is marked dead (the board's permadeath or respawn
-    /// rule applies); a leaving one is removed (it had gone).
+    /// every ZDO) for 10 minutes is settled, so a board never keeps an "away" hireling forever. An active contract is
+    /// marked lost: it comes back after the usual walk-in time, free (a hireling deleted mid-trip by another mod isn't
+    /// dead); a leaving one is removed (it had gone).
     /// </summary>
     internal static class RosterReconciler
     {
@@ -47,9 +47,12 @@ namespace VikingsForHire.Net
                     if (now - since < MissingSeconds)
                         continue;
                     MissingSince.Remove(e.Hid);
+                    // Gone without a death on record: lost (deleted by something), not dead, so it comes back soon and free.
+                    // A death whose news was lost would have left its grave; this can't tell the two apart, and losing a
+                    // hireling to someone else's bug shouldn't cost 3 days or a permadeath.
                     RosterOp op = e.State == ContractState.Leaving
                         ? new RosterOp { Type = RosterOpType.Remove, Hid = e.Hid }
-                        : new RosterOp { Type = RosterOpType.MarkDied, Hid = e.Hid, Name = e.Name };
+                        : new RosterOp { Type = RosterOpType.MarkLost, Hid = e.Hid, Name = e.Name };
                     VfhLog.W(LogCat.Roster, "roster.settled_missing", ("board", boardId), ("hid", e.Hid), ("name", e.Name), ("state", e.State), ("as", op.Type));
                     MutationService.SubmitBoard(boardId, op);
                 }

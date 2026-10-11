@@ -17,6 +17,8 @@ namespace VikingsForHire.Core
         Orders = 11,
         /// <summary>Another board's hireling joins this roster as it is (a follower moved between bases): no fee.</summary>
         Adopt = 12,
+        /// <summary>The hireling vanished without dying: it comes back soon, free (RosterReconciler).</summary>
+        MarkLost = 13,
     }
 
     /// <summary>An edit to the board's production orders (RosterOpType.Orders).</summary>

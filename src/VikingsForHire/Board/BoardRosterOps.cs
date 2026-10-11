@@ -210,6 +210,17 @@ namespace VikingsForHire.Board
                     result = new OpResult(OpOutcome.Ok);
                     break;
                 }
+                case RosterOpType.MarkLost:
+                {
+                    float min = VfhConfig.Get(VfhConfig.ArrivalDelayMinSeconds), max = VfhConfig.Get(VfhConfig.ArrivalDelayMaxSeconds);
+                    double arriveIn = UnityEngine.Random.Range(min, Mathf.Max(min, max));
+                    OpOutcome o = roster.MarkLost(op.Hid, now, arriveIn);
+                    if (o != OpOutcome.Ok)
+                        return Done(zdo, null, boardId, op, new OpResult(o));
+                    VfhLog.W(LogCat.Roster, "contract.lost", ("board", boardId), ("hid", op.Hid), ("name", op.Name), ("arriveIn", arriveIn));
+                    result = new OpResult(OpOutcome.Ok);
+                    break;
+                }
                 case RosterOpType.Adopt:
                 {
                     // A follower moved here from another board: the same checks as a new contract (level, job gate, caps)

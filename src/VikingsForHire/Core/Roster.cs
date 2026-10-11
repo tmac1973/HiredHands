@@ -314,6 +314,30 @@ namespace VikingsForHire.Core
             return OpOutcome.Ok;
         }
 
+        /// <summary>
+        /// The hireling vanished from the world without dying (its object was deleted by something else): not a death, so
+        /// it comes back after <paramref name="arriveIn"/> seconds, free, whatever the death mode. No refund either: a
+        /// contract that's on its way back can be cancelled, but the hire fee was spent.
+        /// </summary>
+        public OpOutcome MarkLost(string hid, double now, double arriveIn)
+        {
+            ContractEntry? e = ByHid(hid);
+            if (e == null)
+                return OpOutcome.NotFound;
+            if (e.State == ContractState.Leaving)
+            {
+                Entries.Remove(e);
+                return OpOutcome.Ok;
+            }
+            e.State = ContractState.Pending;
+            e.RespawnPending = false;
+            e.Paid = "";
+            e.ArriveAt = now + arriveIn;
+            e.UnpaidDays = 0;
+            e.Post = null;
+            return OpOutcome.Ok;
+        }
+
         public bool RemoveEntry(string hid)
         {
             ContractEntry? e = ByHid(hid);

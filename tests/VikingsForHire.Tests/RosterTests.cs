@@ -164,6 +164,22 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void ALostHirelingComesBackSoonAndFree()
+        {
+            var r = WithActive("a", "b");
+            ContractEntry a = r.ByHid("ha")!;
+            a.Paid = "CookedMeat:4";
+            a.Post = new GuardPost { X = 1, Y = 2, Z = 3 };
+            Assert.Equal(OpOutcome.Ok, r.MarkLost("ha", 100, 30));
+            Assert.Equal(ContractState.Pending, a.State);
+            Assert.False(a.RespawnPending); // no respawn fee
+            Assert.Equal("", a.Paid);       // and nothing to refund
+            Assert.Equal(130, a.ArriveAt);
+            Assert.Null(a.Post);
+            Assert.Equal(OpOutcome.NotFound, r.MarkLost("hz", 100, 30));
+        }
+
+        [Fact]
         public void VoidAndRemove()
         {
             var r = WithActive("a", "b");

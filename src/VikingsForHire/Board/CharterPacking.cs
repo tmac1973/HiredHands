@@ -78,6 +78,7 @@ namespace VikingsForHire.Board
                 {
                     e.Snapshot = HirelingSnapshot.FromZdo(zdo).ToBytes();
                     zdo.SetOwner(ZDOMan.GetSessionID());
+                    zdo.Set(HirelingZdo.Mode, (int)HirelingMode.Leaving); // packed, not lost (HirelingDestroyWatch)
                     ZDOMan.instance.DestroyZDO(zdo);
                     e.ArriveAt = 0;
                 }
