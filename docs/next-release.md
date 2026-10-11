@@ -3,7 +3,7 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## 0.8.3 (not released): arrows go where the archer aims, orders count the board's pile
+## 0.8.3 (packaged 2026-10-11, in-game tests deferred): arrows go where the archer aims, orders count the board's pile, reach fixes, stuck torches
 
 ### Fixed or added
 | Commit | What | Where it runs |

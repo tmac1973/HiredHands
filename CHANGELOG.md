@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.8.3
+
+Fixes from playtesting. Everyone should update (the server and the players: each game runs some hirelings).
+
+- **Arrows and spells go where hirelings aim.** An archer's arrows could fly off up to 90 degrees to the side: the game
+  turned every shot toward whatever last hit the hireling, not what it was shooting at.
+- **Orders count what's waiting at the board.** The first of a new item (mead base, say) goes to the board's pile, since a
+  chest only takes what it already holds, and orders counted only the chests, so a Cook made it without end. The pile now
+  counts toward farm and kitchen orders and the Steward's limits, and the Problems list says to put one in a chest.
+- **Workers reach chests again:** a drawer stacked high on other drawers is reached from the floor by pointing up at it,
+  and a chest just below the edge of a raised floor is reached over the edge (0.8.2's "no working through floors" fix
+  had stopped both, so a Farmer piled carrots at the board). Cooking through a floor stays out.
+- **A Steward gives up on a torch it can't reach** for a while, instead of trying it every half minute for hours (and
+  never getting to the fermenters).
+
 ## 0.8.2
 
 **The server needs 0.8.2;** players on 0.8.1 can still play (the fixes run on the server and on the game running each hireling), but should update too.
