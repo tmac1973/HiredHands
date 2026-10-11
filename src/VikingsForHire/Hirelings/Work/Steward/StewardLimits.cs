@@ -36,7 +36,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
             if (orders.StationCap(item) is not int limit)
                 return false;
             cap = limit;
-            return Held(ctx.AllChests, item) >= limit;
+            // The board's pile counts too: a product no chest takes yet waits there, and is still made.
+            int piled = StockCounter.Count(ctx.Home, ctx.Radius).Piled.TryGetValue(item, out int p) ? p : 0;
+            return Held(ctx.AllChests, item) + piled >= limit;
         }
 
         /// <summary>How many of an item the chests hold, all of it (a limit counts reserves too).</summary>

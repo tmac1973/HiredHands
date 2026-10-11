@@ -23,15 +23,18 @@ namespace VikingsForHire.Core.Orders
     public static class KitchenPlanner
     {
         public static KitchenResult Next(IReadOnlyList<KitchenInfo> infos, OrderList orders, IReadOnlyDictionary<string, int> stock,
-            IReadOnlyDictionary<string, int> protectedItems, int level, IReadOnlyDictionary<string, int> stations)
+            IReadOnlyDictionary<string, int> protectedItems, int level, IReadOnlyDictionary<string, int> stations,
+            IReadOnlyDictionary<string, int>? madeElsewhere = null)
         {
             var result = new KitchenResult();
             int Stock(string item) => stock.TryGetValue(item, out int n) ? n : 0;
+            // Made but out of reach (the board's pile): counts toward an order, never as an ingredient.
+            int Have(string item) => Stock(item) + (madeElsewhere != null && madeElsewhere.TryGetValue(item, out int m) ? m : 0);
             int Avail(string item) => Math.Max(0, Stock(item) - (protectedItems.TryGetValue(item, out int p) ? p : 0));
 
             foreach (ProductionOrder order in orders.Active().Where(o => o.Kind == OrderKind.Kitchen))
             {
-                int shortBy = order.Target - Stock(order.Item);
+                int shortBy = order.Target - Have(order.Item);
                 if (shortBy <= 0)
                     continue;
                 (KitchenTask? task, string? why) = Plan(order, shortBy, infos, level, stations, Avail);

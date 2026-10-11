@@ -3,16 +3,18 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## 0.8.3 (not released): arrows go where the archer aims
+## 0.8.3 (not released): arrows go where the archer aims, orders count the board's pile
 
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
 | (arrow-aim branch) | Archers' arrows (and wizards' spells) could fly off up to 90 degrees to the side (Thorvald, 2026-10-11): vanilla turns every projectile towards the AI's own target creature, which for a hireling was whatever last hit it, not what it was shooting at. Hirelings now report no vanilla target, so shots follow their aim | the game simulating the hireling |
+| (arrow-aim branch) | A Cook made mead base without end (Inga, 5 ordered): the first of a new item goes to the board's pile (a chest only takes what it already holds), and the order counted only the chests, so it stayed short. What's in the board's pile now counts toward farm and kitchen orders and the Steward's limits (never as an ingredient), and the Problems list says it's waiting at the board: put one in a chest | the game simulating the hireling |
 
 ### To test (batch)
 - [ ] Macro (single player): `vfh_test_chain combat1 stance4 stance5 block2 dodge1 noeffect post1 retreat1 catchup1` and `vfh_t_wiz_all` (archer and wizard rows, all shots now through the look direction).
 - [ ] By hand: an archer hit by one creature, then shooting another off to the side: the arrows go to the one it's facing.
+- [ ] By hand: a kitchen order for something no chest holds yet (mead base): the Cook makes the order's amount, it waits at the board, she stops; Problems says to put one in a chest.
 
 ## 0.8.2 (packaged 2026-10-11, in-game tests deferred): no ghost followers at portals, no working through floors
 

@@ -14,7 +14,14 @@ namespace VikingsForHire.Hirelings.Work
         public Dictionary<string, int> Chests { get; } = new();
         public Dictionary<string, int> Growing { get; } = new();
 
-        public int Have(string item) => (Chests.TryGetValue(item, out int c) ? c : 0) + (Growing.TryGetValue(item, out int g) ? g : 0);
+        /// <summary>
+        /// Left in the board's pile in the area (no chest takes it yet, e.g. the first mead base): made, so it counts
+        /// toward an order's target, but nobody can fetch it as an ingredient.
+        /// </summary>
+        public Dictionary<string, int> Piled { get; } = new();
+
+        public int Have(string item) => (Chests.TryGetValue(item, out int c) ? c : 0) + (Growing.TryGetValue(item, out int g) ? g : 0) +
+                                        (Piled.TryGetValue(item, out int p) ? p : 0);
     }
 
     internal static class StockCounter
@@ -45,6 +52,10 @@ namespace VikingsForHire.Hirelings.Work
                 if (stock.Chests.ContainsKey(k.Key))
                     stock.Chests[k.Key] = System.Math.Min(stock.Chests[k.Key], System.Math.Max(0, total[k.Key] - k.Value));
 
+            foreach (ItemDrop d in ItemDrop.s_instances)
+                if (d != null && d.m_itemData?.m_dropPrefab != null && d.m_itemData.m_customData.ContainsKey(DropPile.Tag) &&
+                    Utils.DistanceXZ(d.transform.position, home) <= radius)
+                    stock.Piled[d.m_itemData.m_dropPrefab.name] = (stock.Piled.TryGetValue(d.m_itemData.m_dropPrefab.name, out int pn) ? pn : 0) + d.m_itemData.m_stack;
             FarmScan.Nearby(home, radius, Plants, Pickables);
             // Only plants that are growing: one that can't (too hot, no sun…) will wither, so it doesn't count.
             foreach (Plant p in Plants.Where(p => p.GetStatus() == Plant.Status.Healthy))

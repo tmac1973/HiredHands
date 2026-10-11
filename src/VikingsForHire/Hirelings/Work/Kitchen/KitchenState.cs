@@ -94,7 +94,8 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             if (Results.TryGetValue(key, out var hit) && Time.time - hit.At < RecomputeSeconds)
                 return hit.Result;
             Stock stock = BoardOrders.Stock(board);
-            KitchenResult r = KitchenPlanner.Next(KitchenCatalog.All, BoardOrders.For(board), InProgress(ctx, stock.Chests), Protected(board), ctx.Level, Stations(ctx));
+            KitchenResult r = KitchenPlanner.Next(KitchenCatalog.All, BoardOrders.For(board), InProgress(ctx, stock.Chests), Protected(board), ctx.Level, Stations(ctx),
+                stock.Piled);
             Results[key] = (Time.time, r);
             return r;
         }
