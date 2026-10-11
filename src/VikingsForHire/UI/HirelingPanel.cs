@@ -216,7 +216,7 @@ namespace VikingsForHire.UI
                 foreach (ChoreKind kind in ChoreRules.ChoresFor(h.Job))
                 {
                     string name = Localization.instance.Localize("$vfh_chore_" + ChoreKeys.Key(kind));
-                    string? state = LockedState(kind, steward, h.Level);
+                    string? state = LockedState(kind, steward, h.Level, h.BoardId);
                     if (state != null)
                     {
                         PanelUi.Text(t, name + ": " + state, 0f, y, 400f, 15, TextAnchor.MiddleCenter, PanelUi.Dim);
@@ -497,10 +497,12 @@ namespace VikingsForHire.UI
         }
 
         // A chore that can't be switched on for this Steward: off on the server, done by another mod, or not unlocked yet.
-        private static string? LockedState(ChoreKind kind, JobData steward, int level)
+        private static string? LockedState(ChoreKind kind, JobData steward, int level, string boardId)
         {
             if (!Hirelings.Work.Chores.ChoreLoop.ServerAllows(kind))
                 return Localization.instance.Localize("$vfh_chore_state_disabled");
+            if (kind == ChoreKind.Animals && Hirelings.Work.Chores.ChoreLoop.RancherOnBoard(boardId))
+                return Localization.instance.Localize("$vfh_chore_state_rancher");
             if (Compat.StewardCompat.HandledBy(kind) is string mod)
                 return Localization.instance.Localize("$vfh_chore_state_handled", mod);
             int first = ChoreRules.FirstUnlock(steward, kind);

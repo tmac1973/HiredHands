@@ -69,6 +69,9 @@ namespace VikingsForHire.Config
         public static ConfigEntry<bool> FarmerPlant = null!;
         public static ConfigEntry<bool> CookStoves = null!;
         public static ConfigEntry<bool> CookCraft = null!;
+        public static ConfigEntry<bool> RancherFeed = null!;
+        public static ConfigEntry<bool> RancherSlaughter = null!;
+        public static ConfigEntry<bool> RancherEggs = null!;
         public static ConfigEntry<int> StewardBoardRefillDays = null!;
         public static ConfigEntry<int> StewardBoardFillDays = null!;
         public static ConfigEntry<float> StewardTidyMinSeconds = null!;
@@ -217,6 +220,10 @@ namespace VikingsForHire.Config
             FarmerPlant = Synced(fc, "FarmerPlant", true, "Farmers may plant on cultivated ground to fill the board's farm orders.");
             CookStoves = Synced(fc, "CookStoves", true, "Cooks may run cooking stations and ovens to fill the board's kitchen orders.");
             CookCraft = Synced(fc, "CookCraft", true, "Cooks may craft at the cauldron, food preparation table and mead ketill to fill the board's kitchen orders.");
+            const string rc = "12 - Rancher";
+            RancherFeed = Synced(rc, "RancherFeed", true, "Ranchers may feed the herd (tamed animals in the board's area) from chests. A Steward on the same board then leaves feeding to the Rancher.");
+            RancherSlaughter = Synced(rc, "RancherSlaughter", true, "Ranchers may slaughter animals for the board's meat orders, never below a kind's breeding pool, never young or named animals.");
+            RancherEggs = Synced(rc, "RancherEggs", true, "Ranchers may collect eggs for the board's egg orders (the rest are left to hatch).");
             StewardTidyMinSeconds = Synced(st, "StewardTidyMinSeconds", 60f, "Leave items alone until they've been on the ground this long, so a Steward doesn't grab what a player just dropped.");
             StewardFireRefillFraction = Synced(st, "StewardFireRefillFraction", 0.5f, "Refuel a fire when its fuel is below this fraction of full; it's filled up to full.");
             StewardRepairBelow = Synced(st, "StewardRepairBelow", 0.95f, "Repair pieces below this fraction of full health.");

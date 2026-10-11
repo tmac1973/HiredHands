@@ -124,6 +124,14 @@ namespace VikingsForHire.Core.Data
                         ["piece_oven"] = 5, ["piece_preptable"] = 6, ["piece_MeadCauldron"] = 2,
                     },
                 },
+                [JobType.Rancher] = new()
+                {
+                    MaxPerBoard = 1,
+                    CostMult = 0.9f,
+                    WorkerCombatFactor = 0.3f,
+                    MinBoardLevel = 2,
+                    Gear = Mains("KnifeButcher", "KnifeButcher", "KnifeButcher", "KnifeButcher", "KnifeButcher", "KnifeButcher", "KnifeButcher", "KnifeButcher"),
+                },
                 [JobType.GuardMelee] = new()
                 {
                     CostMult = 1.3f,

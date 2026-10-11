@@ -30,6 +30,15 @@ namespace VikingsForHire.Testing
                 return Wait(1f);
             });
 
+            TestHarness.RegisterCheck("chore_why", "<job> <chore key> - why the nearest hireling of that job skips that chore (server, off, locked, rancher, a mod's name) or none", args =>
+            {
+                if (!Enum.TryParse(args.ElementAtOrDefault(0) ?? "", true, out Core.JobType job) || !Core.Chores.ChoreKeys.TryParse(args.ElementAtOrDefault(1) ?? "", out Core.Chores.ChoreKind kind))
+                    throw new InvalidOperationException("usage: chore_why <job> <chore key>");
+                Hireling h = Hireling.Loaded.Where(x => x != null && x.Job == job).OrderBy(x => Vector3.Distance(x.transform.position, Player.m_localPlayer.transform.position)).FirstOrDefault()
+                             ?? throw new InvalidOperationException($"no {job} near");
+                var ctx = new global::VikingsForHire.Hirelings.Work.Chores.WorkContext(h);
+                return global::VikingsForHire.Hirelings.Work.Chores.ChoreLoop.WhyNot(kind, ctx, Core.Chores.ChoreRules.ChoresOff(h.Zdo?.GetString(HirelingZdo.SkipItems))) ?? "none";
+            });
             TestHarness.RegisterCheck("hireling_count", "[job] - loaded hirelings within 50m (optionally of one job)", args =>
                 Hireling.Loaded.Count(h => h != null && h.Zdo != null && Vector3.Distance(h.transform.position, Player.m_localPlayer.transform.position) <= 50f &&
                                            (args.Length == 0 || string.Equals(h.Job.ToString(), args[0], StringComparison.OrdinalIgnoreCase))).ToString());

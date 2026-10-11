@@ -184,6 +184,10 @@ namespace VikingsForHire.Hirelings
                     };
                     Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));
                     break;
+                case JobType.Rancher:
+                    Add(Chores = new Work.Chores.ChoreLoop(JobType.Rancher, new Work.Chores.IChore[] { new Work.Steward.AnimalsChore(Core.Chores.ChoreKind.RanchFeed) }));
+                    Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));
+                    break;
                 default:
                     Add(new Work.DeliverBehaviour(new Work.OnRequestDeliveryPolicy()));
                     break;

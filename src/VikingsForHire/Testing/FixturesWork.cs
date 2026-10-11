@@ -97,6 +97,11 @@ namespace VikingsForHire.Testing
                 Character c = go.GetComponent<Character>();
                 return (Hirelings.Work.Steward.AnimalsChore.Fed.TryGetValue(c.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
             });
+            TestHarness.RegisterCheck("fed_by_rancher", "<tag> - food items Ranchers have dropped for a tagged animal", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged animal");
+                return (Hirelings.Work.Steward.AnimalsChore.RanchFed.TryGetValue(go.GetComponent<Character>().GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
+            });
             Fixtures.Add("damaged", "<prefab> <health 0..1> [tag] [near|far] [high:<m>] - a damaged piece 6 m from the board (near: within the base's workbench range) or 28 m out (far: beyond a workbench's 20 m range), optionally floating that high off the ground", Damaged);
             Fixtures.Add("set_health", "<tag> <health 0..1> - set a tagged piece's health", SetHealth);
             TestHarness.RegisterCheck("piece_health", "<tag> - a tagged piece's health (0..1)", args =>
