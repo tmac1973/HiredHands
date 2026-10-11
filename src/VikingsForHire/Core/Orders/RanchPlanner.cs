@@ -96,7 +96,11 @@ namespace VikingsForHire.Core.Orders
                 AnimalKind? kind = kinds.FirstOrDefault(k => string.Equals(k.Prefab, order.Item, StringComparison.OrdinalIgnoreCase));
                 if (kind == null)
                     continue;
-                if (BreedingProblem(kind, herd.Where(a => a.Kind == kind.Prefab).ToList(), kindsWithFood) is string why)
+                List<HerdAnimal> ofKind = herd.Where(a => a.Kind == kind.Prefab).ToList();
+                int escaped = ofKind.Count(a => a.Escaped);
+                if (escaped > 0)
+                    plan.Why[order.Item] = $"$vfh_ranch_escaped|{kind.Prefab}|{escaped}";
+                else if (BreedingProblem(kind, ofKind, kindsWithFood) is string why)
                     plan.Why[order.Item] = why;
             }
             return plan;

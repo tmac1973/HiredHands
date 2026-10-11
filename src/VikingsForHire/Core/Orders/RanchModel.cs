@@ -49,5 +49,8 @@ namespace VikingsForHire.Core.Orders
         public float X { get; set; }
         public float Z { get; set; }
         public bool Hungry { get; set; }
+
+        /// <summary>Was in a pen (walled in all round) and isn't now: out, and boars can't be led back.</summary>
+        public bool Escaped { get; set; }
     }
 }

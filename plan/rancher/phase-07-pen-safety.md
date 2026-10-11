@@ -21,9 +21,10 @@ gets the same care near tames. An animal of the herd found outside its pen is re
   `$vfh_ranch_escaped|<kind>|<count>` on that kind's Herd order (first, before breeding reasons); escaped animals are
   still counted and may still be slaughtered.
 - `src/VikingsForHire/Localization/English.json` — `vfh_ranch_escaped`.
-- `src/VikingsForHire/Testing/FixturesKitchen.cs` / `FixturesWork.cs` — fixture `pen <tag> [size=6]`: a square of
-  wood fence (`wood_fence`) with a gate (`wood_gate`) centred 12 m from the board, the gate tagged; check
-  `usable_from <tag> outside` (feet just outside the pen's fence nearest the tagged animal).
+- `src/VikingsForHire/Testing/FixturesWork.cs` — fixture `pen <gate tag> [size] [<prefab> <tag> <edge|mid|gate>]...`: a
+  square pen of half walls (`wood_wall_half`, below eye height) with a `wood_gate` on the board's side, 14 m out, and
+  tamed hungry animals placed in it; fixture `move_animal <tag> <dx> <dz>`; checks `door_opened <tag>` (times
+  hirelings opened it, counted in `DoorHelper.OpenedCount`) and `outside_pen <kind>` (herd animals not walled in).
 - `tests/VikingsForHire.Tests/RanchPlannerTests.cs` — escaped reason.
 - `test/alias_vfh.yaml` — rows VFH-RANCH-12, -13, -14.
 
@@ -39,13 +40,12 @@ gets the same care near tames. An animal of the herd found outside its pen is re
 
 ## Verification
 - `dotnet test` passes (escaped reason).
-- Row VFH-RANCH-12 (over the fence): a pen, a hungry boar inside near the fence, food in a chest, a Rancher: the boar is
-  fed (`animal_hungry B == false`) and `door_opened_by_hirelings G == 0` (new check: times hirelings opened the tagged
-  gate).
-- Row VFH-RANCH-13 (gates): a pen with a boar standing by the gate inside and another in the far corner, beyond reach
-  of the fence: the Rancher waits, then enters and closes the gate; at the end `herd_outside_pen Boar == 0` (new check).
-- Row VFH-RANCH-14 (escape): a boar marked enclosed in a pen, then moved outside (`player_to`-style fixture
-  `move_animal <tag> <dx> <dz>`): `why has vfh_ranch_escaped|Boar == true`.
+- Row VFH-RANCH-12 (over the fence): `pen G 6 Boar B edge`, food in a chest, a Rancher: `animal_hungry B == false`,
+  `door_opened G == 0`, `outside_pen Boar == 0`.
+- Row VFH-RANCH-13 (gates): `pen G 10 Boar M mid Boar D gate`: M is fed (he had to go in), then `outside_pen Boar == 0`
+  and the gate is shut.
+- Row VFH-RANCH-14 (escape): `pen G 6 Boar B mid Boar C mid`, a pool of 2, then `move_animal B 0 14`:
+  `why has vfh_ranch_escaped|Boar == true`.
 - Existing door rows (`vfh_t_doors`, nav links) still pass.
 
 ## Done when

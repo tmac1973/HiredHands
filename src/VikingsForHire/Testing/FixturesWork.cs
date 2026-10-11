@@ -97,6 +97,30 @@ namespace VikingsForHire.Testing
                 Character c = go.GetComponent<Character>();
                 return (Hirelings.Work.Steward.AnimalsChore.Fed.TryGetValue(c.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
             });
+            Fixtures.Add("pen", "<gate tag> [size=6] [<prefab> <tag> <edge|mid|gate>]... - a square pen of half walls (below eye height) with a wood gate on the board's side, 14 m from the board, and tamed hungry animals in it: edge (by the far fence), mid, gate (just inside the gate)", Pen);
+            Fixtures.Add("move_animal", "<tag> <dx> <dz> - move a tagged animal by that much (out of its pen)", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Vector3 p = go.transform.position + new Vector3(float.Parse(args.ElementAtOrDefault(1) ?? "0", CultureInfo.InvariantCulture), 0f,
+                    float.Parse(args.ElementAtOrDefault(2) ?? "0", CultureInfo.InvariantCulture));
+                p.y = ZoneSystem.instance.GetSolidHeight(p);
+                go.GetComponent<ZNetView>().ClaimOwnership();
+                go.transform.position = p;
+                return Brief();
+            });
+            TestHarness.RegisterCheck("door_opened", "<tag> - times hirelings opened a tagged door or gate", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Door d = go.GetComponentInChildren<Door>() ?? throw new InvalidOperationException("not a door");
+                return (Hirelings.DoorHelper.OpenedCount.TryGetValue(d.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
+            });
+            TestHarness.RegisterCheck("outside_pen", "<kind> - tamed animals of that kind within 40 m of the board not walled in (out of their pen)", args =>
+            {
+                HiringBoard b = Board();
+                return Hirelings.Work.Ranch.HerdScan.Scan(b.transform.position, 40f, _ => true)
+                    .Count(f => f.Model.Kind == (args.ElementAtOrDefault(0) ?? "") && !Hirelings.Work.Ranch.HerdScan.Enclosed(f.Animal.transform.position))
+                    .ToString(CultureInfo.InvariantCulture);
+            });
             Fixtures.Add("ranch_stats_reset", "- start counting Rancher slaughters from zero (slaughtered_by_rancher)", _ =>
             {
                 Hirelings.Work.Ranch.SlaughterChore.Slaughtered = 0;
@@ -400,6 +424,51 @@ namespace VikingsForHire.Testing
             go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_level, level);
             VfhLog.I(LogCat.Test, "fixture.producer", ("prefab", prefab), ("level", level), ("max", max), ("tag", tag));
             yield return null;
+        }
+
+        private static IEnumerator Pen(string[] args)
+        {
+            string gateTag = args.ElementAtOrDefault(0) ?? "G";
+            float size = args.Length > 1 && float.TryParse(args[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float sz) ? sz : 6f;
+            HiringBoard board = Board();
+            Vector3 fwd = -board.transform.forward;
+            Vector3 right = Vector3.Cross(Vector3.up, fwd);
+            Vector3 centre = board.transform.position + fwd * (14f + size / 2f);
+            Vector3 Ground(Vector3 v) => new(v.x, ZoneSystem.instance.GetSolidHeight(v), v.z);
+            int per = Mathf.Max(1, Mathf.RoundToInt(size / 2f));
+            float half = per;
+            // Four sides of 2 m half walls; the middle segment of the board's side is the gate.
+            for (int side = 0; side < 4; side++)
+            {
+                Vector3 n = Quaternion.Euler(0f, side * 90f, 0f) * (-fwd);
+                Vector3 along = Vector3.Cross(Vector3.up, n);
+                for (int i = 0; i < per; i++)
+                {
+                    Vector3 at = Ground(centre + n * half + along * (-half + 1f + i * 2f));
+                    bool gate = side == 0 && i == per / 2;
+                    GameObject piece = FixturesBoard.Spawn(gate ? "wood_gate" : "wood_wall_half", at, Quaternion.LookRotation(n));
+                    if (gate)
+                        piece.GetComponent<ZNetView>().GetZDO().Set(TagKey, gateTag);
+                }
+            }
+            yield return null;
+            for (int i = 2; i + 2 < args.Length; i += 3)
+            {
+                string prefab = args[i], tag = args[i + 1], where = args[i + 2];
+                Vector3 at = where switch
+                {
+                    "edge" => centre + fwd * (half - 0.8f),
+                    "gate" => centre - fwd * (half - 1.2f),
+                    _ => centre,
+                };
+                GameObject go = Spawn(prefab, Ground(at) + Vector3.up * 0.2f, tag);
+                yield return null;
+                Character c = go.GetComponent<Character>();
+                c.SetTamed(true);
+                go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_tameLastFeeding, 0L);
+            }
+            VfhLog.I(LogCat.Test, "fixture.pen", ("centre", centre), ("size", per * 2), ("gate", gateTag));
+            yield return new WaitForSeconds(0.5f);
         }
 
         private static IEnumerator Brief()

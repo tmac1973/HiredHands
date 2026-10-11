@@ -22,6 +22,14 @@ namespace VikingsForHire.Hirelings
         private const float CloseDistance = 3f;
         private const float CloseAfterSeconds = 2.5f;
         private const float PlayerClearance = 2.5f;
+        // Pens: no opening a door while a tame stands this close to it (it would walk out), for at most AnimalWaitSeconds;
+        // with tames about, a door is shut as soon as the hireling is QuickCloseDistance past it.
+        private const float AnimalNearDoor = 3f;
+        private const float AnimalWaitSeconds = 20f;
+        private const float AnimalsAbout = 6f;
+        private const float QuickCloseDistance = 1.5f;
+        private Door? _waitingAt;
+        private float _waitingSince;
         private static readonly int Mask = LayerMask.GetMask("piece", "piece_nonsolid", "Default", "static_solid");
         private static readonly Collider[] Hits = new Collider[64];
 
@@ -116,6 +124,8 @@ namespace VikingsForHire.Hirelings
             Vector3 near = Side(_detour, me, 1.2f);
             if (Utils.DistanceXZ(me, near) > 0.8f)
                 return near;
+            if (!IsOpen(_detour) && !MayOpen(_detour))
+                return near; // wait by the door until the animals move off
             if (!IsOpen(_detour))
                 Open(_detour, me);
             StartThrough(_detour, me);
@@ -132,8 +142,39 @@ namespace VikingsForHire.Hirelings
             return d.transform.position + normal * depth;
         }
 
+        /// <summary>A tamed animal (not a hireling or a player) within this distance of a door.</summary>
+        public static bool AnimalsNear(Door d, float distance) =>
+            Character.GetAllCharacters().Any(c => c != null && !c.IsPlayer() && c.IsTamed() && !c.IsDead() && c.GetComponent<Hireling>() == null &&
+                                                  Vector3.Distance(c.transform.position, d.transform.position) <= distance);
+
+        // Not while an animal stands by the door (a pen's gate: it would walk out), unless it's been waiting too long.
+        private bool MayOpen(Door d)
+        {
+            if (!AnimalsNear(d, AnimalNearDoor))
+            {
+                if (_waitingAt == d)
+                    _waitingAt = null;
+                return true;
+            }
+            if (_waitingAt != d)
+            {
+                _waitingAt = d;
+                _waitingSince = Time.time;
+                VfhLog.I(LogCat.AI, "door.waited_for_animals", ("hid", _ai.Hireling.Hid), ("door", d.transform.position));
+            }
+            if (Time.time - _waitingSince < AnimalWaitSeconds)
+                return false;
+            VfhLog.I(LogCat.AI, "door.animals_still_there", ("hid", _ai.Hireling.Hid), ("door", d.transform.position), ("waited", AnimalWaitSeconds));
+            _waitingAt = null;
+            return true;
+        }
+
+        /// <summary>Times hirelings opened each door, by its instance id (tests).</summary>
+        public static readonly Dictionary<int, int> OpenedCount = new();
+
         private void Open(Door d, Vector3 me)
         {
+            OpenedCount[d.GetInstanceID()] = (OpenedCount.TryGetValue(d.GetInstanceID(), out int n) ? n : 0) + 1;
             // Same as a player using it from where we stand: it swings away from us.
             Nav.DoorRules.Open(d, me);
             _opened[d] = Time.time;
@@ -166,6 +207,8 @@ namespace VikingsForHire.Hirelings
                 bool ahead = heading.sqrMagnitude < 0.01f || Vector3.Dot(toDoor.normalized, heading.normalized) > 0.2f;
                 if (!ahead && d != _detour)
                     continue;
+                if (!MayOpen(d))
+                    continue;
                 Open(d, me);
                 if (d == _detour)
                 {
@@ -180,6 +223,9 @@ namespace VikingsForHire.Hirelings
         // Another hireling (or this one) still in the doorway: shutting the door on it would block its way through.
         private static bool HirelingInDoorway(Door d) =>
             Hireling.Loaded.Any(h => h != null && Vector3.Distance(h.transform.position, d.transform.position) < PlayerClearance);
+
+        private static bool OtherHirelingInDoorway(Door d, Hireling? me) =>
+            Hireling.Loaded.Any(h => h != null && h != me && Vector3.Distance(h.transform.position, d.transform.position) < QuickCloseDistance);
 
         /// <summary>A door a link route opened: close it behind like the ones opened here.</summary>
         public void MarkOpened(Door d) => _opened[d] = Time.time;
@@ -204,9 +250,14 @@ namespace VikingsForHire.Hirelings
                 }
                 if (!now && d == _throughDoor)
                     continue; // not until it's through
-                bool clear = now || (Vector3.Distance(me, d.transform.position) > CloseDistance && Time.time - kv.Value > CloseAfterSeconds);
-                if (!clear || Player.GetClosestPlayer(d.transform.position, PlayerClearance) != null || HirelingInDoorway(d))
+                // With animals about (a pen), shut it as soon as we're through, before one wanders out.
+                bool quick = !now && AnimalsNear(d, AnimalsAbout) && Vector3.Distance(me, d.transform.position) > QuickCloseDistance;
+                bool clear = now || quick || (Vector3.Distance(me, d.transform.position) > CloseDistance && Time.time - kv.Value > CloseAfterSeconds);
+                if (!clear || Player.GetClosestPlayer(d.transform.position, PlayerClearance) != null ||
+                    (quick ? OtherHirelingInDoorway(d, _ai?.Hireling) : HirelingInDoorway(d)))
                     continue;
+                if (quick)
+                    VfhLog.D(LogCat.AI, "door.closed_quick", ("hid", _ai?.Hireling.Hid ?? ""), ("door", d.transform.position));
                 if (IsOpen(d))
                 {
                     d.m_nview.InvokeRPC("UseDoor", false);

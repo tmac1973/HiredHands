@@ -9,9 +9,10 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | Commit | What | Where it runs |
 |---|---|---|
 | (rancher branch) | The Rancher (plan/rancher): ranch orders (meat, eggs, breeding pools ≥ 2) on the Orders tab; RanchPlanner (slaughter the lowest-star adult above its kind's pool while its meat is short; never young, named or unpooled; eggs while short; reasons); AnimalCatalog/HerdScan from the game (modded animals too); feeding (the Steward and PetPantry step aside); SlaughterChore (one killing blow, drops collected and delivered; only a Rancher's hits land on tames); EggsChore (the Steward's tidy leaves eggs on a ranch board); Problems list. Rows VFH-RANCH-1 to -11 | the game simulating the Rancher; orders on the board owner's |
+| (rancher branch) | Pen safety (plan/rancher phase 07, Tim: boars can't be led back): over the fence first (a piece below the eye doesn't block reaching a creature; spots further out are tried); any hireling waits while a tame is within 3 m of a door (20 s at most) and shuts a door at once (1.5 m past) with tames about; a herd animal seen penned and now out is reported (Problems). Rows VFH-RANCH-12, -13, -14 | the game simulating the hireling |
 
 ### To test (batch)
-- [ ] Macro (single player): `vfh_t_ranch_all` (VFH-RANCH-1, -2, -3, -3b, -4, -5, -6, -7, -7b, -8, -9, -10, -11); regression `vfh_test_chain animals tidy orders farm_seeds cook_spit cook_cauldron combat1 stance4 noeffect store1 hire4 why1 why2`.
+- [ ] Macro (single player): `vfh_t_ranch_all` (VFH-RANCH-1 to -14 with -3b, -7b); regression `vfh_test_chain animals tidy orders farm_seeds cook_spit cook_cauldron combat1 stance4 noeffect store1 hire4 why1 why2`.
 - [ ] By hand: the Orders tab's ranch picker and rows, the Rancher's Problems view.
 - [ ] By hand (live server): a Rancher works a real herd for a session (orders, slaughter, a named pet spared, Problems readable).
 

@@ -9,6 +9,32 @@ namespace VikingsForHire.Hirelings.Work.Ranch
     /// <summary>The herd in an area: every tame of a catalog kind (or its young), as the Rancher's rules see them.</summary>
     internal static class HerdScan
     {
+        private const float PenReach = 15f;
+        private static readonly int PenMask = LayerMask.GetMask("piece", "piece_nonsolid");
+        // Each animal's pen state as last seen (by ZDO id): true once it's been seen walled in.
+        private static readonly Dictionary<ZDOID, bool> WasPenned = new();
+
+        /// <summary>Walled in on every side: building pieces within 15 m in all 8 directions, at about knee height.</summary>
+        public static bool Enclosed(Vector3 at)
+        {
+            Vector3 from = at + Vector3.up * 0.5f;
+            for (int i = 0; i < 8; i++)
+                if (!Physics.Raycast(from, Quaternion.Euler(0f, i * 45f, 0f) * Vector3.forward, PenReach, PenMask, QueryTriggerInteraction.Ignore))
+                    return false;
+            return true;
+        }
+
+        // Out of the pen it was in: seen penned before and not now. One never seen penned (free range) never counts.
+        private static bool Escaped(ZDOID id, Vector3 at)
+        {
+            bool penned = Enclosed(at);
+            if (penned)
+            {
+                WasPenned[id] = true;
+                return false;
+            }
+            return WasPenned.TryGetValue(id, out bool was) && was;
+        }
         public sealed class Found
         {
             public HerdAnimal Model = new();
@@ -35,6 +61,7 @@ namespace VikingsForHire.Hirelings.Work.Ranch
                     {
                         Id = zdo.m_uid.ToString(), Kind = kind, Stars = Mathf.Max(0, c.GetLevel() - 1), Adult = prefab == kind,
                         Named = NamedByPlayer(c, zdo), X = p.x, Z = p.z, Hungry = c.GetComponent<Tameable>()?.IsHungry() ?? false,
+                        Escaped = Escaped(zdo.m_uid, p),
                     },
                 });
             }

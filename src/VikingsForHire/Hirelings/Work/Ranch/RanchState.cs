@@ -50,6 +50,8 @@ namespace VikingsForHire.Hirelings.Work.Ranch
             List<HerdScan.Found> herd = HerdScan.Scan(centre, radius, p => ctx == null || ctx.BoardOwnerMayUse(p));
             Stock stock = BoardOrders.Stock(board);
             var have = new Dictionary<string, int>(stock.Chests);
+            foreach (KeyValuePair<string, int> kv in stock.Piled) // made (slaughtered), waiting at the board: counts toward the order
+                have[kv.Key] = (have.TryGetValue(kv.Key, out int pn) ? pn : 0) + kv.Value;
             if (rancher?.CargoInventory != null)
                 foreach (ItemDrop.ItemData i in rancher.CargoInventory.GetAllItems().Where(i => i.m_dropPrefab != null))
                     have[i.m_dropPrefab.name] = (have.TryGetValue(i.m_dropPrefab.name, out int n) ? n : 0) + i.m_stack;

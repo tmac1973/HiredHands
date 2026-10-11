@@ -121,6 +121,17 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void AnEscapeIsReportedFirstAndTheAnimalStillCounts()
+        {
+            HerdAnimal outside = A("Boar", x: 0f);
+            outside.Escaped = true;
+            RanchPlan p = Plan(new List<HerdAnimal> { outside, A("Boar", x: 2f), A("Boar", x: 4f) }, Orders(("Boar", OrderKind.Herd, 2), ("RawMeat", OrderKind.Meat, 40)));
+            Assert.Equal("$vfh_ranch_escaped|Boar|1", p.Why["Boar"]);
+            Assert.Equal(3, p.Adults["Boar"]);
+            Assert.NotNull(p.Slaughter);
+        }
+
+        [Fact]
         public void RanchOrdersRoundTripAndOldStringsStillParse()
         {
             OrderList l = Orders(("RawMeat", OrderKind.Meat, 40), ("ChickenEgg", OrderKind.Egg, 20), ("Boar", OrderKind.Herd, 4),

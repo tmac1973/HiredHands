@@ -221,6 +221,10 @@ asksvin, and modded animals), tamed and inside the board's area.
 - **Problems** (Shift+E): each ranch order and why it isn't met: no animal above the pool, no pool set, a pen too crowded
   to breed (vanilla stops breeding with 4 boars within 10 m), no partner close enough, hungry, nothing they eat in the
   chests. He doesn't move animals: build another pen.
+- **Pens:** he works over the fence whenever he can reach (feeding and slaughtering across a low fence or half wall).
+  When he has to go in, he waits until no animal stands by the gate and shuts it right behind him. Every hireling does
+  the same at any door with tame animals near it. An animal of the herd that gets out of its pen shows in his Problems
+  list (boars can't be led back, so you'll want to know).
 - **Settings** in *12 - Rancher*: `RancherFeed`, `RancherSlaughter`, `RancherEggs`.
 
 ## Followers: the Command Stone

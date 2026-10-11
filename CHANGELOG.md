@@ -13,7 +13,11 @@
   - **Eggs** are collected up to the egg order; the rest are left to hatch.
   - **Feeds** the herd; a Steward on the same board leaves feeding to him (with PetPantry, both leave it to PetPantry).
   - Works with any tameable animal that breeds and drops meat, modded ones included.
+  - **Keeps pens shut:** works over the fence when he can reach; otherwise waits for the gate to clear and shuts it behind
+    him. An animal that gets out is reported.
   - His Shift+E **Problems** list says why an order isn't met or a pen isn't breeding (crowded, no partner, hungry, no feed).
+- **Every hireling minds the gate:** with tame animals near a door, hirelings wait for them to move off before opening it
+  and shut it as soon as they're through.
   - Settings in *12 - Rancher*.
 
 ## 0.8.2
