@@ -31,7 +31,7 @@ namespace VikingsForHire.Hirelings.Nav
         private static int _budget;
 
         /// <summary>The walking agent hirelings use (set from the first hireling's AI).</summary>
-        public static Pathfinding.AgentType Agent = Pathfinding.AgentType.Humanoid;
+        public static Pathfinding.AgentType Agent = Pathfinding.AgentType.HumanoidAvoidWater;
 
         private static Vector3Int Key(Vector3 p) => new(Mathf.RoundToInt(p.x * 2f), Mathf.RoundToInt(p.y * 2f), Mathf.RoundToInt(p.z * 2f));
 

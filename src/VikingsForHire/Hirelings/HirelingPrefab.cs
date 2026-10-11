@@ -75,7 +75,9 @@ namespace VikingsForHire.Hirelings
             ai.m_viewRange = 30f;
             ai.m_viewAngle = 90f;
             ai.m_hearRange = 20f;
-            ai.m_pathAgentType = Pathfinding.AgentType.Humanoid;
+            // Water isn't walkable for this agent: with the plain Humanoid agent it only cost 4x land, so a walk round
+            // longer than that lost to a swim (out of a house by the sea, into the water and round).
+            ai.m_pathAgentType = Pathfinding.AgentType.HumanoidAvoidWater;
             ai.m_randomMoveRange = 5f;
             ai.m_randomMoveInterval = 6f;
             ai.m_moveMinAngle = 10f;

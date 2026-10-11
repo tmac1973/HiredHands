@@ -70,7 +70,7 @@ namespace VikingsForHire.Board
                     continue;
                 dryFallback ??= p;
                 Path.Clear();
-                if (Pathfinding.instance != null && Pathfinding.instance.GetPath(p, center, Path, Pathfinding.AgentType.Humanoid, requireFullPath: true))
+                if (Pathfinding.instance != null && Pathfinding.instance.GetPath(p, center, Path, Pathfinding.AgentType.HumanoidAvoidWater, requireFullPath: true))
                 {
                     how = "edge";
                     return p;
