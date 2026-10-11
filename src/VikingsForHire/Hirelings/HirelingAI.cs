@@ -214,6 +214,14 @@ namespace VikingsForHire.Hirelings
             _behaviours.Sort((a, b) => b.Priority.CompareTo(a.Priority));
         }
 
+        /// <summary>
+        /// None, ever. Vanilla turns every projectile towards the AI's target creature (up to 90 degrees from where the body
+        /// faces), and MonsterAI's own target is whatever last hit the hireling, which our combat doesn't use: Thorvald's
+        /// arrows flew off at a right angle towards an old attacker. Our combat aims through the look direction instead
+        /// (with drop, lead and launch angle allowed for), which vanilla uses when there's no target.
+        /// </summary>
+        public override Character? GetTargetCreature() => null;
+
         public override bool UpdateAI(float dt)
         {
             long started = PerfCounters.Start();
