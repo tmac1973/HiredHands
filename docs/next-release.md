@@ -13,8 +13,10 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | 87a7344 | The Roster tab offered "Cancel (refund)" for a hireling waiting to come back from death; it never refunded (the hire fee was spent), so the button now says "End contract (no refund)" | your game |
 | d337d4a | The Steward loaded a board with 76 CoalPaste (Balrond Shipyard's shipbuilding material, which carries food values but can't be eaten). Food now has to be a consumable, as the game requires to eat it: on the board, for the Steward's board food, in the Cook's stove list and in the raw-food check. CoalPaste already on a board stays but no longer counts or pays; take it out by hand | everywhere (board, Steward, Cook) |
 | 4600dd8 | The Cook made mead and potion bases (mead ketill recipes) only from level 7; a ketill is built in the Black Forest era, so now from level 2 (`stationLevels` → `piece_MeadCauldron`). Data files without the key take the new default | the board owner's machine (orders) |
+| 76668d7 | The Upgrade tab's button covered the last materials (it sat at a fixed height from the smaller panel): now it goes below the materials and the "not refunded" note | your game |
 
 ### To test (batch)
+- [ ] By hand: Upgrade tab at a level with five materials: every material readable, the button below the note.
 - [ ] By hand: Orders → Add kitchen order lists mead bases at level 2; a level 2 Cook with a mead ketill (fire under it) makes one.
 - [ ] By hand (live server): CoalPaste can't be put on the board; the board's food days don't count it; the Steward doesn't bring it.
 - [ ] By hand: a dead hireling waiting to return shows "End contract (no refund)"; a newly posted one still shows "Cancel (refund)".
