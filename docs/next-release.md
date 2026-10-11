@@ -3,7 +3,7 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## 0.8.1 (not released): Shift+E problems list
+## 0.8.1 (packaged 2026-10-11, in-game tests deferred): follower fixes, Shift+E problems list, players' logs
 
 ### Fixed or added
 | Commit | What | Where it runs |

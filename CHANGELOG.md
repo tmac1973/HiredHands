@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.8.1
+
+**Everyone updates together:** new network messages (players' logs, follower orders); a player on 0.8.0 would miss them.
+
+- **Followers stay with the player they follow.** A follower recruited at someone else's base kept being run by that player's game: it didn't go through portals with its new owner, and once left behind it never went home (its "go home" order went to a game far away and was dropped), stuck "following" someone who couldn't even see it. Now your game takes over your followers near you, portals take all of yours in range, and a go-home order that can't be carried out goes back to the server, which sees it done.
+- **Problems list in Shift+E** for Farmers, Cooks and Stewards: every order the job works, with have / target and whether it's done, being worked on, or why not (no carrots, no station, Cook level too low…), then every other chore problem (no fuel, no room, paused stations). The hover still shows one line; this shows them all.
+- **Players' logs on the server, for troubleshooting.** `ClientLogsToServer` (Debug, off by default) has every player's game send its Hired Hands log lines to the server, into `BepInEx/HiredHands/clients/<player>.log`; `ClientLogLevel` sets how much (default Info). Any player can send their recent lines once with the console command `vfh_send_log`, whatever the setting.
+- Farm reasons in the hover now name items properly ("Carrots", not "Carrot").
+
 ## 0.8.0
 
 **Everyone updates together:** a new job and new data-file entries; the server and every player need 0.8.0.
