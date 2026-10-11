@@ -181,6 +181,7 @@ namespace VikingsForHire.Hirelings.Work.Chores
             IReadOnlyDictionary<string, string>? orders = board == null ? null
                 : h.Job == JobType.Farmer ? Farm.FarmState.For(board).Why
                 : h.Job == JobType.Cook ? Kitchen.KitchenState.Why(board, h.Hid)
+                : h.Job == JobType.Rancher ? Ranch.RanchState.For(board).Why
                 : null;
             if (orders != null)
                 foreach (KeyValuePair<string, string> kv in orders)

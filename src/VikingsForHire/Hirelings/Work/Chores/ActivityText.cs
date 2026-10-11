@@ -24,7 +24,8 @@ namespace VikingsForHire.Hirelings.Work.Chores
         {
             if (arg.Length == 0 || arg[0] == '$' || char.IsDigit(arg[0]) || ObjectDB.instance == null)
                 return arg;
-            return ObjectDB.instance.GetItemPrefab(arg)?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_name ?? arg;
+            return ObjectDB.instance.GetItemPrefab(arg)?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_name
+                   ?? (ZNetScene.instance != null ? ZNetScene.instance.GetPrefab(arg)?.GetComponent<Character>()?.m_name : null) ?? arg;
         }
     }
 }

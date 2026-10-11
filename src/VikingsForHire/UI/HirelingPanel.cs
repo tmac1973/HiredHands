@@ -395,6 +395,7 @@ namespace VikingsForHire.UI
                 JobType.Farmer => list.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Seed)
                     .Concat(list.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Crop)).ToList(),
                 JobType.Cook => list.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Kitchen).ToList(),
+                JobType.Rancher => list.Orders.Where(o => o.IsRanch).ToList(),
                 _ => new List<Core.Orders.ProductionOrder>(),
             };
         }
@@ -428,7 +429,9 @@ namespace VikingsForHire.UI
                 Stock stock = board != null ? BoardOrders.Stock(board) : null!;
                 foreach (Core.Orders.ProductionOrder o in orders.Skip(_whyPage * WhyRowsPerPage).Take(WhyRowsPerPage))
                 {
-                    int have = stock.Have(o.Item);
+                    int have = o.Kind == Core.Orders.OrderKind.Herd
+                        ? (Hirelings.Work.Ranch.RanchState.For(board!).Adults.TryGetValue(o.Item, out int adults) ? adults : 0)
+                        : stock.Have(o.Item);
                     PanelUi.Icon(t, ObjectDB.instance.GetItemPrefab(o.Item)?.GetComponent<ItemDrop>()?.m_itemData.GetIcon(), -295f, y, 28f);
                     PanelUi.Text(t, ItemName(o.Item), -195f, y, 170f, 15, TextAnchor.MiddleLeft, o.Paused ? PanelUi.Dim : (Color?)null);
                     PanelUi.Text(t, $"{have} / {o.Target}", -75f, y, 80f, 15, color: have >= o.Target ? PanelUi.Good : PanelUi.Dim);
@@ -477,7 +480,10 @@ namespace VikingsForHire.UI
         {
             GameObject? go = ObjectDB.instance != null ? ObjectDB.instance.GetItemPrefab(prefab) : null;
             ItemDrop? drop = go != null ? go.GetComponent<ItemDrop>() : null;
-            return drop != null ? drop.m_itemData.m_shared.m_name : prefab;
+            if (drop != null)
+                return drop.m_itemData.m_shared.m_name;
+            // A breeding pool order is for an animal kind.
+            return ZNetScene.instance?.GetPrefab(prefab)?.GetComponent<Character>() is Character c ? c.m_name : prefab;
         }
 
         // Switch one item on or off for this gatherer (with "all": every follower of yours with the same job nearby).
