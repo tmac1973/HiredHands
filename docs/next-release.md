@@ -9,6 +9,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | Commit | What | Where it runs |
 |---|---|---|
 | (hotfix-084 branch) | Grima stuck on a lower terrace under a stone floor's overhang, running into the wall: with no walkable map there, the game put him on the floor above, so "is there a direct route?" said yes and the base's stairs (link routes) weren't used. A route that starts more than 1 m off our height now doesn't count, so he takes the stairs | the game simulating the hireling |
+| (hotfix-084 branch) | Seed order deadlock (Grima: 7 onion seeds, OnionSeeds order 100, no onions; neither order moved): a seed order that can't plant anything (no produce to plant, nothing growing) no longer reserves its seeds from the crop order, so the seeds are planted and the onions then feed the seed order. Unit test | the game simulating the Farmer |
 
 ### To test (batch)
 - [ ] By hand: Grima's terrace: he walks back up the stone stairs instead of into the wall (`navlinks.hop` up in the log).

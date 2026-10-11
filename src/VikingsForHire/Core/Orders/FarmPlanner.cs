@@ -53,6 +53,11 @@ namespace VikingsForHire.Core.Orders
             var spots = new Dictionary<string, int>(freeSpots);
             var planned = new Dictionary<string, double>();
             int Get(IReadOnlyDictionary<string, int> d, string k) => d.TryGetValue(k, out int v) ? v : 0;
+            // Seed orders that can't be worked at all (nothing to plant for seeds, nothing growing them): their reserve
+            // doesn't hold crop orders back. 7 onion seeds under a 100-seed order and no onions: the seed order needs
+            // onions, the onion order may only use seeds above the reserve, and neither ever moved. Planting the seeds is
+            // the way out: onions grow, and the seed order plants those for seeds.
+            var bootstrap = new HashSet<string>();
 
             foreach (ProductionOrder order in active)
             {
@@ -74,7 +79,8 @@ namespace VikingsForHire.Core.Orders
                     double each = crop.YieldOf(order.Item);
                     int needed = (int)Math.Ceiling(shortBy / each);
                     // Raising seeds may spend produce down to the usual reserves; produce orders only spend seeds above the seed reserve.
-                    int reserve = order.Kind == OrderKind.Seed ? 0 : (plan.SeedReserve.TryGetValue(crop.Consumes, out int r) ? r : 0);
+                    int reserve = order.Kind == OrderKind.Seed || bootstrap.Contains(crop.Consumes) ? 0
+                        : (plan.SeedReserve.TryGetValue(crop.Consumes, out int r) ? r : 0);
                     int have0 = Get(work, crop.Consumes);
                     int possible = Math.Max(0, have0 - reserve) / Math.Max(1, crop.ConsumesAmount);
                     int free = spots.TryGetValue(crop.Plant, out int f) ? f : 0;
@@ -99,6 +105,9 @@ namespace VikingsForHire.Core.Orders
                     if (shortBy <= 0)
                         break;
                 }
+                if (order.Kind == OrderKind.Seed && plantedHere == 0 && Get(growing, order.Item) == 0 &&
+                    candidates.All(c => Get(work, c.Consumes) <= 0))
+                    bootstrap.Add(order.Item);
                 if (plantedHere > 0 || regrows)
                     continue;
                 string? why = candidates.Count == 0 && growsIt.Count > 0 ? $"$vfh_need_farmer_level|{order.Item}|{growsIt.Min(c => c.Level)}"
