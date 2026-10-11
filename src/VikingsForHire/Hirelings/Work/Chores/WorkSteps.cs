@@ -84,10 +84,27 @@ namespace VikingsForHire.Hirelings.Work.Chores
         // Close enough to use it from where the feet are. Height against the object's base, not the switch (a smelter's ore
         // input is 2 m up): on its floor, not below. Or, like a player's reach, within 3 m of its nearest surface (a wall's
         // upper row, a sconce up high).
-        // Standing above it (the floor upstairs, over a cooking station raised on its fire): only with no floor in between.
+        // Standing above it, it must be in sight as a player's would be: over the edge of a raised floor to a chest tucked
+        // under it, yes; straight down through the floor (a cooking station in the room below), no.
         internal static bool UsableFrom(Vector3 feet, Component obj, Vector3 target, float half, float reach) =>
             (Utils.DistanceXZ(feet, target) <= half + Reach && Mathf.Abs(feet.y - obj.transform.position.y) < 1.8f &&
-             (feet.y <= obj.transform.position.y + 0.5f || !PieceBetween(feet + Vector3.up * 0.3f, target, obj))) || WithinReach(feet, obj, reach);
+             (feet.y <= obj.transform.position.y + 0.5f || SeenFromAbove(feet + Vector3.up * 1.5f, obj))) || WithinReach(feet, obj, reach);
+
+        // A clear line from the eye to the thing's middle, top or nearest point (no other building piece in the way).
+        private static bool SeenFromAbove(Vector3 eye, Component obj)
+        {
+            foreach (Collider c in obj.GetComponentsInChildren<Collider>())
+            {
+                if (!c.enabled || c.isTrigger)
+                    continue;
+                Bounds b = c.bounds;
+                Vector3 nearest = c is MeshCollider { convex: false } ? b.ClosestPoint(eye) : c.ClosestPoint(eye);
+                Vector3 top = new(b.center.x, b.max.y - 0.05f, b.center.z);
+                if (!PieceBetween(eye, b.center, obj) || !PieceBetween(eye, top, obj) || !PieceBetween(eye, nearest, obj))
+                    return true;
+            }
+            return false;
+        }
 
         // A spot just outside the object it can use it from: the side facing us if we can get there (the game's map or the
         // base's links), else another side we can reach (nearest first). Not the ground below a chest upstairs: close by,
