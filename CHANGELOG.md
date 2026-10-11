@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.6
+
+- **Turnips are produce.** The farm order picker listed turnips as a seed ("Turnip (seed)"): raw turnips aren't food, and planting one grows turnip seeds. Turnips and onions are now plain produce orders. (A turnip order added through the old "(seed)" entry is still a seed order: remove it and add Turnip again.)
+- **No planting among picked plants.** The Farmer planted carrots between picked mushroom stalks (a picked mushroom, berry bush or dandelion hides the part that takes up space). Now no crop goes beside a regrowing plant, picked or not.
+- **Only edible food on the board.** Balrond Shipyard's CoalPaste carries food values but can't be eaten; the Steward stocked a board with it. Food now has to be a consumable. CoalPaste already on a board no longer counts: take it out.
+- **Mead and potion bases from Cook level 2,** not 7: a mead ketill is built in the Black Forest era.
+- **"End contract (no refund)"** replaces "Cancel (refund)" for a hireling waiting to come back from death (it never refunded).
+- **The Upgrade button** sits below the materials instead of covering the last of them.
+
 ## 0.7.5
 
 - **Hirelings keep to dry land.** By a base on the shore they used to stand about in the sea and swim after things:
