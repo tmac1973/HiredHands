@@ -3,6 +3,17 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.8.4 (not released): stuck under an overhang
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (hotfix-084 branch) | Grima stuck on a lower terrace under a stone floor's overhang, running into the wall: with no walkable map there, the game put him on the floor above, so "is there a direct route?" said yes and the base's stairs (link routes) weren't used. A route that starts more than 1 m off our height now doesn't count, so he takes the stairs | the game simulating the hireling |
+
+### To test (batch)
+- [ ] By hand: Grima's terrace: he walks back up the stone stairs instead of into the wall (`navlinks.hop` up in the log).
+- [ ] Regression: `vfh_test_chain stairs1 doors1 nav_links` (whatever the nav rows are named) still pass.
+
 ## 0.8.3 (packaged 2026-10-11, in-game tests deferred): arrows go where the archer aims, orders count the board's pile, reach fixes, stuck torches
 
 ### Fixed or added
