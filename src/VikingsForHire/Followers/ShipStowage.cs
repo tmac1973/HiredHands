@@ -41,13 +41,35 @@ namespace VikingsForHire.Followers
                 Land(me);
         }
 
+        private static Ship? _watched;
+        private static Vector3 _watchedAt;
+        private static float _watchedTime;
+
+        // Measured from how far the ship moved since the last check, not its rigidbody: a ship someone else is steering is
+        // moved on our game by position updates, with a velocity of zero, so a passenger's followers never boarded.
         private static Ship? ShipUnderWay(Player me)
         {
             Ship ship = me.GetStandingOnShip();
             if (ship == null)
+            {
+                _watched = null;
                 return null;
-            Rigidbody? body = ship.GetComponent<Rigidbody>();
-            return body != null && body.linearVelocity.magnitude > UnderWaySpeed ? ship : null;
+            }
+            Vector3 at = ship.transform.position;
+            if (ship != _watched)
+            {
+                _watched = ship;
+                _watchedAt = at;
+                _watchedTime = Time.time;
+                return null;
+            }
+            float dt = Time.time - _watchedTime;
+            if (dt <= 0f)
+                return null;
+            float speed = Utils.DistanceXZ(at, _watchedAt) / dt;
+            _watchedAt = at;
+            _watchedTime = Time.time;
+            return speed > UnderWaySpeed ? ship : null;
         }
 
         private static bool Ashore(Player me) =>
