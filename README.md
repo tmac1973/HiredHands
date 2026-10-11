@@ -68,6 +68,8 @@ Woodcutters and miners work twice the board's radius. Everyone defends themselve
 
 **Doors.** Hirelings open doors in their way and close them behind themselves (never in a player's face). They only use doors the board's owner may use under wards, never locked doors, and don't wander through doors when idle. `HirelingsOpenDoors` turns this off.
 
+**They talk back.** Now and then a hireling near you says something, in a speech bubble like the trader's: about its job, about what it's doing, or about you standing there watching. `HirelingChatter` turns it off and `ChatterMinutes` (default 5) sets roughly how often each one speaks; both are your own settings.
+
 ## How hirelings fight
 
 Guards patrol and fight by stance; everyone else defends themselves, weakly, and flees or defends by stance. Since
