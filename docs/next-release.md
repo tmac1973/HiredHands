@@ -11,6 +11,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | e98bc65 | As a passenger on someone else's ship, your followers didn't board: "under way" was read from the ship's rigidbody velocity, which is zero on every game but its owner's (it's moved by position updates there). Thorvald stayed on the dock and was sent home as too far behind. Now the speed is measured from how far the ship moved between checks | your game |
 
 ### To test (batch)
+- [ ] Test debt (0.7.6, 0.7.7, 0.7.8 shipped on unit tests only): `vfh_t_debt` in the dev game, about 40 minutes; then the by-hand items in those tabs.
 - [ ] By hand (live server, two players): one steers, you ride along with a follower nearby: as the ship gets going the follower goes below deck; it steps off with you when you land.
 
 ## 0.7.7 (released 2026-10-10, tests deferred at Tim's request): chatter, chest puffs, walking not swimming, Cook watches the food, followers left at home, lost hirelings
