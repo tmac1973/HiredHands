@@ -73,6 +73,13 @@ namespace VikingsForHire.Commands
                                      ": " + string.Join(", ", k.Inputs.Select(i => $"{i.Value} {i.Key}")));
             }));
             Add(new VfhCommand("vfh_dump_data", "- print the data tables in effect (server's when connected)", false, _ => DumpData()));
+            Add(new VfhCommand("vfh_animals", "- the animals a Rancher can manage (read from the game): meats, egg, young, food, breeding limits", false, _ =>
+            {
+                foreach (Core.Orders.AnimalKind k in Hirelings.Work.Ranch.AnimalCatalog.Kinds)
+                    VfhCommand.Print($"  {k.Prefab}: meat {string.Join(", ", k.Meats.Select(m => $"{m.Key} ~{m.Value:0.#}"))}" +
+                                     (k.EggItem.Length > 0 ? $"; egg {k.EggItem}" : "") + (k.YoungPrefabs.Count > 0 ? $"; young {string.Join(", ", k.YoungPrefabs)}" : "") +
+                                     $"; eats {string.Join(", ", k.Foods)}; breeds below {k.MaxCreatures} within {k.TotalCheckRange:0} m, partner within {k.PartnerCheckRange:0} m");
+            }));
             Add(new VfhCommand("vfh_send_log", "[lines=2000] - send this game's last Hired Hands log lines to the server (BepInEx/HiredHands/clients/<you>.log there), for troubleshooting", false, args =>
             {
                 int lines = args.Length > 0 && int.TryParse(args[0], out int n) ? Math.Max(1, Math.Min(n, 3000)) : 2000;

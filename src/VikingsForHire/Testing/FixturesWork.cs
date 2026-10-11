@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using VikingsForHire.Board;
@@ -74,7 +75,20 @@ namespace VikingsForHire.Testing
             });
             TestHarness.RegisterCheck("object_health", "<tag> - a tagged object's health 0..1 (creature, piece, tree, rock or destructible; 0 when it's gone)", args =>
                 ObjectHealth(FindTagged(args.ElementAtOrDefault(0) ?? "")).ToString("0.00", CultureInfo.InvariantCulture));
-            Fixtures.Add("tame", "<prefab> [tag] [distance=20] - a tamed, hungry animal (Boar, Wolf…) that far from the board", Tame);
+            Fixtures.Add("tame", "<prefab> [tag] [distance=20] [stars <n>] [young] [named <name>] - a tamed, hungry animal (Boar, Wolf…) that far from the board; young: its kind's young; named: as a player names it", Tame);
+            TestHarness.RegisterCheck("herd", "<kind> <adults|young|named|stars <n>> - the nearest board's herd within 40 m: adults (all), young, named, or unnamed adults at n stars", args =>
+            {
+                HiringBoard b = Board();
+                List<Hirelings.Work.Ranch.HerdScan.Found> herd = Hirelings.Work.Ranch.HerdScan.Scan(b.transform.position, 40f, _ => true)
+                    .Where(f => f.Model.Kind == (args.ElementAtOrDefault(0) ?? "")).ToList();
+                return ((args.ElementAtOrDefault(1) ?? "adults") switch
+                {
+                    "young" => herd.Count(f => !f.Model.Adult),
+                    "named" => herd.Count(f => f.Model.Named),
+                    "stars" => herd.Count(f => f.Model.Adult && !f.Model.Named && f.Model.Stars == int.Parse(args.ElementAtOrDefault(2) ?? "0", CultureInfo.InvariantCulture)),
+                    _ => herd.Count(f => f.Model.Adult),
+                }).ToString(CultureInfo.InvariantCulture);
+            });
             TestHarness.RegisterCheck("animal_hungry", "<tag> - whether a tagged tamed animal is hungry", args =>
                 (FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponent<Tameable>() ?? throw new InvalidOperationException("no such tagged animal")).IsHungry() ? "true" : "false");
             TestHarness.RegisterCheck("fed_by_steward", "<tag> - food items Stewards have dropped for a tagged animal", args =>
@@ -379,7 +393,29 @@ namespace VikingsForHire.Testing
         private static IEnumerator Tame(string[] args)
         {
             Vector3? at = AtTag(ref args);
+            int stars = 0;
+            string? named = null;
+            bool young = false;
+            int si = Array.IndexOf(args, "stars");
+            if (si >= 0)
+            {
+                stars = int.Parse(args.ElementAtOrDefault(si + 1) ?? "0", CultureInfo.InvariantCulture);
+                args = args.Take(si).Concat(args.Skip(si + 2)).ToArray();
+            }
+            int ni = Array.IndexOf(args, "named");
+            if (ni >= 0)
+            {
+                named = args.ElementAtOrDefault(ni + 1) ?? "Pet";
+                args = args.Take(ni).Concat(args.Skip(ni + 2)).ToArray();
+            }
+            if (args.Contains("young"))
+            {
+                young = true;
+                args = args.Where(a => a != "young").ToArray();
+            }
             string prefab = args.ElementAtOrDefault(0) ?? "Boar";
+            if (young)
+                prefab = Hirelings.Work.Ranch.AnimalCatalog.Find(prefab)?.YoungPrefabs.FirstOrDefault() ?? throw new InvalidOperationException($"{prefab} has no young");
             string tag = args.ElementAtOrDefault(1) ?? "";
             float distance = args.Length > 2 ? float.Parse(args[2], CultureInfo.InvariantCulture) : 20f;
             HiringBoard board = Board();
@@ -388,7 +424,15 @@ namespace VikingsForHire.Testing
             yield return null;
             Character c = go.GetComponent<Character>() ?? throw new InvalidOperationException($"{prefab} isn't a creature");
             c.SetTamed(true);
-            go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_tameLastFeeding, 0L);
+            if (stars > 0)
+                c.SetLevel(stars + 1);
+            ZDO tz = go.GetComponent<ZNetView>().GetZDO();
+            tz.Set(ZDOVars.s_tameLastFeeding, 0L);
+            if (named != null)
+            {
+                tz.Set(ZDOVars.s_tamedName, named);
+                tz.Set(ZDOVars.s_tamedNameAuthor, Player.m_localPlayer?.GetPlayerName() ?? "Tester");
+            }
             VfhLog.I(LogCat.Test, "fixture.tame", ("prefab", prefab), ("tag", tag), ("hungry", go.GetComponent<Tameable>()?.IsHungry() ?? false));
             yield return null;
         }
