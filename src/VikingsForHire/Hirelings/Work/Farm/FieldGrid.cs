@@ -80,6 +80,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
             foreach (Vector3Int expired in Avoided.Where(kv => kv.Value < Time.time).Select(kv => kv.Key).ToList())
                 Avoided.Remove(expired);
             Grid g = For(crop, home, radius, fallbackRow);
+            List<Vector3> regrowing = Regrowing(Picks);
             var spots = new List<Vector3>();
             int n = Mathf.CeilToInt(radius * 2f / g.Spacing) + 2;
             Vector3 c = home - g.Origin;
@@ -91,7 +92,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
                     if (Utils.DistanceXZ(p, home) > radius)
                         continue;
                     p.y = ZoneSystem.instance.GetGroundHeight(p);
-                    if (IsFree(crop, p, owner))
+                    if (IsFree(crop, p, owner, regrowing))
                         spots.Add(p);
                 }
             spots = spots.OrderBy(p => Utils.DistanceXZ(p, home)).Take(MaxSpots).ToList();
@@ -113,9 +114,30 @@ namespace VikingsForHire.Hirelings.Work.Farm
             Cache.Clear();
         }
 
-        /// <summary>Whether the game would let this crop grow here (checked again just before planting).</summary>
-        public static bool IsFree(Crop crop, Vector3 p, long owner)
+        // Regrowing plants (mushrooms, berry bushes, dandelions…) among the pickables found: picked, they hide the part
+        // that collides, so the physics check below sees open ground where the stalk stands.
+        private static List<Vector3> Regrowing(List<Pickable> picks) =>
+            picks.Where(p => p != null && CropCatalog.ByGrown(Utils.GetPrefabName(p.gameObject)) is Crop c && c.Info.Regrowing)
+                .Select(p => p.transform.position).ToList();
+
+        private static readonly List<Plant> CheckPlants = new();
+        private static readonly List<Pickable> CheckPicks = new();
+
+        /// <summary>
+        /// Whether the game would let this crop grow here (checked again just before planting), and no regrowing plant
+        /// stands there, picked or not (carrots went in among picked mushrooms). <paramref name="regrowing"/>: those
+        /// already found nearby, or null to look.
+        /// </summary>
+        public static bool IsFree(Crop crop, Vector3 p, long owner, List<Vector3>? regrowing = null)
         {
+            if (regrowing == null)
+            {
+                FarmScan.Nearby(p, crop.GrowRadius + 1f, CheckPlants, CheckPicks);
+                regrowing = Regrowing(CheckPicks);
+            }
+            float clear = crop.GrowRadius + 0.3f;
+            if (regrowing.Any(r => Utils.DistanceXZ(r, p) < clear))
+                return false;
             if (Avoided.TryGetValue(Cell(p), out float until) && until > Time.time)
                 return false;
             Heightmap? hm = Heightmap.FindHeightmap(p);
