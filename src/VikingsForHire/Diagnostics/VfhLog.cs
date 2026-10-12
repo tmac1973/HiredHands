@@ -30,8 +30,11 @@ namespace VikingsForHire.Diagnostics
         private static readonly Dictionary<string, float> ThrottleUntil = new();
         private static readonly Dictionary<string, float> PatchFailedAt = new();
 
-        /// <summary>Errors logged this session; the test harness asserts this stays 0.</summary>
+        /// <summary>Errors logged since the current test row began (or this session); the test harness asserts this stays 0.</summary>
         public static int ErrorCount { get; private set; }
+
+        /// <summary>A test row starts counting errors from zero: one failed step used to fail every later row's error check.</summary>
+        public static void ResetErrorCount() => ErrorCount = 0;
 
         public static int WarningCount { get; private set; }
 

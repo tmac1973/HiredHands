@@ -264,6 +264,7 @@ namespace VikingsForHire.Testing
                 VfhLog.W(LogCat.Test, "test.abandoned", ("row", _run.Row), ("checks", _run.Checks));
             _run = new Run { Row = row };
             TestProtection.Set(true); // enemies ignore you and nothing hurts you while it runs
+            VfhLog.ResetErrorCount();
             VfhLog.I(LogCat.Core, "mark", ("text", "test " + row));
             VfhLog.I(LogCat.Test, "test.begin", ("row", row), ("fastTimers", VfhConfig.FastTimers), ("role", VfhLog.Role()));
             Message($"Test {row} started");
@@ -532,7 +533,7 @@ namespace VikingsForHire.Testing
                 args => args.Length == 1 ? DataPath(args[0]) : "error: usage data <path>");
             RegisterCheck("data_source", "- local | server | defaults", _ => DataStore.Source);
             RegisterCheck("data_reloads", "- how many times the data tables were (re)loaded this session", _ => DataStore.Reloads.ToString());
-            RegisterCheck("log_errors", "- error lines logged this session", _ => VfhLog.ErrorCount.ToString());
+            RegisterCheck("log_errors", "- error lines logged since this test row began", _ => VfhLog.ErrorCount.ToString());
             RegisterCheck("fast_timers", "- true when test timers are active", _ => VfhConfig.FastTimers ? "true" : "false");
         }
 
