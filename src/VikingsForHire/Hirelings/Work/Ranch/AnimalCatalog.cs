@@ -43,6 +43,13 @@ namespace VikingsForHire.Hirelings.Work.Ranch
             _prefabs = ZNetScene.instance.m_prefabs.Count;
             var kinds = new List<AnimalKind>();
             var kindOf = new Dictionary<string, string>();
+            // Raw meat isn't food until it's cooked (it's a material): what a cooking station takes counts as meat too.
+            var cookable = new HashSet<string>();
+            foreach (GameObject p in ZNetScene.instance.m_prefabs)
+                if (p != null && p.GetComponent<CookingStation>() is CookingStation stove)
+                    foreach (CookingStation.ItemConversion c in stove.m_conversion)
+                        if (c?.m_from != null)
+                            cookable.Add(c.m_from.gameObject.name);
             foreach (GameObject go in ZNetScene.instance.m_prefabs)
             {
                 if (go == null || go.GetComponent<Tameable>() == null || go.GetComponent<Procreation>() is not Procreation proc ||
@@ -58,7 +65,8 @@ namespace VikingsForHire.Hirelings.Work.Ranch
                 foreach (CharacterDrop.Drop d in drop.m_drops)
                 {
                     ItemDrop.ItemData.SharedData? s = d?.m_prefab != null ? d.m_prefab.GetComponent<ItemDrop>()?.m_itemData?.m_shared : null;
-                    if (s == null || s.m_itemType != ItemDrop.ItemData.ItemType.Consumable || s.m_food <= 0f && s.m_foodStamina <= 0f && s.m_foodEitr <= 0f)
+                    bool food = s != null && s.m_itemType == ItemDrop.ItemData.ItemType.Consumable && (s.m_food > 0f || s.m_foodStamina > 0f || s.m_foodEitr > 0f);
+                    if (s == null || !food && !cookable.Contains(d!.m_prefab.name))
                         continue;
                     kind.Meats[d!.m_prefab.name] = (d.m_amountMin + d.m_amountMax) / 2f * d.m_chance;
                 }

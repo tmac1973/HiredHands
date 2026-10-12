@@ -121,6 +121,9 @@ namespace VikingsForHire.Hirelings.Work.Ranch
                     if (left > 0)
                         VfhLog.I(LogCat.Work, "ranch.left_on_ground", ("hid", h.Hid), ("items", left), ("pos", _spot));
                     VfhLog.I(LogCat.Work, "ranch.collected", ("hid", h.Hid), ("items", got));
+                    // Straight to the chests: meat is an ingredient, not a product, so it would wait as a leftover.
+                    if (got > 0)
+                        h.Zdo?.Set(HirelingZdo.DeliverPending, true);
                     if (_board != null)
                         RanchState.Invalidate(_board);
                     return End(h, ChoreProgress.Done);

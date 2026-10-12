@@ -76,7 +76,14 @@ namespace VikingsForHire.Testing
                 (FollowerServer.LastTransferReply.IndexOf(args.ElementAtOrDefault(1) ?? args.ElementAtOrDefault(0) ?? "", StringComparison.OrdinalIgnoreCase) >= 0).ToString().ToLowerInvariant());
             TestHarness.RegisterCheck("why", "<count | has <text>> - the last spawned hireling's Shift+E problems list (lines, or whether one contains the text)", args =>
             {
-                string[] lines = (FixturesHireling.Select("last").Zdo?.GetString(HirelingZdo.Why) ?? "").Split('\n').Where(l => l.Length > 0).ToArray();
+                // The last spawned hireling, else (one hired through a contract) the nearest.
+                Hireling? h;
+                try { h = FixturesHireling.Select("last"); }
+                catch (InvalidOperationException)
+                {
+                    h = Hireling.Loaded.Where(x => x != null).OrderBy(x => Vector3.Distance(x.transform.position, Player.m_localPlayer.transform.position)).FirstOrDefault();
+                }
+                string[] lines = (h?.Zdo?.GetString(HirelingZdo.Why) ?? "").Split('\n').Where(l => l.Length > 0).ToArray();
                 return (args.ElementAtOrDefault(0) ?? "count") == "has"
                     ? lines.Any(l => l.IndexOf(args.ElementAtOrDefault(1) ?? "", StringComparison.OrdinalIgnoreCase) >= 0).ToString().ToLowerInvariant()
                     : lines.Length.ToString();

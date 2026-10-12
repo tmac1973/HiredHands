@@ -343,6 +343,12 @@ namespace VikingsForHire.Hirelings.Nav
                 Failed("door_blocked");
                 return;
             }
+            // An animal standing by the door (a pen's gate): wait for it to move off before opening, as DoorHelper does.
+            if (!_stepStarted && !DoorRules.IsOpen(door) && !_ai.DoorMayOpen(door))
+            {
+                _ai.Halt();
+                return;
+            }
             if (!_stepStarted)
             {
                 _stepStarted = true;

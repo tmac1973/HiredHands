@@ -79,6 +79,8 @@ namespace VikingsForHire.Hirelings.Work.Ranch
             ai.Halt();
             bool got = DropCollect.PickUp(h, _egg);
             VfhLog.D(LogCat.Work, "ranch.egg", ("hid", h.Hid), ("got", got));
+            if (got)
+                h.Zdo?.Set(HirelingZdo.DeliverPending, true);
             if (_board != null)
                 RanchState.Invalidate(_board);
             return End(h, got ? ChoreProgress.Done : ChoreProgress.Failed);

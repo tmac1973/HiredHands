@@ -418,6 +418,7 @@ namespace VikingsForHire.Hirelings
         internal void Track(Vector3 point) => TrackProgress(point);
         internal void DoorTick(Vector3 goal) => _doors.Tick(goal);
         internal void MarkDoorOpened(Door door) => _doors.MarkOpened(door);
+        internal bool DoorMayOpen(Door door) => _doors.MayOpen(door);
 
         public void Wander(float dt, Vector3 center) => RandomMovement(dt, center, snapToGround: true);
 

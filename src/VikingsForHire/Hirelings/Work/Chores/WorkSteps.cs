@@ -120,6 +120,16 @@ namespace VikingsForHire.Hirelings.Work.Chores
             float[] rings = IsCreature(obj) ? new[] { half + 1f, half + 1.8f, half + 2.5f } : new[] { half + 1f };
             var spots = rings.SelectMany(r => Enumerable.Range(0, 8).Select(i => target + Quaternion.Euler(0f, i * 45f, 0f) * facing * r)).ToList();
             Vector3? closer = null;
+            // Around a creature: first a spot it can walk to without a door (outside its pen, reaching over the fence);
+            // only if there's none, one through a gate (the base's routes count doors as a way in).
+            if (IsCreature(obj))
+                foreach (Vector3 spot in spots.OrderBy(p => Vector3.Distance(p, ai.transform.position)))
+                {
+                    Vector3 grounded = spot;
+                    grounded.y = Floor(spot, target.y);
+                    if (ai.HavePath(grounded) && UsableFrom(grounded, obj, target, half, reach))
+                        return grounded;
+                }
             foreach (Vector3 spot in spots.OrderBy(p => Vector3.Distance(p, ai.transform.position)))
             {
                 // The floor at about its height, else the floor at the hireling's own (a drawer high on a stack is reached
