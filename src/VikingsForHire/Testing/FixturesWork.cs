@@ -489,6 +489,9 @@ namespace VikingsForHire.Testing
                 }
             }
             yield return null;
+            // Animals sharing a spot are set round it, not on top of each other: five boars spawned on one point were
+            // shoved apart by the physics, some over the half walls (VFH-RANCH-11).
+            var placed = new Dictionary<string, int>();
             for (int i = 2; i + 2 < args.Length; i += 3)
             {
                 string prefab = args[i], tag = args[i + 1], where = args[i + 2];
@@ -498,6 +501,13 @@ namespace VikingsForHire.Testing
                     "gate" => centre - fwd * (half - 1.2f),
                     _ => centre,
                 };
+                int k = placed.TryGetValue(where, out int had) ? had : 0;
+                placed[where] = k + 1;
+                if (k > 0)
+                {
+                    float ring = Mathf.Min(1f, half - 0.7f), a = k * 2f * Mathf.PI / 5f;
+                    at += new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * ring;
+                }
                 GameObject go = Spawn(prefab, Ground(at) + Vector3.up * 0.2f, tag);
                 yield return null;
                 Character c = go.GetComponent<Character>();
