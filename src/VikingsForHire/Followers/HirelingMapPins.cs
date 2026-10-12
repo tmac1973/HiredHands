@@ -15,7 +15,7 @@ namespace VikingsForHire.Followers
 {
     /// <summary>
     /// With the Command Stone in hand, the map shows your hirelings: your followers, and the hirelings of the boards you
-    /// built. Your game only has the ones near you, so it asks the server every couple of seconds; ones loaded here are
+    /// built, as coloured dots (MapDots: workers blue, guards red, followers gold). Your game only has the ones near you, so it asks the server every couple of seconds; ones loaded here are
     /// pinned where this game sees them, so a follower's pin keeps up with it. Pins aren't saved and go when the stone
     /// is put away.
     /// </summary>
@@ -124,7 +124,12 @@ namespace VikingsForHire.Followers
                 }
                 if (pin != null)
                     Minimap.instance.RemovePin(pin);
-                Pins[s.Hid] = Minimap.instance.AddPin(pos, s.Follower ? Minimap.PinType.Icon3 : Minimap.PinType.Icon2, label, save: false, isChecked: false);
+                Minimap.PinData added = Minimap.instance.AddPin(pos, s.Follower ? Minimap.PinType.Icon3 : Minimap.PinType.Icon2, label, save: false, isChecked: false);
+                // A dot instead of the pin type's picture (the map draws m_icon when it makes the marker).
+                added.m_icon = MapDots.Get(s.Follower ? MapDots.Follower : s.Job.IsGuard() ? MapDots.Guard : MapDots.Worker);
+                if (added.m_iconElement != null)
+                    added.m_iconElement.sprite = added.m_icon;
+                Pins[s.Hid] = added;
             }
             foreach (string hid in Pins.Keys.Where(k => !keep.Contains(k)).ToList())
             {
