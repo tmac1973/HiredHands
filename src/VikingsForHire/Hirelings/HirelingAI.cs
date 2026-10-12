@@ -550,6 +550,9 @@ namespace VikingsForHire.Hirelings
         private const float WaterRescueSeconds = 30f;
         private static readonly int GroundMask = LayerMask.GetMask("terrain", "piece", "static_solid", "Default");
 
+        /// <summary>Tests: rescue now, as if stuck in the water for long enough.</summary>
+        internal void WaterRescueNow() => WaterRescue(transform.position);
+
         private void WaterRescue(Vector3 towards)
         {
             Vector3 me = transform.position;

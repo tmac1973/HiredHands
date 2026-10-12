@@ -48,7 +48,7 @@ namespace VikingsForHire.Testing
                 return Delay(0.2f);
             });
             Fixtures.Add("regear", "- dress the hireling from your last contract again now, from the current data (as when it loads)", _ => Regear());
-            TestHarness.RegisterCheck("hireling", "<last|posted|nearest|short-hid> <field> - last = most recently spawned, posted = from your last contract; name, job, level, health, maxhealth, charlevel, tamed, faction, armor, behaviour, post_dist, posted, follow_mode, retreat, owner_dist (from you), order, gear.right|left|helmet|chest|legs|ammo|sidearm (none when empty), cargo.<item>, cargo_used, cargo_slots, cargo_weight, or any vfh_ key",
+            TestHarness.RegisterCheck("hireling", "<last|posted|nearest|short-hid> <field> - last = most recently spawned, posted = from your last contract; name, job, level, health, maxhealth, charlevel, tamed, faction, armor, behaviour, post_dist, posted, follow_mode, retreat, owner_dist (from you), order, gear.right|left|helmet|chest|legs|ammo|sidearm (none when empty), cargo.<item>, cargo_used, cargo_slots, cargo_weight, in_water, or any vfh_ key",
                 args => Field(Select(args.ElementAtOrDefault(0) ?? "nearest"), args.ElementAtOrDefault(1) ?? ""));
             TestHarness.RegisterCheck("snapshot_roundtrip", "- result of the last snapshot test: true, or false with the differing values", _ => SnapshotTest.LastResult);
         }
@@ -164,6 +164,7 @@ namespace VikingsForHire.Testing
                 case "faction": return hum.GetFaction().ToString();
                 case "armor": return hum.GetBodyArmor().ToString("0.#", CultureInfo.InvariantCulture);
                 case "behaviour": return h.Ai.CurrentBehaviour;
+                case "in_water": return hum.InWater() ? "true" : "false";
                 case "post_dist": return h.HasPost ? Utils.DistanceXZ(h.transform.position, h.PostPos).ToString("0.0", CultureInfo.InvariantCulture) : "none";
                 case "follow_mode": return h.FollowMode.ToString();
                 case "retreat": return h.Ai.RetreatOrdered ? "true" : "false";

@@ -21,6 +21,17 @@ namespace VikingsForHire.Testing
                 args => House(args, "wood_stair"));
             Fixtures.Add("stepladder", "<tag> [item count]… - the same house with one stepladder (<tag>_stair) instead of the stairs",
                 args => House(args, "wood_stepladder"));
+            Fixtures.Add("goto_coast", "<max=3000> - teleport to the nearest shore (land beside water at least 3 m deep) and remember the water spot", GotoCoast);
+            Fixtures.Add("goto_back", "- teleport back to where goto_coast started", GotoBack);
+            Fixtures.Add("hireling_into_water", "<job> - put the nearest hireling of that job in the water spot goto_coast found", HirelingIntoWater);
+            Fixtures.Add("water_rescue", "<job> - the nearest hireling of that job is lifted out of the water now (as after 30 s stuck in it)", args =>
+            {
+                Hirelings.Hireling h = NearestOfJob(args);
+                Vector3 from = h.transform.position;
+                h.Ai.WaterRescueNow();
+                VfhLog.I(LogCat.Test, "fixture.water_rescue", ("hid", h.Hid), ("from", from), ("to", h.transform.position));
+                return Done();
+            });
             Fixtures.Add("stair_probe", "<prefab> - place a piece 5 m ahead at turns of 0-165 degrees and log what the stair scan's sampler reads at each (then remove it)", StairProbe);
             Fixtures.Add("remove_piece", "<tag> - deconstruct a tagged piece (as a player with the hammer)", RemovePiece);
             Fixtures.Add("flatten", "<radius=22> - level the ground around you to the height under your feet and remove rocks, trees, bushes and stumps there (test worlds only)", Flatten);
@@ -194,6 +205,96 @@ namespace VikingsForHire.Testing
 
         // Places the piece at several turns and logs what the scan's sampler reads along its own forward each time (the
         // board faces a different way each run, so a reading that depends on the turn shows up here).
+        private static Vector3 _waterSpot;
+        private static Vector3? _coastFrom;
+
+        private static IEnumerator Done()
+        {
+            yield break;
+        }
+
+        private static Hirelings.Hireling NearestOfJob(string[] args)
+        {
+            if (!Enum.TryParse(args.ElementAtOrDefault(0) ?? "", true, out Core.JobType job))
+                throw new InvalidOperationException("usage: <job>");
+            return Hirelings.Hireling.Loaded.Where(x => x != null && x.Job == job)
+                       .OrderBy(x => Vector3.Distance(x.transform.position, Player.m_localPlayer.transform.position)).FirstOrDefault()
+                   ?? throw new InvalidOperationException($"no {job} near");
+        }
+
+        // A spiral of 16 m steps over the world generator's heights (no zone needs to be loaded): the first spot at
+        // least 3 m under water with land at least 2 m above it within 12 m.
+        private static IEnumerator GotoCoast(string[] args)
+        {
+            float max = args.Length > 0 ? float.Parse(args[0], CultureInfo.InvariantCulture) : 3000f;
+            Player me = Player.m_localPlayer;
+            float water = ZoneSystem.instance.m_waterLevel;
+            Vector3 o = me.transform.position;
+            _coastFrom = o;
+            Vector3? land = null;
+            for (float r = 16f; land == null && r <= max; r += 16f)
+            {
+                int n = Mathf.Max(8, Mathf.RoundToInt(2f * Mathf.PI * r / 16f));
+                for (int i = 0; i < n && land == null; i++)
+                {
+                    float a = i * 2f * Mathf.PI / n;
+                    Vector3 p = o + new Vector3(Mathf.Cos(a) * r, 0f, Mathf.Sin(a) * r);
+                    if (WorldGenerator.instance.GetHeight(p.x, p.z) > water - 3f)
+                        continue;
+                    for (int j = 0; j < 8; j++)
+                    {
+                        float b = j * Mathf.PI / 4f;
+                        Vector3 q = p + new Vector3(Mathf.Cos(b), 0f, Mathf.Sin(b)) * 12f;
+                        float h = WorldGenerator.instance.GetHeight(q.x, q.z);
+                        if (h > water + 2f)
+                        {
+                            _waterSpot = new Vector3(p.x, water - 0.5f, p.z);
+                            land = new Vector3(q.x, h + 0.5f, q.z);
+                            break;
+                        }
+                    }
+                }
+                if (r % 512f < 16f)
+                    yield return null;
+            }
+            if (land is not Vector3 at)
+                throw new InvalidOperationException($"no coast within {max} m");
+            me.TeleportTo(at, Quaternion.LookRotation((_waterSpot - at).With(y: 0f).normalized), distantTeleport: true);
+            VfhLog.I(LogCat.Test, "fixture.goto_coast", ("land", at), ("water", _waterSpot), ("from", o));
+            float until = Time.time + 30f;
+            while ((me.IsTeleporting() || !ZoneSystem.instance.IsZoneLoaded(at)) && Time.time < until)
+                yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(3f);
+            // Stand on the real ground there.
+            if (ZoneSystem.instance.GetSolidHeight(at, out float g))
+                me.transform.position = at.With(y: g + 0.2f);
+        }
+
+        private static IEnumerator GotoBack(string[] args)
+        {
+            if (_coastFrom is not Vector3 back)
+                yield break;
+            Player me = Player.m_localPlayer;
+            me.TeleportTo(back, me.transform.rotation, distantTeleport: true);
+            float until = Time.time + 30f;
+            while ((me.IsTeleporting() || !ZoneSystem.instance.IsZoneLoaded(back)) && Time.time < until)
+                yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(2f);
+            _coastFrom = null;
+            VfhLog.I(LogCat.Test, "fixture.goto_back", ("to", back), ("now", me.transform.position));
+        }
+
+        private static IEnumerator HirelingIntoWater(string[] args)
+        {
+            Hirelings.Hireling h = NearestOfJob(args);
+            h.GetComponent<ZNetView>().ClaimOwnership();
+            h.transform.position = _waterSpot;
+            if (h.GetComponent<Rigidbody>() is Rigidbody body)
+                body.position = _waterSpot;
+            VfhLog.I(LogCat.Test, "fixture.hireling_into_water", ("hid", h.Hid), ("at", _waterSpot));
+            yield return new WaitForSeconds(1f);
+        }
+
         private static IEnumerator StairProbe(string[] args)
         {
             string prefab = args.ElementAtOrDefault(0) ?? "wood_stair";

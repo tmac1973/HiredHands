@@ -66,6 +66,11 @@ namespace VikingsForHire.Testing
                 Cost funds = BoardStorage.Totals(NearestBoard().Inventory ?? throw new InvalidOperationException("board has no storage"));
                 return args.FirstOrDefault() == "coins" ? funds.Coins.ToString() : funds.FoodPoints.ToString();
             });
+            TestHarness.RegisterCheck("board_slots", "<total|empty> - slots of the nearest board's storage", args =>
+            {
+                Inventory inv = NearestBoard().Inventory ?? throw new InvalidOperationException("board has no storage");
+                return args.FirstOrDefault() == "empty" ? inv.GetEmptySlots().ToString() : (inv.GetWidth() * inv.GetHeight()).ToString();
+            });
             TestHarness.RegisterCheck("board_items", "<item> - how many of an item are in the nearest board", args =>
                 (NearestBoard().Inventory?.GetAllItems().Where(i => i.m_dropPrefab != null && i.m_dropPrefab.name == args[0]).Sum(i => i.m_stack) ?? 0).ToString());
             TestHarness.RegisterCheck("food_points", "<item> - food points one item is worth", args =>
