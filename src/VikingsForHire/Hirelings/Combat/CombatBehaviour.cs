@@ -240,10 +240,18 @@ namespace VikingsForHire.Hirelings.Combat
             bool posted = ai.Hireling.HasPost && ai.Hireling.Mode == HirelingMode.Working;
             if (!posted && dist < RangedMin)
             {
-                Vector3 away = (ai.transform.position - target.transform.position).normalized;
-                ai.WalkTo(dt, ai.transform.position + away * 5f, 1f, run: true);
-                return;
+                if (_backingOffSince < 0f)
+                    _backingOffSince = Time.time;
+                // Backing off in a crypt's corridor walks into the wall behind: give it a few seconds, then shoot from here.
+                if (Time.time - _backingOffSince < MaxBackOffSeconds)
+                {
+                    Vector3 away = (ai.transform.position - target.transform.position).normalized;
+                    ai.WalkTo(dt, ai.transform.position + away * 5f, 1f, run: true);
+                    return;
+                }
             }
+            else
+                _backingOffSince = -1f;
             // Closing in is measured along the ground: a bat or drake overhead is already as close as walking gets
             // (measured in 3D, an archer under a high flyer kept walking and never shot).
             float flat = Utils.DistanceXZ(target.transform.position, ai.transform.position) - target.GetRadius();
@@ -276,6 +284,8 @@ namespace VikingsForHire.Hirelings.Combat
                     ai.Halt();
                     ai.Face(target.GetCenterPoint());
                 }
+                else if (NoWayToAShot(ai, target))
+                    return;
                 else
                 {
                     ai.WalkTo(dt, target.transform.position, SidearmRange - 1f, run: true);
@@ -354,6 +364,8 @@ namespace VikingsForHire.Hirelings.Combat
                     ai.Halt();
                     ai.Face(target.GetCenterPoint());
                 }
+                else if (NoWayToAShot(ai, target))
+                    return;
                 else
                 {
                     ai.WalkTo(dt, target.transform.position, CastBackOff + 1f, run: true);
@@ -387,6 +399,20 @@ namespace VikingsForHire.Hirelings.Combat
             return false;
         }
 
+        // Thorvald, in a burial chamber, walked at a skeleton behind a wall and stayed there (123 blocked shots, never
+        // following his owner out): a free archer or wizard that hasn't had a clear shot for a while, and isn't getting
+        // any closer, leaves that target alone for a bit.
+        private const float NoShotGiveUpSeconds = 10f;
+
+        private bool NoWayToAShot(HirelingAI ai, Character target)
+        {
+            if (Time.time - _blockedSince < NoShotGiveUpSeconds && ai.StuckSeconds(target.transform.position) < BlockedGiveUpSeconds)
+                return false;
+            Ignore(ai, target, "no clear shot", BlockedIgnoreSeconds);
+            Drop(ai, "no clear shot");
+            return true;
+        }
+
         private void BlockedShot(HirelingAI ai, Character target, string evt = "combat.shot_blocked")
         {
             if (_blockedSince >= 0f)
@@ -410,8 +436,13 @@ namespace VikingsForHire.Hirelings.Combat
             Transform origin = me.transform;
             if (attack.m_attackOriginJoint.Length > 0 && Utils.FindChild(me.GetVisual().transform, attack.m_attackOriginJoint) is Transform joint)
                 origin = joint;
+            // Where the arrow leaves once it has turned to the target (it turns before it shoots): from its current facing, an
+            // archer with its back or side to a crypt wall put the bow inside the wall and found every shot blocked.
             Transform t = me.transform;
-            from = origin.position + t.up * attack.m_attackHeight + t.forward * attack.m_attackRange + t.right * attack.m_attackOffset;
+            Vector3 fwd = Vector3.ProjectOnPlane(target.GetCenterPoint() - origin.position, Vector3.up);
+            fwd = fwd.sqrMagnitude > 0.01f ? fwd.normalized : t.forward;
+            Vector3 right = Vector3.Cross(Vector3.up, fwd);
+            from = origin.position + Vector3.up * attack.m_attackHeight + fwd * attack.m_attackRange + right * attack.m_attackOffset;
 
             float speed = attack.m_projectileVel;
             GameObject? projectile = attack.m_attackProjectile;
