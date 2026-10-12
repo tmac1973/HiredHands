@@ -128,9 +128,10 @@ namespace VikingsForHire.Testing
                 else
                     Summary();
             });
-            Add("vfh_test_reset", "- clear stored test results", _ =>
+            Add("vfh_test_reset", "- clear stored test results; rows that follow start from where you stand now", _ =>
             {
                 Results.Clear();
+                _home = Player.m_localPlayer != null ? Player.m_localPlayer.transform.position : null;
                 VfhCommand.Print("HiredHands: test results cleared");
             });
             Add("vfh_checks", "- list the registered vfh_assert checks", _ =>
@@ -258,12 +259,27 @@ namespace VikingsForHire.Testing
             TestProtection.Set(false);
         }
 
+        // Where the rows of this run start (set by vfh_test_reset). A row that fails part-way (a portal trip that never
+        // came back) left the tester 60 m off, and every later row in the chain built on the wrong ground.
+        private static Vector3? _home;
+        private const float HomeSlack = 30f;
+
         private static IEnumerator Begin(string row)
         {
             if (_run != null)
                 VfhLog.W(LogCat.Test, "test.abandoned", ("row", _run.Row), ("checks", _run.Checks));
             _run = new Run { Row = row };
             TestProtection.Set(true); // enemies ignore you and nothing hurts you while it runs
+            Player? me = Player.m_localPlayer;
+            if (_home is Vector3 home && me != null && Vector3.Distance(me.transform.position, home) > HomeSlack)
+            {
+                VfhLog.W(LogCat.Test, "test.back_home", ("row", row), ("from", me.transform.position), ("to", home));
+                me.TeleportTo(home, me.transform.rotation, distantTeleport: true);
+                float until = Time.time + 30f;
+                while ((me.IsTeleporting() || !ZoneSystem.instance.IsZoneLoaded(home)) && Time.time < until)
+                    yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(2f);
+            }
             VfhLog.ResetErrorCount();
             VfhLog.I(LogCat.Core, "mark", ("text", "test " + row));
             VfhLog.I(LogCat.Test, "test.begin", ("row", row), ("fastTimers", VfhConfig.FastTimers), ("role", VfhLog.Role()));
