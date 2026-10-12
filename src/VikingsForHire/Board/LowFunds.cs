@@ -18,7 +18,10 @@ namespace VikingsForHire.Board
     /// - the board's hover shows the daily cost and the days left, orange when low and red on the last day;
     /// - once a day, when the upkeep is paid and it's low, the players at the base are told;
     /// - the player who built a board gets a map pin on it while it's low (the server answers each player's game once a
-    ///   minute, since boards far away aren't loaded there). Pins are local to each game and never saved.
+    ///   minute, since boards far away aren't loaded there). Pins are local to each game and never saved;
+    /// - when a day's wages go unpaid, the players at the base are told how many and what the board is short;
+    /// - coming within reach of a board that can't pay the next day's wages, a player is told (again after 10 minutes),
+    ///   with a hint when the board is full: cheap food fills its few slots without covering a big crew's wages.
     /// </summary>
     internal static class LowFunds
     {
@@ -29,6 +32,10 @@ namespace VikingsForHire.Board
         private static readonly Dictionary<string, Minimap.PinData> Pins = new();
         private static readonly Dictionary<HiringBoard, (float At, Cost Daily)> DailyCache = new();
         private static readonly Dictionary<string, float> LoggedLow = new();
+        private const float ArrivalCheckSeconds = 5f;
+        private const float ArrivalRepeatSeconds = 600f;
+        private static float _nextArrivalCheck;
+        private static readonly Dictionary<string, float> ToldCantPay = new();
 
         public static void Register() => _rpc = NetworkManager.Instance.AddRPC("VFH_LowFunds", OnServer, OnClient);
 
@@ -60,11 +67,13 @@ namespace VikingsForHire.Board
             string lasts = daily.Coins > 0
                 ? Localization.instance.Localize("$vfh_board_lasts", foodDays == int.MaxValue ? "—" : foodDays.ToString(), coinDays.ToString())
                 : Localization.instance.Localize("$vfh_board_lasts_food", foodDays == int.MaxValue ? "—" : foodDays.ToString());
-            return $"\n$vfh_board_upkeep {UI.ContractsTab.Price(daily)}\n<color={color}>{lasts}</color>";
+            string full = IsLow(days) && board.Inventory != null && board.Inventory.GetEmptySlots() == 0 && daily.FoodPoints > 0
+                ? "\n<color=orange>$vfh_board_full_richer</color>" : "";
+            return $"\n$vfh_board_upkeep {UI.ContractsTab.Price(daily)}\n<color={color}>{lasts}</color>{full}";
         }
 
         /// <summary>After a day's upkeep (on the machine running the board): tell the players at the base if it's low.</summary>
-        public static void AfterUpkeep(HiringBoard board, Roster roster, Cost fundsLeft)
+        public static void AfterUpkeep(HiringBoard board, Roster roster, Cost fundsLeft, int unpaid)
         {
             if (!VfhConfig.LowFundsMessages.Value)
                 return;
@@ -73,12 +82,23 @@ namespace VikingsForHire.Board
                 return;
             (int foodDays, int coinDays) = FundsForecast.DaysLeft(fundsLeft, daily);
             int days = System.Math.Min(foodDays, coinDays);
-            if (!IsLow(days))
+            string text;
+            if (unpaid > 0)
+                text = Localization.instance.Localize("$vfh_upkeep_missed", unpaid.ToString(), daily.FoodPoints.ToString(), fundsLeft.FoodPoints.ToString(),
+                    VfhConfig.UnpaidDaysBeforeLeaving.Value.ToString());
+            else if (IsLow(days))
+                text = Localization.instance.Localize(foodDays <= coinDays ? "$vfh_low_funds_food" : "$vfh_low_funds_coins", days.ToString());
+            else
                 return;
-            string what = foodDays <= coinDays ? "$vfh_low_funds_food" : "$vfh_low_funds_coins";
-            string text = Localization.instance.Localize(what, days.ToString());
+            int told = TellAtBase(board.transform.position, text);
+            VfhLog.I(LogCat.Payment, unpaid > 0 ? "funds.missed" : "funds.low", ("board", board.Id), ("unpaid", unpaid), ("foodDays", foodDays),
+                ("coinDays", coinDays), ("told", told));
+        }
+
+        private static int TellAtBase(Vector3 at, string text)
+        {
             var players = new List<Player>();
-            Player.GetPlayersInRange(board.transform.position, TellRadius, players);
+            Player.GetPlayersInRange(at, TellRadius, players);
             foreach (Player p in players)
             {
                 if (p == Player.m_localPlayer)
@@ -86,12 +106,50 @@ namespace VikingsForHire.Board
                 else if (p.GetComponent<ZNetView>()?.GetZDO() is ZDO pz)
                     ZRoutedRpc.instance.InvokeRoutedRPC(pz.GetOwner(), "ShowMessage", (int)MessageHud.MessageType.Center, text);
             }
-            VfhLog.I(LogCat.Payment, "funds.low", ("board", board.Id), ("foodDays", foodDays), ("coinDays", coinDays), ("told", players.Count));
+            return players.Count;
+        }
+
+        /// <summary>
+        /// Client side, every few seconds: the local player near a board (loaded here) that can't pay the next day's wages
+        /// is told, once per board every 10 minutes.
+        /// </summary>
+        private static void ArrivalCheck()
+        {
+            if (Time.time < _nextArrivalCheck || !VfhConfig.LowFundsMessages.Value)
+                return;
+            _nextArrivalCheck = Time.time + ArrivalCheckSeconds;
+            Player me = Player.m_localPlayer;
+            foreach (HiringBoard board in HiringBoard.Loaded)
+            {
+                if (board == null || board.Zdo == null || board.Inventory == null || Vector3.Distance(board.transform.position, me.transform.position) > TellRadius)
+                    continue;
+                Cost daily = DailyUpkeep(BoardRosterOps.Read(board.Zdo));
+                Cost funds = BoardStorage.Totals(board.Inventory);
+                if (FundsForecast.Days(funds, daily) >= 1)
+                {
+                    ToldCantPay.Remove(board.Id);
+                    continue;
+                }
+                if (ToldCantPay.TryGetValue(board.Id, out float at) && Time.time - at < ArrivalRepeatSeconds)
+                    continue;
+                ToldCantPay[board.Id] = Time.time;
+                bool food = daily.FoodPoints > 0 && funds.FoodPoints < daily.FoodPoints;
+                string text = food
+                    ? Localization.instance.Localize("$vfh_board_cant_pay_food", funds.FoodPoints.ToString(), daily.FoodPoints.ToString())
+                    : Localization.instance.Localize("$vfh_board_cant_pay_coins", funds.Coins.ToString(), daily.Coins.ToString());
+                if (food && board.Inventory.GetEmptySlots() == 0)
+                    text += "\n" + Localization.instance.Localize("$vfh_board_full_richer");
+                me.Message(MessageHud.MessageType.Center, text);
+                VfhLog.I(LogCat.Payment, "funds.cant_pay_told", ("board", board.Id), ("funds", funds.ToString()), ("daily", daily.ToString()),
+                    ("full", board.Inventory.GetEmptySlots() == 0));
+            }
         }
 
         /// <summary>Every frame (Plugin.Update), client side: ask the server once a minute which of your boards are low.</summary>
         public static void Tick()
         {
+            if (Player.m_localPlayer != null)
+                ArrivalCheck();
             if (Time.time < _nextPins || ZNet.instance == null || Player.m_localPlayer == null || Minimap.instance == null)
                 return;
             _nextPins = Time.time + PinSeconds;
@@ -132,7 +190,7 @@ namespace VikingsForHire.Board
                     VfhLog.I(LogCat.Payment, "funds.pin_low", ("board", boardId), ("funds", $"{funds.FoodPoints}fp+{funds.Coins}c"),
                         ("daily", $"{daily.FoodPoints}fp+{daily.Coins}c"), ("stacks", wallet.Inventory.GetAllItems().Count),
                         ("items", string.Join(",", wallet.Inventory.GetAllItems().Select(i => $"{(i.m_dropPrefab != null ? i.m_dropPrefab.name : i.m_shared.m_name)}x{i.m_stack}"))),
-                        ("savedLength", zdo.GetString(ZDOVars.s_items).Length), ("dataRev", zdo.DataRevision));
+                        ("savedLength", zdo.GetByteArray(ZDOVars.s_items)?.Length ?? 0), ("dataRev", zdo.DataRevision));
                 }
                 string label = Localization.instance.Localize(foodDays <= coinDays ? "$vfh_pin_low_food" : "$vfh_pin_low_coins", days.ToString());
                 list.Add((zdo.GetString(BoardZdo.Id), zdo.GetPosition(), label));

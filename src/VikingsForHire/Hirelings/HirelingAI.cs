@@ -541,6 +541,64 @@ namespace VikingsForHire.Hirelings
                 Hireling.Humanoid.Jump();
                 _navJumps++;
             }
+            if (Hireling.Humanoid.InWater() && Time.time - _navProgressAt >= WaterRescueSeconds)
+                WaterRescue(point);
+        }
+
+        // Brand swam against a bank below the base for four days, every chore failing: a hireling stuck in the water this
+        // long is lifted onto the nearest dry ground (its route's next dry waypoint, else a ring search around it).
+        private const float WaterRescueSeconds = 30f;
+        private static readonly int GroundMask = LayerMask.GetMask("terrain", "piece", "static_solid", "Default");
+
+        private void WaterRescue(Vector3 towards)
+        {
+            Vector3 me = transform.position;
+            Vector3? spot = null;
+            foreach (Vector3 w in m_path)
+                if (Vector3.Distance(w, me) <= 12f && DryGround(w) is Vector3 d)
+                {
+                    spot = d;
+                    break;
+                }
+            for (float r = 2f; spot == null && r <= 12f; r += 2f)
+            {
+                float best = float.MaxValue;
+                for (int i = 0; i < 16; i++)
+                {
+                    float a = i * Mathf.PI / 8f;
+                    if (DryGround(me + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * r) is Vector3 d && Vector3.Distance(d, towards) < best)
+                    {
+                        best = Vector3.Distance(d, towards);
+                        spot = d;
+                    }
+                }
+            }
+            _navProgressAt = Time.time;
+            _navBest = float.MaxValue;
+            VfhLog.I(LogCat.Nav, "nav.water_rescue", ("hid", Hireling.Hid), ("from", me), ("to", spot), ("towards", towards));
+            if (spot is not Vector3 at)
+                return;
+            Hold(at);
+            ResetPath();
+        }
+
+        // The lowest ground or floor at that spot that's above the water (with a little to spare) and has room to stand
+        // (under a roof or the floor above is fine; inside a wall isn't).
+        private static Vector3? DryGround(Vector3 p)
+        {
+            float water = ZoneSystem.instance != null ? ZoneSystem.instance.m_waterLevel : 30f;
+            float top = Mathf.Max(p.y, water) + 8f;
+            RaycastHit[] hits = Physics.RaycastAll(new Vector3(p.x, top, p.z), Vector3.down, 20f, GroundMask, QueryTriggerInteraction.Ignore);
+            System.Array.Sort(hits, (a, b) => a.point.y.CompareTo(b.point.y));
+            for (int i = 0; i < hits.Length; i++)
+            {
+                if (hits[i].point.y < water + 0.3f)
+                    continue;
+                float above = i + 1 < hits.Length ? hits[i + 1].point.y : float.MaxValue;
+                if (above - hits[i].point.y >= 2f)
+                    return hits[i].point + Vector3.up * 0.1f;
+            }
+            return null;
         }
 
         /// <summary>Seconds without getting closer to <paramref name="target"/> (0 if we're walking somewhere else).</summary>

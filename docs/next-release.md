@@ -3,9 +3,9 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## Unreleased: the ground under roofs and in caves (HearthBelow)
+## 0.9.1 (not released): the board pays its wages; the ground under roofs and in caves
 
-HearthBelow 0.6.3 (Azumatt) was decompiled and checked: it patches `ZoneSystem.GetGroundHeight` to find a dug-out cave's
+HearthBelow work (another session): HearthBelow 0.6.3 (Azumatt) was decompiled and checked: it patches `ZoneSystem.GetGroundHeight` to find a dug-out cave's
 floor, and leaves our miners' terrain protection working (its `SpawnOnHitTerrain` prefix doesn't skip). A cave dug below
 y 30 holds water up to y 30 (every zone has the sea's water volume, inland too), so hirelings keep out of it like any
 other water; the pathing clamp at sea level needs no change. Nothing below references HearthBelow; without it,
@@ -17,6 +17,10 @@ everything behaves as before except the roof fix.
 | (hearthbelow branch) | Hirelings' ground checks found the top of whatever was over a spot (the game's solid-height check casts down from a kilometre up): under a roof that's the roof, in a HearthBelow cave the hill above. Now, when there's a ceiling over the spot, it's the floor under the board's (or the work's) height. Used for a returning hireling's set-down spot, guards' patrol points, the Steward's repair spots, the reach check's floor fallback and newcomers' arrival spots. In the open, inside a hill or a rock, the answer is the game's as before | the game simulating the hireling; the board owner's (arrivals) |
 | (hearthbelow branch) | A hireling coming home to a board in a hall or cave, held at a spot inside the hill (more than 4 m above the board), is set down 2 m from the board instead of on the hilltop (`follow.return_by_board`) | the game simulating the hireling |
 | (hearthbelow branch) | Hirelings in a cave complained about the rain: the shelter check for the "wet" chatter now counts rock overhead | the game simulating the hireling |
+| (board-wages branch) | Brand (Steward) swam against a bank below the base from day 133 to 137 (`nav.stuck inWater=true`, every chore failing), so nobody restocked the board and on day 136 all six went unpaid. A hireling stuck in the water for 30 s is now lifted onto the nearest dry ground: its route's next dry waypoint within 12 m, else a ring search (lowest floor above the water with room to stand), logged `nav.water_rescue` | the game simulating the hireling |
+| (board-wages branch) | The Steward stocked the board cheapest first, and 8 slots of cheap food can't hold a big crew's wages (about 700 food a day). BoardFill: cheapest first while the remaining slots can still hold what's wanted, richer food per slot when they can't; room in stacks already on the board first. When even the richest food can't fill it to StewardBoardFillDays, Problems says how many days it holds (`vfh_board_food_short`). Unit tests | the game simulating the Steward |
+| (board-wages branch) | Warnings: a missed day's wages tells the players at the base how many went unpaid, what the board needs and has, and when they quit (`funds.missed`); coming within 64 m of a board that can't pay the next day tells you, again after 10 min (`funds.cant_pay_told`); a full board that's low says richer food pays more per slot (hover and message) | the board owner's machine (missed); every game (arrival, hover) |
+| (board-wages branch) | Boards not loaded here read as empty (the game keeps a chest's items as a byte array; we read a string): the server's low-food map pins always said 0 food (`funds.pin_low savedLength=0`), and hiring, promoting or refunding on a board not loaded where the roster runs would have seen no food. Now read and written as the game does | the server (pins); the roster's machine |
 
 ### To test (batch)
 - [ ] Macro (single player, regression; not yet run, the dev game was in use): `vfh_test_chain home1 home3 post1 con1 repairs repairs2 door1 chat1`.
@@ -24,6 +28,11 @@ everything behaves as before except the roof fix.
 - [ ] By hand: a follower sent home to a board in a roofed hall arrives standing inside, not on the roof.
 - [ ] By hand: a board by the sea: hirelings still keep out of the water (idle, park, arrivals).
 - [ ] Optional (HearthBelow added to a test profile): a board in a dug-out cave above sea level: guards patrol the cave, a follower sent home turns up in the cave, the Steward repairs in it, no rain chatter inside.
+- [ ] Not yet run in game (Tim was playing). Unit tests pass (BoardFill), compile clean.
+- [ ] By hand: walk a hireling into deep water by a steep bank (or `vfh_fixture` it there): within about 40 s it's on dry ground, `nav.water_rescue` in the log.
+- [ ] By hand: a board with 8 slots of cheap food and a level 4-5 crew: the hover says the board is full and to use richer food; coming home says it can't pay tomorrow's wages.
+- [ ] By hand: chests with cheap and rich cooked food, a big crew, the board empty: the Steward brings a mix (`steward.board_fill enough=true`), cheap food first.
+- [ ] By hand (live server): the builder's map pin shows the board's real food days when far away.
 
 ## 0.9.0 (packaged 2026-10-11): the Rancher (new rows all pass; regression partly run: storage, orders, Steward, farm, kitchen spit and cauldron pass; combat, wizards, navigation not rerun)
 

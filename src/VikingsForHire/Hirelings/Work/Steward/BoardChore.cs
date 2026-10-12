@@ -14,9 +14,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
 {
     /// <summary>
     /// Keeps its own board's food stocked: when the board has fewer than StewardBoardRefillDays of upkeep left (the
-    /// hover's count), it fetches food from the chests, cheapest first (as the board pays upkeep, so the best food stays
-    /// for players), up to StewardBoardFillDays, and puts it on the board. Only food the board accepts; never the last of
-    /// a food in a chest, and keepInStorage reserves are left alone.
+    /// hover's count), it fetches food from the chests up to StewardBoardFillDays and puts it on the board: cheapest first
+    /// (the best food stays for players) while the board's few slots can still hold enough, richer food when they can't
+    /// (BoardFill). Only food the board accepts; never the last of a food in a chest, and keepInStorage reserves are left
+    /// alone. When even the richest food in the chests can't fill it that far, Problems says so.
     /// </summary>
     internal sealed class BoardChore : IChore
     {
@@ -30,6 +31,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private Container? _chest;
         private int _chestsVisited;
         private bool _fetching;
+        private int _shortDays = -1;
 
         public ChoreKind Kind => ChoreKind.Board;
         public string? Missing { get; private set; }
@@ -72,12 +74,17 @@ namespace VikingsForHire.Hirelings.Work.Steward
             (int daily, int funds, int days) = Stock(board);
             float u = ChoreUrgency.Board(daily, days, VfhConfig.StewardBoardRefillDays.Value);
             if (u <= 0f)
+            {
+                _shortDays = -1;
                 return Enumerable.Empty<ChoreJob>();
+            }
             if (Foods(ctx).Count == 0)
             {
                 Missing = ChoreNotes.Add("$vfh_need_board_food");
                 return Enumerable.Empty<ChoreJob>();
             }
+            if (_shortDays >= 0)
+                ChoreNotes.Add($"$vfh_board_food_short|{_shortDays}");
             return new[]
             {
                 new ChoreJob
@@ -98,36 +105,29 @@ namespace VikingsForHire.Hirelings.Work.Steward
             ctx.Hireling.FetchingSupplies = true;
             (int daily, int funds, _) = Stock(_board);
             int points = Mathf.Max(0, VfhConfig.StewardBoardFillDays.Value * daily - funds);
-            _want = Plan(ctx, points);
+            _want = Plan(ctx, _board, points, daily, funds);
             _chest = NextChest(ctx);
             _fetching = _chest != null;
             VfhLog.D(LogCat.Smelter, "steward.board_plan", ("hid", ctx.Hireling.Hid), ("daily", daily), ("funds", funds), ("points", points),
                 ("want", string.Join(",", _want.Select(kv => $"{kv.Key}x{kv.Value}"))));
         }
 
-        // Cheapest first until the points are covered, as far as cargo slots go (whole stacks of what it already carries count).
-        private static Dictionary<string, int> Plan(WorkContext ctx, int points)
+        // BoardFill over the board's free slots (as far as cargo goes; whole stacks of what it already carries count) and
+        // the room in stacks already on it. Notes the days it can reach when that falls short of the fill.
+        private Dictionary<string, int> Plan(WorkContext ctx, HiringBoard board, int points, int daily, int funds)
         {
-            var want = new Dictionary<string, int>();
-            int slots = ctx.FreeSlots;
-            foreach ((string prefab, int each, int have) in Foods(ctx))
-            {
-                if (points <= 0)
-                    break;
-                int carried = ctx.Carried.TryGetValue(prefab, out int c) ? c : 0;
-                int stack = Mathf.Max(1, WorkSteps.MaxStack(prefab));
-                int fit = (carried % stack == 0 ? 0 : stack - carried % stack) + slots * stack;
-                int n = Mathf.Min(have - carried, Mathf.Min(fit, Mathf.CeilToInt(points / (float)each)));
-                int total = carried + Mathf.Max(0, n);
-                if (total <= 0)
-                    continue;
-                want[prefab] = total;
-                points -= total * each;
-                slots -= Mathf.CeilToInt(Mathf.Max(0, n - (carried % stack == 0 ? 0 : stack - carried % stack)) / (float)stack);
-                if (slots <= 0 && points > 0)
-                    break;
-            }
-            return want;
+            Inventory inv = board.Inventory!;
+            var room = new Dictionary<string, int>();
+            foreach (ItemDrop.ItemData i in inv.GetAllItems().Where(i => i.m_dropPrefab != null))
+                room[i.m_dropPrefab.name] = (room.TryGetValue(i.m_dropPrefab.name, out int r) ? r : 0) + Mathf.Max(0, i.m_shared.m_maxStackSize - i.m_stack);
+            int carriedStacks = ctx.Carried.Sum(kv => Mathf.CeilToInt(kv.Value / (float)Mathf.Max(1, WorkSteps.MaxStack(kv.Key))));
+            int slots = Mathf.Min(inv.GetEmptySlots(), ctx.FreeSlots + carriedStacks);
+            List<BoardFood> foods = Foods(ctx).Select(f => new BoardFood(f.Prefab, f.Points, f.Have, WorkSteps.MaxStack(f.Prefab))).ToList();
+            BoardFillPlan plan = BoardFill.Plan(foods, slots, room, points);
+            _shortDays = plan.Enough || daily <= 0 ? -1 : (funds + plan.Points) / daily;
+            VfhLog.D(LogCat.Smelter, "steward.board_fill", ("hid", ctx.Hireling.Hid), ("slots", slots), ("enough", plan.Enough), ("planned", plan.Points),
+                ("reachDays", _shortDays));
+            return plan.Take;
         }
 
         // The nearest chest holding any food still to fetch, up to a few chests a trip.

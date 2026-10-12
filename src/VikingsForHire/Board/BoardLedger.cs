@@ -34,8 +34,9 @@ namespace VikingsForHire.Board
                 }
                 _detached = true;
                 Inventory = new Inventory(BoardStorage.InventoryName, null, 4, 2);
-                string saved = zdo.GetString(ZDOVars.s_items);
-                if (saved.Length > 0)
+                // The game keeps a container's items as a byte array (an older string copy would always read empty).
+                byte[]? saved = zdo.GetByteArray(ZDOVars.s_items);
+                if (saved != null && saved.Length > 0)
                     Inventory.Load(new ZPackage(saved));
             }
 
@@ -48,7 +49,7 @@ namespace VikingsForHire.Board
                     return;
                 var pkg = new ZPackage();
                 Inventory.Save(pkg);
-                _zdo.Set(ZDOVars.s_items, pkg.GetBase64());
+                _zdo.Set(ZDOVars.s_items, pkg.GetArray());
             }
         }
 
