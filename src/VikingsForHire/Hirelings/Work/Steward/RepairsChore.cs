@@ -118,7 +118,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     for (int i = 0; i < 8 && !ok; i++)
                     {
                         Vector3 spot = c + Quaternion.Euler(0f, i * 45f, 0f) * Vector3.forward * r;
-                        spot.y = ZoneSystem.instance.GetSolidHeight(spot);
+                        spot.y = GroundRules.Below(spot, c.y, out float floor) ? floor : spot.y;
                         ok = WorkSteps.WithinReach(spot, wnt, WorkSteps.HammerReach) && ai.CanReach(spot);
                     }
                 }

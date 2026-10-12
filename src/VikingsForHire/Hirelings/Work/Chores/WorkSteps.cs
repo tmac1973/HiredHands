@@ -143,7 +143,7 @@ namespace VikingsForHire.Hirelings.Work.Chores
         {
             if (Physics.Raycast(new Vector3(p.x, near + 1.5f, p.z), Vector3.down, out RaycastHit hit, 4f, Nav.StairSampler.FloorMask, QueryTriggerInteraction.Ignore))
                 return hit.point.y;
-            return ZoneSystem.instance.GetSolidHeight(p);
+            return GroundRules.Below(p, near, out float floor) ? floor : p.y;
         }
 
         private const float RepickSeconds = 1f;

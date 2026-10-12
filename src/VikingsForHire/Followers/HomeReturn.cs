@@ -122,8 +122,19 @@ namespace VikingsForHire.Followers
             if (ZNet.instance.GetTimeSeconds() < zdo.GetLong(HirelingZdo.ReturnAt))
                 return h.transform.position;
             Vector3 p = h.transform.position;
-            if (ZoneSystem.instance.GetSolidHeight(p, out float ground))
+            if (GroundRules.Below(p, h.Home.y, out float ground))
                 p.y = ground + 0.1f;
+            // Held 8 m out from a board in a hall or a cave, that spot can be inside the hill, whose top is far above the
+            // board: set it down beside the board instead.
+            if (p.y > h.Home.y + 4f && GroundRules.UnderCeiling(h.Home))
+            {
+                Vector3 away = p - h.Home;
+                away.y = 0f;
+                Vector3 by = h.Home + (away.sqrMagnitude > 0.01f ? away.normalized : Vector3.forward) * 2f;
+                by.y = (GroundRules.Below(by, h.Home.y, out float floor) ? floor : h.Home.y) + 0.1f;
+                VfhLog.D(LogCat.Follow, "follow.return_by_board", ("hid", h.Hid), ("spot", p), ("board", h.Home));
+                p = by;
+            }
             zdo.Set(HirelingZdo.Mode, (int)HirelingMode.Working);
             FollowCatchUp.Place(h.Ai, p, h.Home);
             VfhLog.I(LogCat.Follow, "follow.returned", ("hid", h.Hid), ("pos", p));

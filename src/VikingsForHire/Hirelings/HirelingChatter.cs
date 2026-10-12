@@ -21,7 +21,8 @@ namespace VikingsForHire.Hirelings
         private const float WatchSeconds = 4f;
         private const float GapSeconds = 20f;
         private const float ShowSeconds = 6f;
-        private static readonly int RoofMask = LayerMask.GetMask("piece", "piece_nonsolid", "static_solid");
+        // Terrain too: a dug-out cave's rock (HearthBelow) keeps the rain off as well as a roof.
+        private static readonly int RoofMask = LayerMask.GetMask("piece", "piece_nonsolid", "static_solid", "terrain");
 
         // How many lines each pool has in the strings file ($vfh_say_<pool>_<n>).
         private static readonly Dictionary<string, int> Pools = new()

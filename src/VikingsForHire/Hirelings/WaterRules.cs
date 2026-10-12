@@ -8,9 +8,17 @@ namespace VikingsForHire.Hirelings
     /// </summary>
     internal static class WaterRules
     {
-        /// <summary>Whether the ground there is under water by more than <paramref name="depth"/> metres.</summary>
-        public static bool Under(Vector3 p, float depth = 0.3f) =>
-            ZoneSystem.instance != null && ZoneSystem.instance.GetGroundHeight(p) < ZoneSystem.instance.m_waterLevel - depth;
+        /// <summary>
+        /// Whether the ground there is under water by more than <paramref name="depth"/> metres. Not a cave floor dug
+        /// below sea level (HearthBelow): no sea gets in there.
+        /// </summary>
+        public static bool Under(Vector3 p, float depth = 0.3f)
+        {
+            if (ZoneSystem.instance == null)
+                return false;
+            float ground = ZoneSystem.instance.GetGroundHeight(p);
+            return ground < ZoneSystem.instance.m_waterLevel - depth && !GroundRules.RockOver(new Vector3(p.x, ground, p.z));
+        }
 
         /// <summary>Out in the water: swimming, or its feet below the surface (a fish, a serpent, a player treading water).</summary>
         public static bool Out(Character c) =>

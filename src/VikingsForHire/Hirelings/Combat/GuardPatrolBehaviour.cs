@@ -36,7 +36,7 @@ namespace VikingsForHire.Hirelings.Combat
             float r = ai.Hireling.Radius * 0.8f;
             Vector2 offset = Random.insideUnitCircle * r;
             Vector3 p = home + new Vector3(offset.x, 0f, offset.y);
-            if (ZoneSystem.instance.GetSolidHeight(p, out float h))
+            if (GroundRules.Below(p, home.y, out float h))
                 p.y = h;
             _point = p;
             _nextPick = Time.time + Random.Range(20f, 40f);

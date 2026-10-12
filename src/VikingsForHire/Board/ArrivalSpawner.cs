@@ -61,7 +61,7 @@ namespace VikingsForHire.Board
             for (int i = 0; i < Directions; i++)
             {
                 Vector3 p = center + Quaternion.Euler(0f, start + i * 360f / Directions, 0f) * Vector3.forward * distance;
-                if (!ZoneSystem.instance.GetSolidHeight(p, out float h) || h <= water + 0.5f)
+                if (!GroundRules.Below(p, center.y, out float h) || h <= water + 0.5f)
                     continue;
                 p.y = h;
                 Pieces.Clear();
