@@ -97,6 +97,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
             _walk.Reset();
             _route.Clear();
             _dropped = null;
+            // Feed taken from a chest is for the animals: without this the delivery rule put a Rancher's raspberry
+            // straight back in the chest it came from, over and over (VFH-RANCH-3).
+            h.FetchingSupplies = true;
             var first = (Character)job.Target;
             // Every hungry animal it can feed this trip, nearest first, one food item each, as far as cargo allows.
             var need = new Dictionary<string, int>();
@@ -238,6 +241,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             _dropped = null;
             _step = Step.None;
             _chest = null;
+            h.FetchingSupplies = false;
             RestAfter = rest;
             return result;
         }
