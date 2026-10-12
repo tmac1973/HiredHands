@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.2
+
+No changes to the game: works alongside 0.9.1, no need to update the server or other players together.
+
+- **Documentation moved to a site:** [tmac1973.github.io/HiredHands](https://tmac1973.github.io/HiredHands/), with a page
+  per job and topic, search and dark mode, brought up to date. This page is now a short overview that links to it.
+
 ## 0.9.1
 
 **Everyone updates together:** the hiring board's storage is bigger, and a game on an older version would see the old
