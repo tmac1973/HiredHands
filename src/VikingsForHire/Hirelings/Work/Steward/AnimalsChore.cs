@@ -166,7 +166,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
             if (_dropped == null)
             {
-                Vector3 front = animal.transform.position + animal.transform.forward * 0.8f;
+                Vector3 front = FeedSpot(animal);
                 // Close enough to drop it at its feet (big animals keep you further from their middle).
                 if (!_walk.Approach(ai, dt, animal, animal.transform.position))
                     return ChoreProgress.Running;
@@ -231,6 +231,23 @@ namespace VikingsForHire.Hirelings.Work.Steward
             }
             _dropped = null;
             _walk.Reset();
+        }
+
+        private static readonly int FenceMask = LayerMask.GetMask("piece", "piece_nonsolid", "static_solid", "Default");
+
+        // Where to drop its food: 0.8 m in front of it, or behind, or to a side, whichever has no wall in between. In
+        // front only, a boar at a pen's far fence faced the fence and got its berry on the wrong side (VFH-RANCH-12).
+        private static Vector3 FeedSpot(Character animal)
+        {
+            Transform t = animal.transform;
+            Vector3 from = t.position + Vector3.up * 0.4f;
+            foreach (Vector3 dir in new[] { t.forward, -t.forward, t.right, -t.right })
+            {
+                Vector3 spot = t.position + dir * 0.8f;
+                if (!Physics.Linecast(from, spot + Vector3.up * 0.4f, FenceMask, QueryTriggerInteraction.Ignore))
+                    return spot;
+            }
+            return t.position;
         }
 
         private ChoreProgress End(Hireling h, float rest, ChoreProgress result = ChoreProgress.Done)
