@@ -21,6 +21,7 @@ everything behaves as before except the roof fix.
 | (board-wages branch) | The Steward stocked the board cheapest first, and 8 slots of cheap food can't hold a big crew's wages (about 700 food a day). BoardFill: cheapest first while the remaining slots can still hold what's wanted, richer food per slot when they can't; room in stacks already on the board first. When even the richest food can't fill it to StewardBoardFillDays, Problems says how many days it holds (`vfh_board_food_short`). Unit tests | the game simulating the Steward |
 | (board-wages branch) | Warnings: a missed day's wages tells the players at the base how many went unpaid, what the board needs and has, and when they quit (`funds.missed`); coming within 64 m of a board that can't pay the next day tells you, again after 10 min (`funds.cant_pay_told`); a full board that's low says richer food pays more per slot (hover and message) | the board owner's machine (missed); every game (arrival, hover) |
 | (board-wages branch) | Boards not loaded here read as empty (the game keeps a chest's items as a byte array; we read a string): the server's low-food map pins always said 0 food (`funds.pin_low savedLength=0`), and hiring, promoting or refunding on a board not loaded where the roster runs would have seen no food. Now read and written as the game does | the server (pins); the roster's machine |
+| (board-wages branch) | The board holds as much as an iron (reinforced) chest: 6 x 4 = 24 slots (was 4 x 2), with that chest's look. Eight slots held about 7000 food at best, ten days for a small crew but not for six level 3-4 hirelings at 700 a day once the Steward topped up from 3 days left. Boards already built get the new size when loaded; their food stays put | every game (the prefab) |
 
 ### To test (batch)
 - [ ] Macro (single player, regression; not yet run, the dev game was in use): `vfh_test_chain home1 home3 post1 con1 repairs repairs2 door1 chat1`.
@@ -33,6 +34,7 @@ everything behaves as before except the roof fix.
 - [ ] By hand: a board with 8 slots of cheap food and a level 4-5 crew: the hover says the board is full and to use richer food; coming home says it can't pay tomorrow's wages.
 - [ ] By hand: chests with cheap and rich cooked food, a big crew, the board empty: the Steward brings a mix (`steward.board_fill enough=true`), cheap food first.
 - [ ] By hand (live server): the builder's map pin shows the board's real food days when far away.
+- [ ] By hand: an existing board opens with 24 slots and its food where it was; a new board too. Regression `vfh_test_chain con2 deliver2 store1 hire4` (payments).
 
 ## 0.9.0 (packaged 2026-10-11): the Rancher (new rows all pass; regression partly run: storage, orders, Steward, farm, kitchen spit and cauldron pass; combat, wizards, navigation not rerun)
 

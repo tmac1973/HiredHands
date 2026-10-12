@@ -15,9 +15,11 @@ namespace VikingsForHire.Board
     internal static class BoardPiece
     {
         private const string BasePrefab = "sign";
-        private const string ChestPrefab = "piece_chest_wood";
-        private const int StorageWidth = 4;
-        private const int StorageHeight = 2;
+        // The look (background, open and close sounds) and size of the reinforced (iron) chest: 24 slots, so a big crew's
+        // wages fit even in plain cooked meat (8 slots held about 7000 food at best; 700 a day for six level 3-4 hirelings).
+        private const string ChestPrefab = "piece_chest";
+        internal const int StorageWidth = 6;
+        internal const int StorageHeight = 4;
         private const string PolePrefab = "wood_pole2";
         private const float SignScale = 2f;
         private const float SignBottom = 1.0f;

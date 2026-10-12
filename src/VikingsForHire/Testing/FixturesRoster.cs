@@ -170,7 +170,7 @@ namespace VikingsForHire.Testing
             if (args.Length < 2 || !Enum.TryParse(args[0], true, out JobType job) || !int.TryParse(args[1], out int level))
                 throw new ArgumentException("usage: post <job> <level> [radius] [free]");
             float radius = args.Length > 2 ? float.Parse(args[2], CultureInfo.InvariantCulture) : 20f;
-            // free: no hire fee (high levels cost more than a board's 8 slots hold under some price tables).
+            // free: no hire fee (high levels cost more than a board's slots hold under some price tables).
             bool free = args.Skip(3).Any(a => a == "free");
             bool answered = false;
             BoardContracts.Post(Board(), job, level, radius, StanceRules.Default(job), _ => answered = true, free);
