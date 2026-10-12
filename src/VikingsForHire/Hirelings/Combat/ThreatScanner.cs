@@ -90,7 +90,7 @@ namespace VikingsForHire.Hirelings.Combat
             NearestDistance = best != null ? Mathf.Sqrt(bestSq) : float.MaxValue;
         }
 
-        // A posted guard is on watch: it notices anything in range and in line of sight, whichever way it's facing
+        // A guard (or anyone posted) is on watch: it notices anything in range and in line of sight, whichever way it's facing
         // (vanilla vision only covers the view cone, and a guard holds its post facing one way).
         private bool Sees(Character c)
         {
@@ -99,7 +99,9 @@ namespace VikingsForHire.Hirelings.Combat
             // side and he never turned, while the miner beside him ran from it.
             if ((c.transform.position - _ai.transform.position).sqrMagnitude <= AwareRange * AwareRange)
                 return BaseAI.CanSeeTarget(_ai.transform, h.Humanoid.m_eye.position, AwareRange, 360f, alerted: true, _ai.m_mistVision, c);
-            if (!(h.HasPost && h.Mode == HirelingMode.Working))
+            // Guards are on watch whether posted or not: their full sight all round (an Aggressive archer stood 50 s with
+            // a neck 25 m behind it). Workers see ahead only, past the close range.
+            if (!h.Job.IsGuard() && !(h.HasPost && h.Mode == HirelingMode.Working))
                 return _ai.CanSeeTarget(c);
             return BaseAI.CanSeeTarget(_ai.transform, h.Humanoid.m_eye.position, _ai.m_viewRange, _ai.m_viewAngle, alerted: true, _ai.m_mistVision, c);
         }
