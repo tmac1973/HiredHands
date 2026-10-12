@@ -11,7 +11,6 @@ namespace VikingsForHire.Hirelings
     internal static class GroundRules
     {
         private static readonly int SolidMask = LayerMask.GetMask("Default", "static_solid", "Default_small", "piece", "terrain");
-        private static readonly int TerrainMask = LayerMask.GetMask("terrain");
 
         // How far over the reference height a floor still counts (a step up), and how far down one is looked for.
         private const float StepUp = 1.5f;
@@ -42,9 +41,5 @@ namespace VikingsForHire.Hirelings
         /// <summary>Something solid over the point with room under it: a roof, an upper floor, a cave's rock.</summary>
         public static bool UnderCeiling(Vector3 p) =>
             Physics.Raycast(p + Vector3.up * StepUp, Vector3.up, 1000f, SolidMask, QueryTriggerInteraction.Ignore);
-
-        /// <summary>Terrain over the point: a dug-out cave (HearthBelow). Vanilla terrain never overhangs, so never true without it.</summary>
-        public static bool RockOver(Vector3 p) =>
-            Physics.Raycast(p + Vector3.up * 0.5f, Vector3.up, 1000f, TerrainMask, QueryTriggerInteraction.Ignore);
     }
 }

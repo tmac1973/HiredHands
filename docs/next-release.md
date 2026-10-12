@@ -6,16 +6,16 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 ## Unreleased: the ground under roofs and in caves (HearthBelow)
 
 HearthBelow 0.6.3 (Azumatt) was decompiled and checked: it patches `ZoneSystem.GetGroundHeight` to find a dug-out cave's
-floor, leaves our miners' terrain protection working (its `SpawnOnHitTerrain` prefix doesn't skip), and keeps the game's
-clamp lifting path points below y 30 to sea level (hirelings path poorly on cave floors below sea level; not fixed here).
-Nothing below references HearthBelow; without it, everything behaves as before except the roof fix.
+floor, and leaves our miners' terrain protection working (its `SpawnOnHitTerrain` prefix doesn't skip). A cave dug below
+y 30 holds water up to y 30 (every zone has the sea's water volume, inland too), so hirelings keep out of it like any
+other water; the pathing clamp at sea level needs no change. Nothing below references HearthBelow; without it,
+everything behaves as before except the roof fix.
 
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
 | (hearthbelow branch) | Hirelings' ground checks found the top of whatever was over a spot (the game's solid-height check casts down from a kilometre up): under a roof that's the roof, in a HearthBelow cave the hill above. Now, when there's a ceiling over the spot, it's the floor under the board's (or the work's) height. Used for a returning hireling's set-down spot, guards' patrol points, the Steward's repair spots, the reach check's floor fallback and newcomers' arrival spots. In the open, inside a hill or a rock, the answer is the game's as before | the game simulating the hireling; the board owner's (arrivals) |
 | (hearthbelow branch) | A hireling coming home to a board in a hall or cave, held at a spot inside the hill (more than 4 m above the board), is set down 2 m from the board instead of on the hilltop (`follow.return_by_board`) | the game simulating the hireling |
-| (hearthbelow branch) | A dry cave floor dug below sea level (HearthBelow: no flooding) counted as under water, so hirelings wouldn't idle or park there and Problems said "in the water". Terrain overhead now means it isn't sea | the game simulating the hireling |
 | (hearthbelow branch) | Hirelings in a cave complained about the rain: the shelter check for the "wet" chatter now counts rock overhead | the game simulating the hireling |
 
 ### To test (batch)
