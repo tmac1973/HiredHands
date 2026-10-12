@@ -30,6 +30,8 @@ namespace VikingsForHire.Hirelings.Combat
         private const float MaxSwingHold = 1f;
         private const float ShotRadius = 0.1f;
         private const float BlockedGiveUpSeconds = 5f;
+        // Guards join in on an enemy a player hit this close to them (Defensive and Aggressive).
+        private const float PlayerAssistRange = 30f;
         private const float BlockedIgnoreSeconds = 20f;
         private const float NoEffectSeconds = 25f;
         private const float NoEffectIgnoreSeconds = 60f;
@@ -489,7 +491,8 @@ namespace VikingsForHire.Hirelings.Combat
             Character? threat = scan.Nearest;
             bool inRadius = threat != null && Vector3.Distance(threat.transform.position, home) <= radius;
             bool inExtended = threat != null && Vector3.Distance(threat.transform.position, home) <= radius + StanceRules.AggressiveExtraRange;
-            Character? allyAttacker = AllyHits.RecentAttackerNear(ai.transform.position, 15f);
+            Character? allyAttacker = AllyHits.RecentAttackerNear(ai.transform.position, 15f)
+                ?? (ai.Hireling.Job.IsGuard() ? AllyHits.RecentPlayerTargetNear(ai.transform.position, PlayerAssistRange) : null);
             CombatAction action = StanceRules.Decide(ai.Stance, threat != null ? scan.NearestDistance : null, inRadius, inExtended,
                 scan.RecentlyAttacked, allyAttacker != null);
             if (action != CombatAction.Engage)

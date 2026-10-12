@@ -14,6 +14,7 @@ namespace VikingsForHire.Hirelings.Combat
     internal sealed class ThreatScanner
     {
         private const float MaxScanRange = 60f;
+        private const float AwareRange = 20f;
         private const float AttackedMemorySeconds = 6f;
 
         private readonly HirelingAI _ai;
@@ -94,6 +95,10 @@ namespace VikingsForHire.Hirelings.Combat
         private bool Sees(Character c)
         {
             Hireling h = _ai.Hireling;
+            // Anything close is noticed whichever way it's facing (heard, as much as seen): a bear came at Thorvald's
+            // side and he never turned, while the miner beside him ran from it.
+            if ((c.transform.position - _ai.transform.position).sqrMagnitude <= AwareRange * AwareRange)
+                return BaseAI.CanSeeTarget(_ai.transform, h.Humanoid.m_eye.position, AwareRange, 360f, alerted: true, _ai.m_mistVision, c);
             if (!(h.HasPost && h.Mode == HirelingMode.Working))
                 return _ai.CanSeeTarget(c);
             return BaseAI.CanSeeTarget(_ai.transform, h.Humanoid.m_eye.position, _ai.m_viewRange, _ai.m_viewAngle, alerted: true, _ai.m_mistVision, c);
