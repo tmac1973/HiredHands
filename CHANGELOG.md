@@ -39,6 +39,8 @@
 - **Chest modes:** Shift+E on a chest near a board sets what workers may do with it: put in and take out (default), put
   in only (not counted as stock: a pen's feed chest the Cook leaves alone), take out only, or leave alone. Shown in the
   chest's hover text; follows the wards.
+- **No more stuck under an overhang:** a hireling on a low terrace under a stone floor ran into the wall instead of taking
+  the stairs back up (the game put it on the floor above). It takes the stairs now.
 - **Every hireling minds the gate:** with tame animals near a door, hirelings wait for them to move off before opening it
   and shut it as soon as they're through.
   - Settings in *12 - Rancher*.
