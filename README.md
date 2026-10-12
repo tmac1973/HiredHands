@@ -238,7 +238,7 @@ asksvin, and modded animals), tamed and inside the board's area.
 - **Feeding:** he feeds the herd from the chests. A Steward on the same board leaves feeding to him; with PetPantry both
   leave it to PetPantry.
 - **Problems** (Shift+E): each ranch order and why it isn't met: no animal above the pool, no pool set, a pen too crowded
-  to breed (vanilla stops breeding with 4 boars within 10 m), no partner close enough, hungry, nothing they eat in the
+  to breed (vanilla stops breeding with too many of a kind close together: 5 boars within 10 m), no partner close enough, hungry, nothing they eat in the
   chests. He doesn't move animals: build another pen.
 - **Pens:** he works over the fence whenever he can reach (feeding and slaughtering across a low fence or half wall).
   When he has to go in, he waits until no animal stands by the gate and shuts it right behind him. Every hireling does
