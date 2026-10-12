@@ -30,7 +30,16 @@ namespace VikingsForHire.Hirelings.Work.Ranch
         {
             if (ctx.FreeSlots <= 0 || BoardOrders.BoardOf(ctx.Hireling.BoardId) is not HiringBoard board)
                 return Enumerable.Empty<ChoreJob>();
-            HashSet<string> wanted = RanchState.For(board).CollectEggs;
+            // The plan says which egg orders are short; check against the chests and cargo right now (the plan is a few
+            // seconds old, and each egg just delivered counts).
+            Core.Orders.OrderList orders = BoardOrders.For(board);
+            var wanted = new HashSet<string>(RanchState.For(board).CollectEggs.Where(egg =>
+            {
+                int target = orders.Find(egg)?.Target ?? 0;
+                int have = ctx.StockChests.Sum(c => c.GetInventory().GetAllItems().Where(i => i.m_dropPrefab != null && i.m_dropPrefab.name == egg).Sum(i => i.m_stack))
+                           + (ctx.Carried.TryGetValue(egg, out int carried) ? carried : 0);
+                return have < target;
+            }));
             if (wanted.Count == 0)
                 return Enumerable.Empty<ChoreJob>();
             ItemDrop? nearest = ItemDrop.s_instances

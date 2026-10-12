@@ -84,9 +84,12 @@ namespace VikingsForHire.Testing
                     h = Hireling.Loaded.Where(x => x != null).OrderBy(x => Vector3.Distance(x.transform.position, Player.m_localPlayer.transform.position)).FirstOrDefault();
                 }
                 string[] lines = (h?.Zdo?.GetString(HirelingZdo.Why) ?? "").Split('\n').Where(l => l.Length > 0).ToArray();
-                return (args.ElementAtOrDefault(0) ?? "count") == "has"
-                    ? lines.Any(l => l.IndexOf(args.ElementAtOrDefault(1) ?? "", StringComparison.OrdinalIgnoreCase) >= 0).ToString().ToLowerInvariant()
-                    : lines.Length.ToString();
+                return (args.ElementAtOrDefault(0) ?? "count") switch
+                {
+                    "has" => lines.Any(l => l.IndexOf(args.ElementAtOrDefault(1) ?? "", StringComparison.OrdinalIgnoreCase) >= 0).ToString().ToLowerInvariant(),
+                    "dump" => string.Join(" | ", lines).Replace("\t", ":"),
+                    _ => lines.Length.ToString(),
+                };
             });
             TestHarness.RegisterCheck("map_pins", "- hireling pins on your map right now (shown while the stone is in hand)", _ => HirelingMapPins.Count.ToString());
             Fixtures.Add("retreat", "- the stone's middle click: your followers nearby retreat with you", _ => RetreatNow());

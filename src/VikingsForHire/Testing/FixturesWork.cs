@@ -148,6 +148,16 @@ namespace VikingsForHire.Testing
                 f.m_nview.GetZDO().Set(Hirelings.Work.Steward.FiresChore.AvoidKey, (args.ElementAtOrDefault(1) ?? "avoid") == "avoid" ? 1 : 0);
                 return Brief();
             });
+            Fixtures.Add("hireling_to", "<job> - move the nearest hireling of that job to where you stand (a test's start, past where it arrived)", args =>
+            {
+                if (!Enum.TryParse(args.ElementAtOrDefault(0) ?? "", true, out Core.JobType job))
+                    throw new InvalidOperationException("usage: hireling_to <job>");
+                Hirelings.Hireling h = Hirelings.Hireling.Loaded.Where(x => x != null && x.Job == job).OrderBy(x => Vector3.Distance(x.transform.position, Player.m_localPlayer.transform.position)).FirstOrDefault()
+                             ?? throw new InvalidOperationException($"no {job} near");
+                h.GetComponent<ZNetView>().ClaimOwnership();
+                h.transform.position = Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.right * 1.5f;
+                return Brief();
+            });
             Fixtures.Add("ranch_stats_reset", "- start counting Rancher slaughters from zero (slaughtered_by_rancher)", _ =>
             {
                 Hirelings.Work.Ranch.SlaughterChore.Slaughtered = 0;
