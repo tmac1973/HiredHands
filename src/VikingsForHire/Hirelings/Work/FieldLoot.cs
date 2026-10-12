@@ -18,12 +18,17 @@ namespace VikingsForHire.Hirelings.Work
         private const float PlayerNear = 2f;
         private const float Reach = 2.5f;             // about a player's reach to pick something up
         private const float ReachUp = 2.5f;
-        private const float GiveUp = 12f;
+        private const float GiveUp = 12f;              // seconds of walking to it, not counting fights in between
+        private const float RetrySeconds = 120f;       // an item given up on is tried again after this
 
         private ItemDrop? _drop;
-        private float _started;
+        private float _walked;
         private float _scanAt;
-        private readonly HashSet<ItemDrop> _unreachable = new();
+        // Items left alone, until when. A guard pulled 50 m off by a fight came back with its walk timer run out and
+        // wrote off three pieces of wood at its feet for good.
+        private readonly Dictionary<ItemDrop, float> _unreachable = new();
+
+        private void Skip(ItemDrop d) => _unreachable[d] = Time.time + RetrySeconds;
 
         public bool Wants(HirelingAI ai)
         {
@@ -37,19 +42,21 @@ namespace VikingsForHire.Hirelings.Work
                 return false;
             _scanAt = Time.time + ScanSeconds;
             _drop = Nearest(ai, area.Center, Config.VfhConfig.LootRadius.Value);
-            _started = Time.time;
+            _walked = 0f;
             return _drop != null;
         }
 
         private ItemDrop? Nearest(HirelingAI ai, Vector3 center, float radius)
         {
-            _unreachable.RemoveWhere(d => d == null);
+            foreach (ItemDrop gone in new List<ItemDrop>(_unreachable.Keys))
+                if (gone == null || Time.time >= _unreachable[gone])
+                    _unreachable.Remove(gone);
             ItemDrop? best = null;
             float bestSq = float.MaxValue;
             Vector3 me = ai.transform.position;
             foreach (ItemDrop d in ItemDrop.s_instances)
             {
-                if (d == null || _unreachable.Contains(d) || d.m_nview == null || !d.m_nview.IsValid() || d.m_itemData?.m_dropPrefab == null)
+                if (d == null || _unreachable.ContainsKey(d) || d.m_nview == null || !d.m_nview.IsValid() || d.m_itemData?.m_dropPrefab == null)
                     continue;
                 Vector3 p = d.transform.position;
                 if (Utils.DistanceXZ(p, center) > radius || d.m_itemData.m_customData.ContainsKey(DropPile.Tag) || d.IsPiece())
@@ -85,11 +92,12 @@ namespace VikingsForHire.Hirelings.Work
                            Mathf.Abs(drop.transform.position.y - ai.transform.position.y) <= ReachUp;
             if (!inReach)
             {
-                if (Time.time - _started > GiveUp)
+                _walked += dt;
+                if (_walked > GiveUp)
                 {
                     VfhLog.I(LogCat.Follow, "loot.unreachable", ("hid", h.Hid), ("item", drop.m_itemData.m_dropPrefab.name),
                         ("pos", drop.transform.position), ("me", ai.transform.position));
-                    _unreachable.Add(drop);
+                    Skip(drop);
                     _drop = null;
                     return;
                 }
@@ -103,7 +111,7 @@ namespace VikingsForHire.Hirelings.Work
             int fits = unit <= 0f ? item.m_stack : Mathf.Min(item.m_stack, Mathf.FloorToInt(h.CargoWeightRoom / unit));
             if (fits <= 0 || h.CargoInventory == null)
             {
-                _unreachable.Add(drop); // too heavy for what's left: leave it
+                Skip(drop); // too heavy for what's left: leave it
                 _drop = null;
                 return;
             }
@@ -116,17 +124,17 @@ namespace VikingsForHire.Hirelings.Work
                     drop.Save();
                     h.OnPickedUp();
                 }
-                _unreachable.Add(drop);
+                Skip(drop);
             }
             else if (h.CargoInventory.AddItem(item))
             {
                 h.OnPickedUp();
                 ZNetScene.instance.Destroy(drop.gameObject);
-                _unreachable.Add(drop); // destroyed at the end of the frame: don't pick it again meanwhile
+                Skip(drop); // destroyed at the end of the frame: don't pick it again meanwhile
             }
             else
             {
-                _unreachable.Add(drop); // no slot for it
+                Skip(drop); // no slot for it
             }
             VfhLog.D(LogCat.Follow, "loot.pickup", ("hid", h.Hid), ("item", GearApplier.Name(item)), ("n", fits));
             _drop = null;
