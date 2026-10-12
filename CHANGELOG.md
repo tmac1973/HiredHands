@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.9.1
+
+**Everyone updates together:** the hiring board's storage is bigger, and a game on an older version would see the old
+size; the server and every player need 0.9.1.
+
+- **The board holds 24 slots** (as an iron chest does), up from 8. Eight slots of cooked meat came to about 7,000 food:
+  not enough for a crew of level 3-4 hirelings, who eat about 700 a day. Boards already built get the new size; their
+  food stays where it was.
+- **The Steward stocks the board with food that fits:** still the cheapest food first (the best stays for you), but when
+  the board's slots couldn't hold a full stock of it, he brings richer food instead. If even the richest food in the
+  chests can't fill it, his Problems list says how many days the board holds.
+- **Warnings before your crew walks off:**
+  - when a day's wages go unpaid, everyone at the base is told how many went unpaid, what the board needs and has, and
+    after how many days they quit;
+  - coming home to a board that can't pay tomorrow's wages tells you so (again after 10 minutes);
+  - a full board that's running low says richer food pays more wages per slot.
+- **The low-food map pin is right:** far from the board it always said 0 food (it read the board's items the wrong way).
+- **Hirelings stuck in the water are lifted out:** after 30 seconds swimming in place (against a bank, under a dock) a
+  hireling is put on the nearest dry ground. Brand swam below the base for four days and the board ran dry.
+  Guards no longer patrol to spots in the water.
+- **Archers in crypts:** an archer at a wall corner judged every shot blocked (the shot was checked from the way it was
+  facing, not the way it turns to shoot) and stayed put fighting the wall instead of following you. Shots are checked
+  facing the target, and an archer or wizard with no clear shot for 10 seconds drops that target and carries on.
+- **Guards keep watch all round:** every guard notices enemies within its full sight (30 m) whichever way it faces, and
+  other hirelings anything within 20 m. Guards also join in on an enemy a player has just hit near them. A bear walked up
+  behind Thorvald while his owner shot it dead.
+- **Hirelings on the map are coloured dots** (workers blue, guards red, your followers gold) instead of hammer pins that
+  piled up into a heap round a base.
+- **Feeding animals:** the feed is dropped on a side of the animal with no wall between (a boar facing the pen's fence got
+  its berry outside), and feed taken from a chest is no longer put straight back by the delivery rule.
+- **Gather Here loot:** a fight in between no longer makes a hireling give up on the loot at its feet, and loot it gave up
+  on is tried again after 2 minutes.
+- **Under roofs and in caves (HearthBelow):** hirelings find the floor under a roof or a dug-out cave's rock, not the roof
+  or the hill above it: patrol points, returning home, arrival spots, repairs. No rain chatter in a cave.
+
 ## 0.9.0
 
 **Everyone updates together:** a new job, new order kinds and new data-file entries; the server and every player need 0.9.0.

@@ -3,7 +3,13 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## 0.9.1 (not released): the board pays its wages; the ground under roofs and in caves
+## 0.9.1 (packaged 2026-10-12): the board pays its wages; the ground under roofs and in caves
+
+Full regression run overnight 2026-10-12 in the dev game (all 176 rows, plus 3 new): everything passes except
+VFH-CFG-1 (needs a dedicated server) and VFH-WORK-5 (needs AzuAutoStore off). Failures found and fixed on the way:
+feed put back in its chest (RANCH-3, -11, -12, -13), feed dropped over a fence (RANCH-12), guards not watching behind
+them (STN-5), loot written off after a fight (LOOT-2); test fixes for PROJ-2, ORDER-2, RANCH-11, RANCH-14, READ-1, the
+pen fixture, the error count carried between rows, and a failed row stranding the tester (now `test.back_home`).
 
 HearthBelow work (another session): HearthBelow 0.6.3 (Azumatt) was decompiled and checked: it patches `ZoneSystem.GetGroundHeight` to find a dug-out cave's
 floor, and leaves our miners' terrain protection working (its `SpawnOnHitTerrain` prefix doesn't skip). A cave dug below
@@ -36,7 +42,7 @@ everything behaves as before except the roof fix.
 - [ ] By hand: a follower sent home to a board in a roofed hall arrives standing inside, not on the roof.
 - [ ] By hand: a board by the sea: hirelings still keep out of the water (idle, park, arrivals).
 - [ ] Optional (HearthBelow added to a test profile): a board in a dug-out cave above sea level: guards patrol the cave, a follower sent home turns up in the cave, the Steward repairs in it, no rain chatter inside.
-- [ ] Not yet run in game (Tim was playing). Unit tests pass (BoardFill), compile clean.
+- [x] Rows VFH-BOARD-SLOTS, VFH-CHORE-16, VFH-WATER-1 pass; unit tests pass (BoardFill). By-hand items below still open.
 - [ ] By hand: walk a hireling into deep water by a steep bank (or `vfh_fixture` it there): within about 40 s it's on dry ground, `nav.water_rescue` in the log.
 - [ ] By hand: a board with 8 slots of cheap food and a level 4-5 crew: the hover says the board is full and to use richer food; coming home says it can't pay tomorrow's wages.
 - [ ] By hand: chests with cheap and rich cooked food, a big crew, the board empty: the Steward brings a mix (`steward.board_fill enough=true`), cheap food first.
