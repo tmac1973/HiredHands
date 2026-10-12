@@ -29,6 +29,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
         /// <summary>Food Stewards have dropped for each animal since load, by its instance id (for the tests).</summary>
         public static readonly Dictionary<int, int> Fed = new();
 
+        /// <summary>The same for Ranchers.</summary>
+        public static readonly Dictionary<int, int> RanchFed = new();
+
         private readonly WorkSteps _walk = new();
         private readonly List<(Character Animal, string Food)> _route = new();
         private Step _step;
@@ -37,7 +40,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private ItemDrop? _dropped;
         private float _droppedAt;
 
-        public ChoreKind Kind => ChoreKind.Animals;
+        // The Steward's Animals chore, or the Rancher's RanchFeed: the same feeding.
+        public AnimalsChore(ChoreKind kind = ChoreKind.Animals) => Kind = kind;
+
+        public ChoreKind Kind { get; }
         public string? Missing { get; private set; }
         public float RestAfter { get; private set; }
 
@@ -78,7 +84,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 {
                     Kind = Kind, Target = animal, Urgency = u,
                     Score = ChoreUrgency.Score(u, Vector3.Distance(ctx.Position, animal.transform.position), ctx.Radius),
-                    Label = ActivityText.Make("$vfh_steward_feed", animal.m_name),
+                    Label = ActivityText.Make(Kind == ChoreKind.RanchFeed ? "$vfh_ranch_feed" : "$vfh_steward_feed", animal.m_name),
                 });
             }
             return jobs;
@@ -178,7 +184,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 _dropped?.m_nview?.GetZDO()?.Set(FeedKey, true);
                 _droppedAt = Time.time;
                 int id = animal.GetInstanceID();
-                Fed[id] = (Fed.TryGetValue(id, out int n) ? n : 0) + 1;
+                Dictionary<int, int> counts = Kind == ChoreKind.RanchFeed ? RanchFed : Fed;
+                counts[id] = (counts.TryGetValue(id, out int n) ? n : 0) + 1;
                 VfhLog.D(LogCat.Smelter, "steward.feed", ("hid", h.Hid), ("animal", animal.m_name), ("item", food));
                 return ChoreProgress.Running;
             }

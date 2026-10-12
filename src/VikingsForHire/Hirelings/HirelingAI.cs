@@ -151,6 +151,10 @@ namespace VikingsForHire.Hirelings
             Add(new GuardPatrolBehaviour());
             Add(new PostBehaviour());
             Add(new ParkBehaviour());
+            // Guards (melee, archers, wizards) parked in Gather Here pick up loot round their spot like a Steward, between
+            // fights (fighting outranks it); it goes to the chests when they're released or sent home.
+            if (hireling.Job.IsGuard())
+                Loot = new Work.FieldLoot();
             switch (hireling.Job)
             {
                 case JobType.Woodcutter:
@@ -182,6 +186,10 @@ namespace VikingsForHire.Hirelings
                             ctx.ExtraReserve = item => keep.TryGetValue(item, out int n) ? n : 0;
                         }
                     };
+                    Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));
+                    break;
+                case JobType.Rancher:
+                    Add(Chores = new Work.Chores.ChoreLoop(JobType.Rancher, new Work.Chores.IChore[] { new Work.Steward.AnimalsChore(Core.Chores.ChoreKind.RanchFeed), new Work.Ranch.SlaughterChore(), new Work.Ranch.EggsChore() }));
                     Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));
                     break;
                 default:
@@ -393,6 +401,11 @@ namespace VikingsForHire.Hirelings
         {
             if (Pathfinding.instance == null || !Pathfinding.instance.GetPath(transform.position, goal, _directPath, m_pathAgentType, requireFullPath: true) || _directPath.Count == 0)
                 return false;
+            // A route that starts on another floor isn't ours: where the game's map has no ground (a low terrace under a
+            // stone floor's overhang) it puts us on the floor above, finds a "route" from there, and we ran into the wall
+            // (Grima) instead of taking the base's stairs back up.
+            if (Mathf.Abs(_directPath[0].y - transform.position.y) > 1f)
+                return false;
             Vector3 end = _directPath[_directPath.Count - 1];
             return Utils.DistanceXZ(end, goal) <= within && Mathf.Abs(end.y - goal.y) <= 1f;
         }
@@ -405,6 +418,7 @@ namespace VikingsForHire.Hirelings
         internal void Track(Vector3 point) => TrackProgress(point);
         internal void DoorTick(Vector3 goal) => _doors.Tick(goal);
         internal void MarkDoorOpened(Door door) => _doors.MarkOpened(door);
+        internal bool DoorMayOpen(Door door) => _doors.MayOpen(door);
 
         public void Wander(float dt, Vector3 center) => RandomMovement(dt, center, snapToGround: true);
 

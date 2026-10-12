@@ -11,6 +11,8 @@ namespace VikingsForHire.Core
         Cook,
         /// <summary>A caster: fights with a staff's main spell from range (plan/wizard).</summary>
         Wizard,
+        /// <summary>Feeds the herd and slaughters for the board's meat orders, keeping each kind's breeding pool (plan/rancher).</summary>
+        Rancher,
     }
 
     public static class JobTypeExtensions

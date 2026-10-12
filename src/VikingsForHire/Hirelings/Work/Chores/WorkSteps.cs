@@ -116,9 +116,20 @@ namespace VikingsForHire.Hirelings.Work.Chores
             Vector3 away = ai.transform.position - target;
             away.y = 0f;
             Vector3 facing = away.sqrMagnitude > 0.01f ? away.normalized : obj.transform.forward;
-            var spots = Enumerable.Range(0, 8).Select(i => Quaternion.Euler(0f, i * 45f, 0f) * facing)
-                .Select(d => target + d * (half + 1f)).ToList();
+            // Around a creature, further rings too: standing outside its pen's fence, reaching over it.
+            float[] rings = IsCreature(obj) ? new[] { half + 1f, half + 1.8f, half + 2.5f } : new[] { half + 1f };
+            var spots = rings.SelectMany(r => Enumerable.Range(0, 8).Select(i => target + Quaternion.Euler(0f, i * 45f, 0f) * facing * r)).ToList();
             Vector3? closer = null;
+            // Around a creature: first a spot it can walk to without a door (outside its pen, reaching over the fence);
+            // only if there's none, one through a gate (the base's routes count doors as a way in).
+            if (IsCreature(obj))
+                foreach (Vector3 spot in spots.OrderBy(p => Vector3.Distance(p, ai.transform.position)))
+                {
+                    Vector3 grounded = spot;
+                    grounded.y = Floor(spot, target.y);
+                    if (ai.HavePath(grounded) && UsableFrom(grounded, obj, target, half, reach))
+                        return grounded;
+                }
             foreach (Vector3 spot in spots.OrderBy(p => Vector3.Distance(p, ai.transform.position)))
             {
                 // The floor at about its height, else the floor at the hireling's own (a drawer high on a stack is reached
@@ -174,7 +185,8 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 float d = Vector3.Distance(eye, p);
                 // Both to its nearest point and to its middle: the nearest point of a chest on a floor is its bottom edge,
                 // and a line to that can slip through the crack between a wall's top and the floor.
-                if (d <= PlayerReach && !PieceBetween(eye, p, obj) && !PieceBetween(eye, c.bounds.center, obj))
+                bool creature = IsCreature(obj);
+                if (d <= PlayerReach && !PieceBetween(eye, p, obj, creature) && !PieceBetween(eye, c.bounds.center, obj, creature))
                     return true;
                 if (d <= reach && InSight(eye, p, obj))
                     return true;
@@ -198,7 +210,8 @@ namespace VikingsForHire.Hirelings.Work.Chores
         }
 
         // Another building piece (not terrain, not the thing itself or its own parts) between the eye and a point on it.
-        private static bool PieceBetween(Vector3 eye, Vector3 point, Component obj)
+        // overLow: reaching a creature, a piece lower than the eye (a pen's fence) doesn't count, as a player reaches over it.
+        private static bool PieceBetween(Vector3 eye, Vector3 point, Component obj, bool overLow = false)
         {
             Vector3 to = point - eye;
             float length = to.magnitude;
@@ -210,11 +223,16 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 if (hit.collider.transform.IsChildOf(obj.transform))
                     continue;
                 Piece? piece = hit.collider.GetComponentInParent<Piece>();
-                if (piece != null && piece != own)
-                    return true;
+                if (piece == null || piece == own)
+                    continue;
+                if (overLow && hit.collider.bounds.max.y < eye.y - 0.2f)
+                    continue;
+                return true;
             }
             return false;
         }
+
+        private static bool IsCreature(Component obj) => obj.GetComponentInParent<Character>() != null;
 
         // Nothing but the thing itself between the eye and a point on it.
         private static bool InSight(Vector3 eye, Vector3 point, Component obj)

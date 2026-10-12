@@ -69,6 +69,9 @@ namespace VikingsForHire.Config
         public static ConfigEntry<bool> FarmerPlant = null!;
         public static ConfigEntry<bool> CookStoves = null!;
         public static ConfigEntry<bool> CookCraft = null!;
+        public static ConfigEntry<bool> RancherFeed = null!;
+        public static ConfigEntry<bool> RancherSlaughter = null!;
+        public static ConfigEntry<bool> RancherEggs = null!;
         public static ConfigEntry<int> StewardBoardRefillDays = null!;
         public static ConfigEntry<int> StewardBoardFillDays = null!;
         public static ConfigEntry<float> StewardTidyMinSeconds = null!;
@@ -104,6 +107,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<bool> HirelingChatter = null!;
         public static ConfigEntry<float> ChatterMinutes = null!;
         public static ConfigEntry<KeyboardShortcut> RetreatKey = null!;
+        public static ConfigEntry<bool> ChestModeOnShiftUse = null!;
         public static ConfigEntry<bool> UpgradeFromNearbyChests = null!;
         public static ConfigEntry<int> BalanceLogMaxMB = null!;
         public static ConfigEntry<bool> ClientLogsToServer = null!;
@@ -217,6 +221,10 @@ namespace VikingsForHire.Config
             FarmerPlant = Synced(fc, "FarmerPlant", true, "Farmers may plant on cultivated ground to fill the board's farm orders.");
             CookStoves = Synced(fc, "CookStoves", true, "Cooks may run cooking stations and ovens to fill the board's kitchen orders.");
             CookCraft = Synced(fc, "CookCraft", true, "Cooks may craft at the cauldron, food preparation table and mead ketill to fill the board's kitchen orders.");
+            const string rc = "12 - Rancher";
+            RancherFeed = Synced(rc, "RancherFeed", true, "Ranchers may feed the herd (tamed animals in the board's area) from chests. A Steward on the same board then leaves feeding to the Rancher.");
+            RancherSlaughter = Synced(rc, "RancherSlaughter", true, "Ranchers may slaughter animals for the board's meat orders, never below a kind's breeding pool, never young or named animals.");
+            RancherEggs = Synced(rc, "RancherEggs", true, "Ranchers may collect eggs for the board's egg orders (the rest are left to hatch).");
             StewardTidyMinSeconds = Synced(st, "StewardTidyMinSeconds", 60f, "Leave items alone until they've been on the ground this long, so a Steward doesn't grab what a player just dropped.");
             StewardFireRefillFraction = Synced(st, "StewardFireRefillFraction", 0.5f, "Refuel a fire when its fuel is below this fraction of full; it's filled up to full.");
             StewardRepairBelow = Synced(st, "StewardRepairBelow", 0.95f, "Repair pieces below this fraction of full health.");
@@ -241,7 +249,7 @@ namespace VikingsForHire.Config
             PortalFollowRadius = Synced(f, "PortalFollowRadius", 20f, "Followers within this distance (m) go through a portal with you.");
             AllowNonTeleportableThroughPortals = Synced(f, "AllowNonTeleportableThroughPortals", false, "Followers may carry ore and metals through portals.");
             GatherNearbyRadius = Synced(f, "GatherNearbyRadius", 15f, "Radius (m) around you that Gather Nearby followers work in.");
-            LootRadius = Synced(f, "LootRadius", 30f, "Radius (m) around its spot that a Steward parked in Gather Here picks up loot in.");
+            LootRadius = Synced(f, "LootRadius", 30f, "Radius (m) around its spot that a Steward or a guard parked in Gather Here picks up loot in.");
             FollowerCatchUpSpeedBonus = Synced(f, "FollowerCatchUpSpeedBonus", 0.25f, "Extra sprint speed (0.25 = +25%) for a follower more than 15 m behind you (twice this beyond 25 m), so it closes the gap even when you sprint with run skill and gear.");
             FollowerCatchUpTeleportDistance = Synced(f, "FollowerCatchUpTeleportDistance", 40f, "A following follower this far behind you (m), or stuck, appears on the ground just behind you, but only while you can't see it (off screen or out of sight). 0 turns catch-up teleports off.");
             FollowerStuckTeleportSeconds = Synced(f, "FollowerStuckTeleportSeconds", 5f, "Seconds a following follower can be stuck (not getting anywhere while it should be moving) before it's allowed to catch up by teleport.");
@@ -257,6 +265,7 @@ namespace VikingsForHire.Config
             ReturnMinSeconds = Synced(f, "ReturnMinSeconds", 60f, "Shortest return-home trip.");
             ReturnMaxSeconds = Synced(f, "ReturnMaxSeconds", 1200f, "Longest return-home trip.");
             StoneBoardSearchRadius = Synced(f, "StoneBoardSearchRadius", 30f, "Radius (m) around the workbench searched for a hiring board when crafting a Command Stone.");
+            ChestModeOnShiftUse = _file.Bind("4 - Work", "ChestModeOnShiftUse", true, "Your own setting: Shift+E near a hiring board sets what workers may do with a chest (normal, put only, take only, off) or whether hirelings may use a door, instead of opening it. Turn off if another mod uses Shift+E on chests or doors.");
             RetreatKey = _file.Bind(f, "RetreatKey", KeyboardShortcut.Empty, "Your own setting: a key or mouse button that orders your followers within 50 m to retreat with you (as the Command Stone's middle click), stone in hand or not. Unset by default.");
 
             BalanceLog = Synced("9 - Balance log", "BalanceLog", false, "Record how hirelings fight and work (each fight, death, delivery and upkeep day) to BepInEx/HiredHands/balance/*.jsonl on the server, for tuning the mod. Off by default. Set it on the server: every player's game then sends its summaries there once a minute.");

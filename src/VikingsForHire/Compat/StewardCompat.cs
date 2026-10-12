@@ -18,6 +18,7 @@ namespace VikingsForHire.Compat
         private static readonly (ChoreKind Kind, string Guid, string Name)[] Covering =
         {
             (ChoreKind.Animals, "Azumatt.PetPantry", "PetPantry"),
+            (ChoreKind.RanchFeed, "Azumatt.PetPantry", "PetPantry"),
             (ChoreKind.Fires, "Xenofell.TorchesEternal", "TorchesEternal"),
         };
 

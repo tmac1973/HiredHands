@@ -44,6 +44,7 @@ namespace VikingsForHire.Core.Chores
             JobType.Smelter => ChoreKeys.All.Where(k => k < ChoreKind.Harvest).ToList(),
             JobType.Farmer => new[] { ChoreKind.Harvest, ChoreKind.Plant },
             JobType.Cook => new[] { ChoreKind.Stoves, ChoreKind.Craft },
+            JobType.Rancher => new[] { ChoreKind.RanchFeed, ChoreKind.Slaughter, ChoreKind.Eggs },
             _ => Array.Empty<ChoreKind>(),
         };
 

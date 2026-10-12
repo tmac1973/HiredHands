@@ -18,7 +18,7 @@ namespace VikingsForHire.UI
     /// </summary>
     internal sealed class OrdersTab : IBoardTab
     {
-        private enum PickFor { Farm, Kitchen }
+        private enum PickFor { Farm, Kitchen, Ranch }
 
         private const int RowsPerPage = 10;
         private const float RowStep = 46f;
@@ -38,7 +38,8 @@ namespace VikingsForHire.UI
             Stock stock = BoardOrders.Stock(board);
             string haves = string.Join(",", list.Orders.Select(o => stock.Have(o.Item)));
             return $"{_picking}|{_pickFor}|{_page}|{_pickPage}|{list.Serialize()}|{haves}|" +
-                   $"{BoardOrders.WorkerLevel(board, JobType.Farmer)}|{BoardOrders.WorkerLevel(board, JobType.Cook)}|{CanEdit(board)}";
+                   $"{BoardOrders.WorkerLevel(board, JobType.Farmer)}|{BoardOrders.WorkerLevel(board, JobType.Cook)}|{BoardOrders.WorkerLevel(board, JobType.Rancher)}|{CanEdit(board)}|" +
+                   string.Join(",", list.Orders.Where(o => o.Kind == OrderKind.Herd).Select(o => HerdHave(board, o.Item)));
         }
 
         private static bool CanEdit(HiringBoard board) => PrivateArea.CheckAccess(board.transform.position, 0f, false, false);
@@ -60,8 +61,9 @@ namespace VikingsForHire.UI
             Stock stock = BoardOrders.Stock(board);
             var adds = new[]
             {
-                PanelUi.Button(root, "$vfh_orders_add_farm", -170f, -140f, 300f, 34f, () => StartPick(PickFor.Farm)),
-                PanelUi.Button(root, "$vfh_orders_add_kitchen", 170f, -140f, 300f, 34f, () => StartPick(PickFor.Kitchen)),
+                PanelUi.Button(root, "$vfh_orders_add_farm", -270f, -140f, 250f, 34f, () => StartPick(PickFor.Farm)),
+                PanelUi.Button(root, "$vfh_orders_add_kitchen", 0f, -140f, 250f, 34f, () => StartPick(PickFor.Kitchen)),
+                PanelUi.Button(root, "$vfh_orders_add_ranch", 270f, -140f, 250f, 34f, () => StartPick(PickFor.Ranch)),
             };
             foreach (Button b in adds)
                 b.interactable = edit;
@@ -69,7 +71,8 @@ namespace VikingsForHire.UI
             // Farm (seed orders first, as they're worked), then kitchen.
             List<ProductionOrder> shown = list.Orders.Where(o => o.Kind == OrderKind.Seed)
                 .Concat(list.Orders.Where(o => o.Kind == OrderKind.Crop))
-                .Concat(list.Orders.Where(o => o.Kind == OrderKind.Kitchen)).ToList();
+                .Concat(list.Orders.Where(o => o.Kind == OrderKind.Kitchen))
+                .Concat(list.Orders.Where(o => o.IsRanch)).ToList();
             if (shown.Count == 0)
             {
                 PanelUi.Text(root, "$vfh_orders_empty", 0f, -230f, 760f, 17, color: PanelUi.Dim);
@@ -80,7 +83,7 @@ namespace VikingsForHire.UI
             float y = -195f;
             foreach (ProductionOrder o in shown.Skip(_page * RowsPerPage).Take(RowsPerPage))
             {
-                Row(root, board, o, stock.Have(o.Item), y, edit);
+                Row(root, board, o, o.Kind == OrderKind.Herd ? HerdHave(board, o.Item) : stock.Have(o.Item), y, edit);
                 y -= RowStep;
             }
             Pager(root, _page, pages, p => _page = p);
@@ -110,9 +113,12 @@ namespace VikingsForHire.UI
             {
                 OrderKind.Seed => "$vfh_orders_kind_seed",
                 OrderKind.Crop => "$vfh_orders_kind_farm",
+                OrderKind.Meat => "$vfh_orders_kind_meat",
+                OrderKind.Egg => "$vfh_orders_kind_egg",
+                OrderKind.Herd => "$vfh_orders_kind_herd",
                 _ => "$vfh_orders_kind_kitchen",
             };
-            PanelUi.Text(root, (item != null ? item.m_itemData.m_shared.m_name : o.Item), -250f, y + 8f, 260f, 18, TextAnchor.MiddleLeft, o.Paused ? PanelUi.Dim : (Color?)null);
+            PanelUi.Text(root, Name(o.Item), -250f, y + 8f, 260f, 18, TextAnchor.MiddleLeft, o.Paused ? PanelUi.Dim : (Color?)null);
             PanelUi.Text(root, kind, -250f, y - 11f, 260f, 13, TextAnchor.MiddleLeft, PanelUi.Dim);
             PanelUi.Text(root, $"{have} / {o.Target}", -50f, y, 130f, 18, color: have >= o.Target ? PanelUi.Good : PanelUi.Bad);
             var buttons = new List<Button>
@@ -141,8 +147,25 @@ namespace VikingsForHire.UI
             public int Level;
         }
 
+        // A breeding pool's "have": the unnamed adults of that kind in the herd.
+        private static int HerdHave(HiringBoard board, string kind) =>
+            Hirelings.Work.Ranch.RanchState.For(board).Adults.TryGetValue(kind, out int n) ? n : 0;
+
         private static List<Pick> Picks(PickFor what)
         {
+            if (what == PickFor.Ranch)
+            {
+                var ranch = new List<Pick>();
+                foreach (AnimalKind k in Hirelings.Work.Ranch.AnimalCatalog.Kinds)
+                {
+                    ranch.Add(new Pick { Item = k.Prefab, Kind = OrderKind.Herd, Level = 1 });
+                    foreach (string meat in k.Meats.Keys.Where(m => ranch.All(p => p.Item != m)))
+                        ranch.Add(new Pick { Item = meat, Kind = OrderKind.Meat, Level = 1 });
+                    if (k.EggItem.Length > 0 && ranch.All(p => p.Item != k.EggItem))
+                        ranch.Add(new Pick { Item = k.EggItem, Kind = OrderKind.Egg, Level = 1 });
+                }
+                return ranch.OrderBy(p => p.Kind).ThenBy(p => Name(p.Item)).ToList();
+            }
             if (what == PickFor.Kitchen)
                 return KitchenCatalog.All.GroupBy(k => k.Output)
                     .Select(g => new Pick { Item = g.Key, Kind = OrderKind.Kitchen, Level = g.Min(k => k.Level) })
@@ -170,16 +193,18 @@ namespace VikingsForHire.UI
                 picks[item] = new Pick { Item = item, Kind = seed ? OrderKind.Seed : OrderKind.Crop, Level = level };
         }
 
+        // An item's name, or an animal kind's (a breeding pool order is for a creature).
         private static string Name(string item) =>
-            ObjectDB.instance.GetItemPrefab(item)?.GetComponent<ItemDrop>() is ItemDrop d ? Localization.instance.Localize(d.m_itemData.m_shared.m_name) : item;
+            ObjectDB.instance.GetItemPrefab(item)?.GetComponent<ItemDrop>() is ItemDrop d ? Localization.instance.Localize(d.m_itemData.m_shared.m_name)
+            : ZNetScene.instance?.GetPrefab(item)?.GetComponent<Character>() is Character c ? Localization.instance.Localize(c.m_name) : item;
 
         private void BuildPicker(RectTransform root, HiringBoard board)
         {
             OrderList list = BoardOrders.For(board);
-            JobType job = _pickFor == PickFor.Kitchen ? JobType.Cook : JobType.Farmer;
+            JobType job = _pickFor switch { PickFor.Kitchen => JobType.Cook, PickFor.Ranch => JobType.Rancher, _ => JobType.Farmer };
             int worker = BoardOrders.WorkerLevel(board, job);
-            string title = _pickFor == PickFor.Kitchen ? "$vfh_orders_pick_kitchen" : "$vfh_orders_pick_farm";
-            string needs = _pickFor == PickFor.Kitchen ? "$vfh_orders_needs_cook" : "$vfh_orders_needs_farmer";
+            string title = _pickFor switch { PickFor.Kitchen => "$vfh_orders_pick_kitchen", PickFor.Ranch => "$vfh_orders_pick_ranch", _ => "$vfh_orders_pick_farm" };
+            string needs = _pickFor switch { PickFor.Kitchen => "$vfh_orders_needs_cook", PickFor.Ranch => "$vfh_orders_needs_rancher", _ => "$vfh_orders_needs_farmer" };
             PanelUi.Text(root, title, 0f, -140f, 600f, 19, bold: true);
             PanelUi.Button(root, "$vfh_orders_back", 380f, -140f, 110f, 32f, () => _picking = false);
             List<Pick> picks = Picks(_pickFor).Where(p => list.Find(p.Item) == null).ToList();
@@ -191,13 +216,17 @@ namespace VikingsForHire.UI
                 float x = i % 2 == 0 ? -225f : 225f;
                 float y = -200f - (i / 2) * 50f;
                 bool canDo = worker >= p.Level;
-                string label = Name(p.Item) + (p.Kind == OrderKind.Seed ? " (" + Localization.instance.Localize("$vfh_orders_kind_seed") + ")" : "");
+                string label = p.Kind == OrderKind.Herd ? Localization.instance.Localize("$vfh_orders_pick_herd", Name(p.Item))
+                    : Name(p.Item) + (p.Kind == OrderKind.Seed ? " (" + Localization.instance.Localize("$vfh_orders_kind_seed") + ")" : "");
                 string note = canDo ? Localization.instance.Localize("$vfh_orders_level", p.Level.ToString())
                     : Localization.instance.Localize(needs, p.Level.ToString());
                 Pick chosen = p;
                 Button b = PanelUi.Button(root, label, x, y, 420f, 32f, () =>
                 {
-                    BoardOrders.Submit(board, OrderEdit.Add, chosen.Item, chosen.Kind, chosen.Kind == OrderKind.Seed ? 10 : 20);
+                    BoardOrders.Submit(board, OrderEdit.Add, chosen.Item, chosen.Kind, chosen.Kind switch
+                    {
+                        OrderKind.Seed => 10, OrderKind.Meat => 40, OrderKind.Herd => 4, _ => 20,
+                    });
                     _picking = false;
                 });
                 PanelUi.Text(root, note, x, y - 21f, 420f, 13, color: canDo ? PanelUi.Dim : PanelUi.Bad);

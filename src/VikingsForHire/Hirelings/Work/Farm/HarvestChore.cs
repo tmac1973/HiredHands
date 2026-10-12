@@ -48,7 +48,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
                 return false;
             if (Utils.DistanceXZ(p.transform.position, ctx.Home) > ctx.Radius || Reservations.IsSkipped(p) || !ctx.BoardOwnerMayUse(p.transform.position))
                 return false;
-            return !checkRoom || !StorageRoom.NoRoom(ctx.AllChests, crop.Info.Yields);
+            return !checkRoom || !StorageRoom.NoRoom(ctx.PutChests, crop.Info.Yields);
         }
 
         public IEnumerable<ChoreJob> Candidates(WorkContext ctx)
@@ -67,7 +67,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
                 if (!Wanted(p, ctx, checkRoom: false))
                     continue;
                 Crop crop = CropCatalog.ByGrown(Utils.GetPrefabName(p.gameObject))!;
-                if (StorageRoom.NoRoom(ctx.AllChests, crop.Info.Yields))
+                if (StorageRoom.NoRoom(ctx.PutChests, crop.Info.Yields))
                 {
                     Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_status_storage_full", WorkSteps.SharedName(crop.Info.Yields)));
                     continue;

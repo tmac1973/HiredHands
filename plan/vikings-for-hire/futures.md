@@ -203,6 +203,18 @@ Combat hirelings pick up perks as they level, a small tree per job, so two guard
   random at promotion), whether a respec costs something, how it stacks with CombatSkill and GuardMelee/RangedDamage,
   and how it's saved (the contract, so it survives death and moving boards).
 
+## Patrol markers (Tim's idea, 2026-10-11; details to work out)
+Guards with nothing to fight now wander their work radius: a random spot every 20-40 s, a 5-10 s pause at each
+(`Hirelings/Combat/GuardPatrolBehaviour.cs`). Instead, let players lay out where they walk:
+- **A buildable marker** (a small post or banner, from the hammer like the board) placed around the base: the wall
+  top, the gate, the farm's edge. Guards on that board walk them in order (or nearest-next), pausing at each, as a loop.
+- **To decide:** one route per board or several (named, assigned per guard from Shift+E); whether order comes from a
+  number on each marker or from the order they were placed; posted guards stay put; what happens when a marker's out of
+  the guard's radius (skipped) or unreachable (skipped, logged, shown in Problems); whether archers stop at markers on
+  walls to scan; followers ignore markers.
+- **Reuse:** the post mechanics (a guard holding a spot), the board's area ring for showing which markers are in range,
+  the nav links for routes up onto walls.
+
 ## Farmer planting regrowing plants (decided against, 2026-10-10)
 With PlantEverything, dandelions, berries and mushrooms are plantable. Tim decided the Farmer won't plant them: it plants
 one-harvest crops only, and picks regrowing plants that are already there (wild or player-planted) while an order is short.

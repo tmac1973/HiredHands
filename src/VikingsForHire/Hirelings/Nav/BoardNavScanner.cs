@@ -99,7 +99,8 @@ namespace VikingsForHire.Hirelings.Nav
             Door? door = piece.GetComponentInChildren<Door>();
             if (door != null)
             {
-                AddDoor(door, piece, prefab);
+                if (!DoorRules.Avoided(door)) // a door marked to leave alone is no way through
+                    AddDoor(door, piece, prefab);
                 return;
             }
             bool hint = _include.Contains(prefab) || Hints.Any(h => prefab.IndexOf(h, StringComparison.OrdinalIgnoreCase) >= 0 ||

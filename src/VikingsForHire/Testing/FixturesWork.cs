@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using VikingsForHire.Board;
@@ -74,7 +75,20 @@ namespace VikingsForHire.Testing
             });
             TestHarness.RegisterCheck("object_health", "<tag> - a tagged object's health 0..1 (creature, piece, tree, rock or destructible; 0 when it's gone)", args =>
                 ObjectHealth(FindTagged(args.ElementAtOrDefault(0) ?? "")).ToString("0.00", CultureInfo.InvariantCulture));
-            Fixtures.Add("tame", "<prefab> [tag] [distance=20] - a tamed, hungry animal (Boar, Wolf…) that far from the board", Tame);
+            Fixtures.Add("tame", "<prefab> [tag] [distance=20] [stars <n>] [young] [named <name>] - a tamed, hungry animal (Boar, Wolf…) that far from the board; young: its kind's young; named: as a player names it", Tame);
+            TestHarness.RegisterCheck("herd", "<kind> <adults|young|named|stars <n>> - the nearest board's herd within 40 m: adults (all), young, named, or unnamed adults at n stars", args =>
+            {
+                HiringBoard b = Board();
+                List<Hirelings.Work.Ranch.HerdScan.Found> herd = Hirelings.Work.Ranch.HerdScan.Scan(b.transform.position, 40f, _ => true)
+                    .Where(f => f.Model.Kind == (args.ElementAtOrDefault(0) ?? "")).ToList();
+                return ((args.ElementAtOrDefault(1) ?? "adults") switch
+                {
+                    "young" => herd.Count(f => !f.Model.Adult),
+                    "named" => herd.Count(f => f.Model.Named),
+                    "stars" => herd.Count(f => f.Model.Adult && !f.Model.Named && f.Model.Stars == int.Parse(args.ElementAtOrDefault(2) ?? "0", CultureInfo.InvariantCulture)),
+                    _ => herd.Count(f => f.Model.Adult),
+                }).ToString(CultureInfo.InvariantCulture);
+            });
             TestHarness.RegisterCheck("animal_hungry", "<tag> - whether a tagged tamed animal is hungry", args =>
                 (FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponent<Tameable>() ?? throw new InvalidOperationException("no such tagged animal")).IsHungry() ? "true" : "false");
             TestHarness.RegisterCheck("fed_by_steward", "<tag> - food items Stewards have dropped for a tagged animal", args =>
@@ -82,6 +96,79 @@ namespace VikingsForHire.Testing
                 GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged animal");
                 Character c = go.GetComponent<Character>();
                 return (Hirelings.Work.Steward.AnimalsChore.Fed.TryGetValue(c.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
+            });
+            Fixtures.Add("pen", "<gate tag> [size=6] [<prefab> <tag> <edge|mid|gate>]... - a square pen of half walls (below eye height) with a wood gate on the board's side, 14 m from the board, and tamed hungry animals in it: edge (by the far fence), mid, gate (just inside the gate)", Pen);
+            Fixtures.Add("move_animal", "<tag> <dx> <dz> - move a tagged animal by that much (out of its pen)", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Vector3 p = go.transform.position + new Vector3(float.Parse(args.ElementAtOrDefault(1) ?? "0", CultureInfo.InvariantCulture), 0f,
+                    float.Parse(args.ElementAtOrDefault(2) ?? "0", CultureInfo.InvariantCulture));
+                p.y = ZoneSystem.instance.GetSolidHeight(p);
+                go.GetComponent<ZNetView>().ClaimOwnership();
+                go.transform.position = p;
+                return Brief();
+            });
+            TestHarness.RegisterCheck("door_opened", "<tag> - times hirelings opened a tagged door or gate", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Door d = go.GetComponentInChildren<Door>() ?? throw new InvalidOperationException("not a door");
+                return (Hirelings.DoorHelper.OpenedCount.TryGetValue(d.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
+            });
+            TestHarness.RegisterCheck("outside_pen", "<kind> - tamed animals of that kind within 40 m of the board not walled in (out of their pen)", args =>
+            {
+                HiringBoard b = Board();
+                return Hirelings.Work.Ranch.HerdScan.Scan(b.transform.position, 40f, _ => true)
+                    .Count(f => f.Model.Kind == (args.ElementAtOrDefault(0) ?? "") && !Hirelings.Work.Ranch.HerdScan.Enclosed(f.Animal.transform.position))
+                    .ToString(CultureInfo.InvariantCulture);
+            });
+            Fixtures.Add("chest_mode", "<tag> <normal|putonly|takeonly|off> - set a tagged chest's worker mode (as Shift+E on it does)", args =>
+            {
+                Container c = Tagged(args.ElementAtOrDefault(0) ?? "");
+                if (!Enum.TryParse(args.ElementAtOrDefault(1) ?? "normal", true, out ChestMode mode))
+                    throw new InvalidOperationException("usage: chest_mode <tag> <normal|putonly|takeonly|off>");
+                c.m_nview.ClaimOwnership();
+                c.m_nview.GetZDO().Set(ChestModes.Key, (int)mode);
+                VfhLog.I(LogCat.Test, "fixture.chest_mode", ("tag", args.ElementAtOrDefault(0)), ("mode", mode));
+                return Brief();
+            });
+            Fixtures.Add("door_mark", "<tag> <avoid|use> - mark a tagged door for hirelings to leave shut, or clear it (as Shift+E on it does)", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Door d = go.GetComponentInChildren<Door>() ?? throw new InvalidOperationException("not a door");
+                d.m_nview.ClaimOwnership();
+                d.m_nview.GetZDO().Set(Hirelings.Nav.DoorRules.AvoidKey, (args.ElementAtOrDefault(1) ?? "avoid") == "avoid" ? 1 : 0);
+                Hirelings.Nav.NavLinkRegistry.MarkDirty(d.transform.position);
+                return Brief();
+            });
+            Fixtures.Add("fire_mark", "<tag> <avoid|use> - mark a tagged fire or torch for workers to leave alone, or clear it (as Shift+E on it does)", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Fireplace f = go.GetComponentInChildren<Fireplace>() ?? throw new InvalidOperationException("not a fire");
+                f.m_nview.ClaimOwnership();
+                f.m_nview.GetZDO().Set(Hirelings.Work.Steward.FiresChore.AvoidKey, (args.ElementAtOrDefault(1) ?? "avoid") == "avoid" ? 1 : 0);
+                return Brief();
+            });
+            Fixtures.Add("hireling_to", "<job> - move the nearest hireling of that job to where you stand (a test's start, past where it arrived)", args =>
+            {
+                if (!Enum.TryParse(args.ElementAtOrDefault(0) ?? "", true, out Core.JobType job))
+                    throw new InvalidOperationException("usage: hireling_to <job>");
+                Hirelings.Hireling h = Hirelings.Hireling.Loaded.Where(x => x != null && x.Job == job).OrderBy(x => Vector3.Distance(x.transform.position, Player.m_localPlayer.transform.position)).FirstOrDefault()
+                             ?? throw new InvalidOperationException($"no {job} near");
+                h.GetComponent<ZNetView>().ClaimOwnership();
+                h.transform.position = Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.right * 1.5f;
+                return Brief();
+            });
+            Fixtures.Add("ranch_stats_reset", "- start counting Rancher slaughters from zero (slaughtered_by_rancher)", _ =>
+            {
+                Hirelings.Work.Ranch.SlaughterChore.Slaughtered = 0;
+                return Brief();
+            });
+            TestHarness.RegisterCheck("slaughtered_by_rancher", "- animals Ranchers have slaughtered since ranch_stats_reset", _ =>
+                Hirelings.Work.Ranch.SlaughterChore.Slaughtered.ToString(CultureInfo.InvariantCulture));
+            TestHarness.RegisterCheck("fed_by_rancher", "<tag> - food items Ranchers have dropped for a tagged animal", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged animal");
+                return (Hirelings.Work.Steward.AnimalsChore.RanchFed.TryGetValue(go.GetComponent<Character>().GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
             });
             Fixtures.Add("damaged", "<prefab> <health 0..1> [tag] [near|far] [high:<m>] - a damaged piece 6 m from the board (near: within the base's workbench range) or 28 m out (far: beyond a workbench's 20 m range), optionally floating that high off the ground", Damaged);
             Fixtures.Add("set_health", "<tag> <health 0..1> - set a tagged piece's health", SetHealth);
@@ -376,10 +463,82 @@ namespace VikingsForHire.Testing
             yield return null;
         }
 
+        private static IEnumerator Pen(string[] args)
+        {
+            string gateTag = args.ElementAtOrDefault(0) ?? "G";
+            float size = args.Length > 1 && float.TryParse(args[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float sz) ? sz : 6f;
+            HiringBoard board = Board();
+            Vector3 fwd = -board.transform.forward;
+            Vector3 right = Vector3.Cross(Vector3.up, fwd);
+            Vector3 centre = board.transform.position + fwd * (14f + size / 2f);
+            Vector3 Ground(Vector3 v) => new(v.x, ZoneSystem.instance.GetSolidHeight(v), v.z);
+            int per = Mathf.Max(1, Mathf.RoundToInt(size / 2f));
+            float half = per;
+            // Four sides of 2 m half walls; the middle segment of the board's side is the gate.
+            for (int side = 0; side < 4; side++)
+            {
+                Vector3 n = Quaternion.Euler(0f, side * 90f, 0f) * (-fwd);
+                Vector3 along = Vector3.Cross(Vector3.up, n);
+                for (int i = 0; i < per; i++)
+                {
+                    Vector3 at = Ground(centre + n * half + along * (-half + 1f + i * 2f));
+                    bool gate = side == 0 && i == per / 2;
+                    GameObject piece = FixturesBoard.Spawn(gate ? "wood_gate" : "wood_wall_half", at, Quaternion.LookRotation(n));
+                    if (gate)
+                        piece.GetComponent<ZNetView>().GetZDO().Set(TagKey, gateTag);
+                }
+            }
+            yield return null;
+            for (int i = 2; i + 2 < args.Length; i += 3)
+            {
+                string prefab = args[i], tag = args[i + 1], where = args[i + 2];
+                Vector3 at = where switch
+                {
+                    "edge" => centre + fwd * (half - 0.8f),
+                    "gate" => centre - fwd * (half - 1.2f),
+                    _ => centre,
+                };
+                GameObject go = Spawn(prefab, Ground(at) + Vector3.up * 0.2f, tag);
+                yield return null;
+                Character c = go.GetComponent<Character>();
+                c.SetTamed(true);
+                go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_tameLastFeeding, 0L);
+            }
+            VfhLog.I(LogCat.Test, "fixture.pen", ("centre", centre), ("size", per * 2), ("gate", gateTag));
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        private static IEnumerator Brief()
+        {
+            yield return null;
+        }
+
         private static IEnumerator Tame(string[] args)
         {
             Vector3? at = AtTag(ref args);
+            int stars = 0;
+            string? named = null;
+            bool young = false;
+            int si = Array.IndexOf(args, "stars");
+            if (si >= 0)
+            {
+                stars = int.Parse(args.ElementAtOrDefault(si + 1) ?? "0", CultureInfo.InvariantCulture);
+                args = args.Take(si).Concat(args.Skip(si + 2)).ToArray();
+            }
+            int ni = Array.IndexOf(args, "named");
+            if (ni >= 0)
+            {
+                named = args.ElementAtOrDefault(ni + 1) ?? "Pet";
+                args = args.Take(ni).Concat(args.Skip(ni + 2)).ToArray();
+            }
+            if (args.Contains("young"))
+            {
+                young = true;
+                args = args.Where(a => a != "young").ToArray();
+            }
             string prefab = args.ElementAtOrDefault(0) ?? "Boar";
+            if (young)
+                prefab = Hirelings.Work.Ranch.AnimalCatalog.Find(prefab)?.YoungPrefabs.FirstOrDefault() ?? throw new InvalidOperationException($"{prefab} has no young");
             string tag = args.ElementAtOrDefault(1) ?? "";
             float distance = args.Length > 2 ? float.Parse(args[2], CultureInfo.InvariantCulture) : 20f;
             HiringBoard board = Board();
@@ -388,7 +547,15 @@ namespace VikingsForHire.Testing
             yield return null;
             Character c = go.GetComponent<Character>() ?? throw new InvalidOperationException($"{prefab} isn't a creature");
             c.SetTamed(true);
-            go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_tameLastFeeding, 0L);
+            if (stars > 0)
+                c.SetLevel(stars + 1);
+            ZDO tz = go.GetComponent<ZNetView>().GetZDO();
+            tz.Set(ZDOVars.s_tameLastFeeding, 0L);
+            if (named != null)
+            {
+                tz.Set(ZDOVars.s_tamedName, named);
+                tz.Set(ZDOVars.s_tamedNameAuthor, Player.m_localPlayer?.GetPlayerName() ?? "Tester");
+            }
             VfhLog.I(LogCat.Test, "fixture.tame", ("prefab", prefab), ("tag", tag), ("hungry", go.GetComponent<Tameable>()?.IsHungry() ?? false));
             yield return null;
         }

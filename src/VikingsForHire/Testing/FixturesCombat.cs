@@ -83,6 +83,21 @@ namespace VikingsForHire.Testing
                 }
                 return Pause(0.1f);
             });
+            Fixtures.Add("hit_tame_by_hireling", "<tag> <job> - the nearest hireling of that job hits a tagged tame once (slash 50), as its attack would", args =>
+            {
+                GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Character tame = go.GetComponent<Character>() ?? throw new InvalidOperationException("not a creature");
+                if (!Enum.TryParse(args.ElementAtOrDefault(1) ?? "", true, out JobType job))
+                    throw new InvalidOperationException("usage: hit_tame_by_hireling <tag> <job>");
+                Hireling h = Hireling.Loaded.Where(x => x != null && x.Job == job).OrderBy(x => Vector3.Distance(x.transform.position, tame.transform.position)).FirstOrDefault()
+                             ?? throw new InvalidOperationException($"no {job} near");
+                var hit = new HitData { m_point = tame.GetCenterPoint(), m_dir = Vector3.forward };
+                hit.m_damage.m_slash = 50f;
+                hit.SetAttacker(h.Humanoid);
+                tame.Damage(hit);
+                VfhLog.I(LogCat.Test, "fixture.hit_tame_by_hireling", ("tame", tame.m_name), ("job", job));
+                return Pause(1f);
+            });
             Fixtures.Add("hit_me_by_hireling", "<share=0.2> - as hit_me, but the hit comes from the last spawned hireling (hirelings never hurt players)", HitMeByHireling);
             Fixtures.Add("protect", "<on|off> - the tester's protection: off lets hits reach you for the rest of this test (the next test turns it on again)", args =>
             {

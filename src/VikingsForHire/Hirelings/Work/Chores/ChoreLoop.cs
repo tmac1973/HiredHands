@@ -181,6 +181,7 @@ namespace VikingsForHire.Hirelings.Work.Chores
             IReadOnlyDictionary<string, string>? orders = board == null ? null
                 : h.Job == JobType.Farmer ? Farm.FarmState.For(board).Why
                 : h.Job == JobType.Cook ? Kitchen.KitchenState.Why(board, h.Hid)
+                : h.Job == JobType.Rancher ? Ranch.RanchState.For(board).Why
                 : null;
             if (orders != null)
                 foreach (KeyValuePair<string, string> kv in orders)
@@ -221,7 +222,17 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 return "off";
             if (ctx.Level < ChoreRules.FirstUnlock(ctx.Job, kind))
                 return "locked";
+            if (kind == ChoreKind.Animals && RancherOnBoard(ctx.Hireling.BoardId))
+                return "rancher";
             return StewardCompat.HandledBy(kind) is string mod ? mod : null;
+        }
+
+        /// <summary>Whether a board has an active Rancher: its Steward leaves feeding to him.</summary>
+        public static bool RancherOnBoard(string boardId)
+        {
+            if (Board.BoardOrders.BoardOf(boardId)?.Zdo is not ZDO zdo)
+                return false;
+            return Board.BoardRosterOps.Read(zdo).Entries.Any(e => e.Job == JobType.Rancher && e.State == ContractState.Active);
         }
 
         public static bool ServerAllows(ChoreKind kind)
@@ -243,6 +254,9 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 ChoreKind.Plant => VfhConfig.FarmerPlant,
                 ChoreKind.Stoves => VfhConfig.CookStoves,
                 ChoreKind.Craft => VfhConfig.CookCraft,
+                ChoreKind.RanchFeed => VfhConfig.RancherFeed,
+                ChoreKind.Slaughter => VfhConfig.RancherSlaughter,
+                ChoreKind.Eggs => VfhConfig.RancherEggs,
                 _ => VfhConfig.StewardRepairs,
             };
             return setting.Value;

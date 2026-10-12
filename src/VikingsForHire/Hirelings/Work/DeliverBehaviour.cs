@@ -138,7 +138,7 @@ namespace VikingsForHire.Hirelings.Work
         private void Plan(Hireling h)
         {
             _planAt = Time.time;
-            List<Container> chests = ChestFinder.Find(h.Home, h.Radius);
+            List<Container> chests = ChestModes.Put(ChestFinder.Find(h.Home, h.Radius)).ToList();
             _chests = new Dictionary<string, Container>();
             var infos = new List<ChestInfo>();
             foreach (Container c in chests)

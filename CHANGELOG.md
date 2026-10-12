@@ -1,5 +1,50 @@
 # Changelog
 
+## 0.9.0
+
+**Everyone updates together:** a new job, new order kinds and new data-file entries; the server and every player need 0.9.0.
+
+- **The Rancher,** a new worker (level 2 board, one per board, with a butcher knife) who keeps your tamed animals:
+  - **Ranch orders** on the board's Orders tab: meat ("keep 40 raw meat"), eggs, and breeding pools ("keep 4 boars
+    breeding", never below 2).
+  - **Slaughters** only while a meat order is short and only above a kind's pool, the **lowest-star adult first**, so the
+    pool is always your best animals and the herd breeds upward. Never young animals, never a pet a player has named,
+    never a kind with no pool. Picks up everything dropped and stores it.
+  - **Eggs** are collected up to the egg order; the rest are left to hatch.
+  - **Feeds** the herd; a Steward on the same board leaves feeding to him (with PetPantry, both leave it to PetPantry).
+  - Works with any tameable animal that breeds and drops meat, modded ones included.
+  - **Keeps pens shut:** works over the fence when he can reach; otherwise waits for the gate to clear and shuts it behind
+    him. An animal that gets out is reported.
+  - His Shift+E **Problems** list says why an order isn't met or a pen isn't breeding (crowded, no partner, hungry, no feed).
+- **Hirelings hit like a player with the same weapon, not twice as hard.** Their weapons already get better with level;
+  the level table's `guardDamageMult` multiplied that again (2.2 at level 4, 5.2 at level 8), so a level 4 archer one-shot
+  Black Forest monsters and took the Elder down in 44 s. The default is now 1.0 at level 1 to 1.3 at levels 7-8.
+  **Existing servers keep their data file's numbers:** to take the new ones, set `guardDamageMult` under each of the
+  `hirelingLevels` in `Spronglehump.HiredHands.yml` (1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.3), or turn
+  `GuardMeleeDamage` / `GuardRangedDamage` / `WizardDamage` down instead.
+- **Guards' Gather Here does something:** a guard, archer or wizard parked with Gather Here picks up loot lying round its
+  spot between fights, like a Steward, and brings it to the chests when released or sent home.
+- **Board upgrades need one boss item each, its trophy:** level 5 took 5 dragon tears (a second Moder kill) and now takes
+  10 freeze glands from drakes; level 2's 3 hard antlers (all of Eikthyr's) are now 10 more deer hide. Existing servers
+  keep their data file's costs: change `DragonTear: 5` to `FreezeGland: 10` under level 5, and `HardAntler: 3` /
+  `DeerHide: 20` to `DeerHide: 30` under level 2, in `Spronglehump.HiredHands.yml`.
+- **Torches up high:** a torch the Steward can't reach (placed high, for looks) is remembered after two tries and left
+  alone for the session, and his Problems list names it so you fuel it. Shift+E on a fire or torch near a board marks it
+  for workers to leave alone altogether.
+- **Seed orders no longer lock up their crop:** with a few seeds under a big seed order and none of the produce to plant
+  for seeds (7 onion seeds, an order for 100, no onions), the crop order may now plant those seeds; the crop then feeds
+  the seed order. Before, neither moved.
+- **Doors hirelings leave shut:** Shift+E on a door near a board marks it (a pen's gates); hirelings never open it or route
+  through it, even when it's open. Shift+E again clears it.
+- **Chest modes:** Shift+E on a chest near a board sets what workers may do with it: put in and take out (default), put
+  in only (not counted as stock: a pen's feed chest the Cook leaves alone), take out only, or leave alone. Shown in the
+  chest's hover text; follows the wards.
+- **No more stuck under an overhang:** a hireling on a low terrace under a stone floor ran into the wall instead of taking
+  the stairs back up (the game put it on the floor above). It takes the stairs now.
+- **Every hireling minds the gate:** with tame animals near a door, hirelings wait for them to move off before opening it
+  and shut it as soon as they're through.
+  - Settings in *12 - Rancher*.
+
 ## 0.8.3
 
 Fixes from playtesting. Everyone should update (the server and the players: each game runs some hirelings).

@@ -60,6 +60,12 @@ namespace VikingsForHire.Hirelings
                         return true;
                     }
 
+                    // The Rancher slaughters tames on purpose (combat never targets one): his blow lands in full.
+                    if (__instance.IsTamed() && from!.Job == JobType.Rancher)
+                    {
+                        VfhLog.I(LogCat.Combat, "ranch.slaughter_hit", ("hid", from.Hid), ("animal", __instance.m_name), ("damage", hit.GetTotalDamage()));
+                        return true;
+                    }
                     if (__instance.IsTamed())
                         return Blocked("hireling_on_tame", from!, __instance);
                     // Nor players, whatever PvP says: a stray splash or a spell's blast landed on whoever stood by the target.

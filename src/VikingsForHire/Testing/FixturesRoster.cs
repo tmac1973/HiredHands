@@ -284,6 +284,9 @@ namespace VikingsForHire.Testing
                 "seed" => Core.Orders.OrderKind.Seed,
                 "kitchen" => Core.Orders.OrderKind.Kitchen,
                 "station" => Core.Orders.OrderKind.Station,
+                "meat" => Core.Orders.OrderKind.Meat,
+                "egg" => Core.Orders.OrderKind.Egg,
+                "herd" => Core.Orders.OrderKind.Herd,
                 _ => Core.Orders.OrderKind.Crop,
             };
             switch (what)

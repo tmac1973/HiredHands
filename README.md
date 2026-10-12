@@ -68,6 +68,7 @@ Either way its slot on the board stays taken while it's away. Configs from older
 | Steward (was the Smelter) | Looks after the base: fires, beehives, smelting stations, mills, animals, repairs and more (see *The Steward* below) | One per board. Armed with a broom. Still `Smelter` in the data file and commands |
 | Farmer | Plants and harvests your cultivated field to the board's orders (see *The Farmer and the Cook* below) | Needs a level 2 board; one per board. Carries a cultivator |
 | Cook | Cooks on your spits and in your oven, crafts at the cauldron, prep table and mead ketill, to the board's orders | Needs a level 2 board; one per board. Carries a ladle |
+| Rancher | Feeds your tamed animals and slaughters for meat, keeping a breeding pool of the best of each kind (see *The Rancher* below) | Needs a level 2 board; one per board. Carries a butcher knife |
 | Guard (melee) | Patrols the radius and fights | Stances: Passive, Defensive, Aggressive |
 | Guard (ranged) | Same, with a bow | |
 | Wizard | Same, casting a staff's spell from range | Needs a level 6 board, or level 2 with Therzie's Wizardry. See *Wizards* below |
@@ -83,6 +84,25 @@ Woodcutters and miners work twice the board's radius. Everyone defends themselve
 **Doors.** Hirelings open doors in their way and close them behind themselves (never in a player's face). They only use doors the board's owner may use under wards, never locked doors, and don't wander through doors when idle. `HirelingsOpenDoors` turns this off.
 
 **They talk back.** Now and then a hireling near you says something, in a speech bubble like the trader's: about its job, about what it's doing, or about you standing there watching. `HirelingChatter` turns it off and `ChatterMinutes` (default 5) sets roughly how often each one speaks; both are your own settings.
+
+## Chests: what workers may do with each
+
+Workers use the chests in their area: they store what they bring into a chest that already holds that item, and take
+what they need from any. **Shift+E on a chest** near a hiring board sets what workers may do with that one (its hover
+text says which):
+
+- **Put in and take out** (the default).
+- **Put in only:** workers store into it but never take from it, and what's in it doesn't count as the base's stock for
+  orders and limits. For a feed chest in an animal pen: the Farmer stores carrots there, the Cook never takes them.
+- **Take out only:** workers take from it but never store into it (a supply chest you fill yourself).
+- **Leave alone:** workers ignore it.
+
+Changing it follows the wards, like the board. If another mod already uses Shift+E on chests, turn `ChestModeOnShiftUse`
+off in *4 - Work* (your own setting).
+
+**Doors:** Shift+E on a door near a hiring board marks it for hirelings to leave shut (a pen's gates, so they don't walk
+through the pen and let the animals out); again to clear it. Hirelings never open a marked door, never use it on their
+routes, and don't walk through it even when it's standing open.
 
 ## How hirelings fight
 
@@ -198,6 +218,34 @@ Both work to the board's **Orders** tab: a list of "keep at least X of this in t
 
 Both have Shift+E chore toggles (Harvesting / Planting, Spits and ovens / Cauldron…) and server settings in *11 - Farmer and Cook* (`FarmerHarvest`, `FarmerPlant`, `CookStoves`, `CookCraft`). The Steward's Board food chore puts the Cook's food on the board, so a base can feed its own hirelings.
 
+## The Rancher
+
+The Rancher keeps the base's animals: every creature that can be tamed, breeds and drops meat (boars, wolves, lox, hens,
+asksvin, and modded animals), tamed and inside the board's area.
+
+- **Orders**, on the board's Orders tab under *Add ranch order*:
+  - **Meat:** "keep at least 40 raw meat" (any meat an animal you keep drops).
+  - **Eggs:** "keep at least 20 eggs". He collects eggs until there are that many; after that he leaves them where they
+    lie, so they hatch (left warm, under a roof) and the flock grows.
+  - **Breeding pool:** "keep 4 boars breeding": how many of a kind to keep alive, never fewer than 2.
+- **Slaughter:** only while a meat order is short, and only animals above their kind's breeding pool. He slaughters the
+  **lowest-star adult** first, so the pool is always your best animals; young (piglets, cubs, chicks) are never
+  slaughtered. Babies take their mother's stars, and each star doubles the meat, so the herd climbs toward your best.
+  He picks up everything it drops (meat, leather, pelts, trophies) and puts it in the chests.
+- **No breeding pool, no slaughter:** a kind without a pool order is never slaughtered; his Shift+E *Problems* list says
+  to set one.
+- **Pets:** an animal a player has named is never slaughtered and doesn't count toward the pool.
+- **Feeding:** he feeds the herd from the chests. A Steward on the same board leaves feeding to him; with PetPantry both
+  leave it to PetPantry.
+- **Problems** (Shift+E): each ranch order and why it isn't met: no animal above the pool, no pool set, a pen too crowded
+  to breed (vanilla stops breeding with too many of a kind close together: 5 boars within 10 m), no partner close enough, hungry, nothing they eat in the
+  chests. He doesn't move animals: build another pen.
+- **Pens:** he works over the fence whenever he can reach (feeding and slaughtering across a low fence or half wall).
+  When he has to go in, he waits until no animal stands by the gate and shuts it right behind him. Every hireling does
+  the same at any door with tame animals near it. An animal of the herd that gets out of its pen shows in his Problems
+  list (boars can't be led back, so you'll want to know).
+- **Settings** in *12 - Rancher*: `RancherFeed`, `RancherSlaughter`, `RancherEggs`.
+
 ## Followers: the Command Stone
 
 Craft the **Command Stone** at a workbench with a hiring board of a high enough level within 30 m of it. Each quality takes more followers:
@@ -261,10 +309,10 @@ navLinks:
 | Level | Upgrade needs | Combat | Workers | Max radius |
 |---|---|---|---|---|
 | 1 | (build cost) | 1 | 2 | 20 m |
-| 2 | Eikthyr trophy, Hard antler 3, Deer hide 20, Flint 20, Wood 50 | 1 | 4 | 25 m |
+| 2 | Eikthyr trophy, Deer hide 30, Flint 20, Wood 50 | 1 | 4 | 25 m |
 | 3 | The Elder trophy, Bronze 10, Core wood 40, Troll hide 5, Greydwarf eye 20 | 2 | 6 | 30 m |
 | 4 | Bonemass trophy, Iron 20, Ancient bark 40, Guck 10, Withered bone 10 | 2 | 8 | 35 m |
-| 5 | Moder trophy, Silver 20, Dragon tear 5, Wolf pelt 10, Obsidian 20 | 3 | 8 | 40 m |
+| 5 | Moder trophy, Silver 20, Freeze gland 10, Wolf pelt 10, Obsidian 20 | 3 | 8 | 40 m |
 | 6 | Yagluth trophy, Black metal 20, Linen thread 20, Needle 20, Lox pelt 5 | 3 | 8 | 45 m |
 | 7 | The Queen trophy, Black core 3, Eitr 15, Yggdrasil wood 40, Carapace 20 | 4 | 8 | 50 m |
 | 8 | Fader trophy, Flametal 20, Blackwood 40, Asksvin hide 10, Molten core 3 | 4 | 8 | 60 m |
@@ -276,7 +324,7 @@ and the board offers workers only. Ones already hired stay.
 
 **How many hirelings.** A board has two caps (since 0.7.0):
 - **Combat:** guards, melee or archers in any mix.
-- **Workers:** everyone else, with at most 2 woodcutters, 2 miners, 1 Steward, 1 Farmer and 1 Cook per board.
+- **Workers:** everyone else, with at most 2 woodcutters, 2 miners, 1 Steward, 1 Farmer, 1 Cook and 1 Rancher per board.
 
 So a base can be fully worked from a level 4 board, while the fighting force stays small. A contract on its way out
 still counts against its cap until the hireling has gone, though a replacement for its job can already be hired.
@@ -300,7 +348,7 @@ A board hires up to its own level. Higher-level hirelings have more health and a
 
 Two files in `BepInEx/config`, both synced from the server and only editable there in multiplayer:
 
-- **`Spronglehump.HiredHands.cfg`**: rules and behaviour, in sections *General* (raw food, permadeath, respawn, graves), *Base* (what counts as a base, board spacing), *Hiring* (arrival delay, unpaid days, low funds warnings and map pins), *Work* (tree and rock safety distances, terrain protection and field digging, gathering noise, smelter refill threshold, chest minimums), *Steward* (chores on or off, refill and repair thresholds), *Farmer and Cook* (chores on or off), *Followers* (portal and ship radius, catch-up, when lost followers go home, trip times), *Combat*, *Balance log* and *Debug*.
+- **`Spronglehump.HiredHands.cfg`**: rules and behaviour, in sections *General* (raw food, permadeath, respawn, graves), *Base* (what counts as a base, board spacing), *Hiring* (arrival delay, unpaid days, low funds warnings and map pins), *Work* (tree and rock safety distances, terrain protection and field digging, gathering noise, smelter refill threshold, chest minimums), *Steward* (chores on or off, refill and repair thresholds), *Farmer and Cook* (chores on or off), *Rancher* (chores on or off), *Followers* (portal and ship radius, catch-up, when lost followers go home, trip times), *Combat*, *Balance log* and *Debug*.
 - **`Spronglehump.HiredHands.yml`**: the data tables: board levels and their upgrade costs, hireling levels (health, armour, cargo slots and weight, hire fee and upkeep in food and coins), per-job settings (cost multiplier, pickup list, what gatherers can be told to gather, gear by level, minimum board level, work-radius multiplier, steward stations and reserves), raw foods, names. Edits are picked up live. An invalid file is rejected with a log message and the defaults are used. **Updating the mod doesn't change values already in this file**: new settings are added with their defaults, but changed defaults (like 0.2.1's coin-only hiring and food-only upkeep) only reach a server when you edit the file or delete it to get a fresh one.
 
 ```yaml
@@ -323,7 +371,7 @@ jobs:
 - The board's funds and hirelings' cargo are excluded from AzuAutoStore and AzuCraftyBoxes (and so from PullMats), so they never take your hireling money or cargo.
 - With AzuCraftyBoxes, **board upgrades take their materials from nearby chests** too (your inventory first, then the chests CraftyBoxes lets you pull from within its own range of the board). The Upgrade tab counts them ("Requires (counting nearby chests)"). Turn it off for yourself with `UpgradeFromNearbyChests` in the *Hiring* section of the cfg.
 - With AzuAutoStore, stewards leave bars and other station output for Azu to store into a chest that already holds it (seed one bar into a chest). Stations that keep their output inside, like the spinning wheel, are still emptied by the Steward.
-- With PetPantry the Steward doesn't feed animals; with Torches Eternal it doesn't fuel fires (the Shift+E chore list says "handled by PetPantry/TorchesEternal").
+- With PetPantry the Steward and the Rancher don't feed animals; with Torches Eternal it doesn't fuel fires (the Shift+E chore list says "handled by PetPantry/TorchesEternal").
 - With Therzie's Wizardry, wizards can be hired from a level 2 board and carry its staffs and robes (see *Wizards*).
 - With PlantEverything, the Farmer picks the bushes and other plants you planted with it (for short orders); with PlantEasily, its rows use PlantEasily's spacing and it harvests within PlantEasily's harvest radius.
 

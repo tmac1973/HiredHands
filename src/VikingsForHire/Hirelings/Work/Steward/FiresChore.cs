@@ -51,7 +51,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 Fireplace f = p.GetComponentInChildren<Fireplace>();
                 if (f == null || f.m_nview == null || !f.m_nview.IsValid() || f.m_fuelItem == null || f.m_infiniteFuel || !f.m_canRefill)
                     continue;
-                if (!ctx.BoardOwnerMayUse(f.transform.position))
+                if (!ctx.BoardOwnerMayUse(f.transform.position) || Avoided(f))
                     continue;
                 yield return f;
             }
@@ -62,6 +62,19 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private static float Urgency(Fireplace f) => ChoreUrgency.Fire(Fuel(f), f.m_maxFuel, VfhConfig.StewardFireRefillFraction.Value);
 
         private const float FireSkipSeconds = 300f;
+        private const int StuckTripsToGiveUp = 2;
+
+        /// <summary>Marked by a player (Shift+E on it) for workers to leave alone: a torch up high, for looks.</summary>
+        public const string AvoidKey = "vfh_fire_avoid";
+
+        public static bool Avoided(Fireplace f) => f.m_nview != null && f.m_nview.IsValid() && f.m_nview.GetZDO().GetInt(AvoidKey) != 0;
+
+        // Fires a Steward got stuck walking to this many times, by ZDO id: left alone for the rest of the session (a torch
+        // placed up high, for looks), and listed in its Problems so the player fuels it.
+        private static readonly Dictionary<ZDOID, int> StuckTrips = new();
+
+        private static bool OutOfReach(Fireplace f) =>
+            f.m_nview != null && f.m_nview.IsValid() && StuckTrips.TryGetValue(f.m_nview.GetZDO().m_uid, out int n) && n >= StuckTripsToGiveUp;
 
         public IEnumerable<ChoreJob> Candidates(WorkContext ctx)
         {
@@ -70,6 +83,11 @@ namespace VikingsForHire.Hirelings.Work.Steward
             foreach (Fireplace f in Fires(ctx))
             {
                 float u = Urgency(f);
+                if (u > 0f && OutOfReach(f))
+                {
+                    ChoreNotes.Add(ActivityText.Make("$vfh_fire_out_of_reach", f.m_name));
+                    continue;
+                }
                 if (u <= 0f || Reservations.IsReservedByOther(f, ctx.Hireling.Hid) || Reservations.IsSkipped(f))
                     continue;
                 string fuel = f.m_fuelItem.gameObject.name;
@@ -128,7 +146,13 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 VfhLog.I(LogCat.Smelter, "steward.fire_stuck", ("hid", h.Hid), ("step", _step), ("pos", h.transform.position),
                     ("fire", stuckAt != null ? $"{stuckAt.m_name}@{stuckAt.transform.position}" : ""));
                 if (stuckAt != null)
+                {
                     Reservations.Skip(stuckAt, FireSkipSeconds);
+                    ZDOID id = stuckAt.m_nview.GetZDO().m_uid;
+                    StuckTrips[id] = (StuckTrips.TryGetValue(id, out int trips) ? trips : 0) + 1;
+                    if (StuckTrips[id] == StuckTripsToGiveUp)
+                        VfhLog.I(LogCat.Smelter, "steward.fire_out_of_reach", ("hid", h.Hid), ("fire", $"{stuckAt.m_name}@{stuckAt.transform.position}"));
+                }
                 if (_chest != null && _step == Step.Fetch)
                     Reservations.Skip(_chest, ChestSkipSeconds);
                 return End(h, 5f, ChoreProgress.Failed);

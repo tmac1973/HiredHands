@@ -25,6 +25,42 @@ everything behaves as before except the roof fix.
 - [ ] By hand: a board by the sea: hirelings still keep out of the water (idle, park, arrivals).
 - [ ] Optional (HearthBelow added to a test profile): a board in a dug-out cave above sea level: guards patrol the cave, a follower sent home turns up in the cave, the Steward repairs in it, no rain chatter inside.
 
+## 0.9.0 (packaged 2026-10-11): the Rancher (new rows all pass; regression partly run: storage, orders, Steward, farm, kitchen spit and cauldron pass; combat, wizards, navigation not rerun)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (rancher branch) | The Rancher (plan/rancher): ranch orders (meat, eggs, breeding pools ≥ 2) on the Orders tab; RanchPlanner (slaughter the lowest-star adult above its kind's pool while its meat is short; never young, named or unpooled; eggs while short; reasons); AnimalCatalog/HerdScan from the game (modded animals too); feeding (the Steward and PetPantry step aside); SlaughterChore (one killing blow, drops collected and delivered; only a Rancher's hits land on tames); EggsChore (the Steward's tidy leaves eggs on a ranch board); Problems list. Rows VFH-RANCH-1 to -11 | the game simulating the Rancher; orders on the board owner's |
+| (rancher branch) | Pen safety (plan/rancher phase 07, Tim: boars can't be led back): over the fence first (a piece below the eye doesn't block reaching a creature; spots further out are tried); any hireling waits while a tame is within 3 m of a door (20 s at most) and shuts a door at once (1.5 m past) with tames about; a herd animal seen penned and now out is reported (Problems). Rows VFH-RANCH-12, -13, -14 | the game simulating the hireling |
+| (rancher branch) | Combat balance: the default level table's guardDamageMult was 1.0-5.2 on top of gear that already rises with level (Thorvald, level 4 archer: 160-185 per arrow, about 2.2x a player with the same bow; the Elder in 44 s). Now 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.3. Existing data files keep theirs (CHANGELOG says what to set) | the game hitting |
+| (rancher branch) | Chest modes (Tim: a pen's feed chest the Farmer fills and the Cook mustn't empty): Shift+E on a chest near a board cycles Normal / Put only / Take only / Off (ZDO `vfh_chest_mode`, ward-checked, hover shows it, `ChestModeOnShiftUse` to turn the key off). Taking uses only Normal/Take-only chests, storing and room only Normal/Put-only, stock counts (orders, limits, panels) only Normal/Take-only. Rows VFH-CHEST-1, -2 | every game (taking, storing); the player setting it |
+| (rancher branch) | Doors marked for hirelings to leave shut (Tim: hirelings walked through the pen, gates on both sides, and the animals got out): Shift+E on a door near a board toggles ZDO `vfh_door_avoid`; DoorRules.Usable refuses it, detours skip it even open, link routes treat it as blocked, the route scan leaves it out. Row VFH-DOOR-1 | the game simulating the hireling; the player marking it |
+| (rancher branch) | Torches out of reach (Tim places them high for looks): two stuck trips and a fire is left alone for the session (`steward.fire_out_of_reach`), listed in Problems (`vfh_fire_out_of_reach`); Shift+E on a fire near a board marks it for workers to leave alone (ZDO `vfh_fire_avoid`). Row VFH-CHORE-13 | the game simulating the Steward; the player marking it |
+| (rancher branch) | Seed order deadlock (Grima, 7 onion seeds, OnionSeeds order 100, no onions): a seed order that can't plant anything (no produce to plant, nothing growing) no longer reserves its seeds from the crop order. Unit test | the game simulating the Farmer |
+| (rancher branch) | Gather Here for guards (melee, archers, wizards) now picks up loot round their spot between fights, like the Steward (FieldLoot, `LootRadius`); delivered when released or sent home. Row VFH-LOOT-2 | the game simulating the hireling |
+| (rancher branch) | Board upgrade costs: only the boss trophy is a boss item at every level (level 5 DragonTear 5 → FreezeGland 10; level 2 HardAntler 3 dropped, DeerHide 20 → 30). Existing data files keep theirs (CHANGELOG says what to change) | the board owner's machine (upgrade) |
+
+### To test (batch)
+- [ ] Macro (single player): `vfh_t_ranch_all` (VFH-RANCH-1 to -14 with -3b, -7b); regression `vfh_test_chain animals tidy orders farm_seeds cook_spit cook_cauldron combat1 stance4 noeffect store1 hire4 why1 why2`.
+- [ ] By hand: the Orders tab's ranch picker and rows, the Rancher's Problems view.
+- [ ] By hand (live server, after setting the new guardDamageMult in the server's data file): Thorvald's arrows land about 80-100 on Black Forest monsters; the balance log's fights show it.
+- [ ] Regression: the combat and wizard rows still pass with the gentler multiplier (`vfh_t_wiz_all`, `vfh_test_chain combat1 stance4 stance5 block2 dodge1 noeffect`).
+- [ ] Macro: `vfh_test_chain loot loot_guard` (Steward and archer Gather Here pick up loot).
+- [ ] Macro: `vfh_test_chain chest_putonly chest_put door_mark fire_mark fires farm_seeds`. By hand: Shift+E on a pen gate, hover shows "leave this door shut", hirelings walk round the pen. By hand: Shift+E on a chest cycles the four modes, the hover text shows it, a chest outside your ward can't be changed.
+- [ ] By hand (live server): a Rancher works a real herd for a session (orders, slaughter, a named pet spared, Problems readable).
+
+## 0.8.4 (not released): stuck under an overhang
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (hotfix-084 branch) | Grima stuck on a lower terrace under a stone floor's overhang, running into the wall: with no walkable map there, the game put him on the floor above, so "is there a direct route?" said yes and the base's stairs (link routes) weren't used. A route that starts more than 1 m off our height now doesn't count, so he takes the stairs | the game simulating the hireling |
+| (hotfix-084 branch) | Seed order deadlock (Grima: 7 onion seeds, OnionSeeds order 100, no onions; neither order moved): a seed order that can't plant anything (no produce to plant, nothing growing) no longer reserves its seeds from the crop order, so the seeds are planted and the onions then feed the seed order. Unit test | the game simulating the Farmer |
+
+### To test (batch)
+- [ ] By hand: Grima's terrace: he walks back up the stone stairs instead of into the wall (`navlinks.hop` up in the log).
+- [ ] Regression: `vfh_test_chain door1 nav1 nav2 nav3 nav4 nav5 nav6 navscan1 navscan2 navscan3 pass` still pass.
+
 ## 0.8.3 (packaged 2026-10-11, in-game tests deferred): arrows go where the archer aims, orders count the board's pile, reach fixes, stuck torches
 
 ### Fixed or added

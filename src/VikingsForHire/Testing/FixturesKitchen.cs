@@ -61,7 +61,7 @@ namespace VikingsForHire.Testing
                 Vector3 feet;
                 if ((args.ElementAtOrDefault(1) ?? "beside") == "above")
                 {
-                    Vector3 from = at + Vector3.right * 1f + Vector3.up * 4f;
+                    Vector3 from = at + Vector3.right * 0.5f + Vector3.up * 4f;
                     feet = Physics.Raycast(from, Vector3.down, out RaycastHit hit, 4f, Hirelings.Nav.StairSampler.FloorMask, QueryTriggerInteraction.Ignore)
                         ? hit.point : throw new InvalidOperationException("no floor above");
                 }

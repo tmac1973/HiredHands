@@ -33,7 +33,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         public float RestAfter { get; private set; }
 
         private static HashSet<string> Stored(WorkContext ctx) =>
-            new(ctx.Chests.SelectMany(c => c.GetInventory().GetAllItems()).Where(i => i.m_dropPrefab != null).Select(i => i.m_dropPrefab.name));
+            new(ctx.PutChests.SelectMany(c => c.GetInventory().GetAllItems()).Where(i => i.m_dropPrefab != null).Select(i => i.m_dropPrefab.name));
 
         private static IEnumerable<ItemDrop> Litter(WorkContext ctx, HashSet<string> stored)
         {
@@ -44,7 +44,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     continue;
                 if (!stored.Contains(d.m_itemData.m_dropPrefab.name) || d.m_itemData.m_customData.ContainsKey(DropPile.Tag))
                     continue;
-                if (StorageRoom.NoRoom(ctx.AllChests, d.m_itemData.m_dropPrefab.name))
+                if (StorageRoom.NoRoom(ctx.PutChests, d.m_itemData.m_dropPrefab.name))
                     continue;
                 ZDO z = d.m_nview.GetZDO();
                 if (z == null || z.GetBool(AnimalsChore.FeedKey) || d.GetTimeSinceSpawned() < minAge)
@@ -58,6 +58,10 @@ namespace VikingsForHire.Hirelings.Work.Steward
         // Inside the area, under a ward the board's owner may use, not at a player's feet (they may want it back).
         private static bool Tidyable(ItemDrop d, WorkContext ctx)
         {
+            // On a board with a Rancher, eggs are his: collected for the egg order or left to hatch.
+            string item = d.m_itemData.m_dropPrefab.name;
+            if (Ranch.AnimalCatalog.Kinds.Any(k => k.EggItem == item) && ChoreLoop.RancherOnBoard(ctx.Hireling.BoardId))
+                return false;
             Vector3 p = d.transform.position;
             return Utils.DistanceXZ(p, ctx.Home) <= ctx.Radius && Player.GetClosestPlayer(p, PlayerClearance) == null && ctx.BoardOwnerMayUse(p);
         }
@@ -129,7 +133,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     noChest[name] = (noChest.TryGetValue(name, out int n) ? n : 0) + 1;
                     continue;
                 }
-                else if (StorageRoom.NoRoom(ctx.AllChests, name))
+                else if (StorageRoom.NoRoom(ctx.PutChests, name))
                     r = $"chests full ({name})";
                 else if (d.m_nview.GetZDO()?.GetBool(AnimalsChore.FeedKey) == true)
                     r = "animal food";

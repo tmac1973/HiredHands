@@ -124,7 +124,7 @@ namespace VikingsForHire.UI
             if (_limits && BoardOrders.BoardOf(h.BoardId) is HiringBoard lb)
             {
                 Core.Orders.OrderList ol = BoardOrders.For(lb);
-                List<Container> chests = ChestFinder.Find(h.Home, h.Radius).ToList();
+                List<Container> chests = Hirelings.Work.ChestModes.Stock(ChestFinder.Find(h.Home, h.Radius)).ToList();
                 signature += $"|{_limits}|{_limitsPage}|{ol.Serialize()}|" +
                              string.Join(",", ol.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Station).Select(o => Hirelings.Work.Steward.StewardLimits.Held(chests, o.Item)));
             }
@@ -216,7 +216,7 @@ namespace VikingsForHire.UI
                 foreach (ChoreKind kind in ChoreRules.ChoresFor(h.Job))
                 {
                     string name = Localization.instance.Localize("$vfh_chore_" + ChoreKeys.Key(kind));
-                    string? state = LockedState(kind, steward, h.Level);
+                    string? state = LockedState(kind, steward, h.Level, h.BoardId);
                     if (state != null)
                     {
                         PanelUi.Text(t, name + ": " + state, 0f, y, 400f, 15, TextAnchor.MiddleCenter, PanelUi.Dim);
@@ -311,7 +311,7 @@ namespace VikingsForHire.UI
             y -= 40f;
             Core.Orders.OrderList list = BoardOrders.For(board);
             // Counted as the Steward counts: every chest in its area, reserves included.
-            List<Container> chests = ChestFinder.Find(h.Home, h.Radius).ToList();
+            List<Container> chests = Hirelings.Work.ChestModes.Stock(ChestFinder.Find(h.Home, h.Radius)).ToList();
             List<Core.Orders.ProductionOrder> limits = list.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Station).ToList();
             if (limits.Count == 0)
             {
@@ -395,6 +395,7 @@ namespace VikingsForHire.UI
                 JobType.Farmer => list.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Seed)
                     .Concat(list.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Crop)).ToList(),
                 JobType.Cook => list.Orders.Where(o => o.Kind == Core.Orders.OrderKind.Kitchen).ToList(),
+                JobType.Rancher => list.Orders.Where(o => o.IsRanch).ToList(),
                 _ => new List<Core.Orders.ProductionOrder>(),
             };
         }
@@ -428,7 +429,9 @@ namespace VikingsForHire.UI
                 Stock stock = board != null ? BoardOrders.Stock(board) : null!;
                 foreach (Core.Orders.ProductionOrder o in orders.Skip(_whyPage * WhyRowsPerPage).Take(WhyRowsPerPage))
                 {
-                    int have = stock.Have(o.Item);
+                    int have = o.Kind == Core.Orders.OrderKind.Herd
+                        ? (Hirelings.Work.Ranch.RanchState.For(board!).Adults.TryGetValue(o.Item, out int adults) ? adults : 0)
+                        : stock.Have(o.Item);
                     PanelUi.Icon(t, ObjectDB.instance.GetItemPrefab(o.Item)?.GetComponent<ItemDrop>()?.m_itemData.GetIcon(), -295f, y, 28f);
                     PanelUi.Text(t, ItemName(o.Item), -195f, y, 170f, 15, TextAnchor.MiddleLeft, o.Paused ? PanelUi.Dim : (Color?)null);
                     PanelUi.Text(t, $"{have} / {o.Target}", -75f, y, 80f, 15, color: have >= o.Target ? PanelUi.Good : PanelUi.Dim);
@@ -477,7 +480,10 @@ namespace VikingsForHire.UI
         {
             GameObject? go = ObjectDB.instance != null ? ObjectDB.instance.GetItemPrefab(prefab) : null;
             ItemDrop? drop = go != null ? go.GetComponent<ItemDrop>() : null;
-            return drop != null ? drop.m_itemData.m_shared.m_name : prefab;
+            if (drop != null)
+                return drop.m_itemData.m_shared.m_name;
+            // A breeding pool order is for an animal kind.
+            return ZNetScene.instance?.GetPrefab(prefab)?.GetComponent<Character>() is Character c ? c.m_name : prefab;
         }
 
         // Switch one item on or off for this gatherer (with "all": every follower of yours with the same job nearby).
@@ -497,10 +503,12 @@ namespace VikingsForHire.UI
         }
 
         // A chore that can't be switched on for this Steward: off on the server, done by another mod, or not unlocked yet.
-        private static string? LockedState(ChoreKind kind, JobData steward, int level)
+        private static string? LockedState(ChoreKind kind, JobData steward, int level, string boardId)
         {
             if (!Hirelings.Work.Chores.ChoreLoop.ServerAllows(kind))
                 return Localization.instance.Localize("$vfh_chore_state_disabled");
+            if (kind == ChoreKind.Animals && Hirelings.Work.Chores.ChoreLoop.RancherOnBoard(boardId))
+                return Localization.instance.Localize("$vfh_chore_state_rancher");
             if (Compat.StewardCompat.HandledBy(kind) is string mod)
                 return Localization.instance.Localize("$vfh_chore_state_handled", mod);
             int first = ChoreRules.FirstUnlock(steward, kind);
