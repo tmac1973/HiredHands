@@ -3,6 +3,17 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.9.3 (not released)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (miner-exposed branch) | Sigrid (level 4 miner, iron pickaxe) wouldn't touch a silver vein Tim had dug right out ("None of your miners can mine that"; Gather Here: "only buried or out-of-reach chunks left"). A chunk counted as above ground only by the game's ground height at its centre, and with HearthBelow a dug-out pit is its own terrain while that height stays the old surface. Now a chunk also counts when a ray straight down from the sky reaches it before any terrain | the game simulating the miner; the stone order on the player's |
+
+### To test (batch)
+- [ ] Not yet run in game (Tim playing; the dev profile has no HearthBelow). Regression `vfh_test_chain work1 work3 tier1` (mining, tool tiers) still passes.
+- [ ] By hand (live server, HearthBelow): dig a silver vein out, point the stone at it: "1 miner mining"; Sigrid breaks it and the chunks under the dug ground stay alone.
+
 ## 0.9.1 (packaged 2026-10-12): the board pays its wages; the ground under roofs and in caves
 
 Full regression run overnight 2026-10-12 in the dev game (all 176 rows, plus 3 new): everything passes except

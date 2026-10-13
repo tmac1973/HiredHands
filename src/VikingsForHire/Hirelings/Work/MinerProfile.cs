@@ -225,7 +225,20 @@ namespace VikingsForHire.Hirelings.Work
         {
             Bounds b = c.bounds;
             float ground = ZoneSystem.instance.GetGroundHeight(b.center);
-            return b.max.y > ground - BuriedBelow && b.min.y < ground + ReachAbove;
+            return (b.max.y > ground - BuriedBelow && b.min.y < ground + ReachAbove) || OpenToTheSky(c);
+        }
+
+        private static readonly int SkyMask = LayerMask.GetMask("terrain", "static_solid", "Default", "Default_small", "piece");
+
+        // A chunk the ground height doesn't see: a ray straight down from well above reaches it before any terrain. With
+        // HearthBelow a dug-out pit is its own terrain and the game's ground height there is still the old surface, so a
+        // silver vein Tim had dug right out read as buried ("None of your miners can mine that").
+        private static bool OpenToTheSky(Collider c)
+        {
+            Bounds b = c.bounds;
+            Vector3 top = new(b.center.x, b.max.y + 40f, b.center.z);
+            return Physics.Raycast(top, Vector3.down, out RaycastHit hit, 40f + b.size.y, SkyMask, QueryTriggerInteraction.Ignore) &&
+                   hit.collider.transform.root == c.transform.root;
         }
 
         private static float Extent(Component target)
