@@ -291,6 +291,27 @@ namespace VikingsForHire.Hirelings
             }
         }
 
+        /// <summary>A hireling's cargo window shows its weight against its limit ("308/375"), as yours does, not just the weight.</summary>
+        [HarmonyPatch(typeof(InventoryGui), "UpdateContainerWeight")]
+        private static class WeightLabelPatch
+        {
+            private static void Postfix(InventoryGui __instance)
+            {
+                try
+                {
+                    Inventory? inv = __instance.m_currentContainer != null ? __instance.m_currentContainer.GetInventory() : null;
+                    if (Hireling.ForCargo(inv) is not Hireling h || h.CargoWeightLimit <= 0f || __instance.m_containerWeight == null)
+                        return;
+                    int now = Mathf.CeilToInt(inv!.GetTotalWeight()), max = Mathf.RoundToInt(h.CargoWeightLimit);
+                    __instance.m_containerWeight.text = now >= max ? $"<color=red>{now}/{max}</color>" : $"{now}/{max}";
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("CargoGate.WeightLabel", e);
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(InventoryGrid), "UpdateGui")]
         private static class GreyPatch
         {
