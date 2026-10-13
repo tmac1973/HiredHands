@@ -3,6 +3,25 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## 0.10.0 (in progress, branch `enhancements`): hireling enhancements
+
+The plan is `plan/enhancements/` (12 phases). Each phase lands as its own commit with its rows; results below.
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| 2d96619 | Phase 01: the catalog of 126 enhancements (7 pairs per job), picks, owed/choose/respec rules, data section `enhancements` + `enhancementSettings.respecCostFraction` with defaults | data file (server-synced) |
+| fabbf89 | Phases 02-03: picks saved on the contract (roster format 4) and copied to the hireling; choose and respec ops; `Enhancements` switch; the Enhancements page in the Shift+E panel (confirm step), owed counts on hover and in the Roster tab, Respec at the board | the board owner's game runs the ops; the panel on the player's |
+| (phase 05) | Guard behaviours: Shield training (block power x1.15), Shield bash (stagger + 10 blunt every 12 s), Second wind (heal 25% below 30%, once a fight), Bodyguard (an enemy hitting someone within 6 m is made to go for the guard), Taunt (enemies within 8 m go for it for 5 s, with a shout), Bloodthirst (heals 10% of damage dealt), Cleave (a landed swing hits 2 more in front for half), Last stand (a killing blow leaves 1 health and 3 s untouchable, every 10 min), Rallying cry (hirelings within 15 m deal x1.10 while it fights). Taunt and Bodyguard only steer enemies this game owns (in multiplayer: usually the nearest player's) | the game simulating the guard; the damage hooks where the hit lands |
+| (phase 04) | The shared number boosts: health, armour, damage dealt and taken, attack and cast speed, move speed, cargo slots and weight, gathering swing, work radius, Masterwork (+1 quality on the main weapon or tool). The cargo grid gains a fifth row so Pack mule adds slots at level 8 (32 was the grid) | the game simulating the hireling |
+
+### To test (batch)
+- [x] Phase 04 rows VFH-ENH-5, 5b, 6, 6b-6f, 7, 8 pass (2026-10-13); regression `combat1 combat5 stance4 stance5 block1 dodge1 noeffect work1 work3 tier1 store1 deliver1 cargo_weight` and VFH-ENH-1..4c pass (BLOCK-1 failed once on its parry count, then passed twice).
+- [x] Phase 05 rows VFH-ENH-G0..G8 pass (2026-10-13).
+- [ ] By hand: Shield bash visibly staggers; Taunt's shout shows over the guard; Last stand leaves a guard on a sliver of health.
+- [ ] By hand: a level 8 worker with Pack mule: its cargo window shows a fifth row with 2 usable slots.
+- [ ] By hand: an enhanced Guard's hover shows its picks; turning `Enhancements` off on the server puts its health and armour back.
+
 ## 0.9.3 (packaged 2026-10-13): dug-out veins, portal mods, heavy stacks
 
 Tested in the dev game 2026-10-13: `cargo_weight work1 work3 tier1 keep1 keep2 deliver1 deliver2 store1 store2 portal1 catchup1 home1 home3 recruit1 gather1 order1 order2 loot loot_guard death5 move1 pass` all pass (VFH-LOOT-1/-2 failed once on a randomly dropped log, then passed twice each). The first version of the open-sky rule broke VFH-WORK-3 (a miner aimed at a tall rock's top and at buried chunks under its visible top): fixed and rerun. Not testable here: TargetPortal and HearthBelow (live server), the weight label's look.

@@ -22,6 +22,7 @@ namespace VikingsForHire.Hirelings
         private CombatBehaviour _combat = null!;
         private float _regenTimer;
         private float _baseRunSpeed = -1f;
+        private float _baseWalkSpeed = -1f;
         private float _runBoost;
         private float _runBoostUntil;
 
@@ -33,6 +34,7 @@ namespace VikingsForHire.Hirelings
         public DefenseStats Defense { get; } = new();
         public BlockController Block { get; private set; } = null!;
         public DodgeController Dodge { get; private set; } = null!;
+        public GuardTechniques Guard { get; private set; } = null!;
 
         /// <summary>When it last took damage (Time.time).</summary>
         public float LastHitTime { get; private set; } = -999f;
@@ -145,6 +147,7 @@ namespace VikingsForHire.Hirelings
             Reader = new AttackReader(this);
             Block = new BlockController(this);
             Dodge = new DodgeController(this);
+            Guard = new GuardTechniques(this);
             Add(new IdleBehaviour());
             Add(new TestWalkBehaviour());
             Add(new LeaveBehaviour());
@@ -268,6 +271,7 @@ namespace VikingsForHire.Hirelings
             Block.Plan();
             Dodge.Tick();
             Block.Act();
+            Guard.Tick();
             bool retreat = StanceRules.ShouldRetreat(Stance, Hireling.Job.IsGuard(), Hireling.Humanoid.GetHealthPercentage(), Retreating);
             if (retreat != Retreating)
             {
@@ -657,8 +661,14 @@ namespace VikingsForHire.Hirelings
         {
             Humanoid hum = Hireling.Humanoid;
             if (_baseRunSpeed < 0f)
+            {
                 _baseRunSpeed = hum.m_runSpeed;
-            hum.m_runSpeed = Time.time < _runBoostUntil ? _baseRunSpeed * (1f + _runBoost) : _baseRunSpeed;
+                _baseWalkSpeed = hum.m_walkSpeed;
+            }
+            // Enhancements (Swift, Light feet, Brisk) scale both; a follower's catch-up boost comes on top.
+            float enh = Hireling.Enh.Effects.MoveSpeedMult;
+            hum.m_walkSpeed = _baseWalkSpeed * enh;
+            hum.m_runSpeed = _baseRunSpeed * enh * (Time.time < _runBoostUntil ? 1f + _runBoost : 1f);
         }
 
         /// <summary>1% of max health every 2 s once nothing has hurt them for 10 s.</summary>

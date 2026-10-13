@@ -61,6 +61,9 @@ namespace VikingsForHire.Hirelings.Work
             _profile.IsValid(target, h, out _) && _profile.Plan(target, out _, out _);
 
         public HashSet<string> PickupItems => _profile.PickupItems;
+
+        /// <summary>Enhancements' swing power (Strong swing, the masters; target-dependent ones are added by their phase).</summary>
+        public static float GatherEnhancement(Hireling h) => h.Enh.Effects.GatherMult;
         private Collider? _lastStruck;
         private int _strikesOnIt;
 
@@ -230,7 +233,7 @@ namespace VikingsForHire.Hirelings.Work
             }
             var hit = new HitData
             {
-                m_damage = _profile.SwingDamage(h.ToolDamage, h.LevelData.GatherMult),
+                m_damage = _profile.SwingDamage(h.ToolDamage, h.LevelData.GatherMult * GatherEnhancement(h)),
                 m_toolTier = (short)h.ToolTier,
                 m_dir = _fellDir ?? Flat(target.transform.position - h.transform.position).normalized,
             };

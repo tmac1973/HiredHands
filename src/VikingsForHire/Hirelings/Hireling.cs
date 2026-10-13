@@ -30,6 +30,11 @@ namespace VikingsForHire.Hirelings
         private Container? _cargo;
         private JobType _gearJob;
         private int _gearLevel = -1;
+        private string _enhApplied = "";
+        private HirelingEnhancements? _enh;
+
+        /// <summary>Its enhancements (plan/enhancements): picks and numbers, nothing while the server has them off.</summary>
+        internal HirelingEnhancements Enh => _enh ??= new HirelingEnhancements(this);
         private float _nextPoll;
         // First check a while after appearing, and leave only after two misses in a row: a board placed a moment ago may
         // not be in the server's index yet (two fresh hirelings left a fresh board as "gone").
@@ -130,7 +135,7 @@ namespace VikingsForHire.Hirelings
                 Humanoid h = _humanoid;
                 float gear = (h.m_chestItem?.GetArmor() ?? 0f) + (h.m_legItem?.GetArmor() ?? 0f) +
                              (h.m_helmetItem?.GetArmor() ?? 0f) + (h.m_shoulderItem?.GetArmor() ?? 0f);
-                return gear + LevelData.ArmorBonus;
+                return gear + LevelData.ArmorBonus + Enh.Effects.ArmorBonus;
             }
         }
 
@@ -161,7 +166,7 @@ namespace VikingsForHire.Hirelings
         private const float FullWeightMargin = 12f;
 
         /// <summary>The most its cargo may weigh (0: no limit, only slots).</summary>
-        public float CargoWeightLimit => Mathf.Max(0f, LevelData.CargoWeight);
+        public float CargoWeightLimit => LevelData.CargoWeight <= 0f ? 0f : LevelData.CargoWeight + Enh.Effects.CargoWeightBonus;
 
         /// <summary>How much more weight its cargo takes (float.MaxValue with no limit).</summary>
         public float CargoWeightRoom => CargoWeightLimit <= 0f ? float.MaxValue
@@ -288,7 +293,11 @@ namespace VikingsForHire.Hirelings
             VfhLog.D(LogCat.Hireling, "hireling.anim_state_fixed", ("hid", Hid), ("had", (ItemDrop.ItemData.AnimationState)have), ("now", want));
         }
 
-        public float Radius => Zdo?.GetFloat(HirelingZdo.Radius, 20f) ?? 20f;
+        /// <summary>The contract's work radius, as set on the board.</summary>
+        public float ContractRadius => Zdo?.GetFloat(HirelingZdo.Radius, 20f) ?? 20f;
+
+        /// <summary>How far it works and roams: the contract's radius, widened by enhancements (Wide range, Bigger fields).</summary>
+        public float Radius => ContractRadius * Enh.Effects.RadiusMult;
         public Vector3 Home => Zdo?.GetVec3(HirelingZdo.Home, transform.position) ?? transform.position;
 
         public HirelingLevelData LevelData =>
@@ -311,7 +320,7 @@ namespace VikingsForHire.Hirelings
         /// <summary>Someone has this hireling's cargo open (vanilla syncs the flag through the ZDO).</summary>
         public bool CargoInUse => _cargo != null && (_cargo.IsInUse() || (Zdo != null && Zdo.GetInt(ZDOVars.s_inUse) == 1));
 
-        public int CargoSlots => Mathf.Clamp(LevelData.CargoSlots, 1, HirelingPrefab.CargoWidth * HirelingPrefab.CargoHeight);
+        public int CargoSlots => Mathf.Clamp(LevelData.CargoSlots + Enh.Effects.CargoSlotsBonus, 1, HirelingPrefab.CargoWidth * HirelingPrefab.CargoHeight);
 
         public static Hireling? Of(Component? c) => c == null ? null : c.GetComponent<Hireling>();
 
@@ -402,12 +411,26 @@ namespace VikingsForHire.Hirelings
                     _gearJob = Job;
                     _gearLevel = Level;
                     GearApplier.Regear(_humanoid, _gearJob, _gearLevel);
+                    GearApplier.ApplyQuality(_humanoid, Enh.Effects.QualityBonus);
+                    ApplyCargoRows();
+                    if (IsOwner)
+                        ApplyLevelStats();
+                    _enhApplied = Enh.Signature;
+                }
+                else if (Enh.Signature != _enhApplied)
+                {
+                    // Picks chosen or cleared, the switch flipped, or the data reloaded.
+                    _enhApplied = Enh.Signature;
+                    VfhLog.I(LogCat.Hireling, "hireling.enhancements", ("hid", Hid), ("picks", Zdo?.GetString(HirelingZdo.Enhancements)), ("on", VfhConfig.Enhancements.Value));
+                    GearApplier.ApplyQuality(_humanoid, Enh.Effects.QualityBonus);
                     ApplyCargoRows();
                     if (IsOwner)
                         ApplyLevelStats();
                 }
                 if (IsOwner && Job == JobType.GuardRanged)
                     GearApplier.RefillAmmo(_humanoid);
+                // A weapon put back in hand (a sidearm swap, a restore) comes at the game's quality: keep Masterwork on it.
+                GearApplier.ApplyQuality(_humanoid, Enh.Effects.QualityBonus);
                 if (IsOwner && !_hidden)
                 {
                     EnsureArmed();
@@ -554,7 +577,7 @@ namespace VikingsForHire.Hirelings
         /// <summary>Owner: max health from the level table (current health is kept, capped to the new max).</summary>
         public void ApplyLevelStats()
         {
-            float max = LevelData.Health;
+            float max = LevelData.Health * Enh.Effects.HealthMult;
             if (Mathf.Abs(_humanoid.GetMaxHealth() - max) > 0.01f)
             {
                 _humanoid.SetMaxHealth(max);

@@ -19,7 +19,8 @@ namespace VikingsForHire.Hirelings
     {
         public const string CargoInventoryName = "$vfh_hireling_cargo";
         public const int CargoWidth = 8;
-        public const int CargoHeight = 4;
+        // The level table tops out at 32 slots (4 rows); the fifth row is for enhancements (Pack mule) on top of that.
+        public const int CargoHeight = 5;
 
         /// <summary>Player-only components removed from the clone (by type name, wherever they are in the hierarchy).</summary>
         private static readonly HashSet<string> PlayerOnly = new()

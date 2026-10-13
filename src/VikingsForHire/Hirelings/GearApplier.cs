@@ -85,6 +85,33 @@ namespace VikingsForHire.Hirelings
                 : humanoid.GetInventory().GetAllItems().FirstOrDefault(i => i.m_dropPrefab != null && i.m_dropPrefab.name == weapons.Sidearm);
         }
 
+        /// <summary>
+        /// Masterwork (plan/enhancements): the main weapon or tool is <paramref name="bonus"/> quality levels above the
+        /// game's 1 (capped at the item's maximum), as an upgrade at a forge would make it: more damage, more chop or mine
+        /// power, more durability. Called on every gear change and pick change; does nothing when it already matches.
+        /// </summary>
+        public static void ApplyQuality(Humanoid humanoid, int bonus)
+        {
+            ItemDrop.ItemData? main = MainItem(humanoid);
+            if (main == null)
+                return;
+            int want = Mathf.Clamp(1 + bonus, 1, Mathf.Max(1, main.m_shared.m_maxQuality));
+            if (main.m_quality == want)
+                return;
+            main.m_quality = want;
+            main.m_durability = main.GetMaxDurability();
+        }
+
+        /// <summary>The weapon or tool in hand: the right hand's, else a bow in the left; never a shield or the sidearm.</summary>
+        public static ItemDrop.ItemData? MainItem(Humanoid humanoid)
+        {
+            ItemDrop.ItemData? right = humanoid.GetRightItem();
+            if (right != null && right.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Shield)
+                return right;
+            ItemDrop.ItemData? left = humanoid.GetLeftItem();
+            return left != null && left.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Bow ? left : null;
+        }
+
         /// <summary>Ranged guards never run out of arrows.</summary>
         public static void RefillAmmo(Humanoid humanoid)
         {

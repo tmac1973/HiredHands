@@ -7,6 +7,7 @@ using VikingsForHire.Core;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
 using VikingsForHire.Hirelings;
+using VikingsForHire.Hirelings.Work;
 using UnityEngine;
 
 namespace VikingsForHire.Testing
@@ -163,6 +164,17 @@ namespace VikingsForHire.Testing
                 string gear = GearField(hum, h, f);
                 return gear.Length == 0 ? "none" : gear;
             }
+            if (f.StartsWith("damage_mult:"))
+            {
+                Character target = FixturesWork.FindTagged(field.Substring(12))?.GetComponent<Character>()
+                                   ?? throw new InvalidOperationException($"no tagged creature {field.Substring(12)}");
+                return DamagePatches.DamageMultiplier(h, target).ToString("0.###", CultureInfo.InvariantCulture);
+            }
+            if (f.StartsWith("dist_to:"))
+            {
+                GameObject go = FixturesWork.FindTagged(field.Substring(8)) ?? throw new InvalidOperationException($"no tagged object {field.Substring(8)}");
+                return Vector3.Distance(h.transform.position, go.transform.position).ToString("0.0", CultureInfo.InvariantCulture);
+            }
             if (f.StartsWith("cargo."))
                 return (h.CargoInventory?.GetAllItems().Where(i => GearApplier.Name(i).Equals(field.Substring(6), StringComparison.OrdinalIgnoreCase)).Sum(i => i.m_stack) ?? 0).ToString();
             switch (f)
@@ -200,6 +212,18 @@ namespace VikingsForHire.Testing
                 case "cargo_used": return (h.CargoInventory?.GetAllItems().Count ?? 0).ToString();
                 case "cargo_slots": return h.CargoSlots.ToString();
                 case "cargo_weight": return (h.CargoInventory?.GetTotalWeight() ?? 0f).ToString("0.#", CultureInfo.InvariantCulture);
+                case "cargo_weight_limit": return h.CargoWeightLimit.ToString("0.#", CultureInfo.InvariantCulture);
+                case "run_speed": return hum.m_runSpeed.ToString("0.###", CultureInfo.InvariantCulture);
+                case "walk_speed": return hum.m_walkSpeed.ToString("0.###", CultureInfo.InvariantCulture);
+                case "radius": return h.Radius.ToString("0.##", CultureInfo.InvariantCulture);
+                case "attack_interval": return AttackInterval(h).ToString("0.###", CultureInfo.InvariantCulture);
+                case "gather_mult": return (h.LevelData.GatherMult * GatherBehaviour.GatherEnhancement(h)).ToString("0.###", CultureInfo.InvariantCulture);
+                case "damage_mult": return DamagePatches.DamageMultiplier(h).ToString("0.###", CultureInfo.InvariantCulture);
+                case "enh": return h.Enh.Signature;
+                case "last_block": return (h.Ai?.Defense.LastBlockPower ?? 0f).ToString("0.#", CultureInfo.InvariantCulture);
+                case "block_power": return hum.GetLeftItem() is ItemDrop.ItemData shield && shield.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Shield
+                    ? (shield.GetBlockPower(hum.GetSkillFactor(Skills.SkillType.Blocking)) * VikingsForHire.Hirelings.Combat.GuardTechniques.BlockMult(h)).ToString("0.#", CultureInfo.InvariantCulture)
+                    : "none";
             }
             string key = f.StartsWith("vfh_") ? f : "vfh_" + f;
             int hash = key.GetStableHashCode();
@@ -211,8 +235,17 @@ namespace VikingsForHire.Testing
             return $"error: unknown field {field}";
         }
 
+        // The cooldown CombatBehaviour starts after this hireling's attack (the ranged one before the draw time is counted).
+        private static float AttackInterval(Hireling h) => h.Enh.Effects.AttackIntervalMult * (h.Job switch
+        {
+            JobType.GuardRanged => Config.VfhConfig.RangedAttackCooldown.Value,
+            JobType.Wizard => Mathf.Max(0.5f, Config.VfhConfig.WizardAttackCooldown.Value),
+            _ => Config.VfhConfig.MeleeAttackCooldown.Value,
+        });
+
         private static string GearField(Humanoid hum, Hireling h, string f) => f switch
         {
+            "gear.right_quality" => (GearApplier.MainItem(hum)?.m_quality ?? 0).ToString(),
             "gear.right" => GearApplier.Name(hum.GetRightItem()),
             "gear.left" => GearApplier.Name(hum.GetLeftItem()),
             "gear.helmet" => GearApplier.Name(hum.m_helmetItem),

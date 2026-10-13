@@ -45,6 +45,10 @@ namespace VikingsForHire.Hirelings
                             return Blocked("stowed", target, attacker);
                         // Vanilla only applies body armor to players; hirelings get the armor of what they wear.
                         hit.ApplyArmor(target.Armor);
+                        // Enhancements: Warding (and later damage-taken picks).
+                        float taken = target.Enh.Effects.DamageTakenMult;
+                        if (taken < 1f)
+                            hit.ApplyModifier(taken);
                         // Vanilla gives sneak attacks (x4 from monster weapons) on any creature whose AI isn't alerted, and the
                         // hireling brain never raises vanilla's alert: every enemy's first hit was a sneak attack. Players
                         // can't be sneak-attacked; neither can hirelings.
@@ -72,8 +76,10 @@ namespace VikingsForHire.Hirelings
                     if (__instance is Player)
                         return Blocked("hireling_on_player", from!, __instance);
 
-                    float mult = DamageMultiplier(from!);
+                    float mult = DamageMultiplier(from!, __instance);
+                    float before = hit.GetTotalDamage();
                     hit.m_damage.Modify(mult);
+                    Combat.GuardTechniques.AfterHit(from!, __instance, hit, before);
                     Telemetry.BalanceFights.Dealt(from!, __instance, hit.GetTotalDamage());
                     VfhLog.T(LogCat.Combat, "hireling.attack", ("hid", from!.Hid), ("target", __instance.m_name), ("mult", mult),
                         ("damage", hit.GetTotalDamage()));
@@ -88,6 +94,31 @@ namespace VikingsForHire.Hirelings
                 finally
                 {
                     VikingsForHire.Diagnostics.PerfCounters.Patch("DamagePatches.RPC_Damage", vfhStarted);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Last stand works on the damage as it finally lands (vanilla scales a hit several times after RPC_Damage's
+        /// start): a killing blow leaves 1 health, and nothing gets through for a moment after.
+        /// </summary>
+        [HarmonyPatch(typeof(Character), nameof(Character.ApplyDamage))]
+        private static class LastStandPatch
+        {
+            private static bool Prefix(Character __instance, HitData hit)
+            {
+                try
+                {
+                    if (Hireling.Of(__instance) is not Hireling target || __instance.IsDead())
+                        return true;
+                    if (Combat.GuardTechniques.BeforeHitTaken(target, hit))
+                        return true;
+                    return Blocked("last_stand", target, hit.GetAttacker());
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("DamagePatches.ApplyDamage", e);
+                    return true;
                 }
             }
         }
@@ -214,13 +245,32 @@ namespace VikingsForHire.Hirelings
             }
         }
 
-        public static float DamageMultiplier(Hireling h)
+        /// <summary>
+        /// A hireling's outgoing damage multiplier: the level table, the job's share for workers, the server's damage
+        /// setting, then its enhancements (the unconditional boosts, and those that depend on the target).
+        /// </summary>
+        public static float DamageMultiplier(Hireling h, Character? target = null)
         {
             HirelingLevelData level = h.LevelData;
             float factor = h.Job.IsGuard() ? 1f
                 : DataStore.Current.Jobs.TryGetValue(h.Job, out JobData? job) ? job.WorkerCombatFactor : 1f;
-            return level.GuardDamageMult * factor * VfhConfig.JobDamage(h.Job);
+            return level.GuardDamageMult * factor * VfhConfig.JobDamage(h.Job) * h.Enh.Effects.DamageMult * TargetMult(h, target);
         }
+
+        /// <summary>Enhancement boosts that depend on the target or the situation (filled in by the behaviour phases).</summary>
+        public static float TargetMult(Hireling h, Character? target)
+        {
+            float m = 1f;
+            foreach (Func<Hireling, Character?, float> f in TargetMults)
+                m *= f(h, target);
+            return m;
+        }
+
+        /// <summary>Behaviours register their own target-dependent multipliers here (Hunter, Marksman, Rallying cry…).</summary>
+        public static readonly System.Collections.Generic.List<Func<Hireling, Character?, float>> TargetMults = new()
+        {
+            Combat.GuardTechniques.RallyMult,
+        };
 
         private static readonly System.Collections.Generic.Dictionary<string, int> BlockedCounts = new();
 

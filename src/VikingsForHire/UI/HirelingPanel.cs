@@ -715,7 +715,7 @@ namespace VikingsForHire.UI
             {
                 if (!StanceRules.IsAllowed(f.Job, stance) || f.BoardId.Length == 0)
                     continue;
-                MutationService.SubmitBoard(f.BoardId, new RosterOp { Type = RosterOpType.Edit, Hid = f.Hid, Radius = f.Radius, Stance = stance });
+                MutationService.SubmitBoard(f.BoardId, new RosterOp { Type = RosterOpType.Edit, Hid = f.Hid, Radius = f.ContractRadius, Stance = stance });
                 VfhLog.I(LogCat.Follow, "follow.stance", ("hid", f.Hid), ("stance", stance), ("via", "panel"));
             }
         }

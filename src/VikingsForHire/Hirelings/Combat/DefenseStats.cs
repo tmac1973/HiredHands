@@ -6,6 +6,8 @@ namespace VikingsForHire.Hirelings.Combat
         public int Reads { get; set; }
         public int Misses { get; set; }
         public int Blocks { get; set; }
+        /// <summary>The block power of its last block (after Shield training).</summary>
+        public float LastBlockPower { get; set; }
         public int Parries { get; set; }
         public int ParryRolls { get; set; }
         public int ParryWins { get; set; }

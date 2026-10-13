@@ -28,6 +28,8 @@ namespace VikingsForHire.Hirelings
         public const string NoHomeWork = "vfh_no_home_work";
         /// <summary>Enhancement picks copied from the contract ("A--B---"; plan/enhancements).</summary>
         public const string Enhancements = "vfh_enh";
+        /// <summary>Guard's Last stand: world time (seconds) when it's ready again.</summary>
+        public const string LastStandReady = "vfh_enh_laststand";
         public const string Radius = "vfh_radius";
         public const string LeavingSince = "vfh_leaving_since";
         public const string Order = "vfh_order";

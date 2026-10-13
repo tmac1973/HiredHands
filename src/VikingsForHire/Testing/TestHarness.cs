@@ -536,8 +536,38 @@ namespace VikingsForHire.Testing
             yield break;
         }
 
+        // Readings kept by the note check, for ratio and diff.
+        private static readonly Dictionary<string, double> Notes = new(StringComparer.OrdinalIgnoreCase);
+
+        // Runs another (local) check by name for note, ratio and diff, as a number.
+        private static double Reading(string[] args, int from)
+        {
+            if (args.Length <= from || !Checks.TryGetValue(args[from], out Check def) || def.ServerSide)
+                throw new ArgumentException("needs a local check after the name");
+            string got = Evaluate(def, args.Skip(from + 1).ToArray());
+            if (!double.TryParse(got, NumberStyles.Float, CultureInfo.InvariantCulture, out double v))
+                throw new ArgumentException($"{args[from]} gave {got}, not a number");
+            return v;
+        }
+
+        private static double Noted(string name) =>
+            Notes.TryGetValue(name, out double v) ? v : throw new ArgumentException($"nothing noted as {name}");
+
         private static void RegisterBuiltInChecks()
         {
+            RegisterCheck("note", "<name> <check> [args…] - another check's number, kept as <name> for ratio and diff (vfh_assert note hp hireling posted maxhealth > 0)", args =>
+            {
+                double v = Reading(args, 1);
+                Notes[args[0]] = v;
+                return v.ToString("0.###", CultureInfo.InvariantCulture);
+            });
+            RegisterCheck("ratio", "<name> <check> [args…] - another check's number now divided by the one noted as <name>, to 2 places", args =>
+            {
+                double was = Noted(args.ElementAtOrDefault(0) ?? "");
+                return was == 0 ? "error: noted 0" : (Reading(args, 1) / was).ToString("0.00", CultureInfo.InvariantCulture);
+            });
+            RegisterCheck("diff", "<name> <check> [args…] - another check's number now minus the one noted as <name>", args =>
+                (Reading(args, 1) - Noted(args.ElementAtOrDefault(0) ?? "")).ToString("0.###", CultureInfo.InvariantCulture));
             RegisterCheck("cfg", "<key> - effective config value (test overrides applied)", args =>
             {
                 if (args.Length != 1)

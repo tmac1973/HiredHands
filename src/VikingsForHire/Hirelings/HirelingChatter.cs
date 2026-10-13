@@ -77,6 +77,17 @@ namespace VikingsForHire.Hirelings
             VfhLog.D(LogCat.Hireling, "chatter.said", ("hid", h.Hid), ("pool", pool), ("key", key));
         }
 
+        /// <summary>A line from a technique's own pool (vfh_say_&lt;pool&gt;_1..3), whatever the chatter setting: it's part of the move.</summary>
+        public static void Shout(Hireling h, string pool)
+        {
+            if (Chat.instance == null || Localization.instance == null)
+                return;
+            string text = Localization.instance.Localize($"$vfh_say_{pool}_{Random.Range(1, 4)}");
+            Chat.instance.SetNpcText(h.gameObject, Vector3.up * 2.1f, 20f, ShowSeconds, h.DisplayName, text, false);
+            LastLine[h.Hid] = text;
+            VfhLog.D(LogCat.Hireling, "chatter.shout", ("hid", h.Hid), ("pool", pool));
+        }
+
         // What it's doing now first (half the time, when something fits), else its job or something generic.
         private static string Pick(Hireling h, Player me)
         {

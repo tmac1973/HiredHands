@@ -206,6 +206,9 @@ namespace VikingsForHire.Hirelings.Combat
             // With CombatSkill on a ready swing waits (up to a second) for a block that's about to go up: swinging drops
             // the shield. The block controller raises and lowers it.
             bool blockOwned = ai.Block.On;
+            // Shield bash (an enhancement): a stagger between swings, when it's ready.
+            if (!me.InAttack() && ai.Guard.TryBash(target, dist))
+                _lastAction = Time.time;
             if (Time.time < _nextAttack)
                 _swingReadyAt = -1f;
             else if (_swingReadyAt < 0f)
@@ -216,7 +219,7 @@ namespace VikingsForHire.Hirelings.Combat
                 me.m_blocking = false;
                 if (ai.Attack(target))
                 {
-                    Attacked(Config.VfhConfig.MeleeAttackCooldown.Value);
+                    Attacked(Config.VfhConfig.MeleeAttackCooldown.Value * ai.Hireling.Enh.Effects.AttackIntervalMult);
                     return;
                 }
             }
@@ -311,7 +314,7 @@ namespace VikingsForHire.Hirelings.Combat
                 if (shot)
                 {
                     float draw = me.GetCurrentWeapon()?.m_shared.m_attack.m_drawDurationMin ?? 0f;
-                    Attacked(Mathf.Max(Config.VfhConfig.RangedAttackCooldown.Value, draw + 0.8f));
+                    Attacked(Mathf.Max(Config.VfhConfig.RangedAttackCooldown.Value, draw + 0.8f) * ai.Hireling.Enh.Effects.AttackIntervalMult);
                 }
             }
         }
@@ -382,7 +385,7 @@ namespace VikingsForHire.Hirelings.Combat
             {
                 LastCastDistance = dist;
                 LongestCastDistance = Mathf.Max(LongestCastDistance, dist);
-                Attacked(Mathf.Max(0.5f, Config.VfhConfig.WizardAttackCooldown.Value));
+                Attacked(Mathf.Max(0.5f, Config.VfhConfig.WizardAttackCooldown.Value) * ai.Hireling.Enh.Effects.AttackIntervalMult);
             }
         }
 

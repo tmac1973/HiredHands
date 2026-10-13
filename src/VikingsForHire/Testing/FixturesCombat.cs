@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using VikingsForHire.Board;
 using VikingsForHire.Commands;
+using VikingsForHire.Config;
 using VikingsForHire.Core;
 using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Diagnostics;
@@ -149,8 +150,67 @@ namespace VikingsForHire.Testing
                 return targets.Sum(h => h.Ai.Defense.Get(counter)).ToString();
             });
 
-            TestHarness.RegisterCheck("damage_mult", "- the last spawned hireling's damage multiplier (level table x job factor x the job's damage setting)", _ =>
-                Hirelings.DamagePatches.DamageMultiplier(Last()).ToString("0.###", CultureInfo.InvariantCulture));
+            TestHarness.RegisterCheck("damage_mult", "[last|posted|nearest] [target tag] - a hireling's damage multiplier (level table x job factor x the job's damage setting x enhancements, against the tagged target if given)", args =>
+            {
+                Hireling h = args.Length > 0 ? FixturesHireling.Select(args[0]) : Last();
+                Character? target = args.Length > 1 ? FixturesWork.FindTagged(args[1])?.GetComponent<Character>() ?? throw new InvalidOperationException($"no tagged creature {args[1]}") : null;
+                return Hirelings.DamagePatches.DamageMultiplier(h, target).ToString("0.###", CultureInfo.InvariantCulture);
+            });
+            Fixtures.Add("enh_events_reset", "- start counting enhancement techniques (enh_events) from zero", _ =>
+            {
+                EnhancementEvents.Reset();
+                return Pause(0.1f);
+            });
+            TestHarness.RegisterCheck("enh_events", "<technique> - times an enhancement technique fired since enh_events_reset (ShieldBash, Volley…)", args =>
+                EnhancementEvents.Count(args.ElementAtOrDefault(0) ?? "").ToString());
+            TestHarness.RegisterCheck("enemy_status", "<tag|nearest> <status> - seconds left of a status effect (Burning, Frost…) on a creature, 0 when none", args =>
+            {
+                Character c = Creature(args.ElementAtOrDefault(0) ?? "nearest");
+                StatusEffect? se = c.GetSEMan().GetStatusEffect((args.ElementAtOrDefault(1) ?? "").GetStableHashCode());
+                return (se != null ? Mathf.Max(0f, se.GetRemaningTime()) : 0f).ToString("0.#", CultureInfo.InvariantCulture);
+            });
+            TestHarness.RegisterCheck("enemy_staggered", "<tag|nearest> - whether a creature is staggering", args =>
+                Creature(args.ElementAtOrDefault(0) ?? "nearest").IsStaggering() ? "true" : "false");
+            TestHarness.RegisterCheck("enemy_target", "<tag|nearest> - what a creature is after: a hireling's job (GuardMelee…), player, a creature's name, or none", args =>
+            {
+                Character c = Creature(args.ElementAtOrDefault(0) ?? "nearest");
+                Character? t = c.GetBaseAI() is MonsterAI m ? m.GetTargetCreature() : null;
+                return t == null ? "none" : Hireling.Of(t) is Hireling th ? th.Job.ToString() : t is Player ? "player" : t.m_name;
+            });
+            TestHarness.RegisterCheck("enemies_damaged", "<radius=10> - enemies within the radius of you below full health", args =>
+            {
+                float r = args.Length > 0 ? float.Parse(args[0], CultureInfo.InvariantCulture) : 10f;
+                return Hostiles(r).Count(c => c.GetHealth() < c.GetMaxHealth() - 0.01f).ToString();
+            });
+            Fixtures.Add("strike_hireling", "<damage> [last|posted|nearest] - a hit from the nearest enemy (or none) on a hireling, through its armour, bypassing test protection", args =>
+            {
+                float dmg = float.Parse(args.ElementAtOrDefault(0) ?? "50", CultureInfo.InvariantCulture);
+                Hireling h = FixturesHireling.Select(args.ElementAtOrDefault(1) ?? "posted");
+                Character? from = Hostiles(30f).OrderBy(c => Vector3.Distance(c.transform.position, h.transform.position)).FirstOrDefault();
+                var hit = new HitData { m_point = h.transform.position + Vector3.up };
+                hit.m_damage.m_blunt = dmg;
+                if (from != null)
+                    hit.SetAttacker(from);
+                bool was = TestProtection.On;
+                TestProtection.Set(false);
+                h.Humanoid.Damage(hit);
+                TestProtection.Set(was);
+                VfhLog.I(LogCat.Test, "fixture.strike_hireling", ("hid", h.Hid), ("damage", dmg), ("from", from != null ? from.m_name : "none"));
+                return Pause(0.3f);
+            });
+            Fixtures.Add("data_set", "<job> <Name.number> <value> - set one enhancement number in the loaded data (this game only, until data_reset)", args =>
+            {
+                if (!Enum.TryParse(args.ElementAtOrDefault(0) ?? "", true, out JobType job))
+                    throw new ArgumentException("usage: data_set <job> <Name.number> <value>");
+                DataStore.Current.Enhancements[job][args[1]] = float.Parse(args[2], CultureInfo.InvariantCulture);
+                VfhLog.I(LogCat.Test, "fixture.data_set", ("job", job), ("key", args[1]), ("value", args[2]));
+                return Pause(0.1f);
+            });
+            Fixtures.Add("data_reset", "- reload the data file (undoes data_set)", _ =>
+            {
+                DataStore.LoadLocal("test data_reset");
+                return Pause(0.2f);
+            });
             TestHarness.RegisterCheck("fight_over", "- true when no enemy is alive within 40 m of you, or no hireling is", _ =>
                 !Hostiles(40f).Any() || !Hireling.Loaded.Any(h => h != null && !h.Humanoid.IsDead()) ? "true" : "false");
 
@@ -186,6 +246,8 @@ namespace VikingsForHire.Testing
             bool still = args.Contains("still") || beside != null;
             // ahead: in front of the hireling (in its view), not at a random angle round it.
             bool ahead = args.Contains("ahead");
+            // An optional tag (after the distance) for every creature spawned, for checks that name one.
+            string tag = args.Skip(3).FirstOrDefault(a => a != "still" && a != "ahead") ?? "";
             GameObject go = ZNetScene.instance.GetPrefab(prefab) ?? throw new ArgumentException($"no prefab {prefab}");
             Vector3 center = beside ?? Last().transform.position;
             float start = ahead ? Quaternion.LookRotation(Vector3.ProjectOnPlane(Last().transform.forward, Vector3.up)).eulerAngles.y
@@ -196,12 +258,20 @@ namespace VikingsForHire.Testing
                 p.y = ZoneSystem.instance.GetGroundHeight(p) + 0.5f;
                 GameObject e = Object.Instantiate(go, p, (center - p).sqrMagnitude > 0.01f ? Quaternion.LookRotation(center - p) : Quaternion.identity);
                 e.GetComponent<ZNetView>()?.GetZDO()?.Set(BoardZdo.Fixture, true);
+                if (tag.Length > 0)
+                    e.GetComponent<ZNetView>()?.GetZDO()?.Set(FixturesWork.TagKey, tag);
                 if (still && e.GetComponent<BaseAI>() is BaseAI brain)
                     brain.enabled = false;
             }
             VfhLog.I(LogCat.Test, "fixture.enemies", ("prefab", prefab), ("n", n), ("dist", dist), ("at", beside?.ToString() ?? Last().Hid), ("still", still));
             yield return new WaitForSeconds(0.5f);
         }
+
+        // A tagged creature, or the nearest hostile one to you.
+        private static Character Creature(string sel) => sel == "nearest"
+            ? Hostiles(60f).OrderBy(c => Vector3.Distance(c.transform.position, Player.m_localPlayer.transform.position)).FirstOrDefault()
+              ?? throw new InvalidOperationException("no enemy near")
+            : FixturesWork.FindTagged(sel)?.GetComponent<Character>() ?? throw new InvalidOperationException($"no tagged creature {sel}");
 
         private static IEnumerator TameAlly(string[] args)
         {
