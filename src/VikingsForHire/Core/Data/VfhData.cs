@@ -29,6 +29,18 @@ namespace VikingsForHire.Core.Data
 
         [YamlMember(Description = "Doors, stairs and ladders hirelings route through inside a board's area are found automatically. Only for a piece that gets it wrong.")]
         public NavLinksData NavLinks { get; set; } = new();
+
+        [YamlMember(Description = "Hireling enhancements (one of two at each level 2-8): their numbers per job, as <Name>.<number>. Shares and chances are fractions (0.10 = 10%), ranges in metres, cooldowns and durations in seconds. Which enhancements exist is fixed by the mod.")]
+        public Dictionary<JobType, Dictionary<string, float>> Enhancements { get; set; } = new();
+
+        [YamlMember(Description = "Settings for hireling enhancements.")]
+        public EnhancementSettingsData EnhancementSettings { get; set; } = new();
+    }
+
+    public class EnhancementSettingsData
+    {
+        [YamlMember(Description = "A respec (clearing one hireling's enhancements to choose again) costs this share of its hire fee at its current level, from the board's funds.")]
+        public float RespecCostFraction { get; set; } = 0.5f;
     }
 
     public class BoardLevelData

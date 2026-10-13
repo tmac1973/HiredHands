@@ -221,6 +221,8 @@ namespace VikingsForHire.Core.Data
                     "Mushroom", "MushroomYellow", "MushroomBlue", "MushroomJotunPuffs", "MushroomMagecap", "Carrot", "Turnip", "Onion",
                     "Honey", "Fiddleheadfern", "Vineberry"),
             },
+            Enhancements = Enhancements.EnhancementDefaults.Create(),
+            EnhancementSettings = new EnhancementSettingsData(),
             Names = new NameData
             {
                 Male = List("Agnar", "Alf", "Arne", "Asbjorn", "Bard", "Bjarni", "Bjorn", "Bodvar", "Brand", "Dag", "Egil", "Einar",

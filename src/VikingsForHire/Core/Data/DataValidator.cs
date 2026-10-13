@@ -55,6 +55,18 @@ namespace VikingsForHire.Core.Data
                     if (keep.Value < 0) errors.Add($"jobs.{job}.keepInStorage.{keep.Key} is negative");
             }
 
+            foreach (var job in data.Enhancements)
+                foreach (var kv in job.Value)
+                {
+                    string name = kv.Key.Substring(kv.Key.IndexOf('.') + 1);
+                    if (float.IsNaN(kv.Value) || float.IsInfinity(kv.Value) || kv.Value < 0)
+                        errors.Add($"enhancements.{job.Key}.{kv.Key} must be a number, 0 or more");
+                    else if (Enhancements.EnhancementDefaults.UnitNames.Contains(name) && kv.Value > 1)
+                        errors.Add($"enhancements.{job.Key}.{kv.Key} must be 0-1");
+                }
+            if (data.EnhancementSettings.RespecCostFraction < 0 || data.EnhancementSettings.RespecCostFraction > 1)
+                errors.Add("enhancementSettings.respecCostFraction must be 0-1");
+
             CheckSequence(errors, "commandStone", data.CommandStone.Select(s => s.Quality).ToList(), StoneQualities);
             foreach (StoneLevelData s in data.CommandStone)
             {

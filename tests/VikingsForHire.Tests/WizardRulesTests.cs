@@ -157,6 +157,7 @@ namespace VikingsForHire.Tests
         {
             VfhData old = DefaultData.Create();
             old.Jobs.Remove(JobType.Wizard);
+            old.Enhancements.Remove(JobType.Wizard); // a file from before the wizard has no enhancements for it either
             string yaml = DataYaml.Serialize(old);
             Assert.DoesNotContain("  Wizard:", yaml);
             VfhData data = DataYaml.Deserialize(yaml, out List<string> filled);

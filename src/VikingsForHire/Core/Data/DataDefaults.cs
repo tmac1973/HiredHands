@@ -32,6 +32,24 @@ namespace VikingsForHire.Core.Data
         /// </summary>
         public static void Migrate(VfhData data, List<string> filled)
         {
+            // Enhancement numbers added since the file was written (FillMissing doesn't look inside plain dictionaries).
+            foreach (var job in Enhancements.EnhancementDefaults.Create())
+            {
+                if (!data.Enhancements.TryGetValue(job.Key, out Dictionary<string, float>? numbers))
+                {
+                    data.Enhancements[job.Key] = job.Value;
+                    if (!filled.Contains("enhancements"))
+                        filled.Add($"enhancements.{job.Key}");
+                    continue;
+                }
+                foreach (var kv in job.Value)
+                    if (!numbers.ContainsKey(kv.Key))
+                    {
+                        numbers[kv.Key] = kv.Value;
+                        filled.Add($"enhancements.{job.Key}.{kv.Key}");
+                    }
+            }
+
             // A file with choreLevels but without a chore added later (e.g. fermenters): that chore's default level, not 1.
             if (!filled.Contains("jobs.Smelter.choreLevels") && data.Jobs.TryGetValue(JobType.Smelter, out JobData? have) &&
                 DefaultData.Create().Jobs.TryGetValue(JobType.Smelter, out JobData? shipped))
