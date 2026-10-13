@@ -3,18 +3,20 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## 0.9.3 (not released)
+## 0.9.3 (packaged 2026-10-13): dug-out veins, portal mods, heavy stacks
+
+Tested in the dev game 2026-10-13: `cargo_weight work1 work3 tier1 keep1 keep2 deliver1 deliver2 store1 store2 portal1 catchup1 home1 home3 recruit1 gather1 order1 order2 loot loot_guard death5 move1 pass` all pass (VFH-LOOT-1/-2 failed once on a randomly dropped log, then passed twice each). The first version of the open-sky rule broke VFH-WORK-3 (a miner aimed at a tall rock's top and at buried chunks under its visible top): fixed and rerun. Not testable here: TargetPortal and HearthBelow (live server), the weight label's look.
 
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
-| (miner-exposed branch) | Sigrid (level 4 miner, iron pickaxe) wouldn't touch a silver vein Tim had dug right out ("None of your miners can mine that"; Gather Here: "only buried or out-of-reach chunks left"). A chunk counted as above ground only by the game's ground height at its centre, and with HearthBelow a dug-out pit is its own terrain while that height stays the old surface. Now a chunk also counts when a ray straight down from the sky reaches it before any terrain | the game simulating the miner; the stone order on the player's |
+| (miner-exposed branch) | Sigrid (level 4 miner, iron pickaxe) wouldn't touch a silver vein Tim had dug right out ("None of your miners can mine that"; Gather Here: "only buried or out-of-reach chunks left"). A chunk counted as above ground only by the game's ground height at its centre, and with HearthBelow a dug-out pit is its own terrain while that height stays the old surface. Now a chunk also counts as not buried when a ray straight down from the sky reaches that very chunk before anything else (still only within reach above the ground) | the game simulating the miner; the stone order on the player's |
 | (miner-exposed branch) | Sigrid carried silver through a portal although the portal doesn't take ore: the server's TargetPortal stops the portal at its trigger, opens the map and moves you itself later, so no portal was teleporting and the trip counted as a dungeon door (takes anything). The portal you step into is now noted at its trigger (before any portal mod), and a teleport while you still stand at it (within 2 minutes) is that portal's: a follower with ore or metal stays behind in Stay, as you would | the game of the player travelling |
 | (miner-exposed branch) | Loading a hireling's cargo yourself: a stack heavier than its whole weight limit was refused outright, so an empty hireling took nothing (Una, a stack of silver: "can't carry that much (0/375)"). Dragging, dropping or click-moving a stack now puts in as much as its weight allows ("Una took 18 of the 30 (that's all they can carry)"), and refuses only when not even one fits | the game of the player loading it |
 | (miner-exposed branch) | A hireling's cargo window shows its weight against its limit ("308/375", red when full), as the player's inventory does; it showed only "308" like a chest's | the game of the player looking |
 
 ### To test (batch)
-- [ ] Not yet run in game (Tim playing; the dev profile has no HearthBelow). Regression `vfh_test_chain work1 work3 tier1` (mining, tool tiers) still passes.
+- [x] Regression `vfh_test_chain work1 work3 tier1` passes; row VFH-CARGO-W (a full stack of silver ore goes in partly) passes.
 - [ ] By hand: open a follower's cargo: the weight under it reads "carried/limit" and fits its box (red at the limit).
 - [ ] By hand: drag, then right-click, a full stack of silver ore onto an empty follower: as many as fit go in, the rest stays, the message says how many; a stack that fits whole still goes in whole.
 - [ ] By hand (live server, TargetPortal): a follower carrying silver ore; you go through a portal and pick a destination on the map: it stays behind ("can't take … through the portal"), `follow.travel_left` in the log. Regression `vfh_test_chain portal1 catchup1 home1`.

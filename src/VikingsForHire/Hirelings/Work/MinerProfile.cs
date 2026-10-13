@@ -225,7 +225,9 @@ namespace VikingsForHire.Hirelings.Work
         {
             Bounds b = c.bounds;
             float ground = ZoneSystem.instance.GetGroundHeight(b.center);
-            return (b.max.y > ground - BuriedBelow && b.min.y < ground + ReachAbove) || OpenToTheSky(c);
+            // Open to the sky lifts only "buried", never "too high to reach" (the top of a tall copper rock is open to the
+            // sky too, and a miner swung at it from below for minutes).
+            return (b.max.y > ground - BuriedBelow || OpenToTheSky(c)) && b.min.y < ground + ReachAbove;
         }
 
         private static readonly int SkyMask = LayerMask.GetMask("terrain", "static_solid", "Default", "Default_small", "piece");
@@ -237,8 +239,9 @@ namespace VikingsForHire.Hirelings.Work
         {
             Bounds b = c.bounds;
             Vector3 top = new(b.center.x, b.max.y + 40f, b.center.z);
+            // This very chunk, not just the same rock: a buried chunk under the rock's visible top isn't open to the sky.
             return Physics.Raycast(top, Vector3.down, out RaycastHit hit, 40f + b.size.y, SkyMask, QueryTriggerInteraction.Ignore) &&
-                   hit.collider.transform.root == c.transform.root;
+                   hit.collider == c;
         }
 
         private static float Extent(Component target)

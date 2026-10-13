@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.9.3
+
+Works alongside 0.9.1 and 0.9.2; update the server and players when it suits you.
+
+- **Miners take veins you've dug out:** a silver vein dug right out of the ground counted as buried (with HearthBelow the
+  game's ground height stays at the old surface), so "None of your miners can mine that". A chunk open to the sky now
+  counts as above ground.
+- **Ore stays behind at map-pick portals:** with TargetPortal (pick the destination on the map), a follower carrying ore or
+  metal went through, as the trip wasn't seen as a portal trip. It now stays behind in Stay, as you would.
+- **Loading a hireling with heavy stacks:** a stack heavier than its whole weight limit (a full stack of silver ore) was
+  refused, so an empty hireling took nothing ("can't carry that much (0/375)"). Now as many go in as it can carry, and
+  you're told how many.
+- **The cargo window shows the weight limit:** "308/375", red when full, as your inventory does.
+
 ## 0.9.2
 
 No changes to the game: works alongside 0.9.1, no need to update the server or other players together.
