@@ -35,13 +35,49 @@ namespace VikingsForHire.Followers
         private static readonly List<Traveler> Travelers = new();
         private static TeleportWorld? _portal;
 
+        // The portal you last stepped into, and when. Portal mods that let you pick the destination on the map
+        // (TargetPortal) stop the portal's own teleport and move you later themselves, so at that moment no portal is
+        // teleporting: Sigrid carried silver through one. A teleport while you still stand at a portal you stepped into
+        // in the last 2 minutes is that portal's.
+        private static TeleportWorld? _entered;
+        private static float _enteredAt = -999f;
+        private const float EnteredSeconds = 120f;
+        private const float AtPortal = 4f;
+
         public static int InTransit => Travelers.Count;
 
         [HarmonyPatch(typeof(TeleportWorld), nameof(TeleportWorld.Teleport))]
         private static class PortalPatch
         {
-            private static void Prefix(TeleportWorld __instance) => _portal = __instance;
+            private static void Prefix(TeleportWorld __instance)
+            {
+                _portal = __instance;
+                _entered = __instance;
+                _enteredAt = Time.time;
+            }
             private static void Finalizer() => _portal = null;
+        }
+
+        // Stepping into a portal, noted before any portal mod takes over (TargetPortal stops it here and opens the map).
+        [HarmonyPatch(typeof(TeleportWorldTrigger), "OnTriggerEnter")]
+        private static class TriggerPatch
+        {
+            [HarmonyPriority(Priority.First)]
+            private static void Prefix(TeleportWorldTrigger __instance, Collider colliderIn)
+            {
+                try
+                {
+                    if (colliderIn != null && colliderIn.GetComponentInParent<Player>() == Player.m_localPlayer && __instance.m_teleportWorld != null)
+                    {
+                        _entered = __instance.m_teleportWorld;
+                        _enteredAt = Time.time;
+                    }
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("TeleportTravel.Trigger", e);
+                }
+            }
         }
 
         [HarmonyPatch(typeof(Player), nameof(Player.TeleportTo))]
@@ -63,8 +99,13 @@ namespace VikingsForHire.Followers
 
         private static void Depart(Player me, Vector3 pos, Quaternion rot, bool distant)
         {
-            bool portal = _portal != null;
-            bool takesAnything = !portal || _portal!.m_allowAllItems || VfhConfig.AllowNonTeleportableThroughPortals.Value;
+            TeleportWorld? through = _portal;
+            if (through == null && _entered != null && Time.time - _enteredAt < EnteredSeconds &&
+                Vector3.Distance(me.transform.position, _entered.transform.position) <= AtPortal)
+                through = _entered;
+            bool portal = through != null;
+            bool takesAnything = !portal || through!.m_allowAllItems || VfhConfig.AllowNonTeleportableThroughPortals.Value;
+            _entered = null;
             var going = new List<Hireling>();
             foreach (Hireling f in Hireling.Loaded.Where(f => f != null && f.Zdo != null && f.Mode == HirelingMode.Following && f.OwnerId == me.GetPlayerID()))
             {

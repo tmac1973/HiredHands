@@ -9,9 +9,11 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | Commit | What | Where it runs |
 |---|---|---|
 | (miner-exposed branch) | Sigrid (level 4 miner, iron pickaxe) wouldn't touch a silver vein Tim had dug right out ("None of your miners can mine that"; Gather Here: "only buried or out-of-reach chunks left"). A chunk counted as above ground only by the game's ground height at its centre, and with HearthBelow a dug-out pit is its own terrain while that height stays the old surface. Now a chunk also counts when a ray straight down from the sky reaches it before any terrain | the game simulating the miner; the stone order on the player's |
+| (miner-exposed branch) | Sigrid carried silver through a portal although the portal doesn't take ore: the server's TargetPortal stops the portal at its trigger, opens the map and moves you itself later, so no portal was teleporting and the trip counted as a dungeon door (takes anything). The portal you step into is now noted at its trigger (before any portal mod), and a teleport while you still stand at it (within 2 minutes) is that portal's: a follower with ore or metal stays behind in Stay, as you would | the game of the player travelling |
 
 ### To test (batch)
 - [ ] Not yet run in game (Tim playing; the dev profile has no HearthBelow). Regression `vfh_test_chain work1 work3 tier1` (mining, tool tiers) still passes.
+- [ ] By hand (live server, TargetPortal): a follower carrying silver ore; you go through a portal and pick a destination on the map: it stays behind ("can't take … through the portal"), `follow.travel_left` in the log. Regression `vfh_test_chain portal1 catchup1 home1`.
 - [ ] By hand (live server, HearthBelow): dig a silver vein out, point the stone at it: "1 miner mining"; Sigrid breaks it and the chunks under the dug ground stay alone.
 
 ## 0.9.1 (packaged 2026-10-12): the board pays its wages; the ground under roofs and in caves
