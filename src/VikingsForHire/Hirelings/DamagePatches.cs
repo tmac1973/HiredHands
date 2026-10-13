@@ -19,6 +19,19 @@ namespace VikingsForHire.Hirelings
         [HarmonyPatch(typeof(Character), "RPC_Damage")]
         private static class CharacterDamagePatch
         {
+            // Fire and Frost arrows: the burning and chill vanilla just started get the data's duration and slow.
+            private static void Postfix(Character __instance)
+            {
+                try
+                {
+                    Combat.ArcherTechniques.AfterHitApplied(__instance);
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("DamagePatches.RPC_Damage.Postfix", e);
+                }
+            }
+
             private static bool Prefix(Character __instance, HitData hit)
             {
                 long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
@@ -76,6 +89,7 @@ namespace VikingsForHire.Hirelings
                     if (__instance is Player)
                         return Blocked("hireling_on_player", from!, __instance);
 
+                    Combat.ArcherTechniques.BeforeHit(from!, __instance, hit);
                     float mult = DamageMultiplier(from!, __instance);
                     float before = hit.GetTotalDamage();
                     hit.m_damage.Modify(mult);
@@ -270,6 +284,7 @@ namespace VikingsForHire.Hirelings
         public static readonly System.Collections.Generic.List<Func<Hireling, Character?, float>> TargetMults = new()
         {
             Combat.GuardTechniques.RallyMult,
+            Combat.ArcherTechniques.TargetMult,
         };
 
         private static readonly System.Collections.Generic.Dictionary<string, int> BlockedCounts = new();

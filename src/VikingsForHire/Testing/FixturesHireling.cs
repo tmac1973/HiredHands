@@ -67,6 +67,14 @@ namespace VikingsForHire.Testing
             Fixtures.Add("regear", "- dress the hireling from your last contract again now, from the current data (as when it loads)", _ => Regear());
             TestHarness.RegisterCheck("hireling", "<last|posted|nearest|short-hid> <field> - last = most recently spawned, posted = from your last contract; name, job, level, health, maxhealth, charlevel, tamed, faction, armor, behaviour, post_dist, posted, follow_mode, retreat, owner_dist (from you), order, gear.right|left|helmet|chest|legs|ammo|sidearm (none when empty), cargo.<item>, cargo_used, cargo_slots, cargo_weight, in_water, enh_owed, panel_access, or any vfh_ key",
                 args => Field(Select(args.ElementAtOrDefault(0) ?? "nearest"), args.ElementAtOrDefault(1) ?? ""));
+            Fixtures.Add("enh_set", "<last|posted|nearest> <picks> - write enhancement picks (A--B---) straight onto a hireling, no contract or op (tests of fixture-spawned hirelings)", args =>
+            {
+                Hireling h = Select(args.ElementAtOrDefault(0) ?? "last");
+                string picks = Core.Enhancements.EnhancementPicks.Parse(args.ElementAtOrDefault(1)).ToString();
+                h.Zdo!.Set(HirelingZdo.Enhancements, picks);
+                VfhLog.I(LogCat.Test, "fixture.enh_set", ("hid", h.Hid), ("picks", picks));
+                return Wait(0.5f);
+            });
             TestHarness.RegisterCheck("snapshot_roundtrip", "- result of the last snapshot test: true, or false with the differing values", _ => SnapshotTest.LastResult);
         }
 
@@ -220,6 +228,7 @@ namespace VikingsForHire.Testing
                 case "gather_mult": return (h.LevelData.GatherMult * GatherBehaviour.GatherEnhancement(h)).ToString("0.###", CultureInfo.InvariantCulture);
                 case "damage_mult": return DamagePatches.DamageMultiplier(h).ToString("0.###", CultureInfo.InvariantCulture);
                 case "enh": return h.Enh.Signature;
+                case "threat": return h.Ai.Threats.Nearest is Character t ? t.m_name : "none";
                 case "last_block": return (h.Ai?.Defense.LastBlockPower ?? 0f).ToString("0.#", CultureInfo.InvariantCulture);
                 case "block_power": return hum.GetLeftItem() is ItemDrop.ItemData shield && shield.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Shield
                     ? (shield.GetBlockPower(hum.GetSkillFactor(Skills.SkillType.Blocking)) * VikingsForHire.Hirelings.Combat.GuardTechniques.BlockMult(h)).ToString("0.#", CultureInfo.InvariantCulture)

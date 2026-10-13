@@ -233,7 +233,13 @@ namespace VikingsForHire.Hirelings.Combat
 
         private void Ranged(HirelingAI ai, Humanoid me, Character target, float dist, float dt)
         {
-            bool close = dist < SidearmRange;
+            Hireling h = ai.Hireling;
+            float rangedMax = RangedMax + ArcherTechniques.ExtraRange(h);
+            // Skirmisher: the bow stays up close; it backs off from further, and for longer, then shoots from there.
+            bool skirmish = ArcherTechniques.Skirmishes(h);
+            float backOffFrom = skirmish ? h.Enh.Value(Core.Enhancements.EnhancementId.Skirmisher, "range") : RangedMin;
+            float backOffFor = skirmish ? h.Enh.Value(Core.Enhancements.EnhancementId.Skirmisher, "seconds") : MaxBackOffSeconds;
+            bool close = dist < SidearmRange && !skirmish;
             ai.Hireling.UseSidearm(close);
             if (close)
             {
@@ -243,12 +249,12 @@ namespace VikingsForHire.Hirelings.Combat
             // A posted archer shoots from its post: no backing off or closing in, it just waits for targets in range
             // (and a clear shot).
             bool posted = ai.Hireling.HasPost && ai.Hireling.Mode == HirelingMode.Working;
-            if (!posted && dist < RangedMin)
+            if (!posted && dist < backOffFrom)
             {
                 if (_backingOffSince < 0f)
                     _backingOffSince = Time.time;
                 // Backing off in a crypt's corridor walks into the wall behind: give it a few seconds, then shoot from here.
-                if (Time.time - _backingOffSince < MaxBackOffSeconds)
+                if (Time.time - _backingOffSince < backOffFor)
                 {
                     Vector3 away = (ai.transform.position - target.transform.position).normalized;
                     ai.WalkTo(dt, ai.transform.position + away * 5f, 1f, run: true);
@@ -260,7 +266,7 @@ namespace VikingsForHire.Hirelings.Combat
             // Closing in is measured along the ground: a bat or drake overhead is already as close as walking gets
             // (measured in 3D, an archer under a high flyer kept walking and never shot).
             float flat = Utils.DistanceXZ(target.transform.position, ai.transform.position) - target.GetRadius();
-            if (!posted && flat > RangedMax)
+            if (!posted && flat > rangedMax)
             {
                 // Not out into the water to get in range: shoot from the shore or let it go.
                 if (WaterRules.Out(target) && !me.InWater())
@@ -275,7 +281,7 @@ namespace VikingsForHire.Hirelings.Combat
                         ai.Halt();
                     return;
                 }
-                ai.WalkTo(dt, target.transform.position, RangedMax * 0.8f, run: true);
+                ai.WalkTo(dt, target.transform.position, rangedMax * 0.8f, run: true);
                 return;
             }
             Vector3? aim = ArrowAim(me, target, out Vector3 from);
@@ -303,12 +309,13 @@ namespace VikingsForHire.Hirelings.Combat
             // the bow hand, so looking from the eyes put every arrow half a metre low, into the ground before a
             // low target.
             ai.LookTowards((aim.Value - from).normalized);
-            if (dist <= RangedMax + 10f && Time.time >= _nextAttack && !ai.Dodge.HoldAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f))
+            if (dist <= rangedMax + 10f && Time.time >= _nextAttack && !ai.Dodge.HoldAttack && ai.IsLookingAt(target.GetCenterPoint(), 15f))
             {
                 // Player bows only reach full power when drawn; NPCs never hold the button, so draw them fully. The draw
                 // is read only as the shot starts: clear it straight after, because while it's set the game counts the
                 // archer as drawing a bow, and an archer drawing a bow can't run (she jogged behind her owner for good).
                 me.m_attackDrawTime = 10f;
+                ai.Archer.BeforeShot();
                 bool shot = ai.Attack(target);
                 me.m_attackDrawTime = 0f;
                 if (shot)

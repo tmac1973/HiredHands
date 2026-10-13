@@ -57,10 +57,10 @@ namespace VikingsForHire.Hirelings
     {
         private static readonly System.Collections.Generic.Dictionary<string, int> Counts = new();
 
-        public static void Fire(Hireling h, string technique, Core.Diagnostics.LogCat cat = Core.Diagnostics.LogCat.Combat, params (string, object?)[] extra)
+        public static void Fire(Hireling? h, string technique, Core.Diagnostics.LogCat cat = Core.Diagnostics.LogCat.Combat, params (string, object?)[] extra)
         {
             Counts[technique] = Count(technique) + 1;
-            var fields = new System.Collections.Generic.List<(string, object?)> { ("hid", h.Hid), ("technique", technique) };
+            var fields = new System.Collections.Generic.List<(string, object?)> { ("hid", h?.Hid ?? "none"), ("technique", technique) };
             fields.AddRange(extra);
             Diagnostics.VfhLog.D(cat, "enh.fired", fields.ToArray());
         }

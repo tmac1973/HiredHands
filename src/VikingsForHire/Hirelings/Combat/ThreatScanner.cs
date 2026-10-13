@@ -103,7 +103,7 @@ namespace VikingsForHire.Hirelings.Combat
             // a neck 25 m behind it). Workers see ahead only, past the close range.
             if (!h.Job.IsGuard() && !(h.HasPost && h.Mode == HirelingMode.Working))
                 return _ai.CanSeeTarget(c);
-            return BaseAI.CanSeeTarget(_ai.transform, h.Humanoid.m_eye.position, _ai.m_viewRange, _ai.m_viewAngle, alerted: true, _ai.m_mistVision, c);
+            return BaseAI.CanSeeTarget(_ai.transform, h.Humanoid.m_eye.position, _ai.m_viewRange + ArcherTechniques.ExtraRange(h), _ai.m_viewAngle, alerted: true, _ai.m_mistVision, c);
         }
 
         public static bool Alive(Character? c) => c != null && !c.IsDead();

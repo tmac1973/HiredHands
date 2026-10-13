@@ -98,6 +98,15 @@ namespace VikingsForHire.Followers
                 }
             }
 
+            // Hunter: an archer following picks up the drops of what it just shot.
+            if (!retreat && ai.HuntLoot != null && h.FollowMode == FollowMode.Follow && ai.Order == null && !h.CargoFull &&
+                ai.Archer.HuntSpot(out Vector3 kill) && ai.HuntLoot.WantsAround(ai, kill, 4f))
+            {
+                Show(h, "$vfh_status_looting");
+                ai.HuntLoot.Tick(ai, dt);
+                return;
+            }
+
             if (h.FollowMode != FollowMode.Follow && !retreat)
             {
                 Show(h, h.CargoFull && h.FollowMode == FollowMode.GatherHere ? "$vfh_status_cargo_full" : "$vfh_status_staying");

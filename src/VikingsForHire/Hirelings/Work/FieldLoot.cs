@@ -46,6 +46,22 @@ namespace VikingsForHire.Hirelings.Work
             return _drop != null;
         }
 
+        /// <summary>As Wants, round a given spot (Hunter: where its kill fell) instead of a work area.</summary>
+        public bool WantsAround(HirelingAI ai, Vector3 center, float radius)
+        {
+            if (ai.Hireling.CargoFull)
+                return false;
+            if (_drop != null && _drop.m_nview != null && _drop.m_nview.IsValid())
+                return true;
+            _drop = null;
+            if (Time.time < _scanAt)
+                return false;
+            _scanAt = Time.time + ScanSeconds;
+            _drop = Nearest(ai, center, radius);
+            _walked = 0f;
+            return _drop != null;
+        }
+
         private ItemDrop? Nearest(HirelingAI ai, Vector3 center, float radius)
         {
             foreach (ItemDrop gone in new List<ItemDrop>(_unreachable.Keys))

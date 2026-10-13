@@ -35,6 +35,10 @@ namespace VikingsForHire.Hirelings
         public BlockController Block { get; private set; } = null!;
         public DodgeController Dodge { get; private set; } = null!;
         public GuardTechniques Guard { get; private set; } = null!;
+        public ArcherTechniques Archer { get; private set; } = null!;
+
+        /// <summary>An archer's pickup of its own kills' drops (Hunter), while following.</summary>
+        public Work.FieldLoot? HuntLoot { get; private set; }
 
         /// <summary>When it last took damage (Time.time).</summary>
         public float LastHitTime { get; private set; } = -999f;
@@ -148,6 +152,7 @@ namespace VikingsForHire.Hirelings
             Block = new BlockController(this);
             Dodge = new DodgeController(this);
             Guard = new GuardTechniques(this);
+            Archer = new ArcherTechniques(this);
             Add(new IdleBehaviour());
             Add(new TestWalkBehaviour());
             Add(new LeaveBehaviour());
@@ -158,6 +163,8 @@ namespace VikingsForHire.Hirelings
             // fights (fighting outranks it); it goes to the chests when they're released or sent home.
             if (hireling.Job.IsGuard())
                 Loot = new Work.FieldLoot();
+            if (hireling.Job == JobType.GuardRanged)
+                HuntLoot = new Work.FieldLoot();
             switch (hireling.Job)
             {
                 case JobType.Woodcutter:
@@ -272,6 +279,7 @@ namespace VikingsForHire.Hirelings
             Dodge.Tick();
             Block.Act();
             Guard.Tick();
+            Archer.Tick(CombatTarget);
             bool retreat = StanceRules.ShouldRetreat(Stance, Hireling.Job.IsGuard(), Hireling.Humanoid.GetHealthPercentage(), Retreating);
             if (retreat != Retreating)
             {

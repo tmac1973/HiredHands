@@ -159,6 +159,9 @@ namespace VikingsForHire.Testing
             Fixtures.Add("enh_events_reset", "- start counting enhancement techniques (enh_events) from zero", _ =>
             {
                 EnhancementEvents.Reset();
+                foreach (Hireling h in Hireling.Loaded)
+                    if (h != null && h.Ai != null)
+                        h.Ai.Archer.ShotsFired = 0;
                 return Pause(0.1f);
             });
             TestHarness.RegisterCheck("enh_events", "<technique> - times an enhancement technique fired since enh_events_reset (ShieldBash, Volley…)", args =>
@@ -197,6 +200,22 @@ namespace VikingsForHire.Testing
                 TestProtection.Set(was);
                 VfhLog.I(LogCat.Test, "fixture.strike_hireling", ("hid", h.Hid), ("damage", dmg), ("from", from != null ? from.m_name : "none"));
                 return Pause(0.3f);
+            });
+            TestHarness.RegisterCheck("shots_fired", "[last|posted|nearest] - arrows a hireling launched since enh_events_reset (volley and rain arrows count)", args =>
+                FixturesHireling.Select(args.ElementAtOrDefault(0) ?? "posted").Ai.Archer.ShotsFired.ToString());
+            Fixtures.Add("enemies_tough", "<mult> [radius=60] - hostile creatures near you get that many times their max health, healed to full (a still creature takes sneak-attack hits)", args =>
+            {
+                float mult = float.Parse(args.ElementAtOrDefault(0) ?? "10", CultureInfo.InvariantCulture);
+                float r = args.Length > 1 ? float.Parse(args[1], CultureInfo.InvariantCulture) : 60f;
+                int n = 0;
+                foreach (Character c in Hostiles(r).ToList())
+                {
+                    c.SetMaxHealth(c.GetMaxHealth() * mult);
+                    c.SetHealth(c.GetMaxHealth());
+                    n++;
+                }
+                VfhLog.I(LogCat.Test, "fixture.enemies_tough", ("n", n), ("mult", mult));
+                return Pause(0.2f);
             });
             Fixtures.Add("data_set", "<job> <Name.number> <value> - set one enhancement number in the loaded data (this game only, until data_reset)", args =>
             {
