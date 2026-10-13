@@ -67,6 +67,7 @@
   "vfh_board_full_richer": "The board is full: richer food pays more wages per slot",
   "vfh_pin_low_coins": "Hiring board: coins for $1 day(s)",
   "vfh_weight": "weight",
+  "vfh_cargo_partial": "$1 took $2 of the $3 (that's all they can carry)",
   "vfh_cargo_too_heavy": "$1 can't carry that much ($2/$3)",
   "vfh_orders_gather": "Gather",
   "vfh_on": "on",

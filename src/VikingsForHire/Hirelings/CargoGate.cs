@@ -63,6 +63,30 @@ namespace VikingsForHire.Hirelings
             return true;
         }
 
+        /// <summary>
+        /// How many of <paramref name="amount"/> a player's move may put into a hireling's cargo by weight: all of them,
+        /// as many as fit (a full stack of ore can outweigh the whole limit: Una, empty, refused 30 silver as "can't carry
+        /// that much (0/375)"), or none. The player is told when it's fewer than asked.
+        /// </summary>
+        private static int WeightFit(Inventory inv, ItemDrop.ItemData item, int amount, Inventory? from)
+        {
+            Hireling? h = Hireling.ForCargo(inv);
+            if (h == null || h.CargoWeightLimit <= 0f || from == inv || inv.ContainsItem(item))
+                return amount;
+            float unit = item.GetWeight(1);
+            if (unit <= 0f || item.GetWeight(amount) <= h.CargoWeightRoom + 0.01f)
+                return amount;
+            int n = Mathf.Clamp(Mathf.FloorToInt((h.CargoWeightRoom + 0.01f) / unit), 0, amount);
+            if (InventoryGui.IsVisible() && Player.m_localPlayer != null)
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, n > 0
+                    ? Localization.instance.Localize("$vfh_cargo_partial", h.DisplayName, n.ToString(), amount.ToString())
+                    : Localization.instance.Localize("$vfh_cargo_too_heavy", h.DisplayName, Mathf.CeilToInt(inv.GetTotalWeight()).ToString(),
+                        Mathf.RoundToInt(h.CargoWeightLimit).ToString()));
+            VfhLog.D(LogCat.Hireling, "cargo.weight_fit", ("hid", h.Hid), ("item", item.m_shared.m_name), ("asked", amount), ("fits", n),
+                ("room", h.CargoWeightRoom));
+            return n;
+        }
+
         private static void Refused(Hireling h, ItemDrop.ItemData item, string how) =>
             VfhLog.D(LogCat.Hireling, "cargo.refused", ("hid", h.Hid), ("item", item.m_shared.m_name), ("how", how), ("slots", h.CargoSlots));
 
@@ -176,12 +200,12 @@ namespace VikingsForHire.Hirelings
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.MoveItemToThis), typeof(Inventory), typeof(ItemDrop.ItemData), typeof(int), typeof(int), typeof(int))]
         private static class MovePatch
         {
-            private static bool Prefix(Inventory __instance, Inventory fromInventory, ItemDrop.ItemData item, int amount, int x, int y, ref bool __result)
+            private static bool Prefix(Inventory __instance, Inventory fromInventory, ItemDrop.ItemData item, ref int amount, int x, int y, ref bool __result)
             {
                 long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
-                    if (item != null && TooHeavy(__instance, item, amount, fromInventory, out _))
+                    if (item != null && (amount = WeightFit(__instance, item, amount, fromInventory)) <= 0)
                     {
                         __result = false;
                         return false;
@@ -204,15 +228,47 @@ namespace VikingsForHire.Hirelings
             }
         }
 
+        /// <summary>A click-move (right or ctrl click) of a stack too heavy for the whole of it puts in as much as fits.</summary>
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.MoveItemToThis), typeof(Inventory), typeof(ItemDrop.ItemData))]
+        private static class ClickMovePatch
+        {
+            private static bool Prefix(Inventory __instance, Inventory fromInventory, ItemDrop.ItemData item)
+            {
+                try
+                {
+                    if (item == null || Hireling.ForCargo(__instance) == null)
+                        return true;
+                    int n = WeightFit(__instance, item, item.m_stack, fromInventory);
+                    if (n >= item.m_stack)
+                        return true;
+                    if (n > 0)
+                    {
+                        ItemDrop.ItemData part = item.Clone();
+                        part.m_stack = n;
+                        if (__instance.AddItem(part))
+                            fromInventory.RemoveItem(item, n);
+                    }
+                    __instance.Changed();
+                    fromInventory.Changed();
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    VfhLog.PatchFailed("CargoGate.ClickMove", e);
+                    return true;
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.DropItem))]
         private static class DropPatch
         {
-            private static bool Prefix(InventoryGrid __instance, Inventory fromInventory, ItemDrop.ItemData item, int amount, Vector2i pos, ref bool __result)
+            private static bool Prefix(InventoryGrid __instance, Inventory fromInventory, ItemDrop.ItemData item, ref int amount, Vector2i pos, ref bool __result)
             {
                 long vfhStarted = System.Diagnostics.Stopwatch.GetTimestamp();
                 try
                 {
-                    if (item != null && TooHeavy(__instance.GetInventory(), item, amount, fromInventory, out _))
+                    if (item != null && (amount = WeightFit(__instance.GetInventory(), item, amount, fromInventory)) <= 0)
                     {
                         __result = false;
                         return false;
