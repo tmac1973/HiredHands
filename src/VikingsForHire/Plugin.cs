@@ -112,6 +112,7 @@ namespace VikingsForHire
             VfhLog.Guard(LogCat.Board, "funds.tick_failed", Board.LowFunds.Tick);
             VfhLog.Guard(LogCat.Follow, "pins.tick_failed", Followers.HirelingMapPins.Tick);
             VfhLog.Guard(LogCat.Hireling, "chatter.tick_failed", Hirelings.HirelingChatter.Tick);
+            VfhLog.Guard(LogCat.Combat, "summons.tick_failed", Hirelings.Combat.SummonedAllies.Tick);
             VfhLog.Guard(LogCat.Hireling, "graves.tick_failed", Hirelings.Graves.Tick);
             VfhLog.Guard(LogCat.Nav, "navlinks.tick_failed", Hirelings.Nav.NavLinkRegistry.Tick);
         }

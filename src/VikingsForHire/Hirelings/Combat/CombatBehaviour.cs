@@ -17,8 +17,8 @@ namespace VikingsForHire.Hirelings.Combat
         private const float RangedMin = 8f;
         private const float RangedMax = 20f;
         // Wizards cast from a little further than archers, and back off from anything inside CastBackOff.
-        private const float CastMin = 10f;
-        private const float CastMax = 22f;
+        public const float CastMin = 10f;
+        public const float CastMax = 22f;
         private const float CastBackOff = 8f;
         // Backing off is given this long; an enemy that keeps up (a fuling, a greydwarf) is then fought where it stands,
         // or a wizard backed off forever and never cast.
@@ -334,6 +334,10 @@ namespace VikingsForHire.Hirelings.Combat
         private void Cast(HirelingAI ai, Humanoid me, Character target, float dist, float dt)
         {
             bool posted = ai.Hireling.HasPost && ai.Hireling.Mode == HirelingMode.Working;
+            float castMax = CastMax + WizardTechniques.ExtraRange(ai.Hireling);
+            // Blink (an enhancement): out of reach in an instant, posted or not.
+            if (dist < CastBackOff && ai.Wizard.TryBlink(target))
+                return;
             if (!posted && dist < CastBackOff)
             {
                 if (_backingOffSince < 0f)
@@ -349,7 +353,7 @@ namespace VikingsForHire.Hirelings.Combat
             else
                 _backingOffSince = -1f;
             float flat = Utils.DistanceXZ(target.transform.position, ai.transform.position) - target.GetRadius();
-            if (!posted && flat > CastMax)
+            if (!posted && flat > castMax)
             {
                 if (WaterRules.Out(target) && !me.InWater())
                 {
@@ -363,7 +367,7 @@ namespace VikingsForHire.Hirelings.Combat
                         ai.Halt();
                     return;
                 }
-                ai.WalkTo(dt, target.transform.position, CastMax * 0.8f, run: true);
+                ai.WalkTo(dt, target.transform.position, castMax * 0.8f, run: true);
                 return;
             }
             // Spells are projectiles too: the same clear-line check and drop as an arrow, plus leading a moving target.
@@ -387,8 +391,14 @@ namespace VikingsForHire.Hirelings.Combat
             _blockedSince = -1f;
             ai.Halt();
             ai.LookTowards((aim.Value - from).normalized);
-            if (dist <= CastMax + 10f && Time.time >= _nextAttack && !ai.Dodge.HoldAttack && ai.IsLookingAt(aim.Value, 15f) &&
-                ai.Attack(target))
+            bool ready = dist <= castMax + 10f && Time.time >= _nextAttack && !ai.Dodge.HoldAttack && ai.IsLookingAt(aim.Value, 15f);
+            // Secondary spell (an enhancement) takes a turn when it's ready.
+            if (ready && ai.Wizard.TrySecondary(target))
+            {
+                Attacked(Mathf.Max(0.5f, Config.VfhConfig.WizardAttackCooldown.Value) * ai.Hireling.Enh.Effects.AttackIntervalMult);
+                return;
+            }
+            if (ready && ai.Attack(target))
             {
                 LastCastDistance = dist;
                 LongestCastDistance = Mathf.Max(LongestCastDistance, dist);

@@ -36,6 +36,7 @@ namespace VikingsForHire.Hirelings
         public DodgeController Dodge { get; private set; } = null!;
         public GuardTechniques Guard { get; private set; } = null!;
         public ArcherTechniques Archer { get; private set; } = null!;
+        public WizardTechniques Wizard { get; private set; } = null!;
 
         /// <summary>An archer's pickup of its own kills' drops (Hunter), while following.</summary>
         public Work.FieldLoot? HuntLoot { get; private set; }
@@ -153,6 +154,7 @@ namespace VikingsForHire.Hirelings
             Dodge = new DodgeController(this);
             Guard = new GuardTechniques(this);
             Archer = new ArcherTechniques(this);
+            Wizard = new WizardTechniques(this);
             Add(new IdleBehaviour());
             Add(new TestWalkBehaviour());
             Add(new LeaveBehaviour());
@@ -280,6 +282,7 @@ namespace VikingsForHire.Hirelings
             Block.Act();
             Guard.Tick();
             Archer.Tick(CombatTarget);
+            Wizard.Tick(CombatTarget);
             bool retreat = StanceRules.ShouldRetreat(Stance, Hireling.Job.IsGuard(), Hireling.Humanoid.GetHealthPercentage(), Retreating);
             if (retreat != Retreating)
             {

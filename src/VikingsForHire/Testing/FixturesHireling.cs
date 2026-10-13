@@ -228,6 +228,7 @@ namespace VikingsForHire.Testing
                 case "gather_mult": return (h.LevelData.GatherMult * GatherBehaviour.GatherEnhancement(h)).ToString("0.###", CultureInfo.InvariantCulture);
                 case "damage_mult": return DamagePatches.DamageMultiplier(h).ToString("0.###", CultureInfo.InvariantCulture);
                 case "enh": return h.Enh.Signature;
+                case "cast_max": return (VikingsForHire.Hirelings.Combat.CombatBehaviour.CastMax + VikingsForHire.Hirelings.Combat.WizardTechniques.ExtraRange(h)).ToString("0.#", CultureInfo.InvariantCulture);
                 case "threat": return h.Ai.Threats.Nearest is Character t ? t.m_name : "none";
                 case "last_block": return (h.Ai?.Defense.LastBlockPower ?? 0f).ToString("0.#", CultureInfo.InvariantCulture);
                 case "block_power": return hum.GetLeftItem() is ItemDrop.ItemData shield && shield.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Shield

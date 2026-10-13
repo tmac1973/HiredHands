@@ -217,6 +217,27 @@ namespace VikingsForHire.Testing
                 VfhLog.I(LogCat.Test, "fixture.enemies_tough", ("n", n), ("mult", mult));
                 return Pause(0.2f);
             });
+            TestHarness.RegisterCheck("summons_near", "<radius=20> - living summoned allies (Raise dead's skeletons) within the radius of you", args =>
+                Hirelings.Combat.SummonedAllies.Near(Player.m_localPlayer.transform.position, args.Length > 0 ? float.Parse(args[0], CultureInfo.InvariantCulture) : 20f).ToString());
+            TestHarness.RegisterCheck("player_status", "<status> - seconds left of a status effect on you (Staff_shield…), 0 when none, 999 when it has no time limit", args =>
+            {
+                StatusEffect? se = Player.m_localPlayer.GetSEMan().GetStatusEffect((args.ElementAtOrDefault(0) ?? "").GetStableHashCode());
+                // An effect with no time limit (the Staff of Protection's bubble lasts until it breaks) reads 999.
+                return (se == null ? 0f : se.m_ttl <= 0f ? 999f : Mathf.Max(0f, se.GetRemaningTime())).ToString("0.#", CultureInfo.InvariantCulture);
+            });
+            Fixtures.Add("player_status_clear", "<status> - remove a status effect from you", args =>
+            {
+                Player.m_localPlayer.GetSEMan().RemoveStatusEffect((args.ElementAtOrDefault(0) ?? "").GetStableHashCode(), true);
+                return Pause(0.1f);
+            });
+            TestHarness.RegisterCheck("prefabs", "<text> - names of prefabs, items and status effects containing the text (up to 20)", args =>
+            {
+                string q = args.ElementAtOrDefault(0) ?? "";
+                var names = ZNetScene.instance.m_prefabs.Select(p => p.name)
+                    .Concat(ObjectDB.instance.m_StatusEffects.Select(s => "se:" + s.name))
+                    .Where(n => n.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0).Distinct().Take(20);
+                return string.Join(",", names);
+            });
             Fixtures.Add("data_set", "<job> <Name.number> <value> - set one enhancement number in the loaded data (this game only, until data_reset)", args =>
             {
                 if (!Enum.TryParse(args.ElementAtOrDefault(0) ?? "", true, out JobType job))

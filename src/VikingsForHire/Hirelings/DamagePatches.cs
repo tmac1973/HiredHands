@@ -25,6 +25,7 @@ namespace VikingsForHire.Hirelings
                 try
                 {
                     Combat.ArcherTechniques.AfterHitApplied(__instance);
+                    Combat.WizardTechniques.AfterHitApplied(__instance);
                 }
                 catch (Exception e)
                 {
@@ -90,10 +91,12 @@ namespace VikingsForHire.Hirelings
                         return Blocked("hireling_on_player", from!, __instance);
 
                     Combat.ArcherTechniques.BeforeHit(from!, __instance, hit);
+                    Combat.WizardTechniques.BeforeHit(from!, hit);
                     float mult = DamageMultiplier(from!, __instance);
                     float before = hit.GetTotalDamage();
                     hit.m_damage.Modify(mult);
                     Combat.GuardTechniques.AfterHit(from!, __instance, hit, before);
+                    Combat.WizardTechniques.AfterHit(from!, __instance, hit, before);
                     Telemetry.BalanceFights.Dealt(from!, __instance, hit.GetTotalDamage());
                     VfhLog.T(LogCat.Combat, "hireling.attack", ("hid", from!.Hid), ("target", __instance.m_name), ("mult", mult),
                         ("damage", hit.GetTotalDamage()));
