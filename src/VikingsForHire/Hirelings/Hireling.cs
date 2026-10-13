@@ -599,6 +599,7 @@ namespace VikingsForHire.Hirelings
                     sb.Append(" — ").Append(activity);
             }
             sb.Append("\n$vfh_stance: $vfh_stance_").Append(Stance.ToString().ToLowerInvariant());
+            AppendEnhancements(sb);
             sb.Append("\n$vfh_health ").Append(Mathf.CeilToInt(_humanoid.GetHealth())).Append('/').Append(Mathf.CeilToInt(_humanoid.GetMaxHealth()));
             Inventory? cargo = CargoInventory;
             if (cargo != null)
@@ -609,6 +610,20 @@ namespace VikingsForHire.Hirelings
             }
             sb.Append("\n[<color=yellow><b>$KEY_Use</b></color>] $vfh_open_cargo   [<color=yellow><b>Shift + $KEY_Use</b></color>] $vfh_orders");
             return Localization.instance.Localize(sb.ToString());
+        }
+
+        // The chosen enhancements' names, and how many are owed (plan/enhancements); nothing when the server has them off.
+        private void AppendEnhancements(StringBuilder sb)
+        {
+            if (!VfhConfig.Enhancements.Value || Zdo == null)
+                return;
+            var picks = Core.Enhancements.EnhancementPicks.Parse(Zdo.GetString(HirelingZdo.Enhancements));
+            List<string> names = picks.Ids(Job).Select(id => Core.Enhancements.EnhancementText.NameKey(Job, id)).ToList();
+            if (names.Count > 0)
+                sb.Append('\n').Append(string.Join(", ", names));
+            int owed = Core.Enhancements.EnhancementRules.Owed(picks, Level).Count;
+            if (owed > 0)
+                sb.Append("\n<color=yellow>").Append(Localization.instance.Localize("$vfh_enh_hover_owed", owed.ToString())).Append("</color>");
         }
 
         public bool Interact(Humanoid user, bool hold, bool alt)

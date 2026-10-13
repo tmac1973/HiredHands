@@ -39,6 +39,9 @@ namespace VikingsForHire.UI
         private int _limitsPage;
         private bool _why;
         private int _whyPage;
+        private bool _enh;
+        private int _pendingLevel;
+        private char _pendingChoice;
         private string _shown = "";
         private float _nextRefresh;
 
@@ -65,11 +68,22 @@ namespace VikingsForHire.UI
             _instance._limitsPage = 0;
             _instance._why = false;
             _instance._whyPage = 0;
+            _instance._enh = false;
+            _instance._pendingLevel = 0;
             _instance._nextRefresh = 0f;
             _instance._nextHold = 0f;
             _instance.gameObject.SetActive(true);
             GUIManager.BlockInput(true);
             VfhLog.D(LogCat.UI, "orders.open", ("hid", h.Hid));
+        }
+
+        /// <summary>Tests: switch the open panel to its Enhancements page.</summary>
+        public static void ShowEnhancements()
+        {
+            if (_instance == null)
+                return;
+            _instance._enh = true;
+            _instance._shown = "";
         }
 
         public static void Close(string reason)
@@ -137,6 +151,10 @@ namespace VikingsForHire.UI
                     signature += "|" + string.Join(",", WhyOrders(h, wb).Select(o => $"{o.Item}:{o.Target}:{o.Paused}:{ws.Have(o.Item)}"));
                 }
             }
+            if (_enh)
+                signature += $"|enh|{h.Zdo.GetString(HirelingZdo.Enhancements)}|{_pendingLevel}{_pendingChoice}|{VfhConfig.Enhancements.Value}";
+            else
+                signature += $"|{h.Zdo.GetString(HirelingZdo.Enhancements)}";
             if (signature == _shown)
                 return;
             _shown = signature;
@@ -148,7 +166,12 @@ namespace VikingsForHire.UI
             PanelUi.Clear(_content);
             Transform t = _content;
             if (transform is RectTransform wide)
-                wide.sizeDelta = new Vector2(_limits || _why ? LimitsWidth : Width, wide.sizeDelta.y);
+                wide.sizeDelta = new Vector2(_enh ? EnhWidth : _limits || _why ? LimitsWidth : Width, wide.sizeDelta.y);
+            if (_enh)
+            {
+                BuildEnhancements(h);
+                return;
+            }
             if (_limits)
             {
                 BuildLimits(h);
@@ -186,7 +209,17 @@ namespace VikingsForHire.UI
                 Button b = PanelUi.Button(t, $"$vfh_stance_{s.ToString().ToLowerInvariant()}", -40f + i * 110f, y, 104f, 34f, () => SetStance(s));
                 Highlight(b, h.Stance == s);
             }
-            y -= 60f;
+            y -= 50f;
+
+            // Enhancements (plan/enhancements): owed choices flagged on the button.
+            if (VfhConfig.Enhancements.Value && h.BoardId.Length > 0)
+            {
+                int owed = Core.Enhancements.EnhancementRules.Owed(Core.Enhancements.EnhancementPicks.Parse(h.Zdo?.GetString(HirelingZdo.Enhancements)), h.Level).Count;
+                Button eb = PanelUi.Button(t, owed > 0 ? Localization.instance.Localize("$vfh_enh_open", owed.ToString()) : "$vfh_enh_open_none",
+                    0f, y, 300f, 32f, () => { _enh = true; _pendingLevel = 0; _shown = ""; });
+                Highlight(eb, owed > 0);
+                y -= 50f;
+            }
 
             // Gatherers: what to gather (each tree or rock counts as its best drop), and whether to work at home at all.
             if (h.Job is JobType.Woodcutter or JobType.Miner && DataStore.Current.Jobs.TryGetValue(h.Job, out JobData? job) && job.GatherToggles.Count > 0)
@@ -287,6 +320,77 @@ namespace VikingsForHire.UI
         }
 
         private const float MinHeight = 420f;
+        private const float EnhWidth = 760f;
+        private const float EnhRowHeight = 74f;
+
+        // Each level's two options: chosen (highlighted), the other at a chosen level (greyed), owed (click, then click
+        // again to confirm: undoing costs a respec), or not yet reached (greyed, "at level N").
+        private void BuildEnhancements(Hireling h)
+        {
+            Transform t = _content;
+            PanelUi.Button(t, "$vfh_orders_back", -320f, -45f, 100f, 30f, () => { _enh = false; _pendingLevel = 0; _shown = ""; });
+            PanelUi.Text(t, Localization.instance.Localize("$vfh_enh_title", h.DisplayName), -10f, -45f, 420f, 22, bold: true);
+            float y = -85f;
+            if (!VfhConfig.Enhancements.Value)
+            {
+                PanelUi.Text(t, "$vfh_enh_off", 0f, y, 600f, 16, color: PanelUi.Dim);
+                return;
+            }
+            PanelUi.Text(t, "$vfh_enh_hint", 0f, y, 660f, 14, color: PanelUi.Dim);
+            y -= 45f;
+            var picks = Core.Enhancements.EnhancementPicks.Parse(h.Zdo?.GetString(HirelingZdo.Enhancements));
+            for (int level = Core.Enhancements.EnhancementCatalog.FirstLevel; level <= Core.Enhancements.EnhancementCatalog.LastLevel; level++)
+            {
+                char chosen = picks.Get(level);
+                // Owed levels stand out; levels not reached yet are dimmed.
+                Color levelColor = level > h.Level ? PanelUi.Dim : chosen == '-' ? GUIManager.Instance.ValheimOrange : GUIManager.Instance.ValheimBeige;
+                PanelUi.Text(t, Localization.instance.Localize("$vfh_enh_level", level.ToString()), -330f, y, 80f, 16, TextAnchor.MiddleLeft, levelColor, bold: true);
+                (Core.Enhancements.EnhancementId a, Core.Enhancements.EnhancementId b) = Core.Enhancements.EnhancementCatalog.Pair(h.Job, level);
+                Option(h, level, 'A', a, -125f, y, chosen);
+                Option(h, level, 'B', b, 200f, y, chosen);
+                y -= EnhRowHeight;
+            }
+            if (transform is RectTransform rt)
+                rt.sizeDelta = new Vector2(rt.sizeDelta.x, Mathf.Max(MinHeight, -y + 40f));
+        }
+
+        private void Option(Hireling h, int level, char choice, Core.Enhancements.EnhancementId id, float x, float y, char chosen)
+        {
+            Transform t = _content;
+            string name = Localization.instance.Localize(Core.Enhancements.EnhancementText.NameKey(h.Job, id));
+            string desc = Localization.instance.Localize(Core.Enhancements.EnhancementText.DescKey(h.Job, id),
+                Core.Enhancements.EnhancementText.Args(DataStore.Current, h.Job, id));
+            bool future = level > h.Level;
+            bool pending = _pendingLevel == level && _pendingChoice == choice;
+            string label = pending ? Localization.instance.Localize("$vfh_enh_confirm", name) : chosen == choice ? "✓ " + name : name;
+            Button btn = PanelUi.Button(t, label, x, y, 310f, 30f, () => ClickOption(h, level, choice));
+            if (chosen == choice)
+                Highlight(btn, true);
+            else if (chosen != '-' || future)
+                btn.interactable = false;
+            else if (pending)
+                Highlight(btn, true);
+            // Two lines of description under the option.
+            Text d = PanelUi.Text(t, desc, x, y - 33f, 310f, 12, TextAnchor.UpperCenter, chosen == choice ? GUIManager.Instance.ValheimBeige : PanelUi.Dim);
+            d.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 32f);
+        }
+
+        private void ClickOption(Hireling h, int level, char choice)
+        {
+            if (_pendingLevel == level && _pendingChoice == choice)
+            {
+                _pendingLevel = 0;
+                Board.BoardContracts.ChooseEnhancement(h.BoardId, h.Hid, level, choice);
+                VfhLog.I(LogCat.UI, "enh.choose", ("hid", h.Hid), ("level", level), ("choice", choice));
+            }
+            else
+            {
+                _pendingLevel = level;
+                _pendingChoice = choice;
+            }
+            _shown = "";
+        }
+
         private const float Width = 520f;
         private const float LimitsWidth = 660f;
         private const int LimitPicksPerPage = 12;

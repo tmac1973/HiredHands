@@ -304,6 +304,7 @@ namespace VikingsForHire.Net
                 Level = Mathf.Max(1, zdo.GetInt(HirelingZdo.Level, 1)), Radius = zdo.GetFloat(HirelingZdo.Radius, 20f),
                 Stance = (Stance)zdo.GetInt(HirelingZdo.Stance), Snapshot = old?.Snapshot ?? HirelingSnapshot.FromZdo(zdo).ToBytes(),
                 SkipItems = zdo.GetString(HirelingZdo.SkipItems), NoHomeWork = zdo.GetBool(HirelingZdo.NoHomeWork),
+                Enhancements = old?.Enhancements ?? zdo.GetString(HirelingZdo.Enhancements),
             };
             MutationService.SubmitBoard(boardId, adopt, result =>
             {

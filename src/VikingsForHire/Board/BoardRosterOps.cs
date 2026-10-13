@@ -246,12 +246,48 @@ namespace VikingsForHire.Board
                         Snapshot = op.Snapshot,
                         SkipItems = op.SkipItems,
                         NoHomeWork = op.NoHomeWork,
+                        Enhancements = Core.Enhancements.EnhancementPicks.Parse(op.Enhancements).ToString(),
                     };
                     roster.Add(entry);
                     entry.State = ContractState.Active;
                     VfhLog.I(LogCat.Roster, "contract.adopted", ("board", boardId), ("hid", entry.Hid), ("name", entry.Name), ("job", entry.Job),
                         ("level", entry.Level), ("radius", entry.Radius));
                     result = new OpResult(OpOutcome.Ok);
+                    break;
+                }
+                case RosterOpType.ChooseEnhancement:
+                {
+                    if (!VfhConfig.Enhancements.Value)
+                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.EnhancementsOff, "$vfh_op_enhancements_off"));
+                    OpOutcome o = roster.ChooseEnhancement(op.Hid, op.Level, op.Choice);
+                    if (o != OpOutcome.Ok)
+                        return Done(zdo, null, boardId, op, new OpResult(o, "$vfh_op_failed"));
+                    ContractEntry e = roster.ByHid(op.Hid)!;
+                    MutationService.SubmitHireling(op.Hid, new HirelingOp { Enhancements = e.Enhancements });
+                    VfhLog.I(LogCat.Roster, "contract.enhancement", ("board", boardId), ("hid", op.Hid), ("level", op.Level), ("choice", op.Choice),
+                        ("id", Core.Enhancements.EnhancementCatalog.Option(e.Job, op.Level, op.Choice)), ("picks", e.Enhancements));
+                    result = new OpResult(OpOutcome.Ok, "$vfh_op_enhancement_chosen");
+                    break;
+                }
+                case RosterOpType.RespecEnhancements:
+                {
+                    if (!VfhConfig.Enhancements.Value)
+                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.EnhancementsOff, "$vfh_op_enhancements_off"));
+                    ContractEntry? e = roster.ByHid(op.Hid);
+                    if (e == null)
+                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.NotFound, "$vfh_op_notfound"));
+                    if (!Core.Enhancements.EnhancementPicks.Parse(e.Enhancements).Any)
+                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.Ok));
+                    if (e.State != ContractState.Active)
+                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.WrongState, "$vfh_op_failed"));
+                    Cost cost = Core.Enhancements.EnhancementRules.RespecCost(costs, e.Job, e.Level, DataStore.Current.EnhancementSettings.RespecCostFraction);
+                    if (!BoardLedger.TryPay(new BoardLedger.Wallet(zdo), cost, out string paid))
+                        return Done(zdo, null, boardId, op, new OpResult(OpOutcome.InsufficientFunds, "$vfh_op_funds"));
+                    string before = e.Enhancements;
+                    roster.ResetEnhancements(op.Hid);
+                    MutationService.SubmitHireling(op.Hid, new HirelingOp { Enhancements = e.Enhancements });
+                    VfhLog.I(LogCat.Roster, "contract.respec", ("board", boardId), ("hid", op.Hid), ("was", before), ("paid", paid));
+                    result = new OpResult(OpOutcome.Ok, "$vfh_op_respec_done");
                     break;
                 }
                 case RosterOpType.Remove:
@@ -300,6 +336,7 @@ namespace VikingsForHire.Board
             OpOutcome.WorkerCapReached => $"$vfh_op_cap_workers|{roster.KindCount(false)}|{rules.WorkerCap(boardLevel)}",
             OpOutcome.JobLimitReached => $"$vfh_op_job_limit|$vfh_job_{job.ToString().ToLowerInvariant()}|{roster.JobCount(job)}|{rules.MaxPerBoard(job)}",
             OpOutcome.CombatOff => "$vfh_op_combat_off",
+            OpOutcome.EnhancementsOff => "$vfh_op_enhancements_off",
             _ => "",
         };
 

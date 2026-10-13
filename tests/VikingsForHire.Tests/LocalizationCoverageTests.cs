@@ -48,6 +48,30 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void EveryEnhancementHasANameAndADescriptionWithItsNumbers()
+        {
+            string json = File.ReadAllText(Path.Combine(RepoRoot(), "src", "VikingsForHire", "Localization", "English.json"));
+            using JsonDocument doc = JsonDocument.Parse(json);
+            var strings = doc.RootElement.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetString() ?? "");
+            var data = VikingsForHire.Core.Data.DefaultData.Create();
+            int n = 0;
+            foreach ((VikingsForHire.Core.JobType job, VikingsForHire.Core.Enhancements.EnhancementId id) in VikingsForHire.Core.Enhancements.EnhancementCatalog.All())
+            {
+                string name = VikingsForHire.Core.Enhancements.EnhancementText.NameKey(job, id).TrimStart('$');
+                string desc = VikingsForHire.Core.Enhancements.EnhancementText.DescKey(job, id).TrimStart('$');
+                Assert.True(strings.ContainsKey(name), name);
+                Assert.True(strings.ContainsKey(desc), desc);
+                string[] args = VikingsForHire.Core.Enhancements.EnhancementText.Args(data, job, id);
+                int placeholders = Regex.Matches(strings[desc], @"\$\d").Count;
+                Assert.True(placeholders == args.Length, $"{desc}: {placeholders} placeholders, {args.Length} numbers");
+                foreach (string number in VikingsForHire.Core.Enhancements.EnhancementText.NumberNames(id))
+                    Assert.True(data.Enhancements[job].ContainsKey($"{id}.{number}"), $"{job}.{id}.{number} has no default");
+                n++;
+            }
+            Assert.Equal(126, n);
+        }
+
+        [Fact]
         public void NoKeyIsDefinedTwice()
         {
             string json = File.ReadAllText(Path.Combine(RepoRoot(), "src", "VikingsForHire", "Localization", "English.json"));

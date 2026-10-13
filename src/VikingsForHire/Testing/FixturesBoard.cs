@@ -48,6 +48,53 @@ namespace VikingsForHire.Testing
                 VfhLog.I(LogCat.Test, "fixture.board_far", ("pos", spot), ("dist", dist), ("level", Math.Max(1, level)));
                 return WaitSeconds(1f);
             });
+            Fixtures.Add("ward_foreign", "- an enabled ward owned by another player over your spot (for access tests; clear_area removes it)", _ =>
+            {
+                Player player = RequirePlayer();
+                Vector3 spot = Ground(player.transform.position + Vector3.ProjectOnPlane(player.transform.forward, Vector3.up).normalized * -3f);
+                GameObject ward = Spawn("guard_stone", spot, Quaternion.identity);
+                ZDO z = ward.GetComponent<ZNetView>().GetZDO();
+                if (ward.GetComponent<Piece>() is Piece wp)
+                    wp.m_creator = 424242L;
+                z.Set(ZDOVars.s_creator, 424242L);
+                z.Set(ZDOVars.s_creatorName, "Somebody");
+                z.Set(ZDOVars.s_enabled, true);
+                Piece? pc = ward.GetComponent<Piece>();
+                PrivateArea? pa = ward.GetComponentInChildren<PrivateArea>();
+                VfhLog.I(LogCat.Test, "fixture.ward_foreign", ("pos", spot), ("creator", pc != null ? pc.GetCreator() : -1L),
+                    ("areaPiece", pa != null && pa.m_piece != null ? pa.m_piece.GetCreator() : -1L), ("samePiece", pa != null && pa.m_piece == pc));
+                return WaitSeconds(1f);
+            });
+            Fixtures.Add("devcommands_wards", "<on|off> - Server Devcommands' 'Access warded areas' (on in the dev profile, which lets the tester into every ward)", args =>
+            {
+                bool on = (args.ElementAtOrDefault(0) ?? "on") == "on";
+                int set = 0;
+                foreach (var info in BepInEx.Bootstrap.Chainloader.PluginInfos.Values)
+                {
+                    if (info.Instance == null)
+                        continue;
+                    foreach (var kv in info.Instance.Config)
+                        if (kv.Key.Key == "Access warded areas" && kv.Value is BepInEx.Configuration.ConfigEntry<bool> entry)
+                        {
+                            entry.Value = on;
+                            set++;
+                        }
+                }
+                VfhLog.I(LogCat.Test, "fixture.devcommands_wards", ("on", on), ("entries", set));
+                return WaitSeconds(0.2f);
+            });
+            TestHarness.RegisterCheck("wards_near", "<radius=40> - enabled wards covering your spot, as yours/others' (yours = you have access)", args =>
+            {
+                Vector3 me = RequirePlayer().transform.position;
+                int mine = 0, others = 0;
+                foreach (PrivateArea w in PrivateArea.m_allAreas)
+                {
+                    if (w == null || !w.IsEnabled() || !w.IsInside(me, 0f))
+                        continue;
+                    if (w.HaveLocalAccess()) mine++; else others++;
+                }
+                return $"{mine}/{others}";
+            });
             Fixtures.Add("board_put", "<item> <n> - give yourself n items and move them into the nearest board like the UI does", BoardPut);
             Fixtures.Add("board_force_add", "<item> <n> - put items into the nearest board, skipping its food/coins filter", BoardForceAdd);
             Fixtures.Add("crafty_probe", "- add a workbench recipe 'Wood' costing 1 Coins + 1 CookedMeat (this session only)", _ => CraftyProbe());

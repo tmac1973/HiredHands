@@ -24,6 +24,8 @@ namespace VikingsForHire.Testing
             Fixtures.Add("board_clear", "- empty the nearest board's storage", _ => BoardClear());
             Fixtures.Add("post", "<job> <level> [radius=20] [free] - post a contract on the nearest board (pays like the panel, or nothing with free) and wait for the answer", Post);
             Fixtures.Add("contract", "<cancel|dismiss|promote> - act on the contract last posted, through the real op", Contract);
+            Fixtures.Add("enhance", "<level> <A|B> - choose an enhancement for the contract last posted, through the real op (the board's answer is logged)", Enhance);
+            Fixtures.Add("respec", "- clear the enhancements of the contract last posted, through the real (paid) op", Respec);
             Fixtures.Add("order", "<add|remove|clear|pause> [item] [target] [seed|crop|kitchen|station] - edit the nearest board's production orders (through its owner, like the Orders tab)", Order);
             TestHarness.RegisterCheck("order", "<item> <target|paused|position|kind> - an order on the nearest board (position 1-based in work order; none when absent)", args =>
             {
@@ -58,7 +60,7 @@ namespace VikingsForHire.Testing
                 return (state.Equals("all", StringComparison.OrdinalIgnoreCase) ? r.Count
                     : r.Entries.Count(e => e.State.ToString().Equals(state, StringComparison.OrdinalIgnoreCase))).ToString();
             });
-            TestHarness.RegisterCheck("roster_entry", "<last|hid-prefix> <state|level|unpaid|radius|stance|respawn|returnin|name|post> - a contract on the nearest board (returnin: seconds until a pending one arrives)", args =>
+            TestHarness.RegisterCheck("roster_entry", "<last|hid-prefix> <state|level|unpaid|radius|stance|respawn|returnin|name|post|enh> - a contract on the nearest board (returnin: seconds until a pending one arrives)", args =>
             {
                 Roster r = BoardRosterOps.Read(Board().Zdo!);
                 string sel = args.ElementAtOrDefault(0) ?? "last";
@@ -76,6 +78,7 @@ namespace VikingsForHire.Testing
                     "returnin" => Math.Max(0.0, e.ArriveAt - ZNet.instance.GetTimeSeconds()).ToString("0", CultureInfo.InvariantCulture),
                     "name" => e.Name,
                     "post" => e.Post != null ? "true" : "false",
+                    "enh" => e.Enhancements,
                     _ => throw new ArgumentException("unknown field"),
                 };
             });
@@ -194,6 +197,29 @@ namespace VikingsForHire.Testing
             }
             for (float t = 0f; !answered && t < 5f; t += Time.deltaTime)
                 yield return null;
+        }
+
+        /// <summary>Rows read the board's answer with the <c>last_op</c> check (Ok, BadLevel, InsufficientFunds…).</summary>
+        private static IEnumerator Enhance(string[] args)
+        {
+            HiringBoard board = Board();
+            int level = int.Parse(args.ElementAtOrDefault(0) ?? "2", CultureInfo.InvariantCulture);
+            char choice = (args.ElementAtOrDefault(1) ?? "A").ToUpperInvariant()[0];
+            bool answered = false;
+            BoardContracts.ChooseEnhancement(board.Id, BoardContracts.LastPostedHid, level, choice, _ => answered = true);
+            for (float t = 0f; !answered && t < 5f; t += Time.deltaTime)
+                yield return null;
+            VfhLog.I(LogCat.Test, "fixture.enhance", ("level", level), ("choice", choice), ("outcome", BoardContracts.LastOutcome));
+        }
+
+        private static IEnumerator Respec(string[] args)
+        {
+            HiringBoard board = Board();
+            bool answered = false;
+            BoardContracts.Respec(board.Id, BoardContracts.LastPostedHid, _ => answered = true);
+            for (float t = 0f; !answered && t < 5f; t += Time.deltaTime)
+                yield return null;
+            VfhLog.I(LogCat.Test, "fixture.respec", ("outcome", BoardContracts.LastOutcome));
         }
 
         private static IEnumerator SkipTime(string[] args)

@@ -297,6 +297,70 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void EnhancementPicksRoundTripAndOlderRostersHaveNone()
+        {
+            var roster = new Roster();
+            roster.Add(new ContractEntry { ContractId = "c1", Hid = "h1", Name = "Ragna", Job = JobType.GuardRanged, Level = 5 });
+            roster.ByHid("h1")!.State = ContractState.Active;
+            Assert.Equal("-------", roster.ByHid("h1")!.Enhancements);
+            Assert.Equal(OpOutcome.Ok, roster.ChooseEnhancement("h1", 2, 'A'));
+            Assert.Equal(OpOutcome.Ok, roster.ChooseEnhancement("h1", 5, 'B'));
+            Assert.Equal(OpOutcome.BadLevel, roster.ChooseEnhancement("h1", 6, 'A')); // above its level
+            Assert.Equal(OpOutcome.BadLevel, roster.ChooseEnhancement("h1", 2, 'B')); // already chosen
+            Assert.Equal(OpOutcome.BadLevel, roster.ChooseEnhancement("h1", 1, 'A'));
+            Assert.Equal(OpOutcome.BadLevel, roster.ChooseEnhancement("h1", 3, 'C'));
+            Assert.Equal(OpOutcome.NotFound, roster.ChooseEnhancement("nobody", 2, 'A'));
+            var w = new W();
+            roster.Write(w);
+            ContractEntry back = Roster.Read(new R(w.Stream.ToArray())).ByHid("h1")!;
+            Assert.Equal("A--B---", back.Enhancements);
+            Assert.Equal(OpOutcome.Ok, roster.Promote("h1", 7, 8));
+            Assert.Equal("A--B---", roster.ByHid("h1")!.Enhancements); // promotion keeps picks; 6 and 7 owed
+            Assert.Equal(OpOutcome.Ok, roster.ResetEnhancements("h1"));
+            Assert.Equal("-------", roster.ByHid("h1")!.Enhancements);
+
+            // A version 3 roster (0.9.x): no picks.
+            var w3 = new W();
+            w3.Write((byte)3);
+            w3.Write(1);
+            w3.Write("c1"); w3.Write("h1"); w3.Write("Ragnhild"); w3.Write((int)JobType.GuardRanged); w3.Write(3); w3.Write(25f);
+            w3.Write((int)Stance.Aggressive); w3.Write((int)ContractState.Active); w3.Write(0); w3.Write(0.0); w3.Write(new byte[] { 1 });
+            w3.Write(0); w3.Write("");
+            w3.Write(0);
+            w3.Write("Stone"); w3.Write(1);
+            ContractEntry v3 = Roster.Read(new R(w3.Stream.ToArray())).ByHid("h1")!;
+            Assert.Equal("Stone", v3.SkipItems);
+            Assert.Equal("-------", v3.Enhancements);
+        }
+
+        [Fact]
+        public void EnhancementOpsRoundTrip()
+        {
+            var choose = new RosterOp { Type = RosterOpType.ChooseEnhancement, Hid = "h", Level = 4, Choice = 'B' };
+            var w = new W();
+            choose.Write(w);
+            Assert.Equivalent(choose, RosterOp.Read(new R(w.Stream.ToArray())));
+            var adopt = new RosterOp { Type = RosterOpType.Adopt, Hid = "h", Enhancements = "AB-----" };
+            var wa = new W();
+            adopt.Write(wa);
+            Assert.Equal("AB-----", RosterOp.Read(new R(wa.Stream.ToArray())).Enhancements);
+            var h = new HirelingOp { Enhancements = "A------", Level = 3 };
+            var wh = new W();
+            h.Write(wh);
+            HirelingOp hb = HirelingOp.Read(new R(wh.Stream.ToArray()));
+            Assert.Equal("A------", hb.Enhancements);
+            Assert.Equal(3, hb.Level);
+            Assert.Null(HirelingOp.Read(new R(Write(new HirelingOp { Level = 2 }))).Enhancements);
+        }
+
+        private static byte[] Write(HirelingOp op)
+        {
+            var w = new W();
+            op.Write(w);
+            return w.Stream.ToArray();
+        }
+
+        [Fact]
         public void VersionTwoRostersStillLoad()
         {
             // A roster saved by 0.1.x after guard posts (format 2, a post, no gather settings).

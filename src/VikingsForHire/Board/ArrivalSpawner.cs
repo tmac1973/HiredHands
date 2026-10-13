@@ -29,6 +29,7 @@ namespace VikingsForHire.Board
             snap.Set(HirelingZdo.Status, "");
             snap.Set(HirelingZdo.SkipItems, entry.SkipItems);
             snap.Set(HirelingZdo.NoHomeWork, entry.NoHomeWork);
+            snap.Set(HirelingZdo.Enhancements, entry.Enhancements);
             if (entry.Name.Length > 0)
                 snap.Set(HirelingZdo.Name, entry.Name); // a renamed hireling comes back (respawn, return) with its new name
             snap.Set(HirelingZdo.Owner, 0L); // a hireling always arrives (or comes back) as nobody's follower

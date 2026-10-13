@@ -15,6 +15,7 @@ namespace VikingsForHire.UI
         private const float RadiusStep = 5f;
         private string _selected = "";
         private string _confirmDismiss = "";
+        private string _confirmRespec = "";
 
         public string Title => "$vfh_tab_roster";
 
@@ -27,7 +28,7 @@ namespace VikingsForHire.UI
             Cost funds = board.Inventory != null ? BoardStorage.Totals(board.Inventory) : Cost.Zero;
             long tick = (long)(ZNet.instance.GetTimeSeconds() / 5); // refresh countdowns every 5s
             string parked = string.Join(",", Hireling.Loaded.Where(h => h != null && h.BoardId == board.Id && h.IsParked).Select(h => h.Hid));
-            return $"{hash}|{_selected}|{_confirmDismiss}|{funds}|{tick}|{board.Level}|{parked}";
+            return $"{hash}|{_selected}|{_confirmDismiss}|{_confirmRespec}|{funds}|{tick}|{board.Level}|{parked}|{VfhConfig.Enhancements.Value}";
         }
 
         public void Build(RectTransform root, HiringBoard board)
@@ -46,6 +47,10 @@ namespace VikingsForHire.UI
             {
                 ContractEntry entry = e;
                 string label = $"{e.Name} — $vfh_job_{e.Job.ToString().ToLowerInvariant()} {e.Level}";
+                int owed = VfhConfig.Enhancements.Value && e.State == ContractState.Active
+                    ? Core.Enhancements.EnhancementRules.Owed(Core.Enhancements.EnhancementPicks.Parse(e.Enhancements), e.Level).Count : 0;
+                if (owed > 0)
+                    label += " (" + Localization.instance.Localize("$vfh_enh_owed", owed.ToString()) + ")";
                 Button b = PanelUi.Button(root, label, -175f, y, 320f, 28f, () =>
                 {
                     _selected = entry.ContractId;
@@ -71,6 +76,10 @@ namespace VikingsForHire.UI
             if (live != null)
                 PanelUi.Text(root, $"$vfh_health {Mathf.CeilToInt(live.Humanoid.GetHealth())}/{Mathf.CeilToInt(live.Humanoid.GetMaxHealth())}", x, -234f, 320f, 16, color: PanelUi.Dim);
             PanelUi.Text(root, Localization.instance.Localize("$vfh_contract_upkeep") + " " + ContractsTab.Price(costs.DailyUpkeep(e.Job, e.Level)), x, -260f, 320f, 15, color: PanelUi.Dim);
+            var picks = Core.Enhancements.EnhancementPicks.Parse(e.Enhancements);
+            if (VfhConfig.Enhancements.Value && picks.Any)
+                PanelUi.Text(root, Localization.instance.Localize("$vfh_enh_roster", string.Join(", ",
+                    picks.Ids(e.Job).Select(id => Localization.instance.Localize(Core.Enhancements.EnhancementText.NameKey(e.Job, id))))), x, -279f, 340f, 12, color: PanelUi.Dim);
 
             if (e.State == ContractState.Pending)
             {
@@ -122,8 +131,29 @@ namespace VikingsForHire.UI
                 PanelUi.Button(root, parked ? "$vfh_roster_back_to_work" : "$vfh_roster_call", x + 85f, -465f, 160f, 34f,
                     () => BoardContracts.Park(e.Hid, !parked));
             }
+            float py = -505f;
+            // Respec (plan/enhancements): clears every pick for a share of its hire fee; a confirm click first.
+            if (VfhConfig.Enhancements.Value && picks.Any)
+            {
+                Cost respec = Core.Enhancements.EnhancementRules.RespecCost(costs, e.Job, e.Level, DataStore.Current.EnhancementSettings.RespecCostFraction);
+                Cost funds = board.Inventory != null ? BoardStorage.Totals(board.Inventory) : Cost.Zero;
+                bool confirm = _confirmRespec == e.ContractId;
+                Button rb = PanelUi.Button(root, Localization.instance.Localize(confirm ? "$vfh_enh_respec_confirm" : "$vfh_enh_respec", ContractsTab.Price(respec)),
+                    x, py, 280f, 34f, () =>
+                    {
+                        if (_confirmRespec == e.ContractId)
+                        {
+                            _confirmRespec = "";
+                            BoardContracts.Respec(board.Id, e.Hid);
+                        }
+                        else
+                            _confirmRespec = e.ContractId;
+                    });
+                rb.interactable = respec.CoveredBy(funds);
+                py -= 40f;
+            }
             if (e.Post != null)
-                PanelUi.Button(root, "$vfh_orders_clear_post", x, -505f, 280f, 34f, () => BoardContracts.ClearPost(board, e.Hid));
+                PanelUi.Button(root, "$vfh_orders_clear_post", x, py, 280f, 34f, () => BoardContracts.ClearPost(board, e.Hid));
         }
 
         /// <summary>Seconds up to an hour, then in-game days (a dead hireling returning after days).</summary>

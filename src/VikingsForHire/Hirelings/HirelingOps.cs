@@ -31,6 +31,7 @@ namespace VikingsForHire.Hirelings
             if (op.Name != null) zdo.Set(HirelingZdo.Name, op.Name);
             if (op.SkipItems != null) zdo.Set(HirelingZdo.SkipItems, op.SkipItems);
             if (op.NoHomeWork.HasValue) zdo.Set(HirelingZdo.NoHomeWork, op.NoHomeWork.Value);
+            if (op.Enhancements != null) zdo.Set(HirelingZdo.Enhancements, op.Enhancements);
             if (op.Parked.HasValue) zdo.Set(HirelingZdo.Parked, op.Parked.Value);
             if (op.BoardId != null) zdo.Set(HirelingZdo.BoardId, op.BoardId);
             if (op.Home is (float hx, float hy, float hz)) zdo.Set(HirelingZdo.Home, new UnityEngine.Vector3(hx, hy, hz));

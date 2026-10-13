@@ -28,6 +28,8 @@ namespace VikingsForHire.Core
         JobLimitReached,
         /// <summary>The server has combat hirelings turned off (CombatHirelings).</summary>
         CombatOff,
+        /// <summary>The server has hireling enhancements turned off (Enhancements).</summary>
+        EnhancementsOff,
     }
 
     /// <summary>One contract on a board: a hireling that's coming, working or on its way out.</summary>
@@ -65,6 +67,8 @@ namespace VikingsForHire.Core
         public string SkipItems { get; set; } = "";
         /// <summary>Gatherers: don't harvest inside the board's own area (decorative trees and rocks in a base).</summary>
         public bool NoHomeWork { get; set; }
+        /// <summary>Enhancement picks, one per level 2-8 ("A--B---"; plan/enhancements). Promotion leaves them; new levels are owed.</summary>
+        public string Enhancements { get; set; } = Core.Enhancements.EnhancementPicks.Empty;
 
         public ContractEntry Clone()
         {
@@ -146,7 +150,7 @@ namespace VikingsForHire.Core
     public sealed class Roster
     {
         // 2: adds the guard post. 3: adds the gather settings. Older rosters still read.
-        public const byte FormatVersion = 3;
+        public const byte FormatVersion = 4;
 
         public List<ContractEntry> Entries { get; } = new();
 
@@ -269,6 +273,33 @@ namespace VikingsForHire.Core
             if (level <= e.Level || level > maxLevel)
                 return OpOutcome.BadLevel;
             e.Level = level;
+            return OpOutcome.Ok;
+        }
+
+        /// <summary>A choice ('A' or 'B') at an owed level of an active contract.</summary>
+        public OpOutcome ChooseEnhancement(string hid, int level, char choice)
+        {
+            ContractEntry? e = ByHid(hid);
+            if (e == null)
+                return OpOutcome.NotFound;
+            if (e.State != ContractState.Active)
+                return OpOutcome.WrongState;
+            var picks = Core.Enhancements.EnhancementPicks.Parse(e.Enhancements);
+            if ((choice != 'A' && choice != 'B') || !Core.Enhancements.EnhancementRules.CanChoose(picks, e.Level, level))
+                return OpOutcome.BadLevel;
+            e.Enhancements = picks.With(level, choice).ToString();
+            return OpOutcome.Ok;
+        }
+
+        /// <summary>Clears every pick (a paid respec: the board charges first).</summary>
+        public OpOutcome ResetEnhancements(string hid)
+        {
+            ContractEntry? e = ByHid(hid);
+            if (e == null)
+                return OpOutcome.NotFound;
+            if (e.State != ContractState.Active)
+                return OpOutcome.WrongState;
+            e.Enhancements = Core.Enhancements.EnhancementPicks.Empty;
             return OpOutcome.Ok;
         }
 
@@ -406,6 +437,7 @@ namespace VikingsForHire.Core
                 }
                 w.Write(e.SkipItems);
                 w.Write(e.NoHomeWork ? 1 : 0);
+                w.Write(e.Enhancements);
             }
         }
 
@@ -441,6 +473,8 @@ namespace VikingsForHire.Core
                     entry.SkipItems = r.ReadString();
                     entry.NoHomeWork = r.ReadInt() == 1;
                 }
+                if (version >= 4)
+                    entry.Enhancements = Core.Enhancements.EnhancementPicks.Parse(r.ReadString()).ToString();
                 roster.Entries.Add(entry);
             }
             return roster;

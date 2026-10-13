@@ -56,6 +56,14 @@ namespace VikingsForHire.Board
         public static void Promote(HiringBoard board, string hid, int level, Action<OpResult>? done = null) =>
             MutationService.SubmitBoard(board.Id, new RosterOp { Type = RosterOpType.Promote, Hid = hid, Level = level }, r => Show(r, done));
 
+        /// <summary>Choose an enhancement ('A' or 'B') at an owed level (plan/enhancements).</summary>
+        public static void ChooseEnhancement(string boardId, string hid, int level, char choice, Action<OpResult>? done = null) =>
+            MutationService.SubmitBoard(boardId, new RosterOp { Type = RosterOpType.ChooseEnhancement, Hid = hid, Level = level, Choice = choice }, r => Show(r, done));
+
+        /// <summary>Paid reset of a hireling's enhancement picks.</summary>
+        public static void Respec(string boardId, string hid, Action<OpResult>? done = null) =>
+            MutationService.SubmitBoard(boardId, new RosterOp { Type = RosterOpType.RespecEnhancements, Hid = hid }, r => Show(r, done));
+
         public static void Dismiss(string boardId, string hid, Action<OpResult>? done = null) =>
             MutationService.SubmitBoard(boardId, new RosterOp { Type = RosterOpType.Dismiss, Hid = hid }, r => Show(r, done));
 

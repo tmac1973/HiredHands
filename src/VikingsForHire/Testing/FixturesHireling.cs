@@ -17,6 +17,22 @@ namespace VikingsForHire.Testing
         {
             Fixtures.Add("hirelings", "<job> <level> <n=1> - spawn hirelings 4m ahead, linked to the nearest board", Hirelings);
             Fixtures.Add("snapshot_test", "- run vfh_snapshot_test on the nearest hireling and wait for it", _ => SnapshotTest.Run(HirelingCommands.NearestOrThrow()));
+            Fixtures.Add("panel", "<last|posted|nearest> [enh|close] - open that hireling's Shift+E panel (it's brought beside you), on its Enhancements page with enh", args =>
+            {
+                string what = args.ElementAtOrDefault(1) ?? "";
+                if (what == "close")
+                {
+                    UI.HirelingPanel.Close("fixture");
+                    return Delay(0.2f);
+                }
+                Hireling h = Select(args.ElementAtOrDefault(0) ?? "posted");
+                h.GetComponent<ZNetView>().ClaimOwnership();
+                h.transform.position = Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward * 2.5f;
+                UI.HirelingPanel.Open(h);
+                if (what == "enh")
+                    UI.HirelingPanel.ShowEnhancements();
+                return Delay(0.5f);
+            });
             Fixtures.Add("cargo_put", "<item> <stacks> [per stack] - move stacks of an item (full ones unless given) from you into the nearest hireling's cargo, like the UI", CargoPut);
             Fixtures.Add("kill_hirelings", "<radius=50> [graves] - kill hirelings near you; their cargo is emptied first (no graves or map pins) unless 'graves'", args =>
             {
@@ -48,7 +64,7 @@ namespace VikingsForHire.Testing
                 return Delay(0.2f);
             });
             Fixtures.Add("regear", "- dress the hireling from your last contract again now, from the current data (as when it loads)", _ => Regear());
-            TestHarness.RegisterCheck("hireling", "<last|posted|nearest|short-hid> <field> - last = most recently spawned, posted = from your last contract; name, job, level, health, maxhealth, charlevel, tamed, faction, armor, behaviour, post_dist, posted, follow_mode, retreat, owner_dist (from you), order, gear.right|left|helmet|chest|legs|ammo|sidearm (none when empty), cargo.<item>, cargo_used, cargo_slots, cargo_weight, in_water, or any vfh_ key",
+            TestHarness.RegisterCheck("hireling", "<last|posted|nearest|short-hid> <field> - last = most recently spawned, posted = from your last contract; name, job, level, health, maxhealth, charlevel, tamed, faction, armor, behaviour, post_dist, posted, follow_mode, retreat, owner_dist (from you), order, gear.right|left|helmet|chest|legs|ammo|sidearm (none when empty), cargo.<item>, cargo_used, cargo_slots, cargo_weight, in_water, enh_owed, panel_access, or any vfh_ key",
                 args => Field(Select(args.ElementAtOrDefault(0) ?? "nearest"), args.ElementAtOrDefault(1) ?? ""));
             TestHarness.RegisterCheck("snapshot_roundtrip", "- result of the last snapshot test: true, or false with the differing values", _ => SnapshotTest.LastResult);
         }
@@ -165,6 +181,10 @@ namespace VikingsForHire.Testing
                 case "armor": return hum.GetBodyArmor().ToString("0.#", CultureInfo.InvariantCulture);
                 case "behaviour": return h.Ai.CurrentBehaviour;
                 case "in_water": return hum.InWater() ? "true" : "false";
+                case "enh_owed": return Config.VfhConfig.Enhancements.Value
+                    ? Core.Enhancements.EnhancementRules.Owed(Core.Enhancements.EnhancementPicks.Parse(z.GetString(HirelingZdo.Enhancements)), h.Level).Count.ToString() : "0";
+                case "panel_access": return (h.Mode == HirelingMode.Following ? h.OwnerId == Player.m_localPlayer.GetPlayerID()
+                    : PrivateArea.CheckAccess(h.Home, 0f, flash: false)) ? "true" : "false";
                 case "post_dist": return h.HasPost ? Utils.DistanceXZ(h.transform.position, h.PostPos).ToString("0.0", CultureInfo.InvariantCulture) : "none";
                 case "follow_mode": return h.FollowMode.ToString();
                 case "retreat": return h.Ai.RetreatOrdered ? "true" : "false";

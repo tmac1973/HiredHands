@@ -19,6 +19,10 @@ namespace VikingsForHire.Core
         Adopt = 12,
         /// <summary>The hireling vanished without dying: it comes back soon, free (RosterReconciler).</summary>
         MarkLost = 13,
+        /// <summary>Choose an enhancement at an owed level (Level, Choice).</summary>
+        ChooseEnhancement = 14,
+        /// <summary>Paid reset of every enhancement pick.</summary>
+        RespecEnhancements = 15,
     }
 
     /// <summary>An edit to the board's production orders (RosterOpType.Orders).</summary>
@@ -60,6 +64,11 @@ namespace VikingsForHire.Core
         public int OrderTarget { get; set; }
         public bool OrderPaused { get; set; }
 
+        /// <summary>ChooseEnhancement: 'A' or 'B' at <see cref="Level"/>.</summary>
+        public char Choice { get; set; } = 'A';
+        /// <summary>Adopt: the picks the hireling brings.</summary>
+        public string Enhancements { get; set; } = "";
+
         public void Write(IPackageWriter w)
         {
             w.Write((int)Type);
@@ -87,6 +96,8 @@ namespace VikingsForHire.Core
             w.Write(OrderKind);
             w.Write(OrderTarget);
             w.Write(OrderPaused ? 1 : 0);
+            w.Write((int)Choice);
+            w.Write(Enhancements);
         }
 
         public static RosterOp Read(IPackageReader r)
@@ -101,6 +112,8 @@ namespace VikingsForHire.Core
             op.OrderKind = r.ReadInt();
             op.OrderTarget = r.ReadInt();
             op.OrderPaused = r.ReadInt() == 1;
+            op.Choice = (char)r.ReadInt();
+            op.Enhancements = r.ReadString();
             return op;
         }
 
@@ -118,7 +131,7 @@ namespace VikingsForHire.Core
             Free = r.ReadInt() == 1,
         };
 
-        public override string ToString() => $"{Type}(contract={ContractId} hid={Hid} job={Job} level={Level})";
+        public override string ToString() => $"{Type}(contract={ContractId} hid={Hid} job={Job} level={Level}{(Type == RosterOpType.ChooseEnhancement ? $" choice={Choice}" : "")})";
     }
 
     /// <summary>A change to a hireling's ZDO fields; only the fields that are set get written.</summary>
@@ -148,6 +161,8 @@ namespace VikingsForHire.Core
         /// <summary>Moving to another board: its id and where home (the board) is.</summary>
         public string? BoardId { get; set; }
         public (float X, float Y, float Z)? Home { get; set; }
+        /// <summary>Enhancement picks (plan/enhancements), copied from the contract.</summary>
+        public string? Enhancements { get; set; }
 
         public void Write(IPackageWriter w)
         {
@@ -156,7 +171,7 @@ namespace VikingsForHire.Core
                         | (FollowMode.HasValue ? 256 : 0) | (StayPos.HasValue ? 512 : 0) | (DeliverPending.HasValue ? 1024 : 0)
                         | (Post.HasValue ? 2048 : 0) | (ClearPost == true ? 4096 : 0) | (Name != null ? 8192 : 0)
                         | (SkipItems != null ? 16384 : 0) | (NoHomeWork.HasValue ? 32768 : 0) | (Parked.HasValue ? 65536 : 0)
-                        | (BoardId != null ? 131072 : 0) | (Home.HasValue ? 262144 : 0);
+                        | (BoardId != null ? 131072 : 0) | (Home.HasValue ? 262144 : 0) | (Enhancements != null ? 524288 : 0);
             w.Write(flags);
             if (Mode.HasValue) w.Write((int)Mode.Value);
             if (Stance.HasValue) w.Write((int)Stance.Value);
@@ -192,6 +207,7 @@ namespace VikingsForHire.Core
                 w.Write(hy);
                 w.Write(hz);
             }
+            if (Enhancements != null) w.Write(Enhancements);
         }
 
         public static HirelingOp Read(IPackageReader r)
@@ -217,10 +233,11 @@ namespace VikingsForHire.Core
             if ((flags & 65536) != 0) op.Parked = r.ReadInt() != 0;
             if ((flags & 131072) != 0) op.BoardId = r.ReadString();
             if ((flags & 262144) != 0) op.Home = (r.ReadSingle(), r.ReadSingle(), r.ReadSingle());
+            if ((flags & 524288) != 0) op.Enhancements = r.ReadString();
             return op;
         }
 
         public override string ToString() =>
-            $"SetFields({(Mode.HasValue ? $"mode={Mode} " : "")}{(Stance.HasValue ? $"stance={Stance} " : "")}{(Radius.HasValue ? $"radius={Radius} " : "")}{(Level.HasValue ? $"level={Level} " : "")}{(LeavingSince.HasValue ? "leaving " : "")}{(Status != null ? $"status={Status} " : "")}{(Owner.HasValue ? $"owner={Owner} " : "")}{(FollowMode.HasValue ? $"follow={FollowMode} " : "")}{(StayPos.HasValue ? "stay " : "")}{(DeliverPending == true ? "deliver " : "")}{(Name != null ? $"name={Name} " : "")}{(Parked.HasValue ? $"parked={Parked} " : "")}{(BoardId != null ? $"board={BoardId} " : "")})".Replace(" )", ")");
+            $"SetFields({(Mode.HasValue ? $"mode={Mode} " : "")}{(Stance.HasValue ? $"stance={Stance} " : "")}{(Radius.HasValue ? $"radius={Radius} " : "")}{(Level.HasValue ? $"level={Level} " : "")}{(LeavingSince.HasValue ? "leaving " : "")}{(Status != null ? $"status={Status} " : "")}{(Owner.HasValue ? $"owner={Owner} " : "")}{(FollowMode.HasValue ? $"follow={FollowMode} " : "")}{(StayPos.HasValue ? "stay " : "")}{(DeliverPending == true ? "deliver " : "")}{(Name != null ? $"name={Name} " : "")}{(Parked.HasValue ? $"parked={Parked} " : "")}{(BoardId != null ? $"board={BoardId} " : "")}{(Enhancements != null ? $"enh={Enhancements} " : "")})".Replace(" )", ")");
     }
 }

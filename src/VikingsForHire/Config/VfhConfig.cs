@@ -122,6 +122,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<CombatSkillPreset> CombatSkill = null!;
         public static ConfigEntry<float> HealthRegen = null!;
         public static ConfigEntry<bool> CombatHirelings = null!;
+        public static ConfigEntry<bool> Enhancements = null!;
         public static ConfigEntry<float> GuardMeleeDamage = null!;
         public static ConfigEntry<float> GuardRangedDamage = null!;
         public static ConfigEntry<float> WizardDamage = null!;
@@ -183,6 +184,7 @@ namespace VikingsForHire.Config
             MaxBoardsPerWorld = Synced(b, "MaxBoardsPerWorld", 0, "Hiring boards allowed per world (0 = unlimited).");
 
             CombatHirelings = Synced(h, "CombatHirelings", true, "Guards and archers (and later other fighting jobs) can be hired. Off: workers only; the Contracts tab doesn't offer combat jobs. Combat hirelings already hired stay.");
+            Enhancements = Synced(h, "Enhancements", true, "Hirelings pick one of two enhancements at each level from 2 to 8 (Shift+E panel). Off: no choices and no effects; picks already made are kept for when it's back on.");
             LowFundsWarnDays = Synced(h, "LowFundsWarnDays", 2, "A board whose food or coins last this many days or fewer is low: its hover turns orange (red on the last day), players at the base are told once a day, and its builder gets a map pin. 0 turns the warnings off (the hover still shows the days).");
             LowFundsMessages = Synced(h, "LowFundsMessages", true, "Tell the players at a base, once a day, when its hiring board is running low.");
             LowFundsMapPins = _file.Bind(h, "LowFundsMapPins", true, "Your own setting: show a map pin on hiring boards you built while they're running low.");
