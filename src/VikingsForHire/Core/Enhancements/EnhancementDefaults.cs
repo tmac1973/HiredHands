@@ -15,16 +15,16 @@ GuardMelee: Toughened.health 0.10, ShieldTraining.block 0.15, HeavyArmour.armor 
   Bodyguard.cooldown 15, Bodyguard.range 6, Taunt.cooldown 20, Taunt.range 8, Taunt.seconds 5, Bloodthirst.share 0.10,
   Cleave.extra 2, Cleave.share 0.5, Cleave.range 2.5, LastStand.cooldown 600, LastStand.seconds 3, Champion.damage 0.10,
   Champion.health 0.10, RallyingCry.damage 0.10, RallyingCry.range 15
-GuardRanged: SteadyAim.damage 0.10, QuickDraw.interval 0.15, EagleEye.range 5, LightFeet.speed 0.10, FireArrows.damage 10,
-  FireArrows.seconds 4, FrostArrows.slow 0.30, FrostArrows.seconds 3, FrostArrows.damage 5, Masterwork.quality 1,
-  Hunter.damage 0.25, Hunter.range 20, Volley.cooldown 15, Volley.arrows 3, Headshot.chance 0.10, Headshot.mult 2,
+GuardRanged: SteadyAim.damage 0.10, QuickDraw.interval 0.09, EagleEye.range 5, LightFeet.speed 0.06, FireArrows.damage 10,
+  FireArrows.seconds 4, FrostArrows.slow 0.17, FrostArrows.seconds 3, FrostArrows.damage 3, Masterwork.quality 1,
+  Hunter.damage 0.14, Hunter.range 20, Volley.cooldown 15, Volley.arrows 3, Headshot.chance 0.06, Headshot.mult 2,
   Marksman.damage 0.20, Marksman.range 15, Skirmisher.range 10, Skirmisher.seconds 6, RainOfArrows.cooldown 30,
-  RainOfArrows.arrows 8, RainOfArrows.share 0.5, RainOfArrows.range 4, Elite.damage 0.10, Elite.health 0.10
-Wizard: Focus.damage 0.10, Haste.interval 0.15, Warding.share 0.15, Blink.trigger 4, Blink.cooldown 10, Blink.distance 8,
-  SecondarySpell.cooldown 20, SecondarySpell.nova 20, SecondarySpell.range 5, Mender.cooldown 15, Mender.range 15,
-  Mender.heal 0.10, Masterwork.quality 1, ElementalMastery.mult 0.30, Protection.cooldown 60, Protection.absorb 100,
-  EntanglingRoots.cooldown 30, LongReach.range 4, ChainSpell.range 6, ChainSpell.share 0.5, Archmage.damage 0.15,
-  Archmage.interval 0.10, RaiseDead.cooldown 120, RaiseDead.seconds 60
+  RainOfArrows.arrows 8, RainOfArrows.share 0.5, RainOfArrows.range 4, Elite.damage 0.06, Elite.health 0.06
+Wizard: Focus.damage 0.09, Haste.interval 0.05, Warding.share 0.13, Blink.trigger 4, Blink.cooldown 20, Blink.distance 8,
+  SecondarySpell.cooldown 20, SecondarySpell.nova 18, SecondarySpell.range 5, Mender.cooldown 15, Mender.range 15,
+  Mender.heal 0.07, Masterwork.quality 1, ElementalMastery.mult 0.12, Protection.cooldown 60, Protection.absorb 90,
+  EntanglingRoots.cooldown 90, LongReach.range 4, ChainSpell.range 6, ChainSpell.share 0.15, Archmage.damage 0.13,
+  Archmage.interval 0.09, RaiseDead.cooldown 180, RaiseDead.seconds 20
 Woodcutter: StrongSwing.gather 0.10, PackMule.slots 2, Forester.share 0.5, StrongBack.weight 50, SeedSaver.extra 1,
   CleanCut.gather 0.30, Masterwork.quality 1, Lumberjack.share 0.15, FineEye.share 0.10, WideRange.radius 0.20,
   Timber.range 4, Timber.maxHealth 100, Swift.speed 0.10, MasterWoodsman.gather 0.15, MasterWoodsman.share 0.15

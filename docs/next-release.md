@@ -29,6 +29,25 @@ The plan is `plan/enhancements/` (12 phases). Each phase lands as its own commit
 - [x] Phase 07 rows VFH-ENH-W1..W9 pass (2026-10-13).
 - [ ] By hand: the blink, the bubble, the roots and the skeleton look and behave like the player's own staffs.
 - [x] Phase 08 rows VFH-ENH-L1..L8 and M1..M8 pass (2026-10-13). Yield rows set the chance to 1 and check the bonus fires; M1 checks the dig depth only.
+### Balance pass (phase 12, 2026-10-13)
+Duels in the dev game: a level 8 hireling with no picks, all-A and all-B, against 5 one-star trolls, 10 draugr and 3 lox
+(3-5 runs each); "better by" = the mean of the kill-time and damage-taken reductions against no picks. Target 20-35%.
+
+| Build | First | Final | Changes |
+|---|---|---|---|
+| Guard all-A | 25% | 25% | none |
+| Guard all-B | 22% | 22% | none |
+| Archer all-A | 30% | 30% | none |
+| Archer all-B | 47% | 22% | Quick draw 0.15→0.09, Light feet 0.10→0.06, Frost arrows slow 0.30→0.17 and damage 5→3, Hunter 0.25→0.14, Headshot 0.10→0.06, Elite 0.10→0.06 |
+| Wizard all-A | 41% | 29% | Focus 0.10→0.09, Warding 0.15→0.13, nova 20→18, Protection 100→90, Archmage 0.15/0.10→0.13/0.09 |
+| Wizard all-B | 61% | ~50% (32% on kill time alone) | Haste 0.15→0.05, Mender 0.10→0.07, Elemental mastery 0.30→0.12, Chain spell 0.5→0.15, Roots every 90 s (30), Raise dead 20 s every 180 s (60 s every 120), Blink every 20 s (10) |
+
+Wizard all-B is still above the band on the plan's figure: its picks (Roots, Blink, the skeleton) keep trolls and lox
+off it, so it takes almost no damage; its kill times are in the band. Measuring one pick removed at a time showed no
+single culprit (each worth 2-14 points). **Tim to decide:** accept it (it's what those picks are for), or trim further.
+The duels are noisy (the same build measured 19% and 29% between runs): treat the figures as ±10. Worker jobs (step 3 of
+the plan) weren't measured: their picks are plain rates checked by the rows.
+
 ### Reinterpreted (Tim to confirm)
 - **Smelter's hand** ("loads N times as much per trip") would do nothing: a trip already fills each station to its own capacity. Now: tops stations up whenever they aren't full, and loads twice as fast.
 - **Sower** is replaced by **Close planting** (Tim, 2026-10-13): its crops need 15% less room, so the same field holds about 38% more. (At 30% less room a test field went from 32 spots to 70, more than double: too strong, so the default is 15%; `ClosePlanting.space` in the data file.)

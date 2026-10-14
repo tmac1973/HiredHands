@@ -42,25 +42,25 @@ half the hire fee for its level (coins and food, from the board), as set by `res
 
 | Level | A | B |
 |---|---|---|
-| 2 | **Steady aim**: +10% arrow damage | **Quick draw**: Shoots 15% faster |
-| 3 | **Eagle eye**: Sees and shoots 5 m further | **Light feet**: +10% move speed |
-| 4 | **Fire arrows**: Arrows set the target burning (10 fire damage over 4 s) | **Frost arrows**: Arrows slow the target by 30% for 3 s (5 frost damage) |
-| 5 | **Masterwork bow**: Its bow is one quality level higher (1 up): more damage and durability | **Hunter**: +25% damage to animals; picks up its kills' drops in the field |
-| 6 | **Volley**: Every 15 s, 3 arrows in a spread | **Headshot**: 10% chance of double damage |
+| 2 | **Steady aim**: +10% arrow damage | **Quick draw**: Shoots 9% faster |
+| 3 | **Eagle eye**: Sees and shoots 5 m further | **Light feet**: +6% move speed |
+| 4 | **Fire arrows**: Arrows set the target burning (10 fire damage over 4 s) | **Frost arrows**: Arrows slow the target by 17% for 3 s (3 frost damage) |
+| 5 | **Masterwork bow**: Its bow is one quality level higher (1 up): more damage and durability | **Hunter**: +14% damage to animals; picks up its kills' drops in the field |
+| 6 | **Volley**: Every 15 s, 3 arrows in a spread | **Headshot**: 6% chance of double damage |
 | 7 | **Marksman**: +20% damage to targets more than 15 m away | **Skirmisher**: Keeps its distance: backs off from anything within 10 m for up to 6 s, never swaps to its sidearm |
-| 8 | **Rain of arrows**: Every 30 s, 8 arrows fall over the target's area, each at 50% damage | **Elite**: +10% damage and +10% max health |
+| 8 | **Rain of arrows**: Every 30 s, 8 arrows fall over the target's area, each at 50% damage | **Elite**: +6% damage and +6% max health |
 
 ## Wizard
 
 | Level | A | B |
 |---|---|---|
-| 2 | **Focus**: +10% spell damage | **Haste**: Casts 15% faster |
-| 3 | **Warding**: Takes 15% less damage | **Blink**: When an enemy closes within 4 m, it jumps 8 m away (every 10 s) |
-| 4 | **Secondary spell**: Every 20 s, its staff's secondary attack (or a frost nova) | **Mender**: Every 15 s heals the most hurt player or hireling within 15 m by 10% |
-| 5 | **Masterwork staff**: Its staff is one quality level higher (1 up): more damage and durability | **Elemental mastery**: Its spell's burn, freeze or shock lasts and hurts 30% more |
-| 6 | **Protection**: Every 60 s, a protective bubble on its owner or itself | **Entangling roots**: Every 30 s, roots hold enemies at its target |
-| 7 | **Long reach**: Casts from 4 m further | **Chain spell**: Each spell also strikes a second enemy within 6 m for 50% damage |
-| 8 | **Archmage**: +15% damage, casts 10% faster | **Raise dead**: Every 120 s, a skeleton fights beside it for 60 s |
+| 2 | **Focus**: +9% spell damage | **Haste**: Casts 5% faster |
+| 3 | **Warding**: Takes 13% less damage | **Blink**: When an enemy closes within 4 m, it jumps 8 m away (every 20 s) |
+| 4 | **Secondary spell**: Every 20 s, its staff's secondary attack (or a frost nova) | **Mender**: Every 15 s heals the most hurt player or hireling within 15 m by 7% |
+| 5 | **Masterwork staff**: Its staff is one quality level higher (1 up): more damage and durability | **Elemental mastery**: Its spell's burn, freeze or shock lasts and hurts 12% more |
+| 6 | **Protection**: Every 60 s, a protective bubble on its owner or itself | **Entangling roots**: Every 90 s, roots hold enemies at its target |
+| 7 | **Long reach**: Casts from 4 m further | **Chain spell**: Each spell also strikes a second enemy within 6 m for 15% damage |
+| 8 | **Archmage**: +13% damage, casts 9% faster | **Raise dead**: Every 180 s, a skeleton fights beside it for 20 s |
 
 ## Woodcutter
 

@@ -46,15 +46,15 @@ namespace VikingsForHire.Tests
         public void RangedAndWizardBoosts()
         {
             Assert.Equal(1.10f, Effects(JobType.GuardRanged, "A------").DamageMult, 3);
-            Assert.Equal(1.21f, Effects(JobType.GuardRanged, "A-----B").DamageMult, 3);
-            Assert.Equal(1.10f, Effects(JobType.GuardRanged, "A-----B").HealthMult, 3);
+            Assert.Equal(1.166f, Effects(JobType.GuardRanged, "A-----B").DamageMult, 3);
+            Assert.Equal(1.06f, Effects(JobType.GuardRanged, "A-----B").HealthMult, 3);
             EnhancementEffects wiz = Effects(JobType.Wizard, EnhancementPicks.Parse(null)
                 .With(EnhancementCatalog.LevelOf(JobType.Wizard, EnhancementId.Warding), Side(JobType.Wizard, EnhancementId.Warding))
                 .With(EnhancementCatalog.LevelOf(JobType.Wizard, EnhancementId.Archmage), Side(JobType.Wizard, EnhancementId.Archmage))
                 .ToString());
-            Assert.Equal(0.85f, wiz.DamageTakenMult, 3);
-            Assert.Equal(1.15f, wiz.DamageMult, 3);
-            Assert.Equal(0.90f, wiz.AttackIntervalMult, 3);
+            Assert.Equal(0.87f, wiz.DamageTakenMult, 3);
+            Assert.Equal(1.13f, wiz.DamageMult, 3);
+            Assert.Equal(0.91f, wiz.AttackIntervalMult, 3);
         }
 
         [Fact]
