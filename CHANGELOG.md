@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.10.1
+
+Works alongside 0.10.0; update the server and players when it suits you.
+
+- **Each worker has its own orders:** Shift+E on the Farmer, Cook or Rancher, then **Orders**: its list of "keep at least
+  this many" orders, with a picker of what it can make, just as the Steward has its Limits. The board's Orders tab is now
+  a read-only overview of every worker's orders. Orders are still kept on the board, so nothing is lost on updating and a
+  new worker takes them over.
+- **Problems for woodcutters and miners:** a **Problems** button lists what they left alone and why: an item switched off
+  in their panel (a woodcutter with only fine wood on, by trees that give wood), chests with no room, too close to
+  buildings, a tool too weak, another hireling already on it, or nothing within reach.
+
 ## 0.10.0
 
 **Everyone updates together:** the board's roster gains each hireling's picks (a new roster format), new board operations
