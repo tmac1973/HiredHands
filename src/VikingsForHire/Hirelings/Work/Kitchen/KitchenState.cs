@@ -95,7 +95,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                 return hit.Result;
             Stock stock = BoardOrders.Stock(board);
             KitchenResult r = KitchenPlanner.Next(KitchenCatalog.All, BoardOrders.For(board), InProgress(ctx, stock.Chests), Protected(board), ctx.Level, Stations(ctx),
-                stock.Piled);
+                stock.Piled, prep: ctx.Hireling.Enh.Has(Core.Enhancements.EnhancementId.PrepChef));
             Results[key] = (Time.time, r);
             return r;
         }

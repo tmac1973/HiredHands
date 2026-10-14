@@ -3,7 +3,7 @@
 **Depends on:** 04 (effects framework, shared boosts: Pack mule, Swift, Strong back, Bigger fields) · **Enables:** 12
 
 ## Goal
-Farmer: Green thumb, Bountiful, Seed keeper, Sower, Forager, Tender care, Hardy stock, Double harvest, Master farmer,
+Farmer: Green thumb, Bountiful, Seed keeper, Close planting (replaced Sower), Forager, Tender care, Hardy stock, Double harvest, Master farmer,
 Replanter. Cook: Quick hands, Frugal, Spit master, Double batch, Keeper of stoves, Chef's touch, Prep chef, Two stations,
 Pantry sense, Head chef, Banquet.
 
@@ -12,7 +12,7 @@ Pantry sense, Head chef, Banquet.
   one more of the main yield), Seed keeper (chance of one more seed), Double harvest (chance the whole yield twice),
   Master farmer (+0.15 yield, × 0.85 step time); Replanter (after harvesting a crop spot, plants the same crop there at
   once from carried seeds or the chests, as PlantChore would).
-- `src/VikingsForHire/Hirelings/Work/Farm/PlantChore.cs` — Green thumb (`PlantEvery` × 0.9); Sower (up to 4 plants per trip,
+- `src/VikingsForHire/Hirelings/Work/Farm/PlantChore.cs` — Green thumb (`PlantEvery` × 0.9); Close planting (replaced Sower: plants at 70% of the usual spacing, and a `Plant` patch lets its crops grow there; was up to 4 plants per trip,
   from 1); Tender care (each plant it places has its plant time set back by `TenderCare.share` 0.15 of its grow time);
   Hardy stock (plants it places get a ZDO flag `vfh_hardy`; a `Plant` patch lets flagged plants grow one step outside
   their biome's temperature (cold) and with partial sky, where the game would have them wither).

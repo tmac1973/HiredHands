@@ -288,6 +288,8 @@ namespace VikingsForHire.Hirelings
         {
             Combat.GuardTechniques.RallyMult,
             Combat.ArcherTechniques.TargetMult,
+            Work.Steward.StewardEnhancements.WatchmanMult,
+            Work.Ranch.RancherEnhancements.HerdGuardMult,
         };
 
         private static readonly System.Collections.Generic.Dictionary<string, int> BlockedCounts = new();

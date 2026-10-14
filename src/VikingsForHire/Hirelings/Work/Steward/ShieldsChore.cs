@@ -37,7 +37,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private static IEnumerable<ShieldGenerator> Generators(WorkContext ctx)
         {
             var pieces = new List<Piece>();
-            Piece.GetAllPiecesInRadius(ctx.Home, ctx.Radius, pieces);
+            // Shield keeper (an enhancement) looks after generators further out.
+            float reach = StewardEnhancements.ShieldReach(ctx.Hireling, ctx.Radius);
+            Piece.GetAllPiecesInRadius(ctx.Home, reach, pieces);
             foreach (Piece p in pieces)
             {
                 if (p == null || p.GetCreator() == 0L || !ctx.BoardOwnerMayUse(p.transform.position))
@@ -58,7 +60,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             var jobs = new List<ChoreJob>();
             foreach (ShieldGenerator g in Generators(ctx))
             {
-                float u = ChoreUrgency.Shield(g.GetFuel(), g.m_maxFuel, VfhConfig.StewardFireRefillFraction.Value);
+                float u = ChoreUrgency.Shield(g.GetFuel(), g.m_maxFuel, StewardEnhancements.RefillFraction(ctx.Hireling));
                 if (u <= 0f || Reservations.IsReservedByOther(g, ctx.Hireling.Hid) || Reservations.IsSkipped(g))
                     continue;
                 if (FuelFor(ctx, g) == null)
@@ -134,7 +136,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 return End(h, RestAfter);
             if (Time.time < _nextItemAt)
                 return ChoreProgress.Running;
-            _nextItemAt = Time.time + ItemSeconds;
+            _nextItemAt = Time.time + StewardEnhancements.ItemSeconds(h, ItemSeconds);
             h.CargoInventory.RemoveItem(shared, 1);
             g.m_nview.InvokeRPC("RPC_AddFuel"); // plays its own effect
             _toAdd--;

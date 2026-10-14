@@ -25,13 +25,30 @@ namespace VikingsForHire.Hirelings.Work
         // Buried chunks down to this depth (top below the ground) are dug out where digging is allowed (the field).
         private const float DigDepth = 1.5f;
 
+        // Deep digger (an enhancement) digs out chunks buried deeper.
+        /// <summary>How deep under the ground it digs a chunk out (tests).</summary>
+        public float DigDepthNow => Depth;
+
+        private float Depth => Mathf.Max(DigDepth, _hireling.Enh.Value(Core.Enhancements.EnhancementId.DeepDigger, "depth"));
+
         private readonly Hireling _hireling;
 
         public MinerProfile(Hireling hireling) => _hireling = hireling;
 
         public string Status => "$vfh_status_mining";
 
-        public HashSet<string> PickupItems => new(DataStore.Current.Jobs.TryGetValue(JobType.Miner, out var j) ? j.PickupItems : new List<string>());
+        public HashSet<string> PickupItems
+        {
+            get
+            {
+                var items = new HashSet<string>(DataStore.Current.Jobs.TryGetValue(JobType.Miner, out var j) ? j.PickupItems : new List<string>());
+                // Gem eye (an enhancement): what it finds is picked up too.
+                if (_hireling.Enh.Has(Core.Enhancements.EnhancementId.GemEye))
+                    foreach (string biome in new[] { "Meadows", "Swamp", "Mountain", "Plains", "Mistlands" })
+                        items.UnionWith(Core.Enhancements.GemTable.For(biome));
+                return items;
+            }
+        }
 
         public IEnumerable<Component> Candidates(Vector3 center, float radius)
         {
@@ -107,7 +124,10 @@ namespace VikingsForHire.Hirelings.Work
         // Ore first, then stone.
         public int Rank(Component target) => Drops(target).Any(d => d != "Stone") ? 0 : 1;
 
-        public float ExtraReach(Component target) => 0f;
+        // Prospector (an enhancement) looks further for ore: its radius x (1 + Prospector.radius) for ore-bearing rocks.
+        public float ExtraReach(Component target) => _hireling.Enh.Has(Core.Enhancements.EnhancementId.Prospector) && Rank(target) == 0
+            ? Mathf.Min(30f, _hireling.Radius * _hireling.Enh.Value(Core.Enhancements.EnhancementId.Prospector, "radius"))
+            : 0f;
 
         // Copper deposits are big and lumpy: the last chunks often sit in a hollow or under an overhang of the rest, where
         // a miner can't get within a pickaxe's length. A long reach beats leaving the ore behind.
@@ -175,7 +195,7 @@ namespace VikingsForHire.Hirelings.Work
         {
             Bounds b = c.bounds;
             float ground = ZoneSystem.instance.GetGroundHeight(b.center);
-            return b.max.y <= ground - BuriedBelow && b.max.y > ground - DigDepth && TerrainProtectionPatches.MayDig(_hireling, b.center);
+            return b.max.y <= ground - BuriedBelow && b.max.y > ground - Depth && TerrainProtectionPatches.MayDig(_hireling, b.center);
         }
 
         /// <summary>

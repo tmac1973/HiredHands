@@ -32,7 +32,7 @@ namespace VikingsForHire.Core.Enhancements
         FermentersTouch, MasterSteward, ShieldKeeper,
 
         // Farmer.
-        GreenThumb, Bountiful, SeedKeeper, Sower, Forager, TenderCare, HardyStock, BiggerFields, DoubleHarvest, MasterFarmer,
+        GreenThumb, Bountiful, SeedKeeper, ClosePlanting, Forager, TenderCare, HardyStock, BiggerFields, DoubleHarvest, MasterFarmer,
         Replanter,
 
         // Cook.

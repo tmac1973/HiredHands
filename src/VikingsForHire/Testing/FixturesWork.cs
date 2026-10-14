@@ -20,6 +20,25 @@ namespace VikingsForHire.Testing
         public static void Register()
         {
             Fixtures.Add("board_level", "<1-8> - set the nearest board's level (free, through its owner)", BoardLevel);
+            Fixtures.Add("skip", "<tag> [seconds=600] - workers leave a tagged tree or rock alone for a while (as after a failed approach)", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Component target = go.GetComponent<IDestructible>() as Component ?? go.transform;
+                Hirelings.Work.Reservations.Skip(target, args.Length > 1 ? float.Parse(args[1], CultureInfo.InvariantCulture) : 600f);
+                return Wait(0.2f);
+            });
+            Fixtures.Add("tree_at", "<prefab> <tag> <of tag> <metres> - a tree that far from a tagged tree, on its side away from the board (where it falls)", args =>
+            {
+                GameObject of = FindTagged(args.ElementAtOrDefault(2) ?? "") ?? throw new InvalidOperationException("no such tagged tree");
+                // Where a woodcutter will fell it (away from buildings), else away from the board.
+                Vector3 away = of.transform.position - Board().transform.position;
+                if (of.GetComponent<TreeBase>() is TreeBase tb && new Hirelings.Work.WoodcutterProfile().Plan(tb, out Vector3? fell, out _) && fell is Vector3 f)
+                    away = f;
+                away.y = 0f;
+                Vector3 at = of.transform.position + away.normalized * float.Parse(args.ElementAtOrDefault(3) ?? "3", CultureInfo.InvariantCulture);
+                Spawn(args.ElementAtOrDefault(0) ?? "Beech_small1", at, args.ElementAtOrDefault(1) ?? "");
+                return Wait(0.5f);
+            });
             Fixtures.Add("trees", "<prefab> <n> <distance> [tag] - plant trees in a ring that far from the nearest board (the first gets the tag)", Trees);
             Fixtures.Add("tree_near_wall", "<distance=22> - a wall and a beech 4 m from it (tagged near_wall), that far from the board", TreeNearWall);
             Fixtures.Add("chest", "<tag> [item count]… [noazu] - a wooden chest beside the board holding those items (noazu: not registered with AzuAutoStore)", Chest);

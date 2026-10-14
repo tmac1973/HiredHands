@@ -123,7 +123,7 @@ namespace VikingsForHire.Hirelings.Work
             if (!drop.m_nview.IsOwner())
                 drop.m_nview.ClaimOwnership();
             ItemDrop.ItemData item = drop.m_itemData.Clone();
-            float unit = item.GetWeight(1);
+            float unit = h.WeightOf(item, 1);
             int fits = unit <= 0f ? item.m_stack : Mathf.Min(item.m_stack, Mathf.FloorToInt(h.CargoWeightRoom / unit));
             if (fits <= 0 || h.CargoInventory == null)
             {

@@ -27,6 +27,11 @@ namespace VikingsForHire.Hirelings.Work
         private const float MaxExtraReach = 30f; // largest IGatherProfile.ExtraReach
 
         private readonly IGatherProfile _profile;
+
+        public IGatherProfile Profile => _profile;
+
+        /// <summary>What it's working on now (tests).</summary>
+        public Component? Target => _target;
         private Component? _target;
         private Vector3 _anchor;
         private float _nextSwing;
@@ -64,6 +69,61 @@ namespace VikingsForHire.Hirelings.Work
 
         /// <summary>Enhancements' swing power (Strong swing, the masters; target-dependent ones are added by their phase).</summary>
         public static float GatherEnhancement(Hireling h) => h.Enh.Effects.GatherMult;
+
+        /// <summary>Clean cut (logs and stumps) and Rock breaker (rocks with no ore): a harder swing on those.</summary>
+        public static float TargetGather(Hireling h, Component target)
+        {
+            if (!h.Enh.Effects.AnyPicks)
+                return 1f;
+            if (h.Job == JobType.Woodcutter && target is TreeLog or Destructible)
+                return 1f + h.Enh.Value(Core.Enhancements.EnhancementId.CleanCut, "gather");
+            if (h.Job == JobType.Miner && h.Ai.Gather?.Profile.Rank(target) == 1)
+                return 1f + h.Enh.Value(Core.Enhancements.EnhancementId.RockBreaker, "gather");
+            return 1f;
+        }
+
+        private static bool Felled(TreeBase tree) =>
+            tree == null || tree.m_nview == null || !tree.m_nview.IsValid() || tree.m_nview.GetZDO().GetFloat(ZDOVars.s_health, tree.m_health) <= 0f;
+
+        /// <summary>Timber! A felled tree takes down the nearest small tree it falls onto.</summary>
+        private static void Timber(Hireling h, TreeBase felled, Vector3 dir)
+        {
+            if (!h.Enh.Has(Core.Enhancements.EnhancementId.Timber))
+                return;
+            float range = h.Enh.Value(Core.Enhancements.EnhancementId.Timber, "range");
+            float maxHealth = h.Enh.Value(Core.Enhancements.EnhancementId.Timber, "maxHealth");
+            Vector3 from = felled.transform.position;
+            // A small tree: a tree with little health left, or a sapling-sized one (the game's small trees are destructibles).
+            Component? best = null;
+            float bestD = float.MaxValue;
+            foreach (Collider c in Physics.OverlapSphere(from, range + 1f))
+            {
+                Component? t = c.GetComponentInParent<TreeBase>() is TreeBase tb && tb != felled ? tb
+                    : c.GetComponentInParent<Destructible>() is Destructible ds && ds.m_destructibleType == DestructibleType.Tree ? ds : null;
+                ZNetView? nv = t?.GetComponent<ZNetView>();
+                if (t == null || nv == null || !nv.IsValid())
+                    continue;
+                Vector3 to = t.transform.position - from;
+                to.y = 0f;
+                float d = to.magnitude;
+                if (d > range || d < 0.3f || Vector3.Angle(Flat(dir), to) > 75f)
+                    continue;
+                float baseHealth = t is TreeBase b0 ? b0.m_health : ((Destructible)t).m_health;
+                float health = nv.GetZDO().GetFloat(ZDOVars.s_health, baseHealth);
+                if (health > maxHealth || d >= bestD)
+                    continue;
+                best = t;
+                bestD = d;
+            }
+            if (best == null)
+                return;
+            var hit = new HitData { m_toolTier = 100, m_dir = Flat(dir), m_point = best.transform.position + Vector3.up };
+            hit.m_damage.m_chop = maxHealth * 10f;
+            hit.SetAttacker(h.Humanoid);
+            HarvestPatches.DirectTarget = best;
+            ((IDestructible)best).Damage(hit);
+            EnhancementEvents.Fire(h, "Timber", Core.Diagnostics.LogCat.Work, ("tree", best.name), ("dist", bestD));
+        }
         private Collider? _lastStruck;
         private int _strikesOnIt;
 
@@ -233,7 +293,7 @@ namespace VikingsForHire.Hirelings.Work
             }
             var hit = new HitData
             {
-                m_damage = _profile.SwingDamage(h.ToolDamage, h.LevelData.GatherMult * GatherEnhancement(h)),
+                m_damage = _profile.SwingDamage(h.ToolDamage, h.LevelData.GatherMult * GatherEnhancement(h) * TargetGather(h, target)),
                 m_toolTier = (short)h.ToolTier,
                 m_dir = _fellDir ?? Flat(target.transform.position - h.transform.position).normalized,
             };
@@ -267,7 +327,8 @@ namespace VikingsForHire.Hirelings.Work
             // the chunk is hit once it's exposed. The strike count above gives up on a chunk that never comes free.
             // Harvesting is loud: vanilla gives the noise of each hit to the nearest player within 10 m, so a hireling
             // working on its own made none and monsters never came. Each strike makes the same noise on the hireling.
-            if (Config.VfhConfig.GatheringMakesNoise.Value)
+            // Quiet work (an enhancement): no noise for monsters to come to.
+            if (Config.VfhConfig.GatheringMakesNoise.Value && !h.Enh.Has(Core.Enhancements.EnhancementId.QuietWork))
                 h.Humanoid.AddNoise(target switch
             {
                 TreeLog log => log.m_hitNoise,
@@ -284,13 +345,19 @@ namespace VikingsForHire.Hirelings.Work
             hit.SetAttacker(h.Humanoid);
             _anchor = hit.m_point; // where the drops land (a rock's chunk, not its centre)
             HarvestPatches.Direct = true;
+            HarvestPatches.DirectBy = h;
+            HarvestPatches.DirectTarget = target;
             try
             {
                 destructible.Damage(hit);
+                if (target is TreeBase felled && Felled(felled))
+                    Timber(h, felled, hit.m_dir);
             }
             finally
             {
                 HarvestPatches.Direct = false;
+                HarvestPatches.DirectBy = null;
+                HarvestPatches.DirectTarget = null;
             }
             VfhLog.T(LogCat.Work, "work.strike", ("hid", h.Hid), ("target", target.name), ("part", col.name), ("n", _strikesOnIt),
                 ("chop", hit.m_damage.m_chop), ("pickaxe", hit.m_damage.m_pickaxe), ("tier", hit.m_toolTier));
@@ -457,7 +524,7 @@ namespace VikingsForHire.Hirelings.Work
                 drop.m_nview.ClaimOwnership();
             ItemDrop.ItemData item = drop.m_itemData.Clone();
             // Only as many as the weight limit allows; the rest stays on the ground for the next trip.
-            float unit = item.GetWeight(1);
+            float unit = h.WeightOf(item, 1);
             int fits = unit <= 0f ? item.m_stack : Mathf.Min(item.m_stack, Mathf.FloorToInt(h.CargoWeightRoom / unit));
             if (fits <= 0)
             {

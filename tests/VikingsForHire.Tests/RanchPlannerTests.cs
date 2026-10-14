@@ -54,6 +54,17 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void BigHerdKeepsMoreAboveThePool()
+        {
+            var herd = new List<HerdAnimal> { A("Boar", 0), A("Boar", 1), A("Boar", 1), A("Boar", 2) };
+            OrderList orders = Orders(("RawMeat", OrderKind.Meat, 40), ("Boar", OrderKind.Herd, 2));
+            Assert.NotNull(RanchPlanner.Plan(Kinds, herd, orders, D(), AllFed).Slaughter);
+            RanchPlan big = RanchPlanner.Plan(Kinds, herd, orders, D(), AllFed, extraPool: 2);
+            Assert.Null(big.Slaughter);
+            Assert.Equal("$vfh_ranch_at_pool|RawMeat|Boar|4", big.Why["RawMeat"]);
+        }
+
+        [Fact]
         public void NeverYoungNorNamedAndNamedDontCount()
         {
             HerdAnimal pet = A("Boar", 0, named: true), piglet = A("Boar", 0, adult: false), a = A("Boar", 1), b = A("Boar", 1);

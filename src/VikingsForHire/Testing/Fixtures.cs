@@ -42,6 +42,10 @@ namespace VikingsForHire.Testing
         public static void Add(string name, string usage, Func<string[], IEnumerator> run) =>
             All[name] = new Fixture { Usage = usage, Run = run };
 
+        /// <summary>Another fixture's steps, for a fixture built from others (duel).</summary>
+        public static IEnumerator Call(string name, params string[] args) =>
+            All.TryGetValue(name, out Fixture? f) ? f.Run(args) : throw new ArgumentException($"no fixture {name}");
+
         private static void Run(string[] args)
         {
             if (args.Length == 0 || args[0] == "list")

@@ -59,7 +59,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         private static float Fuel(Fireplace f) => f.m_nview.GetZDO().GetFloat(ZDOVars.s_fuel);
 
-        private static float Urgency(Fireplace f) => ChoreUrgency.Fire(Fuel(f), f.m_maxFuel, VfhConfig.StewardFireRefillFraction.Value);
+        private static float Urgency(Fireplace f, Hireling h) => ChoreUrgency.Fire(Fuel(f), f.m_maxFuel, StewardEnhancements.RefillFraction(h));
 
         private const float FireSkipSeconds = 300f;
         private const int StuckTripsToGiveUp = 2;
@@ -82,7 +82,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             var jobs = new List<ChoreJob>();
             foreach (Fireplace f in Fires(ctx))
             {
-                float u = Urgency(f);
+                float u = Urgency(f, ctx.Hireling);
                 if (u > 0f && OutOfReach(f))
                 {
                     ChoreNotes.Add(ActivityText.Make("$vfh_fire_out_of_reach", f.m_name));
@@ -118,7 +118,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             // Every low fire burning the same fuel, nearest first from the first one.
             _route.Clear();
             _route.Add(first);
-            foreach (Fireplace f in Fires(ctx).Where(f => f != first && f.m_fuelItem.gameObject.name == _fuel && Urgency(f) > 0f &&
+            foreach (Fireplace f in Fires(ctx).Where(f => f != first && f.m_fuelItem.gameObject.name == _fuel && Urgency(f, h) > 0f &&
                                                        !Reservations.IsReservedByOther(f, h.Hid) && !Reservations.IsSkipped(f))
                          .OrderBy(f => Vector3.Distance(first.transform.position, f.transform.position)))
                 _route.Add(f);
@@ -201,7 +201,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             }
             if (Time.time < _nextItemAt)
                 return ChoreProgress.Running;
-            _nextItemAt = Time.time + ItemSeconds;
+            _nextItemAt = Time.time + StewardEnhancements.ItemSeconds(h, ItemSeconds);
             h.CargoInventory.RemoveItem(shared, 1);
             f.m_nview.InvokeRPC("RPC_AddFuel"); // the fire caps it at full and plays its own effect
             _toAdd--;

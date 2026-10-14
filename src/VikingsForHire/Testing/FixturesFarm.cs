@@ -37,6 +37,29 @@ namespace VikingsForHire.Testing
 
             TestHarness.RegisterCheck("ripe_crops", "[radius=40] - ripe planted crops within that distance of the nearest board", args =>
                 Count(args, (plants, picks) => picks.Count(p => CropCatalog.ByGrown(Utils.GetPrefabName(p.gameObject)) is Crop c && !c.Info.Regrowing && PickableYield.Ripe(p))));
+            TestHarness.RegisterCheck("field_spots", "<sapling> - free spots for that crop in the last field fixture, at the posted Farmer's spacing (Close planting packs more in)", args =>
+            {
+                Hirelings.Hireling h = FixturesHireling.Select("posted");
+                Hirelings.Work.Farm.Crop crop = Hirelings.Work.Farm.CropCatalog.BySapling(args.ElementAtOrDefault(0) ?? "sapling_carrot")
+                                               ?? throw new InvalidOperationException("no such crop");
+                // Every grid cell in the field, free or not (no cap on how many, unlike the Farmer's own list).
+                float mult = Hirelings.Work.Farm.FarmerEnhancements.SpaceMult(h);
+                long owner = Hirelings.Nav.DoorRules.BoardOwner(h.BoardId);
+                var g = Hirelings.Work.Farm.FieldGrid.For(crop, h.Home, h.Radius, FixturesWork.Board().transform.right, mult);
+                int reach = Mathf.CeilToInt((Vector3.Distance(g.Origin, _fieldCenter) + _fieldW + _fieldH) / g.Spacing) + 2;
+                int free = 0;
+                for (int i = -reach; i <= reach; i++)
+                    for (int j = -reach; j <= reach; j++)
+                    {
+                        Vector3 p = g.At(i, j);
+                        if (!InField(p))
+                            continue;
+                        p.y = ZoneSystem.instance.GetGroundHeight(p);
+                        if (Hirelings.Work.Farm.FieldGrid.IsFree(crop, p, owner, null, mult))
+                            free++;
+                    }
+                return free.ToString();
+            });
             TestHarness.RegisterCheck("plants", "<sapling> [radius=40] - growing plants of that sapling within that distance of the nearest board", args =>
             {
                 string sapling = args.ElementAtOrDefault(0) ?? "";
@@ -174,13 +197,21 @@ namespace VikingsForHire.Testing
             yield return new WaitForSeconds(1f);
         }
 
+        // Inside the last field fixture's rectangle.
+        private static bool InField(Vector3 p)
+        {
+            Vector3 d = p - _fieldCenter;
+            return Mathf.Abs(Vector3.Dot(d, _fieldRow)) <= _fieldW / 2f && Mathf.Abs(Vector3.Dot(d, _fieldAcross)) <= _fieldH / 2f;
+        }
+
         private static IEnumerator Crop(string[] args)
         {
             string sapling = args.ElementAtOrDefault(0) ?? "sapling_carrot";
             int n = int.Parse(args.ElementAtOrDefault(1) ?? "1", CultureInfo.InvariantCulture);
             bool ripe = args.Skip(2).Contains("ripe");
             string tag = args.Skip(2).FirstOrDefault(a => a != "ripe") ?? "";
-            Crop crop = CropCatalog.BySapling(sapling) ?? throw new InvalidOperationException($"{sapling} isn't a known crop");
+            // A planted crop by its sapling, or a regrowing bush or mushroom by its own prefab.
+            Crop crop = CropCatalog.BySapling(sapling) ?? CropCatalog.ByGrown(sapling) ?? throw new InvalidOperationException($"{sapling} isn't a known crop");
             float spacing = PlantMods.CropSpacing(crop.GrowRadius);
             string prefab = ripe ? crop.GrownPrefab : sapling;
             for (int i = 0; i < n; i++)

@@ -76,6 +76,25 @@ namespace VikingsForHire.Tests
             Assert.Equal(0, Effects(JobType.Miner, "-------", data).CargoSlotsBonus);
         }
 
+        [Fact]
+        public void GemsByBiomeAndYieldKinds()
+        {
+            Assert.Equal(new[] { "Crystal", "Obsidian" }, GemTable.For("Mountain"));
+            Assert.Equal("Crystal", GemTable.Pick("Mountain", 0.1));
+            Assert.Equal("Obsidian", GemTable.Pick("Mountain", 0.9));
+            Assert.Equal("Obsidian", GemTable.Pick("Mountain", 1.0));
+            Assert.Equal("Ruby", GemTable.Pick("AshLands", 0.5));
+            Assert.Equal(new[] { "Flint", "Amber" }, GemTable.For("Ocean"));
+            Assert.True(YieldKinds.Wood("Wood") && YieldKinds.Wood("FineWood") && YieldKinds.Wood("RoundLog") && YieldKinds.Wood("YggdrasilWood"));
+            Assert.False(YieldKinds.Wood("Resin"));
+            Assert.True(YieldKinds.FineWood("RoundLog") && !YieldKinds.FineWood("Wood"));
+            Assert.True(YieldKinds.Ore("CopperOre") && YieldKinds.Ore("FlametalOreNew") && YieldKinds.Ore("IronScrap"));
+            Assert.False(YieldKinds.Ore("Stone"));
+            Assert.Equal("BeechSeeds", YieldKinds.Seed("Beech1"));
+            Assert.Equal("PineCone", YieldKinds.Seed("Pinetree_01"));
+            Assert.Equal("", YieldKinds.Seed("SwampTree1"));
+        }
+
         private static char Side(JobType job, EnhancementId id) =>
             EnhancementCatalog.Pair(job, EnhancementCatalog.LevelOf(job, id)).A == id ? 'A' : 'B';
     }

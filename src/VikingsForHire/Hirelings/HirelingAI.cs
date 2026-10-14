@@ -170,7 +170,7 @@ namespace VikingsForHire.Hirelings
             switch (hireling.Job)
             {
                 case JobType.Woodcutter:
-                    Add(Gather = new Work.GatherBehaviour(new Work.WoodcutterProfile()));
+                    Add(Gather = new Work.GatherBehaviour(new Work.WoodcutterProfile(hireling)));
                     Add(new Work.Trees.PlantTreesBehaviour());
                     Add(new Work.DeliverBehaviour(new Work.GathererDeliveryPolicy()));
                     break;

@@ -173,7 +173,7 @@ draft for review: keep, swap or drop any line.
 |---|---|---|
 | 2 | **Green thumb:** plants and harvests 10% faster | **Pack mule:** +2 cargo slots |
 | 3 | **Bountiful:** 25% chance of an extra crop when harvesting | **Seed keeper:** 25% chance of an extra seed when harvesting |
-| 4 | **Sower:** plants a whole row per trip (4 plants) | **Forager:** picks wild berries and mushrooms in its area even when no order asks |
+| 4 | **Close planting** (replaced Sower, 2026-10-13): its crops need 15% less room, so a field holds more | **Forager:** picks wild berries and mushrooms in its area even when no order asks |
 | 5 | **Swift:** +10% move speed | **Strong back:** +50 carry weight |
 | 6 | **Tender care:** crops it plants grow 15% faster | **Hardy stock:** crops it plants survive a little cold or shade (one step outside their biome) |
 | 7 | **Bigger fields:** +20% work radius | **Double harvest:** 10% chance a harvested crop drops twice |

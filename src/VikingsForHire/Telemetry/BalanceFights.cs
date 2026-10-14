@@ -88,6 +88,7 @@ namespace VikingsForHire.Telemetry
             // Blocking and dodging during this fight (0.6.0), and the CombatSkill preset.
             fields.AddRange(h.Ai.Defense.Since(f.Defense));
             fields.Add(("defense", Config.VfhConfig.CombatSkill.Value.ToString().ToLowerInvariant())); // off, green, trained, veteran
+            fields.Add(("enh", Picks(h))); // the hireling's enhancement picks (0.10.0), e.g. AB-A--B
             BalanceLog.Record("fight", fields.ToArray());
         }
 
@@ -96,8 +97,13 @@ namespace VikingsForHire.Telemetry
             End(h, "died");
             BalanceLog.Record("death", ("hid", Short(h.Hid)), ("owner", BalanceLog.Who(h.OwnerId)), ("job", h.Job), ("lvl", h.Level),
                 ("mode", h.Mode == HirelingMode.Following ? "follower" : h.HasPost ? "posted" : "base"), ("hpMax", h.Humanoid.GetMaxHealth()),
-                ("armor", h.Armor), ("killer", killer), ("lastHit", lastHit), ("biome", Biome(h.transform.position)));
+                ("armor", h.Armor), ("killer", killer), ("lastHit", lastHit), ("biome", Biome(h.transform.position)), ("enh", Picks(h)));
         }
+
+        // The picks that count: none while the server has enhancements off.
+        private static string Picks(Hireling h) => Config.VfhConfig.Enhancements.Value
+            ? Core.Enhancements.EnhancementPicks.Parse(h.Zdo?.GetString(HirelingZdo.Enhancements)).ToString()
+            : Core.Enhancements.EnhancementPicks.Empty;
 
         /// <summary>Forget fights of hirelings that were unloaded mid-fight (their objects are gone).</summary>
         public static void Prune()

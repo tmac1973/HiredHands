@@ -99,7 +99,7 @@ namespace VikingsForHire.Hirelings.Work.Ranch
                         return End(h, ChoreProgress.Failed);
                     ai.Halt();
                     ai.Face(_animal.GetCenterPoint());
-                    if (Time.time - _stepAt < SwingSeconds)
+                    if (Time.time - _stepAt < SwingSeconds * RancherEnhancements.StepMult(h))
                         return ChoreProgress.Running;
                     Kill(h, _animal);
                     _spot = _animal.transform.position;
@@ -108,18 +108,25 @@ namespace VikingsForHire.Hirelings.Work.Ranch
                     return ChoreProgress.Running;
                 default:
                     ai.Halt();
-                    if (Time.time - _stepAt < CollectSeconds)
+                    if (Time.time - _stepAt < CollectSeconds * RancherEnhancements.StepMult(h))
                         return ChoreProgress.Running;
                     int got = 0, left = 0;
+                    var picked = new List<string>();
                     foreach (ItemDrop d in DropCollect.Near(_spot, CollectRadius, CollectSeconds + 5f))
                     {
+                        string name = d.m_itemData?.m_dropPrefab != null ? d.m_itemData.m_dropPrefab.name : "";
                         if (DropCollect.PickUp(h, d))
+                        {
                             got++;
+                            if (name.Length > 0)
+                                picked.Add(name);
+                        }
                         else
                             left++;
                     }
                     if (left > 0)
                         VfhLog.I(LogCat.Work, "ranch.left_on_ground", ("hid", h.Hid), ("items", left), ("pos", _spot));
+                    RancherEnhancements.Slaughtered(h, picked);
                     VfhLog.I(LogCat.Work, "ranch.collected", ("hid", h.Hid), ("items", got));
                     // Straight to the chests: meat is an ingredient, not a product, so it would wait as a leftover.
                     if (got > 0)

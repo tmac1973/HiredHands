@@ -40,6 +40,9 @@ namespace VikingsForHire.Hirelings.Work.Trees
         public string Name => "PlantTrees";
         public int Priority => 210; // a short trip now and then, ahead of felling
 
+        /// <summary>Seconds between looks at its tree patches: shorter with Forester (an enhancement).</summary>
+        public static float Interval(Hireling h) => CheckSeconds * (1f - h.Enh.Value(Core.Enhancements.EnhancementId.Forester, "share"));
+
         public bool Wants(HirelingAI ai)
         {
             Hireling h = ai.Hireling;
@@ -49,7 +52,8 @@ namespace VikingsForHire.Hirelings.Work.Trees
                 return true;
             if (Time.time < _nextCheck)
                 return false;
-            _nextCheck = Time.time + CheckSeconds;
+            // Forester (an enhancement) plants more often.
+            _nextCheck = Time.time + Interval(h);
             return Plan(h);
         }
 

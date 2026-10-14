@@ -113,10 +113,33 @@ namespace VikingsForHire.Hirelings.Work.Chores
             }
             VfhLog.I(_cat, $"{_log}.job", ("hid", h.Hid), ("kind", _job.Kind), ("target", TargetName(_job)), ("result", p),
                 ("secs", System.Math.Round(Time.time - _jobStarted, 1)));
-            _nextSurvey = Time.time + System.Math.Max(_current.RestAfter, 0.25f);
+            _nextSurvey = Time.time + System.Math.Max(Steward.StewardEnhancements.Rest(h, _current.RestAfter), 0.25f);
+            // Errand runner (an enhancement): straight on to the next chore near here, no pause, a few in a row.
+            (int chain, float range) = Steward.StewardEnhancements.Errands(h);
+            if (p == ChoreProgress.Done && chain > 0 && _errands < chain)
+            {
+                _errandFrom = h.transform.position;
+                _errandRange = range;
+                _nextSurvey = Time.time;
+            }
+            else
+            {
+                _errands = 0;
+                _errandRange = 0f;
+            }
             _current = null;
             _job = null;
         }
+
+        // Errand runner: chores in a row while each next one is near where the last ended.
+        private int _errands;
+        private Vector3 _errandFrom;
+        private float _errandRange;
+
+        private bool Near(ChoreJob j) => j.Target != null && Vector3.Distance(j.Target.transform.position, _errandFrom) <= _errandRange;
+
+        // A chore near the last one's end comes first while running errands.
+        private float ErrandScore(ChoreJob j) => j.Score + (_errandRange > 0f && Near(j) ? 1000f : 0f);
 
         private void Survey(Hireling h)
         {
@@ -143,7 +166,7 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 counts.Add($"{ChoreKeys.Key(chore.Kind)}:{jobs.Count}");
                 missing ??= jobs.Count == 0 ? chore.Missing : null;
                 foreach (ChoreJob j in jobs)
-                    if (best.Job == null || j.Score > best.Job.Score + 0.0001f)
+                    if (best.Job == null || ErrandScore(j) > ErrandScore(best.Job) + 0.0001f)
                         best = (j, chore);
             }
             h.SetWhy(WhyText(h));
@@ -163,6 +186,14 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 h.SetActivity(missing ?? (_jobType == JobType.Smelter ? "$vfh_steward_idle" : $"$vfh_{_log}_idle"));
                 return;
             }
+            if (_errandRange > 0f && Near(best.Job))
+            {
+                _errands++;
+                EnhancementEvents.Fire(h, "ErrandRunner", _cat, ("n", _errands), ("kind", best.Job.Kind));
+            }
+            else
+                _errands = 0;
+            _errandRange = 0f;
             _current = best.Chore;
             _job = best.Job;
             _jobStarted = Time.time;

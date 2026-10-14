@@ -102,7 +102,7 @@ namespace VikingsForHire.Core.Enhancements
             ["Skinner"] = new (string, bool)[] { ("chance", true) },
             ["Skirmisher"] = new (string, bool)[] { ("range", false), ("seconds", false) },
             ["SmeltersHand"] = new (string, bool)[] { ("mult", false) },
-            ["Sower"] = new (string, bool)[] { ("extra", false) },
+            ["ClosePlanting"] = new (string, bool)[] { ("space", true) },
             ["SpitMaster"] = new (string, bool)[] {  },
             ["StarBreeder"] = new (string, bool)[] { ("chance", true) },
             ["SteadyAim"] = new (string, bool)[] { ("damage", true) },

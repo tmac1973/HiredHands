@@ -52,7 +52,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
                 return result;
             long owner = DoorRules.BoardOwner(board.Id);
             foreach (Crop c in CropCatalog.All.Where(c => !c.Info.Regrowing && c.Info.Level <= farmer.Level))
-                result[c.Info.Plant] = FieldGrid.Spots(c, board.transform.position, farmer.Radius, board.transform.right, owner).Count;
+                result[c.Info.Plant] = FieldGrid.Spots(c, board.transform.position, farmer.Radius, board.transform.right, owner, FarmerEnhancements.SpaceMult(farmer)).Count;
             return result;
         }
 
@@ -109,7 +109,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
             int stack = Mathf.Max(1, WorkSteps.MaxStack(info.Consumes));
             int room = (carried % stack == 0 ? 0 : stack - carried % stack) + ctx.FreeSlots * stack;
             _count = Mathf.Min(count, (carried + room) / each);
-            _spots.AddRange(FieldGrid.Spots(_crop, ctx.Home, ctx.Radius, _board.transform.right, _owner).Take(_count));
+            _spots.AddRange(FieldGrid.Spots(_crop, ctx.Home, ctx.Radius, _board.transform.right, _owner, FarmerEnhancements.SpaceMult(h)).Take(_count));
             _count = Mathf.Min(_count, _spots.Count);
             int need = _count * each - carried;
             _chest = need > 0 ? ctx.NearestChestWith(new[] { info.Consumes }) : null;
@@ -165,19 +165,19 @@ namespace VikingsForHire.Hirelings.Work.Farm
             ai.Face(spot);
             if (Time.time < _nextPlant)
                 return ChoreProgress.Running;
-            _nextPlant = Time.time + PlantEvery;
+            _nextPlant = Time.time + PlantEvery * FarmerEnhancements.StepMult(h);
             _progressAt = Time.time;
             _spots.RemoveAt(0);
-            if (!FieldGrid.IsFree(crop, spot, _owner))
+            if (!FieldGrid.IsFree(crop, spot, _owner, null, FarmerEnhancements.SpaceMult(h)))
                 return ChoreProgress.Running; // taken meanwhile
-            PlantAt(h, crop, spot);
+            PlantOne(h, crop, spot, _owner);
             h.CargoInventory.RemoveItem(seed, each);
             _planted++;
             return ChoreProgress.Running;
         }
 
         // As the cultivator places a sapling: through the terrain-modifier trigger, owned by the board's owner.
-        private void PlantAt(Hireling h, Crop crop, Vector3 spot)
+        public static void PlantOne(Hireling h, Crop crop, Vector3 spot, long owner)
         {
             TerrainModifier.SetTriggerOnPlaced(true);
             GameObject go;
@@ -192,13 +192,14 @@ namespace VikingsForHire.Hirelings.Work.Farm
             if (go.GetComponent<Piece>() is Piece piece)
             {
                 // Built by the board's owner, as if they'd planted it (the platform id isn't needed for that).
-                if (_owner != 0L && piece.m_nview != null && piece.m_nview.IsValid() && piece.GetCreator() == 0L)
+                if (owner != 0L && piece.m_nview != null && piece.m_nview.IsValid() && piece.GetCreator() == 0L)
                 {
-                    piece.m_creator = _owner;
-                    piece.m_nview.GetZDO().Set(ZDOVars.s_creator, _owner);
+                    piece.m_creator = owner;
+                    piece.m_nview.GetZDO().Set(ZDOVars.s_creator, owner);
                 }
                 piece.m_placeEffect.Create(spot, go.transform.rotation, go.transform);
             }
+            FarmerEnhancements.Tend(h, go);
             Planted[crop.Info.Plant] = (Planted.TryGetValue(crop.Info.Plant, out int n) ? n : 0) + 1;
             VfhLog.D(LogCat.Work, "farmer.plant", ("hid", h.Hid), ("sapling", crop.Info.Plant), ("at", spot));
         }

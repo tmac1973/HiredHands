@@ -104,7 +104,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             _chestsVisited = 0;
             ctx.Hireling.FetchingSupplies = true;
             (int daily, int funds, _) = Stock(_board);
-            int points = Mathf.Max(0, VfhConfig.StewardBoardFillDays.Value * daily - funds);
+            int points = Mathf.Max(0, StewardEnhancements.FillDays(ctx.Hireling) * daily - funds);
             _want = Plan(ctx, _board, points, daily, funds);
             _chest = NextChest(ctx);
             _fetching = _chest != null;

@@ -168,7 +168,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
             {
                 Vector3 front = FeedSpot(animal);
                 // Close enough to drop it at its feet (big animals keep you further from their middle).
-                if (!_walk.Approach(ai, dt, animal, animal.transform.position))
+                // Gentle hand (an enhancement): a Rancher feeds from further off, over the fence.
+                float reach = h.Job == Core.JobType.Rancher ? Ranch.RancherEnhancements.FeedReach(h, WorkSteps.PlayerReach) : WorkSteps.PlayerReach;
+                if (!_walk.Approach(ai, dt, animal, animal.transform.position, reach))
                     return ChoreProgress.Running;
                 ai.Halt();
                 ai.Face(animal.transform.position);
@@ -185,6 +187,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 item.m_dropPrefab = prefab;
                 _dropped = ItemDrop.DropItem(item, 1, front + Vector3.up * 0.3f, Quaternion.identity);
                 _dropped?.m_nview?.GetZDO()?.Set(FeedKey, true);
+                if (h.Job == Core.JobType.Rancher)
+                    Ranch.RancherEnhancements.Fed(h, _dropped, animal);
                 _droppedAt = Time.time;
                 int id = animal.GetInstanceID();
                 Dictionary<int, int> counts = Kind == ChoreKind.RanchFeed ? RanchFed : Fed;

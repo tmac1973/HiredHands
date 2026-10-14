@@ -58,7 +58,8 @@ namespace VikingsForHire.Hirelings.Work.Ranch
                 foreach (ItemDrop.ItemData i in rancher.CargoInventory.GetAllItems().Where(i => i.m_dropPrefab != null))
                     have[i.m_dropPrefab.name] = (have.TryGetValue(i.m_dropPrefab.name, out int n) ? n : 0) + i.m_stack;
             var fed = new HashSet<string>(AnimalCatalog.Kinds.Where(k => k.Foods.Any(f => have.TryGetValue(f, out int n) && n > 0)).Select(k => k.Prefab));
-            RanchPlan plan = RanchPlanner.Plan(AnimalCatalog.Kinds, herd.Select(f => f.Model).ToList(), BoardOrders.For(board), have, fed);
+            RanchPlan plan = RanchPlanner.Plan(AnimalCatalog.Kinds, herd.Select(f => f.Model).ToList(), BoardOrders.For(board), have, fed,
+                rancher != null ? RancherEnhancements.ExtraPool(rancher) : 0);
             VfhLog.D(LogCat.Work, "ranch.plan", ("board", board.Id), ("herd", string.Join(" ", herd.Select(f =>
                     $"{f.Model.Kind}{(f.Model.Adult ? "" : "(y)")}{(f.Model.Named ? "(n)" : "")}*{f.Model.Stars}@{f.Model.X:0.0},{f.Model.Z:0.0}"))),
                 ("slaughter", plan.Slaughter?.Id ?? ""), ("why", string.Join(" ", plan.Why.Select(kv => kv.Key + "=" + kv.Value))));

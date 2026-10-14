@@ -15,6 +15,10 @@ namespace VikingsForHire.Hirelings.Work
     {
         public static bool Direct;
 
+        /// <summary>Who is hitting, and what, inside the Direct window (the yield enhancements read them).</summary>
+        public static Hireling? DirectBy;
+        public static UnityEngine.Component? DirectTarget;
+
         private static bool Allow(HitData hit)
         {
             if (Direct)

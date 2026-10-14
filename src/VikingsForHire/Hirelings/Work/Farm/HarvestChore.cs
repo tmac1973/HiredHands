@@ -30,6 +30,9 @@ namespace VikingsForHire.Hirelings.Work.Farm
         private HashSet<string> _pickRegrowing = new();
         private WorkContext? _ctx;
         private int _picked;
+        // Replanter (an enhancement): seeds to fetch first, for the crops this trip will free up.
+        private Container? _seedChest;
+        private readonly Dictionary<string, int> _seedWant = new();
 
         public ChoreKind Kind => ChoreKind.Harvest;
         public string? Missing { get; private set; }
@@ -44,7 +47,9 @@ namespace VikingsForHire.Hirelings.Work.Farm
                 return false;
             if (CropCatalog.ByGrown(Utils.GetPrefabName(p.gameObject)) is not Crop crop)
                 return false;
-            if (crop.Info.Regrowing && (crop.Info.Level > ctx.Level || !_pickRegrowing.Contains(crop.Info.Yields)))
+            // Forager (an enhancement) picks berries and mushrooms (anything that regrows) with no order asking for them.
+            bool forage = crop.Info.Regrowing && ctx.Hireling.Enh.Has(Core.Enhancements.EnhancementId.Forager);
+            if (crop.Info.Regrowing && (crop.Info.Level > ctx.Level || !_pickRegrowing.Contains(crop.Info.Yields) && !forage))
                 return false;
             if (Utils.DistanceXZ(p.transform.position, ctx.Home) > ctx.Radius || Reservations.IsSkipped(p) || !ctx.BoardOwnerMayUse(p.transform.position))
                 return false;
@@ -114,6 +119,25 @@ namespace VikingsForHire.Hirelings.Work.Farm
                 from = next.transform.position;
                 left.RemoveAll(p => Vector3.Distance(p.transform.position, from) <= reach);
             }
+            // Replanter: seeds for what it will harvest, from the chests first (what it carries counts).
+            _seedChest = null;
+            _seedWant.Clear();
+            if (ctx.Hireling.Enh.Has(Core.Enhancements.EnhancementId.Replanter))
+            {
+                foreach (Pickable p in _pickables.Where(p => Wanted(p, ctx, checkRoom: false) && _stops.Any(s => Vector3.Distance(s.transform.position, p.transform.position) <= reach)))
+                    if (CropCatalog.ByGrown(Utils.GetPrefabName(p.gameObject)) is Crop c && !c.Info.Regrowing && c.Info.Consumes.Length > 0)
+                        _seedWant[c.Info.Consumes] = (_seedWant.TryGetValue(c.Info.Consumes, out int n) ? n : 0) + Mathf.Max(1, c.Info.ConsumesAmount);
+                foreach (string seed in _seedWant.Keys.ToList())
+                {
+                    int need = _seedWant[seed] - (ctx.Carried.TryGetValue(seed, out int have) ? have : 0);
+                    if (need > 0)
+                        _seedWant[seed] = need;
+                    else
+                        _seedWant.Remove(seed);
+                }
+                if (_seedWant.Count > 0)
+                    _seedChest = ctx.NearestChestWith(_seedWant.Keys);
+            }
         }
 
         public ChoreProgress Tick(HirelingAI ai, float dt)
@@ -124,6 +148,23 @@ namespace VikingsForHire.Hirelings.Work.Farm
                 _stops.RemoveAt(0);
             if (ctx == null || _stops.Count == 0 || h.CargoInventory == null || h.CargoInventory.NrOfItems() >= h.CargoSlots)
                 return Finish(h);
+            if (_seedChest != null)
+            {
+                Container chest = _seedChest;
+                if (_walk.SinceProgress > StuckSeconds)
+                {
+                    _seedChest = null;
+                    _walk.Reset();
+                    return ChoreProgress.Running;
+                }
+                if (!_walk.Approach(ai, dt, chest, chest.transform.position))
+                    return ChoreProgress.Running;
+                ai.Halt();
+                WorkSteps.TakeFromChest(chest, h, new Dictionary<string, int>(_seedWant), Config.VfhConfig.ChestReserve);
+                _seedChest = null;
+                _walk.Reset();
+                return ChoreProgress.Running;
+            }
             Pickable stop = _stops[0];
             if (_walk.SinceProgress > StuckSeconds)
             {
@@ -162,6 +203,9 @@ namespace VikingsForHire.Hirelings.Work.Farm
             foreach (ItemDrop.ItemData extra in p.m_extraDrops?.GetDropListItems() ?? new List<ItemDrop.ItemData>())
                 if (extra.m_dropPrefab != null)
                     items.Add((extra.m_dropPrefab, extra.m_stack));
+            Crop? crop = CropCatalog.ByGrown(Utils.GetPrefabName(p.gameObject));
+            if (crop != null)
+                FarmerEnhancements.Harvest(h, crop, items);
             foreach ((GameObject prefab, int amount) in items)
             {
                 WorkSteps.AddToCargo(h, prefab, amount);
@@ -171,6 +215,19 @@ namespace VikingsForHire.Hirelings.Work.Farm
             p.m_pickEffector.Create(p.transform.position, Quaternion.identity);
             p.m_nview.InvokeRPC(ZNetView.Everybody, "RPC_SetPicked", true);
             _picked++;
+            // Replanter (an enhancement): the same crop goes straight back in, from the seeds it carries.
+            if (crop != null && !crop.Info.Regrowing && h.Enh.Has(Core.Enhancements.EnhancementId.Replanter) && crop.Info.Consumes.Length > 0 &&
+                CropCatalog.BySapling(crop.Info.Plant) is Crop sapling)
+            {
+                string seed = WorkSteps.SharedName(crop.Info.Consumes);
+                int each = Mathf.Max(1, crop.Info.ConsumesAmount);
+                if (h.CargoInventory!.CountItems(seed) >= each)
+                {
+                    PlantChore.PlantOne(h, sapling, p.transform.position, Nav.DoorRules.BoardOwner(h.BoardId));
+                    h.CargoInventory.RemoveItem(seed, each);
+                    EnhancementEvents.Fire(h, "Replanter", Core.Diagnostics.LogCat.Work, ("crop", crop.Info.Plant));
+                }
+            }
             VfhLog.D(LogCat.Work, "farmer.harvest", ("hid", h.Hid), ("plant", Utils.GetPrefabName(p.gameObject)), ("items", string.Join(",", items.Select(i => $"{i.Prefab.name}x{i.Amount}"))));
         }
 

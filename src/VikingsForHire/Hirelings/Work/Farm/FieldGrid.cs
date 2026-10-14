@@ -18,7 +18,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
         private static readonly int SpaceMask = LayerMask.GetMask("Default", "static_solid", "Default_small", "piece", "piece_nonsolid");
         private static readonly int RoofMask = LayerMask.GetMask("Default", "static_solid", "piece");
         private static readonly Collider[] Hits = new Collider[16];
-        private static readonly Dictionary<(string, Vector3, float), (float At, List<Vector3> Spots)> Cache = new();
+        private static readonly Dictionary<(string, Vector3, float, float), (float At, List<Vector3> Spots)> Cache = new();
         private static readonly List<Plant> Plants = new();
         private static readonly List<Pickable> Picks = new();
 
@@ -48,9 +48,9 @@ namespace VikingsForHire.Hirelings.Work.Farm
         }
 
         /// <summary>The grid for a crop: from the plant nearest home and the direction to its nearest neighbour, else the fallback axis.</summary>
-        public static Grid For(Crop crop, Vector3 home, float radius, Vector3 fallbackRow)
+        public static Grid For(Crop crop, Vector3 home, float radius, Vector3 fallbackRow, float spaceMult = 1f)
         {
-            float spacing = PlantMods.CropSpacing(crop.GrowRadius);
+            float spacing = PlantMods.CropSpacing(crop.GrowRadius * spaceMult);
             FarmScan.Nearby(home, radius, Plants, Picks);
             List<Vector3> placed = Plants.Select(p => p.transform.position)
                 .Concat(Picks.Where(p => CropCatalog.ByGrown(Utils.GetPrefabName(p.gameObject)) is Crop c && !c.Info.Regrowing).Select(p => p.transform.position)).ToList();
@@ -72,14 +72,15 @@ namespace VikingsForHire.Hirelings.Work.Farm
         }
 
         /// <summary>Free spots for a crop in the radius, nearest home first.</summary>
-        public static List<Vector3> Spots(Crop crop, Vector3 home, float radius, Vector3 fallbackRow, long owner)
+        /// <param name="spaceMult">The share of the crop's grow room to plant at (Close planting, an enhancement: under 1).</param>
+        public static List<Vector3> Spots(Crop crop, Vector3 home, float radius, Vector3 fallbackRow, long owner, float spaceMult = 1f)
         {
-            var key = (crop.Info.Plant, home, radius);
+            var key = (crop.Info.Plant, home, radius, spaceMult);
             if (Cache.TryGetValue(key, out var hit) && Time.time - hit.At < CacheSeconds)
                 return hit.Spots;
             foreach (Vector3Int expired in Avoided.Where(kv => kv.Value < Time.time).Select(kv => kv.Key).ToList())
                 Avoided.Remove(expired);
-            Grid g = For(crop, home, radius, fallbackRow);
+            Grid g = For(crop, home, radius, fallbackRow, spaceMult);
             List<Vector3> regrowing = Regrowing(Picks);
             var spots = new List<Vector3>();
             int n = Mathf.CeilToInt(radius * 2f / g.Spacing) + 2;
@@ -92,7 +93,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
                     if (Utils.DistanceXZ(p, home) > radius)
                         continue;
                     p.y = ZoneSystem.instance.GetGroundHeight(p);
-                    if (IsFree(crop, p, owner, regrowing))
+                    if (IsFree(crop, p, owner, regrowing, spaceMult))
                         spots.Add(p);
                 }
             spots = spots.OrderBy(p => Utils.DistanceXZ(p, home)).Take(MaxSpots).ToList();
@@ -128,14 +129,15 @@ namespace VikingsForHire.Hirelings.Work.Farm
         /// stands there, picked or not (carrots went in among picked mushrooms). <paramref name="regrowing"/>: those
         /// already found nearby, or null to look.
         /// </summary>
-        public static bool IsFree(Crop crop, Vector3 p, long owner, List<Vector3>? regrowing = null)
+        public static bool IsFree(Crop crop, Vector3 p, long owner, List<Vector3>? regrowing = null, float spaceMult = 1f)
         {
+            float grow = crop.GrowRadius * spaceMult;
             if (regrowing == null)
             {
-                FarmScan.Nearby(p, crop.GrowRadius + 1f, CheckPlants, CheckPicks);
+                FarmScan.Nearby(p, grow + 1f, CheckPlants, CheckPicks);
                 regrowing = Regrowing(CheckPicks);
             }
-            float clear = crop.GrowRadius + 0.3f;
+            float clear = grow + 0.3f;
             if (regrowing.Any(r => Utils.DistanceXZ(r, p) < clear))
                 return false;
             if (Avoided.TryGetValue(Cell(p), out float until) && until > Time.time)
@@ -152,7 +154,7 @@ namespace VikingsForHire.Hirelings.Work.Farm
             if ((hot || cold) && !ShieldGenerator.IsInsideShield(p))
                 return false;
             // The plant's own checks: nothing solid within its grow radius, open sky above.
-            int hits = Physics.OverlapSphereNonAlloc(p, crop.GrowRadius, Hits, SpaceMask);
+            int hits = Physics.OverlapSphereNonAlloc(p, grow, Hits, SpaceMask);
             // Any collider there blocks it (another plant included: two in one spot both wither).
             for (int k = 0; k < hits; k++)
                 if (Hits[k] != null)

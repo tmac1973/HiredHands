@@ -14,7 +14,11 @@ namespace VikingsForHire.Core
         private static readonly Stance[] WorkerStances = { Stance.Flee, Stance.Defend };
         private static readonly Stance[] GuardStances = { Stance.Passive, Stance.Defensive, Stance.Aggressive };
 
-        public static IReadOnlyList<Stance> Allowed(JobType job) => job.IsGuard() ? GuardStances : WorkerStances;
+        private static readonly Stance[] WatchmanStances = { Stance.Flee, Stance.Defend, Stance.Defensive };
+
+        /// <summary>The stances a job may take; a Steward with Watchman (an enhancement) may also be Defensive.</summary>
+        public static IReadOnlyList<Stance> Allowed(JobType job, bool watchman = false) =>
+            job.IsGuard() ? GuardStances : watchman && job == JobType.Smelter ? WatchmanStances : WorkerStances;
 
         public static Stance Default(JobType job) => job.IsGuard() ? Stance.Defensive : Stance.Defend;
 
@@ -54,9 +58,9 @@ namespace VikingsForHire.Core
         public static bool ShouldRetreat(Stance stance, bool isGuard, float healthFraction, bool retreating) =>
             !(isGuard && stance == Stance.Aggressive) && (retreating ? healthFraction < 0.4f : healthFraction < 0.25f);
 
-        public static bool IsAllowed(JobType job, Stance stance)
+        public static bool IsAllowed(JobType job, Stance stance, bool watchman = false)
         {
-            foreach (Stance s in Allowed(job))
+            foreach (Stance s in Allowed(job, watchman))
                 if (s == stance)
                     return true;
             return false;

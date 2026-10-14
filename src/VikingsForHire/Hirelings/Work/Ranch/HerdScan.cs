@@ -25,7 +25,7 @@ namespace VikingsForHire.Hirelings.Work.Ranch
         }
 
         // Out of the pen it was in: seen penned before and not now. One never seen penned (free range) never counts.
-        private static bool Escaped(ZDOID id, Vector3 at)
+        internal static bool Escaped(ZDOID id, Vector3 at)
         {
             bool penned = Enclosed(at);
             if (penned)

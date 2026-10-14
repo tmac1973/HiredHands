@@ -189,8 +189,19 @@ namespace VikingsForHire.Hirelings.Work.Steward
                         return ChoreProgress.Running;
                     _nextLoad = Time.time + 1f;
                     h.CargoInventory.RemoveItem(shared, 1);
+                    // Fermenter's touch (an enhancement) sets its start back, so it's ready sooner: done here, so take the
+                    // fermenter over first (the add then runs on this game at once).
+                    float share = StewardEnhancements.FermentShare(h);
+                    if (share > 0f && !f.m_nview.IsOwner())
+                        f.m_nview.ClaimOwnership();
                     // As Fermenter.AddItem: the base's prefab name hash, not cheated.
                     f.m_nview.InvokeRPC("RPC_AddItem", _base.GetStableHashCode(), false);
+                    if (share > 0f && f.m_nview.IsOwner() && f.m_nview.GetZDO().GetLong(ZDOVars.s_startTime) > 0L)
+                    {
+                        long back = System.TimeSpan.FromSeconds(f.m_fermentationDuration * share).Ticks;
+                        f.m_nview.GetZDO().Set(ZDOVars.s_startTime, f.m_nview.GetZDO().GetLong(ZDOVars.s_startTime) - back);
+                        EnhancementEvents.Fire(h, "FermentersTouch", Core.Diagnostics.LogCat.Smelter, ("seconds", f.m_fermentationDuration * share));
+                    }
                     VfhLog.D(LogCat.Smelter, "steward.ferment_load", ("hid", h.Hid), ("base", _base));
                     return End(h, 2f);
                 }

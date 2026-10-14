@@ -31,13 +31,13 @@ namespace VikingsForHire.Core.Orders
     public static class RanchPlanner
     {
         public static RanchPlan Plan(IReadOnlyList<AnimalKind> kinds, IReadOnlyList<HerdAnimal> herd, OrderList orders,
-            IReadOnlyDictionary<string, int> stock, ICollection<string> kindsWithFood)
+            IReadOnlyDictionary<string, int> stock, ICollection<string> kindsWithFood, int extraPool = 0)
         {
             var plan = new RanchPlan();
             int Stock(string item) => stock.TryGetValue(item, out int n) ? n : 0;
             List<ProductionOrder> ranch = orders.Ranch();
             Dictionary<string, int> pools = ranch.Where(o => o.Kind == OrderKind.Herd)
-                .GroupBy(o => o.Item, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().Target, StringComparer.OrdinalIgnoreCase);
+                .GroupBy(o => o.Item, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().Target + Math.Max(0, extraPool), StringComparer.OrdinalIgnoreCase);
             foreach (IGrouping<string, HerdAnimal> g in herd.Where(a => a.Adult && !a.Named).GroupBy(a => a.Kind))
                 plan.Adults[g.Key] = g.Count();
 

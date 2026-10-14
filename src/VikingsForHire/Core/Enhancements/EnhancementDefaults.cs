@@ -35,7 +35,7 @@ Smelter: Brisk.speed 0.10, PackMule.slots 2, KeeperOfFlames.refill 0.75, StrongB
   Handyman.quiet 10, Bonesetter.range 10, Bonesetter.rate 0.02, Quartermaster.days 3, TidyMind.seconds 20,
   TidyMind.rangeMult 2, SmeltersHand.mult 2, Watchman.damage 0.25, ErrandRunner.range 10, ErrandRunner.chain 4,
   FermentersTouch.share 0.20, MasterSteward.speed 0.15, ShieldKeeper.rangeMult 2
-Farmer: GreenThumb.speed 0.10, PackMule.slots 2, Bountiful.chance 0.25, SeedKeeper.chance 0.25, Sower.extra 4,
+Farmer: GreenThumb.speed 0.10, PackMule.slots 2, Bountiful.chance 0.25, SeedKeeper.chance 0.25, ClosePlanting.space 0.15,
   Swift.speed 0.10, StrongBack.weight 50, TenderCare.share 0.15, BiggerFields.radius 0.20, DoubleHarvest.chance 0.10,
   MasterFarmer.speed 0.15, MasterFarmer.share 0.15
 Cook: QuickHands.speed 0.10, PackMule.slots 2, Frugal.chance 0.15, DoubleBatch.chance 0.20, Swift.speed 0.10,

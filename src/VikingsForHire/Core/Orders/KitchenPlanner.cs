@@ -24,7 +24,7 @@ namespace VikingsForHire.Core.Orders
     {
         public static KitchenResult Next(IReadOnlyList<KitchenInfo> infos, OrderList orders, IReadOnlyDictionary<string, int> stock,
             IReadOnlyDictionary<string, int> protectedItems, int level, IReadOnlyDictionary<string, int> stations,
-            IReadOnlyDictionary<string, int>? madeElsewhere = null)
+            IReadOnlyDictionary<string, int>? madeElsewhere = null, bool prep = false)
         {
             var result = new KitchenResult();
             int Stock(string item) => stock.TryGetValue(item, out int n) ? n : 0;
@@ -37,7 +37,7 @@ namespace VikingsForHire.Core.Orders
                 int shortBy = order.Target - Have(order.Item);
                 if (shortBy <= 0)
                     continue;
-                (KitchenTask? task, string? why) = Plan(order, shortBy, infos, level, stations, Avail);
+                (KitchenTask? task, string? why) = Plan(order, shortBy, infos, level, stations, Avail, prep);
                 if (task != null)
                 {
                     result.Task ??= task;
@@ -55,11 +55,32 @@ namespace VikingsForHire.Core.Orders
 
         // One short order: a task for it (with one step of chaining: dough for bread), or why there's none.
         private static (KitchenTask? Task, string? Why) Plan(ProductionOrder order, int shortBy, IReadOnlyList<KitchenInfo> infos, int level,
-            IReadOnlyDictionary<string, int> stations, Func<string, int> Avail)
+            IReadOnlyDictionary<string, int> stations, Func<string, int> Avail, bool prep = false)
         {
             List<KitchenInfo> makesIt = infos.Where(i => i.Output == order.Item).ToList();
             List<KitchenInfo> makers = makesIt.Where(i => i.Level <= level && i.Inputs.Count > 0 && Usable(i, stations))
                 .OrderBy(i => i.Kind == StationKind.Stove ? 0 : 1).ToList();
+            // Prep chef (an enhancement): with the order's own station not usable now, it makes the in-between
+            // ingredient ahead (dough before there's an oven), so the order goes quickly once there is.
+            if (makers.Count == 0 && prep)
+                foreach (KitchenInfo maker in makesIt.Where(i => i.Level <= level && i.Inputs.Count > 0))
+                {
+                    int needed = (int)Math.Ceiling(shortBy / (double)Math.Max(1, maker.OutputAmount));
+                    foreach (KeyValuePair<string, int> input in maker.Inputs)
+                    {
+                        int want = input.Value * needed - Avail(input.Key);
+                        if (want <= 0)
+                            continue;
+                        KitchenInfo? sub = infos.Where(i => i.Output == input.Key && i.Level <= level && Usable(i, stations) && Possible(i, Avail) > 0)
+                            .OrderBy(i => i.Kind == StationKind.Stove ? 0 : 1).FirstOrDefault();
+                        if (sub != null)
+                            return (new KitchenTask
+                            {
+                                Info = sub, ForOrder = order.Item,
+                                Batches = Math.Min(Possible(sub, Avail), (int)Math.Ceiling(want / (double)Math.Max(1, sub.OutputAmount))),
+                            }, null);
+                    }
+                }
             if (makers.Count == 0)
                 return (null, makesIt.Count == 0 ? $"$vfh_need_recipe|{order.Item}"
                     : makesIt.All(i => i.Level > level) ? $"$vfh_need_cook_level|{order.Item}|{makesIt.Min(i => i.Level)}"

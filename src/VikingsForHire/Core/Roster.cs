@@ -223,7 +223,8 @@ namespace VikingsForHire.Core
             ContractEntry? e = ByHid(hid);
             if (e == null)
                 return OpOutcome.NotFound;
-            if (!StanceRules.IsAllowed(e.Job, stance))
+            bool watchman = Enhancements.EnhancementPicks.Parse(e.Enhancements).Has(e.Job, Enhancements.EnhancementId.Watchman);
+            if (!StanceRules.IsAllowed(e.Job, stance, watchman))
                 return OpOutcome.BadValue;
             e.Radius = radius;
             e.Stance = stance;

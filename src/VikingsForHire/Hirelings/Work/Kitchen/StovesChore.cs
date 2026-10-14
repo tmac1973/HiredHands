@@ -76,7 +76,8 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             if (board == null)
                 return jobs;
             Vector3? busy = KitchenState.Busy(ctx.Hireling.Hid);
-            bool Near(Component c) => busy == null || Vector3.Distance(c.transform.position, busy.Value) <= KitchenState.StayNear;
+            bool two = CookEnhancements.TwoAtOnce(ctx.Hireling);
+            bool Near(Component c) => busy == null || two || Vector3.Distance(c.transform.position, busy.Value) <= KitchenState.StayNear;
             List<CookingStation> stoves = Stoves(ctx);
 
             // Done or burnt food first, wherever it is in range; and cooked food lying by a stove (taking it off throws it).
@@ -84,7 +85,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                 jobs.Add(Job(s, 1.0f, VariantTakeOff, ctx, "$vfh_cook_takeoff"));
 
             // Ovens below half fuel, with fuel in the chests.
-            foreach (CookingStation s in stoves.Where(s => s.m_useFuel && s.m_fuelItem != null && s.GetFuel() < s.m_maxFuel / 2f && Near(s)))
+            foreach (CookingStation s in stoves.Where(s => s.m_useFuel && s.m_fuelItem != null && s.GetFuel() < s.m_maxFuel * CookEnhancements.FuelBelow(ctx.Hireling) && Near(s)))
                 if (ctx.Available(s.m_fuelItem.name) + (ctx.Carried.TryGetValue(s.m_fuelItem.name, out int c) ? c : 0) > 0)
                     jobs.Add(Job(s, 0.7f, VariantFuel, ctx, "$vfh_cook_fuel"));
 
@@ -160,6 +161,15 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                 }
                 _item = _task.Info.Inputs.Keys.First();
                 _count = Mathf.Min(_task.Batches, KitchenState.FreeSlots(_station));
+                // Spit master (an enhancement): every free stove of the same kind in this one trip.
+                _more.Clear();
+                if (h.Enh.Has(Core.Enhancements.EnhancementId.SpitMaster))
+                {
+                    string kind = Utils.GetPrefabName(_station.gameObject);
+                    _more.AddRange(Stoves(ctx).Where(s => s != _station && Utils.GetPrefabName(s.gameObject) == kind && KitchenState.FreeSlots(s) > 0 && KitchenState.Heated(s))
+                        .OrderBy(s => Vector3.Distance(_station.transform.position, s.transform.position)));
+                    _count = Mathf.Min(_task.Batches, KitchenState.FreeSlots(_station) + _more.Sum(KitchenState.FreeSlots));
+                }
             }
             h.FetchingSupplies = true;
             int carried = ctx.Carried.TryGetValue(_item, out int c) ? c : 0;
@@ -175,6 +185,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
 
         private int _fetchAmount;
         private float _tendUntil;
+        private readonly List<CookingStation> _more = new();
 
         public ChoreProgress Tick(HirelingAI ai, float dt)
         {
@@ -209,7 +220,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             ai.Face(s.transform.position);
             if (Time.time < _nextAt)
                 return ChoreProgress.Running;
-            _nextAt = Time.time + ItemEvery;
+            _nextAt = Time.time + ItemEvery * CookEnhancements.StepMult(h);
             switch (_variant)
             {
                 case VariantTend:
@@ -254,6 +265,15 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                     string shared = WorkSteps.SharedName(_item);
                     if (!s.m_nview.IsOwner())
                         s.m_nview.ClaimOwnership(); // so the slot fills here and now, and the free-slot check below is current
+                    if (_done < _count && h.CargoInventory!.CountItems(shared) > 0 && KitchenState.FreeSlots(s) <= 0 && _more.Count > 0)
+                    {
+                        // Spit master: on to the next free stove of the same kind.
+                        _station = _more[0];
+                        _more.RemoveAt(0);
+                        _walk.Reset();
+                        EnhancementEvents.Fire(h, "SpitMaster", Core.Diagnostics.LogCat.Work, ("station", _station.name));
+                        return ChoreProgress.Running;
+                    }
                     if (_done >= _count || h.CargoInventory!.CountItems(shared) <= 0 || !KitchenState.Heated(s) || KitchenState.FreeSlots(s) <= 0)
                     {
                         KitchenState.Unpin(h.Hid); // a pinned follow-up (dough into the oven) is done now

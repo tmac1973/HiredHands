@@ -169,7 +169,7 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                 return End(h, 1f);
             if (_craftAt <= 0f)
             {
-                _craftAt = Time.time + CraftSeconds; // a moment at the station, as a player crafting
+                _craftAt = Time.time + CraftSeconds * CookEnhancements.StepMult(h); // a moment at the station, as a player crafting
                 return ChoreProgress.Running;
             }
             if (Time.time < _craftAt)
@@ -183,13 +183,17 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
         // As InventoryGui.DoCrafting, without a player: the ingredients out of cargo, the result in.
         private static void CraftOne(Hireling h, CraftingStation s, KitchenInfo info)
         {
-            foreach (KeyValuePair<string, int> kv in info.Inputs)
+            foreach (KeyValuePair<string, int> kv in CookEnhancements.Uses(h, info.Inputs))
                 h.CargoInventory!.RemoveItem(WorkSteps.SharedName(kv.Key), kv.Value);
             GameObject? output = ObjectDB.instance.GetItemPrefab(info.Output);
+            int made = info.OutputAmount;
             if (output != null)
-                WorkSteps.AddToCargo(h, output, info.OutputAmount);
+            {
+                made = CookEnhancements.Makes(h, info.OutputAmount, Board.BoardStorage.IsFood(output.GetComponent<ItemDrop>().m_itemData));
+                WorkSteps.AddToCargo(h, output, made);
+            }
             s.m_craftItemEffects.Create(s.transform.position, Quaternion.identity);
-            Crafted[info.Output] = (Crafted.TryGetValue(info.Output, out int n) ? n : 0) + info.OutputAmount;
+            Crafted[info.Output] = (Crafted.TryGetValue(info.Output, out int n) ? n : 0) + made;
             VfhLog.I(LogCat.Work, "cook.craft", ("hid", h.Hid), ("item", info.Output), ("station", Utils.GetPrefabName(s.gameObject)), ("level", s.GetLevel()));
         }
 

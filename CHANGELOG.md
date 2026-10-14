@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.10.0
+
+**Everyone updates together:** the board's roster gains each hireling's picks (a new roster format), new board operations
+and a new data section; the server and every player need 0.10.0. Rosters saved by 0.10.0 can't be read by 0.9.x.
+
+- **Enhancements:** from level 2 to 8 every hireling picks one of two enhancements at each level: 126 in all, seven pairs
+  per job, each a real choice (often a plain number against something it does). Choose on the new Enhancements page of
+  the hireling's Shift+E panel (with ward access, click twice to confirm); a choice waiting shows on its hover and in the
+  Roster tab. A **Respec** button in the Roster tab clears the picks for half the hire fee. Guards bash, taunt, cleave and
+  rally; archers shoot volleys, fire and frost arrows and rain arrows down; wizards blink, heal, shield you and raise the
+  dead; workers gather more, carry more and pick up new tricks. All of them are on the
+  [Enhancements](https://tmac1973.github.io/HiredHands/enhancements/) page.
+- **For server owners:** every number is in the data file's new `enhancements` section (added to your file with its
+  defaults), with `enhancementSettings.respecCostFraction`; the `Enhancements` setting (*3 - Hiring*) turns it all off.
+- **The balance log** notes each hireling's picks (`enh`) on fight and death records, and the report compares each pick
+  with its pair.
+- **A hireling's cargo grid has a fifth row**, used only when its slots go past 32 (Pack mule at level 8).
+
 ## 0.9.3
 
 Works alongside 0.9.1 and 0.9.2; update the server and players when it suits you.

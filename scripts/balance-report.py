@@ -163,6 +163,34 @@ def main():
             f"{avg([f['dealt'] / f['secs'] for f in fs if f['secs'] > 1]):.1f}", f"{avg([f['taken'] / f['secs'] for f in fs if f['secs'] > 1]):.1f}")
            for (j, l), fs in sorted(per.items())])
 
+    # Enhancements (0.10.0): fights by job, level and picks; then each pick against its pair at the same level.
+    picks = collections.defaultdict(list)
+    for f in by["fight"]:
+        picks[(f["job"], f["lvl"], f.get("enh", "-------"))].append(f)
+    table("Fights by enhancement picks (job, level, picks)", ["job", "lvl", "picks", "fights", "kill", "died", "length", "dps out", "dps in"],
+          [(j, l, e, len(fs), pct(sum(f["outcome"] == "kill" for f in fs), len(fs)), pct(sum(f["outcome"] == "died" for f in fs), len(fs)),
+            f"{avg([f['secs'] for f in fs if f['secs'] > 0]):.0f}s",
+            f"{avg([f['dealt'] / f['secs'] for f in fs if f['secs'] > 1]):.1f}", f"{avg([f['taken'] / f['secs'] for f in fs if f['secs'] > 1]):.1f}")
+           for (j, l, e), fs in sorted(picks.items()) if len(fs) >= a.min_fights])
+    pairs = []
+    for job in sorted({f["job"] for f in by["fight"]}):
+        for slot in range(7):
+            side = {"A": [], "B": []}
+            for f in by["fight"]:
+                e = f.get("enh", "-------")
+                if f["job"] == job and len(e) == 7 and e[slot] in side:
+                    side[e[slot]].append(f)
+            if side["A"] and side["B"]:
+                row = [job, f"L{slot + 2}"]
+                for k in ("A", "B"):
+                    fs = side[k]
+                    row += [len(fs), f"{avg([f['dealt'] / f['secs'] for f in fs if f['secs'] > 1]):.1f}",
+                            f"{avg([f['taken'] / f['secs'] for f in fs if f['secs'] > 1]):.1f}",
+                            f"{avg([f['secs'] for f in fs if f['outcome'] == 'kill']):.0f}s", pct(sum(f["outcome"] == "died" for f in fs), len(fs))]
+                pairs.append(tuple(row))
+    table("Each pick against its pair", ["job", "level", "A fights", "A dps out", "A dps in", "A kill time", "A died",
+                                         "B fights", "B dps out", "B dps in", "B kill time", "B died"], pairs)
+
     # Deaths.
     killers = collections.Counter((d["job"], d["lvl"], d["killer"], d.get("biome", "")) for d in by["death"])
     table("Deaths (job, level, killed by, biome)", ["job", "lvl", "killer", "biome", "n"], [(*k, n) for k, n in killers.most_common(30)])

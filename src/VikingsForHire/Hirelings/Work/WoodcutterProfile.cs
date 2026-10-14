@@ -16,6 +16,10 @@ namespace VikingsForHire.Hirelings.Work
         private static readonly Collider[] Hits = new Collider[2048];
         private static readonly List<Piece> Pieces = new();
 
+        private readonly Hireling? _hireling;
+
+        public WoodcutterProfile(Hireling? hireling = null) => _hireling = hireling;
+
         public string Status => "$vfh_status_chopping";
 
         public HashSet<string> PickupItems => new(DataStore.Current.Jobs.TryGetValue(JobType.Woodcutter, out var j) ? j.PickupItems : new List<string>());
@@ -159,6 +163,9 @@ namespace VikingsForHire.Hirelings.Work
         public int Rank(Component target) => target switch
         {
             TreeLog => 0,
+            // Fine eye (an enhancement): trees that give fine or core wood come before the others.
+            TreeBase when _hireling != null && _hireling.Enh.Has(Core.Enhancements.EnhancementId.FineEye) =>
+                Yield(target).Any(Core.Enhancements.YieldKinds.FineWood) ? 2 : 3,
             TreeBase => 2,
             _ => 1,
         };

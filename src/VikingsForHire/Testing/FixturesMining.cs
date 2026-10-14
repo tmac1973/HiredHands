@@ -18,6 +18,7 @@ namespace VikingsForHire.Testing
         public static void Register()
         {
             Fixtures.Add("deposits", "<prefab> <n> <distance> [tag] - place rocks/deposits in a ring that far behind the nearest board", Deposits);
+            Fixtures.Add("bury", "<tag> <depth> - move a tagged rock/deposit down so its top is that many metres under the ground", Bury);
             Fixtures.Add("terrain_baseline", "- remember how many terrain edits there are around the nearest board", TerrainBaseline);
 
             TestHarness.RegisterCheck("terrain_unchanged", "- no terrain edits around the nearest board since terrain_baseline", _ =>
@@ -56,6 +57,23 @@ namespace VikingsForHire.Testing
                 GameObject go = FixturesWork.Spawn(prefab, board.transform.position + dir * dist, tag);
                 VfhLog.I(LogCat.Test, "fixture.deposit", ("i", i), ("prefab", prefab), ("pos", go.transform.position), ("tag", tag));
             }
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        private static IEnumerator Bury(string[] args)
+        {
+            GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged deposit");
+            float depth = float.Parse(args.ElementAtOrDefault(1) ?? "2", CultureInfo.InvariantCulture);
+            Collider[] cols = go.GetComponentsInChildren<Collider>().Where(c => c.enabled).ToArray();
+            if (cols.Length == 0)
+                throw new InvalidOperationException("the deposit has no colliders");
+            float top = cols.Max(c => c.bounds.max.y);
+            float ground = ZoneSystem.instance.GetGroundHeight(go.transform.position);
+            Vector3 p = go.transform.position + Vector3.down * (top - (ground - depth));
+            go.transform.position = p;
+            go.GetComponent<ZNetView>()?.GetZDO()?.SetPosition(p);
+            Physics.SyncTransforms();
+            VfhLog.I(LogCat.Test, "fixture.bury", ("tag", args[0]), ("depth", depth), ("top", top), ("ground", ground), ("pos", p));
             yield return new WaitForSeconds(0.5f);
         }
 

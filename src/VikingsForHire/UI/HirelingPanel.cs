@@ -202,7 +202,7 @@ namespace VikingsForHire.UI
             }
 
             PanelUi.Text(t, "$vfh_orders_stance", -170f, y, 140f, 18, TextAnchor.MiddleLeft);
-            IReadOnlyList<Stance> stances = StanceRules.Allowed(h.Job);
+            IReadOnlyList<Stance> stances = StanceRules.Allowed(h.Job, h.Enh.Has(Core.Enhancements.EnhancementId.Watchman));
             for (int i = 0; i < stances.Count; i++)
             {
                 Stance s = stances[i];
@@ -713,7 +713,7 @@ namespace VikingsForHire.UI
         {
             foreach (Hireling f in Targets())
             {
-                if (!StanceRules.IsAllowed(f.Job, stance) || f.BoardId.Length == 0)
+                if (!StanceRules.IsAllowed(f.Job, stance, f.Enh.Has(Core.Enhancements.EnhancementId.Watchman)) || f.BoardId.Length == 0)
                     continue;
                 MutationService.SubmitBoard(f.BoardId, new RosterOp { Type = RosterOpType.Edit, Hid = f.Hid, Radius = f.ContractRadius, Stance = stance });
                 VfhLog.I(LogCat.Follow, "follow.stance", ("hid", f.Hid), ("stance", stance), ("via", "panel"));

@@ -88,7 +88,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             }
             var wanted = new HashSet<string>(states.SelectMany(s => s.Inputs).Concat(states.Select(s => s.FuelItem)).Where(p => p.Length > 0));
             Dictionary<string, int> stock = wanted.ToDictionary(p => p, ctx.Available);
-            float threshold = VfhConfig.SmelterRefillThreshold.Value;
+            float threshold = StewardEnhancements.StationThreshold(h);
             _plan = SmelterPlanner.Plan(states, stock, ctx.Carried, threshold, ctx.FreeSlots, WorkSteps.MaxStack);
             VfhLog.D(LogCat.Smelter, "smelter.plan", ("hid", h.Hid), ("kind", Kind), ("stations", states.Count), ("chests", ctx.Chests.Count),
                 ("loads", string.Join(",", _plan.Loads.Select(l => $"{_byId[l.StationId].name.Replace("(Clone)", "")}:{l.Prefab}x{l.Amount}"))),
@@ -238,7 +238,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             ai.Face(at);
             if (Time.time < _nextItemAt)
                 return ChoreProgress.Running;
-            _nextItemAt = Time.time + ItemSeconds;
+            _nextItemAt = Time.time + StewardEnhancements.ItemSeconds(h, ItemSeconds, station: true);
 
             string shared = WorkSteps.SharedName(task.Prefab);
             if (h.CargoInventory!.CountItems(shared) <= 0)

@@ -78,7 +78,7 @@ Every number an effect reads, as `<Name>.<number>: default` under its job. Phase
   Handyman.range 10, .quiet 10 · Bonesetter.range 10, .rate 0.02 · Quartermaster.days 3 · TidyMind.seconds 20,
   .rangeMult 2 · SmeltersHand.mult 2 · Watchman.damage 0.25 · ErrandRunner.range 10, .chain 4 · FermentersTouch.share
   0.20 · MasterSteward.speed 0.15 · ShieldKeeper.rangeMult 2.
-- **Farmer:** GreenThumb.speed 0.10 · PackMule.slots 2 · Bountiful.chance 0.25 · SeedKeeper.chance 0.25 · Sower.extra 4
+- **Farmer:** GreenThumb.speed 0.10 · PackMule.slots 2 · Bountiful.chance 0.25 · SeedKeeper.chance 0.25 · ClosePlanting.space 0.15 (replaced Sower.extra)
   (plants per trip) · Forager (none) · Swift.speed 0.10 · StrongBack.weight 50 · TenderCare.share 0.15 · HardyStock (none)
   · BiggerFields.radius 0.20 · DoubleHarvest.chance 0.10 · MasterFarmer.speed 0.15, .share 0.15 · Replanter (none).
 - **Cook:** QuickHands.speed 0.10 · PackMule.slots 2 · Frugal.chance 0.15 · SpitMaster (none) · DoubleBatch.chance 0.20 ·

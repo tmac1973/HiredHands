@@ -53,12 +53,12 @@ namespace VikingsForHire.Hirelings
             hireling = Hireling.ForCargo(inv);
             if (hireling == null || hireling.CargoWeightLimit <= 0f || from == inv || inv.ContainsItem(item))
                 return false;
-            float adding = item.GetWeight(amount > 0 ? amount : item.m_stack);
+            float adding = hireling.WeightOf(item, amount > 0 ? amount : item.m_stack);
             if (adding <= hireling.CargoWeightRoom + 0.01f)
                 return false;
             if (InventoryGui.IsVisible() && Player.m_localPlayer != null)
                 Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$vfh_cargo_too_heavy",
-                    hireling.DisplayName, Mathf.CeilToInt(inv.GetTotalWeight()).ToString(), Mathf.RoundToInt(hireling.CargoWeightLimit).ToString()));
+                    hireling.DisplayName, Mathf.CeilToInt(hireling.CargoWeight()).ToString(), Mathf.RoundToInt(hireling.CargoWeightLimit).ToString()));
             VfhLog.D(LogCat.Hireling, "cargo.too_heavy", ("hid", hireling.Hid), ("item", item.m_shared.m_name), ("adding", adding), ("room", hireling.CargoWeightRoom));
             return true;
         }
@@ -73,14 +73,14 @@ namespace VikingsForHire.Hirelings
             Hireling? h = Hireling.ForCargo(inv);
             if (h == null || h.CargoWeightLimit <= 0f || from == inv || inv.ContainsItem(item))
                 return amount;
-            float unit = item.GetWeight(1);
-            if (unit <= 0f || item.GetWeight(amount) <= h.CargoWeightRoom + 0.01f)
+            float unit = h.WeightOf(item, 1);
+            if (unit <= 0f || h.WeightOf(item, amount) <= h.CargoWeightRoom + 0.01f)
                 return amount;
             int n = Mathf.Clamp(Mathf.FloorToInt((h.CargoWeightRoom + 0.01f) / unit), 0, amount);
             if (InventoryGui.IsVisible() && Player.m_localPlayer != null)
                 Player.m_localPlayer.Message(MessageHud.MessageType.Center, n > 0
                     ? Localization.instance.Localize("$vfh_cargo_partial", h.DisplayName, n.ToString(), amount.ToString())
-                    : Localization.instance.Localize("$vfh_cargo_too_heavy", h.DisplayName, Mathf.CeilToInt(inv.GetTotalWeight()).ToString(),
+                    : Localization.instance.Localize("$vfh_cargo_too_heavy", h.DisplayName, Mathf.CeilToInt(h.CargoWeight()).ToString(),
                         Mathf.RoundToInt(h.CargoWeightLimit).ToString()));
             VfhLog.D(LogCat.Hireling, "cargo.weight_fit", ("hid", h.Hid), ("item", item.m_shared.m_name), ("asked", amount), ("fits", n),
                 ("room", h.CargoWeightRoom));
@@ -302,7 +302,7 @@ namespace VikingsForHire.Hirelings
                     Inventory? inv = __instance.m_currentContainer != null ? __instance.m_currentContainer.GetInventory() : null;
                     if (Hireling.ForCargo(inv) is not Hireling h || h.CargoWeightLimit <= 0f || __instance.m_containerWeight == null)
                         return;
-                    int now = Mathf.CeilToInt(inv!.GetTotalWeight()), max = Mathf.RoundToInt(h.CargoWeightLimit);
+                    int now = Mathf.CeilToInt(h.CargoWeight()), max = Mathf.RoundToInt(h.CargoWeightLimit);
                     __instance.m_containerWeight.text = now >= max ? $"<color=red>{now}/{max}</color>" : $"{now}/{max}";
                 }
                 catch (Exception e)

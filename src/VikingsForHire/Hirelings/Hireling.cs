@@ -155,7 +155,7 @@ namespace VikingsForHire.Hirelings
                 Inventory? cargo = CargoInventory;
                 if (cargo == null)
                     return false;
-                if (CargoWeightLimit > 0f && cargo.GetTotalWeight() > CargoWeightLimit - FullWeightMargin)
+                if (CargoWeightLimit > 0f && CargoWeight() > CargoCarryLimit - FullWeightMargin)
                     return true;
                 return cargo.NrOfItems() >= CargoSlots && cargo.GetAllItems().All(i => i.m_stack >= i.m_shared.m_maxStackSize);
             }
@@ -168,9 +168,33 @@ namespace VikingsForHire.Hirelings
         /// <summary>The most its cargo may weigh (0: no limit, only slots).</summary>
         public float CargoWeightLimit => LevelData.CargoWeight <= 0f ? 0f : LevelData.CargoWeight + Enh.Effects.CargoWeightBonus;
 
+        /// <summary>What it will actually carry before it's full: the limit, or more for a miner with Tireless.</summary>
+        public float CargoCarryLimit => CargoWeightLimit * (1f + Enh.Value(Core.Enhancements.EnhancementId.Tireless, "share"));
+
         /// <summary>How much more weight its cargo takes (float.MaxValue with no limit).</summary>
-        public float CargoWeightRoom => CargoWeightLimit <= 0f ? float.MaxValue
-            : Mathf.Max(0f, CargoWeightLimit - (CargoInventory?.GetTotalWeight() ?? 0f));
+        public float CargoWeightRoom => CargoWeightLimit <= 0f ? float.MaxValue : Mathf.Max(0f, CargoCarryLimit - CargoWeight());
+
+        /// <summary>What some of an item weighs in its cargo: ore counts for less with Heavy hauler.</summary>
+        public float WeightOf(ItemDrop.ItemData item, int amount)
+        {
+            float w = item.GetWeight(amount);
+            if (Enh.Has(Core.Enhancements.EnhancementId.HeavyHauler) && item.m_dropPrefab != null &&
+                Core.Enhancements.YieldKinds.Ore(item.m_dropPrefab.name))
+                w *= Enh.Value(Core.Enhancements.EnhancementId.HeavyHauler, "oreWeight");
+            return w;
+        }
+
+        /// <summary>The cargo's weight as it counts against the limit (Heavy hauler's ore counts for less).</summary>
+        public float CargoWeight()
+        {
+            Inventory? cargo = CargoInventory;
+            if (cargo == null)
+                return 0f;
+            float w = 0f;
+            foreach (ItemDrop.ItemData i in cargo.GetAllItems())
+                w += WeightOf(i, i.m_stack);
+            return w;
+        }
 
         private string _activity = "";
 
@@ -629,7 +653,7 @@ namespace VikingsForHire.Hirelings
             {
                 sb.Append("\n$vfh_cargo ").Append(cargo.NrOfItems()).Append('/').Append(CargoSlots);
                 if (CargoWeightLimit > 0f)
-                    sb.Append("  $vfh_weight ").Append(Mathf.CeilToInt(cargo.GetTotalWeight())).Append('/').Append(Mathf.RoundToInt(CargoWeightLimit));
+                    sb.Append("  $vfh_weight ").Append(Mathf.CeilToInt(CargoWeight())).Append('/').Append(Mathf.RoundToInt(CargoWeightLimit));
             }
             sb.Append("\n[<color=yellow><b>$KEY_Use</b></color>] $vfh_open_cargo   [<color=yellow><b>Shift + $KEY_Use</b></color>] $vfh_orders");
             return Localization.instance.Localize(sb.ToString());

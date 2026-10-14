@@ -238,6 +238,13 @@ namespace VikingsForHire.Testing
                     .Where(n => n.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0).Distinct().Take(20);
                 return string.Join(",", names);
             });
+            Fixtures.Add("duel", "<job> <level> <picks|none> <enemy> <stars> <n> [timeout=120] - a hireling with those enhancement picks against n enemies; logs duel.result (seconds, damage taken, won)", Duel);
+            TestHarness.RegisterCheck("duel_last", "<secs|taken|won> - the last duel's result", args => (args.ElementAtOrDefault(0) ?? "won") switch
+            {
+                "secs" => _lastDuel.Secs.ToString("0.#", CultureInfo.InvariantCulture),
+                "taken" => _lastDuel.Taken.ToString("0", CultureInfo.InvariantCulture),
+                _ => _lastDuel.Won ? "true" : "false",
+            });
             Fixtures.Add("data_set", "<job> <Name.number> <value> - set one enhancement number in the loaded data (this game only, until data_reset)", args =>
             {
                 if (!Enum.TryParse(args.ElementAtOrDefault(0) ?? "", true, out JobType job))
@@ -305,6 +312,48 @@ namespace VikingsForHire.Testing
             }
             VfhLog.I(LogCat.Test, "fixture.enemies", ("prefab", prefab), ("n", n), ("dist", dist), ("at", beside?.ToString() ?? Last().Hid), ("still", still));
             yield return new WaitForSeconds(0.5f);
+        }
+
+        private static (float Secs, float Taken, bool Won) _lastDuel;
+
+        // The balance pass's measurement (plan/enhancements phase 12): one hireling with a build against a set of enemies.
+        private static IEnumerator Duel(string[] args)
+        {
+            string job = args.ElementAtOrDefault(0) ?? "GuardMelee", level = args.ElementAtOrDefault(1) ?? "8";
+            string picks = args.ElementAtOrDefault(2) ?? "none", enemy = args.ElementAtOrDefault(3) ?? "Troll";
+            string stars = args.ElementAtOrDefault(4) ?? "0", n = args.ElementAtOrDefault(5) ?? "1";
+            float timeout = args.Length > 6 ? float.Parse(args[6], CultureInfo.InvariantCulture) : 120f;
+            yield return Fixtures.Call("kill_enemies", "80");
+            yield return Fixtures.Call("hirelings", job, level, "1");
+            Hireling h = Last();
+            h.Zdo!.Set(HirelingZdo.Enhancements, Core.Enhancements.EnhancementPicks.Parse(picks == "none" ? null : picks).ToString());
+            yield return new WaitForSeconds(1.5f); // its boosts apply on its next tick
+            h.Humanoid.SetHealth(h.Humanoid.GetMaxHealth());
+            yield return Enemies(new[] { enemy, n, "8" });
+            if (stars != "0")
+                yield return EnemyLevel(new[] { enemy, stars, "all" });
+            float start = Time.time, last = h.Humanoid.GetHealth(), taken = 0f;
+            bool won = false;
+            while (Time.time - start < timeout)
+            {
+                if (h == null || h.Humanoid.IsDead())
+                    break;
+                float hp = h.Humanoid.GetHealth();
+                if (hp < last)
+                    taken += last - hp;
+                last = hp;
+                if (!Hostiles(40f).Any())
+                {
+                    won = true;
+                    break;
+                }
+                yield return new WaitForSeconds(0.1f);
+            }
+            _lastDuel = (Time.time - start, taken, won);
+            VfhLog.I(LogCat.Test, "duel.result", ("job", job), ("level", level), ("picks", picks), ("enemy", enemy), ("stars", stars), ("n", n),
+                ("secs", _lastDuel.Secs), ("taken", taken), ("won", won), ("alive", h != null && !h.Humanoid.IsDead()));
+            yield return Fixtures.Call("kill_enemies", "80");
+            yield return Fixtures.Call("kill_hirelings", "50");
         }
 
         // A tagged creature, or the nearest hostile one to you.

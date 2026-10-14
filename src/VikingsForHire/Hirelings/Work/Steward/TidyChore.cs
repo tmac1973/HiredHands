@@ -37,7 +37,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
 
         private static IEnumerable<ItemDrop> Litter(WorkContext ctx, HashSet<string> stored)
         {
-            float minAge = VfhConfig.StewardTidyMinSeconds.Value;
+            float minAge = StewardEnhancements.TidyMinAge(ctx.Hireling);
             foreach (ItemDrop d in ItemDrop.s_instances)
             {
                 if (d == null || d.m_nview == null || !d.m_nview.IsValid() || d.m_itemData?.m_dropPrefab == null)
@@ -70,8 +70,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         private bool Sweepable(ItemDrop d)
         {
             ZDO? z = d.m_nview != null ? d.m_nview.GetZDO() : null;
-            return z != null && !z.GetBool(AnimalsChore.FeedKey) && d.GetTimeSinceSpawned() >= VfhConfig.StewardTidyMinSeconds.Value &&
-                   _ctx != null && Tidyable(d, _ctx);
+            return z != null && !z.GetBool(AnimalsChore.FeedKey) && _ctx != null && d.GetTimeSinceSpawned() >= StewardEnhancements.TidyMinAge(_ctx.Hireling) && Tidyable(d, _ctx);
         }
 
         private WorkContext? _ctx;
@@ -112,7 +111,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
         {
             if (Time.time - _explainedAt < ExplainEvery)
                 return;
-            float minAge = VfhConfig.StewardTidyMinSeconds.Value;
+            float minAge = StewardEnhancements.TidyMinAge(ctx.Hireling);
             var reasons = new Dictionary<string, int>();
             var noChest = new Dictionary<string, int>();
             int total = 0;
@@ -197,7 +196,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             if (!_walk.Approach(ai, dt, spot, spot.transform.position))
                 return ChoreProgress.Running;
             ai.Halt();
-            int n = WorkSteps.PickUpDrops(h, spot.transform.position, _kinds, PickupRadius, Sweepable);
+            int n = WorkSteps.PickUpDrops(h, spot.transform.position, _kinds, StewardEnhancements.TidyReach(h, PickupRadius), Sweepable);
             _picked += n;
             VfhLog.D(LogCat.Smelter, "steward.tidy", ("hid", h.Hid), ("at", spot != null ? spot.transform.position : Vector3.zero), ("picked", n));
             if (_spots.Count > 0)

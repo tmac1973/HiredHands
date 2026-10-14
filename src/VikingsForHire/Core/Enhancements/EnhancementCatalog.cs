@@ -48,7 +48,7 @@ namespace VikingsForHire.Core.Enhancements
             },
             [JobType.Farmer] = new[]
             {
-                (GreenThumb, PackMule), (Bountiful, SeedKeeper), (Sower, Forager), (Swift, StrongBack),
+                (GreenThumb, PackMule), (Bountiful, SeedKeeper), (ClosePlanting, Forager), (Swift, StrongBack),
                 (TenderCare, HardyStock), (BiggerFields, DoubleHarvest), (MasterFarmer, Replanter),
             },
             [JobType.Cook] = new[]

@@ -49,6 +49,8 @@ More in [Getting started](https://tmac1973.github.io/HiredHands/getting-started/
 | [Guard, archer](https://tmac1973.github.io/HiredHands/combat/) | Patrol and fight by stance; block, parry and dodge | 1 |
 | [Wizard](https://tmac1973.github.io/HiredHands/combat/#wizards) | Casts a staff's spell from range | 6 (2 with Wizardry) |
 
+Each hireling picks one of two [enhancements](https://tmac1973.github.io/HiredHands/enhancements/) at every level from 2 to 8.
+
 ## Documentation
 
 - [Getting started](https://tmac1973.github.io/HiredHands/getting-started/)

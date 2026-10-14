@@ -72,7 +72,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     VfhLog.D(LogCat.Smelter, "steward.repair_wait", ("hid", ctx.Hireling.Hid), ("monsters", string.Join(" ", _monsterNames)));
                 }
             }
-            return Time.time - _lastEnemySeen >= VfhConfig.StewardRepairQuietSeconds.Value;
+            return Time.time - _lastEnemySeen >= StewardEnhancements.RepairQuiet(ctx.Hireling);
         }
 
         // Vanilla: a piece made at a station can only be repaired with that kind of station in range.
@@ -108,7 +108,8 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 return null; // not checked yet: a later survey will
             checks++;
             HirelingAI ai = ctx.Hireling.Ai;
-            bool ok = WorkSteps.WithinReach(ai, wnt, WorkSteps.HammerReach);
+            float reach = StewardEnhancements.RepairReach(ctx.Hireling, WorkSteps.HammerReach);
+            bool ok = WorkSteps.WithinReach(ai, wnt, reach);
             if (!ok)
             {
                 Vector3 c = wnt.transform.position;
@@ -119,7 +120,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                     {
                         Vector3 spot = c + Quaternion.Euler(0f, i * 45f, 0f) * Vector3.forward * r;
                         spot.y = GroundRules.Below(spot, c.y, out float floor) ? floor : spot.y;
-                        ok = WorkSteps.WithinReach(spot, wnt, WorkSteps.HammerReach) && ai.CanReach(spot);
+                        ok = WorkSteps.WithinReach(spot, wnt, reach) && ai.CanReach(spot);
                     }
                 }
             }
@@ -220,7 +221,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 _unreachable[wnt.GetInstanceID()] = stuckOn != null ? stuckOn.m_name : Utils.GetPrefabName(wnt.gameObject);
                 return End(h, ChoreProgress.Failed);
             }
-            if (!_walk.Approach(ai, dt, wnt, wnt.transform.position, WorkSteps.HammerReach))
+            if (!_walk.Approach(ai, dt, wnt, wnt.transform.position, StewardEnhancements.RepairReach(h, WorkSteps.HammerReach)))
                 return ChoreProgress.Running;
             ai.Halt();
             ai.Face(wnt.transform.position + Vector3.up);

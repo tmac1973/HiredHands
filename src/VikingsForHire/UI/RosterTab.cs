@@ -91,7 +91,7 @@ namespace VikingsForHire.UI
                 return;
 
             // Stance and radius
-            IReadOnlyList<Stance> stances = StanceRules.Allowed(e.Job);
+            IReadOnlyList<Stance> stances = StanceRules.Allowed(e.Job, Core.Enhancements.EnhancementPicks.Parse(e.Enhancements).Has(e.Job, Core.Enhancements.EnhancementId.Watchman));
             int si = Mathf.Max(0, stances.ToList().IndexOf(e.Stance));
             PanelUi.Button(root, $"$vfh_contract_stance $vfh_stance_{e.Stance.ToString().ToLowerInvariant()}", x, -300f, 280f, 34f,
                 () => BoardContracts.Edit(board, e.Hid, e.Radius, stances[(si + 1) % stances.Count]));

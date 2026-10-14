@@ -178,6 +178,28 @@ namespace VikingsForHire.Testing
                                    ?? throw new InvalidOperationException($"no tagged creature {field.Substring(12)}");
                 return DamagePatches.DamageMultiplier(h, target).ToString("0.###", CultureInfo.InvariantCulture);
             }
+            if (f.StartsWith("gather_mult:"))
+            {
+                Component target = FixturesWork.FindTagged(field.Substring(12))?.GetComponentInChildren<IDestructible>() as Component
+                                   ?? throw new InvalidOperationException($"no tagged harvestable {field.Substring(12)}");
+                return (h.LevelData.GatherMult * GatherBehaviour.GatherEnhancement(h) * GatherBehaviour.TargetGather(h, target)).ToString("0.###", CultureInfo.InvariantCulture);
+            }
+            if (f.StartsWith("steward:"))
+            {
+                float r = f.Substring(8) switch
+                {
+                    "refill" => VikingsForHire.Hirelings.Work.Steward.StewardEnhancements.RefillFraction(h),
+                    "repair_reach" => VikingsForHire.Hirelings.Work.Steward.StewardEnhancements.RepairReach(h, VikingsForHire.Hirelings.Work.Chores.WorkSteps.HammerReach),
+                    "repair_quiet" => VikingsForHire.Hirelings.Work.Steward.StewardEnhancements.RepairQuiet(h),
+                    "fill_days" => VikingsForHire.Hirelings.Work.Steward.StewardEnhancements.FillDays(h),
+                    "tidy_age" => VikingsForHire.Hirelings.Work.Steward.StewardEnhancements.TidyMinAge(h),
+                    "station_threshold" => VikingsForHire.Hirelings.Work.Steward.StewardEnhancements.StationThreshold(h),
+                    "item_seconds" => VikingsForHire.Hirelings.Work.Steward.StewardEnhancements.ItemSeconds(h, 1f),
+                    "shield_reach" => VikingsForHire.Hirelings.Work.Steward.StewardEnhancements.ShieldReach(h, 1f),
+                    _ => throw new ArgumentException($"unknown steward number {f.Substring(8)}"),
+                };
+                return r.ToString("0.###", CultureInfo.InvariantCulture);
+            }
             if (f.StartsWith("dist_to:"))
             {
                 GameObject go = FixturesWork.FindTagged(field.Substring(8)) ?? throw new InvalidOperationException($"no tagged object {field.Substring(8)}");
@@ -229,6 +251,10 @@ namespace VikingsForHire.Testing
                 case "damage_mult": return DamagePatches.DamageMultiplier(h).ToString("0.###", CultureInfo.InvariantCulture);
                 case "enh": return h.Enh.Signature;
                 case "cast_max": return (VikingsForHire.Hirelings.Combat.CombatBehaviour.CastMax + VikingsForHire.Hirelings.Combat.WizardTechniques.ExtraRange(h)).ToString("0.#", CultureInfo.InvariantCulture);
+                case "work_target": return h.Ai.Gather?.Target is Component wt && wt != null ? Utils.GetPrefabName(wt.gameObject) : "none";
+                case "dig_depth": return (h.Ai.Gather?.Profile as VikingsForHire.Hirelings.Work.MinerProfile)?.DigDepthNow.ToString("0.#", CultureInfo.InvariantCulture) ?? "none";
+                case "cargo_load": return h.CargoWeight().ToString("0.#", CultureInfo.InvariantCulture);
+                case "plant_interval": return VikingsForHire.Hirelings.Work.Trees.PlantTreesBehaviour.Interval(h).ToString("0.#", CultureInfo.InvariantCulture);
                 case "threat": return h.Ai.Threats.Nearest is Character t ? t.m_name : "none";
                 case "last_block": return (h.Ai?.Defense.LastBlockPower ?? 0f).ToString("0.#", CultureInfo.InvariantCulture);
                 case "block_power": return hum.GetLeftItem() is ItemDrop.ItemData shield && shield.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Shield

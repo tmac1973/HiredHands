@@ -42,8 +42,11 @@ namespace VikingsForHire.Hirelings.Work.Chores
             Job = DataStore.Current.Jobs.TryGetValue(h.Job, out JobData? j) ? j : new JobData();
             _baseReserve = DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out JobData? s) ? s.KeepInStorage : new Dictionary<string, int>();
             AllChests = ChestFinder.Find(Home, Radius);
-            // Taking: only chests that allow it (not a pen's Put-only feed chest).
-            Chests = AllChests.Where(c => !Reservations.IsSkipped(c) && ChestModes.CanTake(c)).ToList();
+            // Taking: only chests that allow it (not a pen's Put-only feed chest); a Cook with Pantry sense (an enhancement)
+            // takes from chests further out.
+            float pantry = Kitchen.CookEnhancements.PantryMult(h);
+            List<Container> takeFrom = pantry > 1f ? ChestFinder.Find(Home, Radius * pantry) : AllChests;
+            Chests = takeFrom.Where(c => !Reservations.IsSkipped(c) && ChestModes.CanTake(c)).ToList();
             PutChests = ChestModes.Put(AllChests).ToList();
             StockChests = ChestModes.Stock(AllChests).ToList();
             KeepMin = VfhConfig.ChestReserve;

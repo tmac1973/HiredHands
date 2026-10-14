@@ -220,6 +220,22 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void PrepChefMakesDoughBeforeThereIsAnOven()
+        {
+            OrderList l = Orders(("Bread", OrderKind.Kitchen, 4));
+            var noOven = new Dictionary<string, int> { ["piece_preptable"] = 1 };
+            KitchenResult plain = KitchenPlanner.Next(Kitchen, l, D(("BarleyFlour", 30)), D(), 8, noOven);
+            Assert.Null(plain.Task);
+            Assert.Equal("$vfh_need_kitchen|Bread", plain.Why["Bread"]);
+            KitchenResult prep = KitchenPlanner.Next(Kitchen, l, D(("BarleyFlour", 30)), D(), 8, noOven, prep: true);
+            Assert.Equal("BreadDough", prep.Task!.Info.Output);
+            Assert.Equal(2, prep.Task.Batches); // 4 bread need 4 dough: 2 batches of 2
+            Assert.Null(prep.Task.Then);
+            // Dough already on hand: nothing to prepare.
+            Assert.Null(KitchenPlanner.Next(Kitchen, l, D(("BarleyFlour", 30), ("BreadDough", 4)), D(), 8, noOven, prep: true).Task);
+        }
+
+        [Fact]
         public void BreadChainsThroughDoughAndLevelsGate()
         {
             OrderList l = Orders(("Bread", OrderKind.Kitchen, 2));

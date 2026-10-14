@@ -42,7 +42,15 @@ jobs:
     minBoardLevel: 2          # no pickaxe before Eikthyr
     workRadiusMultiplier: 2   # gatherers cover more ground
     pickupItems: [Stone, CopperOre, TinOre, ...]
+enhancements:                 # every enhancement's numbers, per job (see Enhancements)
+  GuardMelee:
+    Toughened.health: 0.1
+    ShieldBash.cooldown: 12
+enhancementSettings:
+  respecCostFraction: 0.5     # a respec costs this share of the hire fee
 ```
+
+The `Enhancements` setting in the .cfg (section *3 - Hiring*) turns [enhancements](enhancements.md) off for everyone.
 
 ## Balance log (for server owners)
 
