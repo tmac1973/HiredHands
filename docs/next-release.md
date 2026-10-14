@@ -3,7 +3,7 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## 0.10.0 (in progress, branch `enhancements`): hireling enhancements
+## 0.10.0 (packaged 2026-10-14, branch `enhancements`): hireling enhancements
 
 The plan is `plan/enhancements/` (12 phases). Each phase lands as its own commit with its rows; results below.
 
@@ -29,6 +29,19 @@ The plan is `plan/enhancements/` (12 phases). Each phase lands as its own commit
 - [x] Phase 07 rows VFH-ENH-W1..W9 pass (2026-10-13).
 - [ ] By hand: the blink, the bubble, the roots and the skeleton look and behave like the player's own staffs.
 - [x] Phase 08 rows VFH-ENH-L1..L8 and M1..M8 pass (2026-10-13). Yield rows set the chance to 1 and check the bonus fires; M1 checks the dig depth only.
+### Full regression (2026-10-14)
+All 270 rows, in two parts (the tester's teleport home got stuck after VFH-NAVLINK-2; the game was restarted and the
+chain resumed there). Failures, each rerun alone at the test spot:
+- Expected in the dev game: VFH-CFG-1 (needs a dedicated server), VFH-WORK-5 (needs AzuAutoStore off).
+- Passed alone: STN-3, PROJ-1, HOME-1, CHORE-7, LOOT-1 (known flaky), FARM-4, LIMIT-2, RANCH-12, ENH-A1, NOISE-1, GATHER-1,
+  PORTAL-1.
+- VFH-WORK-3: the miner mines the deposit and delivers (27 copper and the stone to their chests), but delivers part-loads
+  so its cargo never holds more than 5 copper at a check; the second half of the regression (run from the wrong spot)
+  had also raised the ground behind the test board, which was levelled again (`flatten 80`).
+- **To watch (by hand):** twice in a long session the player's teleport (a portal, the harness's move home) never
+  finished: the game waits for every saved object at the destination to be created, and one wasn't. Never in a fresh
+  session; check `area_not_ready` if it happens again.
+
 ### Balance pass (phase 12, 2026-10-13)
 Duels in the dev game: a level 8 hireling with no picks, all-A and all-B, against 5 one-star trolls, 10 draugr and 3 lox
 (3-5 runs each); "better by" = the mean of the kill-time and damage-taken reductions against no picks. Target 20-35%.
@@ -44,11 +57,11 @@ Duels in the dev game: a level 8 hireling with no picks, all-A and all-B, agains
 
 Wizard all-B is still above the band on the plan's figure: its picks (Roots, Blink, the skeleton) keep trolls and lox
 off it, so it takes almost no damage; its kill times are in the band. Measuring one pick removed at a time showed no
-single culprit (each worth 2-14 points). **Tim to decide:** accept it (it's what those picks are for), or trim further.
+single culprit (each worth 2-14 points). **Accepted as is** (Tim, 2026-10-13): it's what those picks are for.
 The duels are noisy (the same build measured 19% and 29% between runs): treat the figures as ±10. Worker jobs (step 3 of
 the plan) weren't measured: their picks are plain rates checked by the rows.
 
-### Reinterpreted (Tim to confirm)
+### Reinterpreted (confirmed by Tim, 2026-10-13)
 - **Smelter's hand** ("loads N times as much per trip") would do nothing: a trip already fills each station to its own capacity. Now: tops stations up whenever they aren't full, and loads twice as fast.
 - **Sower** is replaced by **Close planting** (Tim, 2026-10-13): its crops need 15% less room, so the same field holds about 38% more. (At 30% less room a test field went from 32 spots to 70, more than double: too strong, so the default is 15%; `ClosePlanting.space` in the data file.)
 - **Chef's touch / Banquet** ("food it makes pays 10%/25% more upkeep"): tagging food would need item tags the game merges away when stacking, or a roster format change for payments. Now: makes 10%/25% more food from the same ingredients (the same upkeep value in the end).

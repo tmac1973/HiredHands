@@ -230,6 +230,16 @@ namespace VikingsForHire.Testing
                 Player.m_localPlayer.GetSEMan().RemoveStatusEffect((args.ElementAtOrDefault(0) ?? "").GetStableHashCode(), true);
                 return Pause(0.1f);
             });
+            TestHarness.RegisterCheck("area_not_ready", "[x z] - saved objects in that zone (default: yours) the game hasn't created, which hold a teleport there (prefab@position, up to 10)", args =>
+            {
+                Vector3 at = args.Length >= 2 ? new Vector3(float.Parse(args[0], CultureInfo.InvariantCulture), 0f, float.Parse(args[1], CultureInfo.InvariantCulture))
+                    : Player.m_localPlayer.transform.position;
+                var objs = new System.Collections.Generic.List<ZDO>();
+                ZDOMan.instance.FindSectorObjects(ZoneSystem.GetZone(at), new SimulationDistance(1, 0), objs);
+                var stuck = objs.Where(z => ZNetScene.instance.IsPrefabZDOValid(z) && ZNetScene.instance.FindInstance(z) == null)
+                    .Select(z => $"{(ZNetScene.instance.GetPrefab(z.GetPrefab()) is GameObject g ? g.name : z.GetPrefab().ToString())}@{z.GetPosition()}").Take(10).ToList();
+                return stuck.Count == 0 ? "none" : string.Join(" ", stuck);
+            });
             TestHarness.RegisterCheck("prefabs", "<text> - names of prefabs, items and status effects containing the text (up to 20)", args =>
             {
                 string q = args.ElementAtOrDefault(0) ?? "";
