@@ -3,20 +3,6 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## Next (not packaged yet)
-
-### Fixed or added
-| Commit | What | Where it runs |
-|---|---|---|
-| (hirelings-job-hats branch) | Workers wear a hat for their job instead of the helmet: woodcutter a red cap (`HelmetHat5`), miner the dverger circlet (`HelmetDverger`, a lamp on the forehead), Steward a yellow headscarf (`HelmetHat6`), farmer a straw hat, rancher a brown fur cap (`HelmetHat3`), cook a chef's hat of our own (`VFH_ChefHat`: a white toque built from shapes, seated where vanilla caps sit on the head). Guards, archers and wizards keep their helmets. Looks only: a hat counts as the level's shared helmet for armour. A new `hat` per job in the data file (filled in for old files; an unknown item is dropped with a warning; fighting jobs' hats are ignored) | every client (gear is default items, shown through VisEquipment) |
-
-### To test (batch)
-- [x] Unit tests (`JobHatTests`) pass; new row VFH-HAT-1 (farmer, cook, miner wear their hats; a guard keeps its bronze helmet) and regression `vfh_test_chain hat1 hire3 hire4 hire5 recruit1 wiz2` pass in the dev game (2026-10-14, on top of 0.10.0).
-- [x] By eye (new fixture `portrait <last|posted|nearest> <front|side|back|top>`, a close-up PNG in `BepInEx/`): all six hats sit right on standing hirelings; the chef's hat sits on the brow, eyes clear. Tuned twice (it first covered the eyes and was too wide): `Seat`/`Snug` in `ChefHatItem`.
-- [ ] By eye, by hand: the chef's hat while the cook works and crouches; the miner's circlet light at night; the hats in daylight.
-- [ ] Armour: a level 3 farmer and a level 3 guard (same chest and legs) show the same armour in `hireling.stats`.
-- [ ] Existing hirelings in a save get their hats the next time they load (a relog).
-
 ## 0.10.0 (packaged 2026-10-14, branch `enhancements`): hireling enhancements
 
 The plan is `plan/enhancements/` (12 phases). Each phase lands as its own commit with its rows; results below.
@@ -24,6 +10,7 @@ The plan is `plan/enhancements/` (12 phases). Each phase lands as its own commit
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
+| 1ebf18e | Workers wear a hat for their job instead of the helmet: woodcutter a red cap (`HelmetHat5`), miner the dverger circlet (`HelmetDverger`, a lamp on the forehead), Steward a yellow headscarf (`HelmetHat6`), farmer a straw hat, rancher a brown fur cap (`HelmetHat3`), cook a chef's hat of our own (`VFH_ChefHat`: a white toque built from shapes, seated where vanilla caps sit on the head). Guards, archers and wizards keep their helmets. Looks only: a hat counts as the level's shared helmet for armour. A new `hat` per job in the data file (filled in for old files; an unknown item is dropped with a warning; fighting jobs' hats are ignored) | every client (gear is default items, shown through VisEquipment) |
 | 2d96619 | Phase 01: the catalog of 126 enhancements (7 pairs per job), picks, owed/choose/respec rules, data section `enhancements` + `enhancementSettings.respecCostFraction` with defaults | data file (server-synced) |
 | fabbf89 | Phases 02-03: picks saved on the contract (roster format 4) and copied to the hireling; choose and respec ops; `Enhancements` switch; the Enhancements page in the Shift+E panel (confirm step), owed counts on hover and in the Roster tab, Respec at the board | the board owner's game runs the ops; the panel on the player's |
 | (phase 05) | Guard behaviours: Shield training (block power x1.15), Shield bash (stagger + 10 blunt every 12 s), Second wind (heal 25% below 30%, once a fight), Bodyguard (an enemy hitting someone within 6 m is made to go for the guard), Taunt (enemies within 8 m go for it for 5 s, with a shout), Bloodthirst (heals 10% of damage dealt), Cleave (a landed swing hits 2 more in front for half), Last stand (a killing blow leaves 1 health and 3 s untouchable, every 10 min), Rallying cry (hirelings within 15 m deal x1.10 while it fights). Taunt and Bodyguard only steer enemies this game owns (in multiplayer: usually the nearest player's) | the game simulating the guard; the damage hooks where the hit lands |
@@ -36,6 +23,11 @@ The plan is `plan/enhancements/` (12 phases). Each phase lands as its own commit
 | (phase 04) | The shared number boosts: health, armour, damage dealt and taken, attack and cast speed, move speed, cargo slots and weight, gathering swing, work radius, Masterwork (+1 quality on the main weapon or tool). The cargo grid gains a fifth row so Pack mule adds slots at level 8 (32 was the grid) | the game simulating the hireling |
 
 ### To test (batch)
+- [x] Unit tests (`JobHatTests`) pass; new row VFH-HAT-1 (farmer, cook, miner wear their hats; a guard keeps its bronze helmet) and regression `vfh_test_chain hat1 hire3 hire4 hire5 recruit1 wiz2` pass in the dev game (2026-10-14, on top of 0.10.0).
+- [x] By eye (new fixture `portrait <last|posted|nearest> <front|side|back|top>`, a close-up PNG in `BepInEx/`): all six hats sit right on standing hirelings; the chef's hat sits on the brow, eyes clear. Tuned twice (it first covered the eyes and was too wide): `Seat`/`Snug` in `ChefHatItem`.
+- [ ] By eye, by hand: the chef's hat while the cook works and crouches; the miner's circlet light at night; the hats in daylight.
+- [ ] Armour: a level 3 farmer and a level 3 guard (same chest and legs) show the same armour in `hireling.stats`.
+- [ ] Existing hirelings in a save get their hats the next time they load (a relog).
 - [x] Phase 04 rows VFH-ENH-5, 5b, 6, 6b-6f, 7, 8 pass (2026-10-13); regression `combat1 combat5 stance4 stance5 block1 dodge1 noeffect work1 work3 tier1 store1 deliver1 cargo_weight` and VFH-ENH-1..4c pass (BLOCK-1 failed once on its parry count, then passed twice).
 - [x] Phase 05 rows VFH-ENH-G0..G8 pass (2026-10-13); regression `combat1 combat5 combat6 read1 block1 block2 block3 dodge1 stance4 post1 retreat1 noeffect` passes.
 - [x] Phase 06 rows VFH-ENH-A1..A9 and A4b pass (2026-10-13).

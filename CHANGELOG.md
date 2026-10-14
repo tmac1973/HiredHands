@@ -16,6 +16,10 @@ and a new data section; the server and every player need 0.10.0. Rosters saved b
   defaults), with `enhancementSettings.respecCostFraction`; the `Enhancements` setting (*3 - Hiring*) turns it all off.
 - **The balance log** notes each hireling's picks (`enh`) on fight and death records, and the report compares each pick
   with its pair.
+- **Workers wear a hat for their job** instead of a helmet: the woodcutter a red cap, the miner a dverger circlet (with
+  its lamp), the Steward a yellow headscarf, the farmer a straw hat, the rancher a fur cap, and the cook a chef's hat.
+  Guards, archers and wizards keep their helmets. Looks only: a hat counts as the level's helmet for armour. Each job's
+  hat is in the data file (`hat`).
 - **A hireling's cargo grid has a fifth row**, used only when its slots go past 32 (Pack mule at level 8).
 
 ## 0.9.3
