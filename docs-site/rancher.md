@@ -6,7 +6,7 @@ board.
 
 ## Orders
 
-On the board's Orders tab under *Add ranch order*:
+Shift+E on the Rancher, then **Orders**, *Add an order* (kept on the board, which shows them on its Orders tab):
 
 - **Meat:** "keep at least 40 raw meat" (any meat an animal you keep drops).
 - **Eggs:** "keep at least 20 eggs". He collects eggs until there are that many; after that he leaves them where they lie,

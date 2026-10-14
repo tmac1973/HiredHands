@@ -132,6 +132,18 @@ namespace VikingsForHire.Hirelings.Work
 
         public GatherBehaviour(IGatherProfile profile) => _profile = profile;
 
+        // What its last look round found in the way, for its Problems list (activity tokens, one per line).
+        private string _problems = "";
+
+        // The profiles' reasons (made for the log) as Problems lines: grouped, the details left out.
+        private static string ReasonToken(string reason) =>
+            reason == "gone" ? ""
+            : reason.StartsWith("tier ") ? "$vfh_gwhy_tier"
+            : reason.StartsWith("near buildings") ? "$vfh_gwhy_buildings"
+            : reason.StartsWith("only buried") ? "$vfh_gwhy_buried"
+            : reason.StartsWith("buried and undiscovered") ? "$vfh_gwhy_undiscovered"
+            : "$vfh_gwhy_other";
+
         private Collider? _aimPart;
 
         public string Name => "Gather";
@@ -151,8 +163,10 @@ namespace VikingsForHire.Hirelings.Work
             if (FindPickup(h) || FindTarget(h, _anchor, out string why))
             {
                 h.NoTargets = false;
+                h.SetWhy("");
                 return true;
             }
+            h.SetWhy(_problems);
             if (!h.NoTargets)
             {
                 h.NoTargets = true;
@@ -367,6 +381,8 @@ namespace VikingsForHire.Hirelings.Work
         {
             _fullItems.Clear();
             var reasons = new Dictionary<string, int>();
+            // The same, for its Problems list: (activity token, item or reason) -> how many.
+            var problems = new Dictionary<(string Token, string Arg), int>();
             int candidates = 0;
             string? example = null;
             Vector3 me = h.transform.position;
@@ -378,16 +394,23 @@ namespace VikingsForHire.Hirelings.Work
                 if (Utils.DistanceXZ(c.transform.position, _area.Center) > _area.Radius + _profile.ExtraReach(c))
                     continue;
                 candidates++;
-                string? skip = h.Ai.Order is { } order && !order.Allows(c) ? "not part of the order"
-                    : h.Ai.Order == null && SwitchedOff(h, c) is string off ? $"{off} switched off"
-                    : NoRoomFor(h, c) is string full ? $"no room for {full}"
-                    : WaterRules.Under(c.transform.position, 1f) ? "in the water"
-                    : Reservations.IsSkipped(c) ? "skipped after a failed approach"
-                    : Reservations.IsReservedByOther(c, h.Hid) ? "claimed by another hireling"
-                    : !_profile.IsValid(c, h, out string reason) ? reason
-                    : !_profile.Plan(c, out _, out string unsafeReason) ? unsafeReason : null;
+                string? off = null, full = null, reason = "", unsafeReason = "";
+                (string? skip, string token, string arg) = h.Ai.Order is { } order && !order.Allows(c) ? ("not part of the order", "$vfh_gwhy_order", "")
+                    : h.Ai.Order == null && (off = SwitchedOff(h, c)) != null ? ($"{off} switched off", "$vfh_gwhy_off", off)
+                    : (full = NoRoomFor(h, c)) != null ? ($"no room for {full}", "$vfh_gwhy_full", full)
+                    : WaterRules.Under(c.transform.position, 1f) ? ("in the water", "$vfh_gwhy_water", "")
+                    : Reservations.IsSkipped(c) ? ("skipped after a failed approach", "$vfh_gwhy_unreachable", "")
+                    : Reservations.IsReservedByOther(c, h.Hid) ? ("claimed by another hireling", "$vfh_gwhy_claimed", "")
+                    : !_profile.IsValid(c, h, out reason) ? (reason, ReasonToken(reason), reason)
+                    : !_profile.Plan(c, out _, out unsafeReason) ? (unsafeReason, ReasonToken(unsafeReason), unsafeReason)
+                    : ((string?)null, "", "");
                 if (skip != null)
                 {
+                    // The profiles' grouped reasons drop their details; the item stays for the switched-off and full lines.
+                    if (token is "$vfh_gwhy_tier" or "$vfh_gwhy_buildings" or "$vfh_gwhy_buried" or "$vfh_gwhy_undiscovered")
+                        arg = "";
+                    if (token.Length > 0)
+                        problems[(token, arg)] = problems.TryGetValue((token, arg), out int pn) ? pn + 1 : 1;
                     // One line per distinct reason, keeping the first object's name as an example.
                     string key = skip.StartsWith("near buildings") ? "near buildings" : skip;
                     if (!reasons.ContainsKey(key))
@@ -409,6 +432,11 @@ namespace VikingsForHire.Hirelings.Work
                 }
             }
             why = $"candidates={candidates} " + string.Join(", ", reasons.Select(r => $"{r.Key} x{r.Value}")) + (example != null ? $" (e.g. {example})" : "");
+            _problems = candidates == 0
+                ? Chores.ActivityText.Make(_profile is WoodcutterProfile ? "$vfh_gwhy_no_trees" : "$vfh_gwhy_no_rocks", Mathf.RoundToInt(_area.Radius).ToString())
+                : string.Join("\n", problems.OrderByDescending(p => p.Value).Select(p => p.Key.Arg.Length > 0
+                    ? Chores.ActivityText.Make(p.Key.Token, p.Value.ToString(), p.Key.Arg)
+                    : Chores.ActivityText.Make(p.Key.Token, p.Value.ToString())));
             if (best == null || !Reservations.TryReserve(best, h.Hid))
                 return false;
             _target = best;

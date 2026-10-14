@@ -3,6 +3,18 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## Next (not packaged yet)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (worker-orders branch) | Orders move to the workers: Shift+E on the Farmer, Cook or Rancher has **Orders (n)** beside **Problems** (as the Steward has Limits), a wider page with each order's have / target, - / +, up/down, pause and remove, and *Add an order* (a picker of what it can be ordered, with the level each needs). Still kept on the board (no format change; a new worker takes them over). The board's Orders tab is now a read-only overview, each worker's orders under its name ("Cook: none hired" when there's none) | the panel on the player's game; the edits are board ops as before |
+| (worker-orders branch) | Woodcutters and miners get a **Problems** button: from their last look round, what they left alone and why ("2 left alone: they give Wood, which is switched off in its panel"; chests full; another hireling on it; tool too weak; too close to buildings; nothing within its radius). Tim's case: a woodcutter in Gather Here with only fine wood on, by trees that give Wood | the game simulating the gatherer |
+
+### To test (batch)
+- [x] New rows VFH-WHY-3 (woodcutter with Wood off: the problem shows; switched back on, it clears) and VFH-WHY-4 (a miner with nothing to mine); screenshots of the Cook's Orders page and picker, the board's overview, the Woodcutter's panel and Problems page (2026-10-14).
+- [ ] By hand: add, reorder, pause and remove orders from a Farmer's and a Rancher's panel; the board's overview follows.
+
 ## 0.10.0 (packaged 2026-10-14, branch `enhancements`): hireling enhancements
 
 The plan is `plan/enhancements/` (12 phases). Each phase lands as its own commit with its rows; results below.

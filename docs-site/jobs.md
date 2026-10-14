@@ -44,6 +44,10 @@ off a miner takes only the copper from a deposit and leaves the stone on the gro
 **Works at home: off** keeps a gatherer from touching anything inside its board's area (for bases with decorative trees
 and rocks); it still works in the field with you.
 
+Not chopping or mining? Its **Problems** button lists what it left alone and why: items you've switched off, chests
+with no room, trees too close to buildings, a tool too weak for the rock, another hireling already on it, or nothing in
+reach at all.
+
 ## Deliveries
 
 Gatherers deliver each item type only to a chest that **already holds** that item (they never mix items into other

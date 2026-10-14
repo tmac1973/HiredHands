@@ -20,6 +20,7 @@ namespace VikingsForHire.Testing
         public static void Register()
         {
             Fixtures.Add("board_level", "<1-8> - set the nearest board's level (free, through its owner)", BoardLevel);
+            Fixtures.Add("gather_off", "[item…] - switch these items off in the posted gatherer's what-to-gather toggles (none: all on)", GatherOff);
             Fixtures.Add("skip", "<tag> [seconds=600] - workers leave a tagged tree or rock alone for a while (as after a failed approach)", args =>
             {
                 GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
@@ -454,6 +455,18 @@ namespace VikingsForHire.Testing
             }
             Net.MutationService.SubmitBoard(board.Id, new Core.RosterOp { Type = Core.RosterOpType.SetGather, Hid = hid, SkipItems = skip, NoHomeWork = entry.NoHomeWork });
             VfhLog.I(LogCat.Test, "fixture.steward_chores", ("hid", hid), ("skip", skip));
+            yield return new WaitForSeconds(1f);
+        }
+
+        // What a gatherer may gather (its Shift+E toggles), on its contract.
+        private static IEnumerator GatherOff(string[] args)
+        {
+            string hid = BoardContracts.LastPostedHid;
+            HiringBoard board = Board();
+            Core.ContractEntry entry = BoardRosterOps.Read(board.Zdo!).ByHid(hid) ?? throw new InvalidOperationException("no contract posted");
+            string skip = Core.GatherRules.FormatSkip(args);
+            Net.MutationService.SubmitBoard(board.Id, new Core.RosterOp { Type = Core.RosterOpType.SetGather, Hid = hid, SkipItems = skip, NoHomeWork = entry.NoHomeWork });
+            VfhLog.I(LogCat.Test, "fixture.gather_off", ("hid", hid), ("skip", skip));
             yield return new WaitForSeconds(1f);
         }
 

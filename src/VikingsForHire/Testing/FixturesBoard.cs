@@ -98,6 +98,14 @@ namespace VikingsForHire.Testing
             Fixtures.Add("board_put", "<item> <n> - give yourself n items and move them into the nearest board like the UI does", BoardPut);
             Fixtures.Add("board_force_add", "<item> <n> - put items into the nearest board, skipping its food/coins filter", BoardForceAdd);
             Fixtures.Add("crafty_probe", "- add a workbench recipe 'Wood' costing 1 Coins + 1 CookedMeat (this session only)", _ => CraftyProbe());
+            Fixtures.Add("board_panel", "<tab 0-3|close> - open the nearest board's panel on a tab (0 contracts, 1 roster, 2 orders, 3 upgrade)", args =>
+            {
+                if (args.ElementAtOrDefault(0) == "close")
+                    UI.BoardPanel.Close("test");
+                else
+                    UI.BoardPanel.Open(FixturesWork.Board(), int.Parse(args.ElementAtOrDefault(0) ?? "0", CultureInfo.InvariantCulture));
+                return WaitSeconds(0.5f);
+            });
             Fixtures.Add("clear_area", "<radius=40> - remove everything these fixtures spawned nearby, plus logs, stumps, rock chunks and items lying on the ground there", ClearArea);
 
             TestHarness.RegisterCheck("placement_ok", "[meters=5] - can a hiring board go this far ahead: true | false | pending",
