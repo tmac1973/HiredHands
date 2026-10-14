@@ -145,6 +145,12 @@ namespace VikingsForHire.Core.Data
                     prev = g;
                 }
 
+                if (job.Value.Hat.Length > 0 && !itemExists(job.Value.Hat))
+                {
+                    warnings.Add($"jobs.{job.Key}.hat: unknown {job.Value.Hat}, wearing the level's helmet");
+                    job.Value.Hat = "";
+                }
+
                 int before = job.Value.PickupItems.Count;
                 var unknown = job.Value.PickupItems.Where(i => !itemExists(i)).ToList();
                 job.Value.PickupItems.RemoveAll(i => !itemExists(i));

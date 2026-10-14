@@ -34,6 +34,7 @@ namespace VikingsForHire.Testing
                     UI.HirelingPanel.ShowEnhancements();
                 return Delay(0.5f);
             });
+            Fixtures.Add("portrait", "<last|posted|nearest> <front|side|back|top> [name] - render a close-up of that hireling's head to BepInEx/HiredHands-<name>-<view>.png (checking hats and gear by eye)", Portrait);
             Fixtures.Add("cargo_put", "<item> <stacks> [per stack] - move stacks of an item (full ones unless given) from you into the nearest hireling's cargo, like the UI", CargoPut);
             Fixtures.Add("kill_hirelings", "<radius=50> [graves] - kill hirelings near you; their cargo is emptied first (no graves or map pins) unless 'graves'", args =>
             {
@@ -76,6 +77,61 @@ namespace VikingsForHire.Testing
                 return Wait(0.5f);
             });
             TestHarness.RegisterCheck("snapshot_roundtrip", "- result of the last snapshot test: true, or false with the differing values", _ => SnapshotTest.LastResult);
+        }
+
+        /// <summary>
+        /// A close-up of a hireling's head from a camera of its own (the player's view is left alone), saved as a PNG beside
+        /// the logs: hats and gear can't be asserted, only looked at.
+        /// </summary>
+        private static IEnumerator Portrait(string[] args)
+        {
+            Hireling h = Select(args.ElementAtOrDefault(0) ?? "last");
+            string view = args.ElementAtOrDefault(1) ?? "front";
+            string name = args.ElementAtOrDefault(2) ?? h.Job.ToString().ToLowerInvariant();
+            yield return new WaitForSeconds(0.5f); // gear attached, a pose struck
+            Transform head = h.Visuals.m_helmet != null ? h.Visuals.m_helmet : h.transform;
+            Vector3 target = head.position + Vector3.up * 0.15f;
+            Vector3 fwd = Vector3.ProjectOnPlane(h.transform.forward, Vector3.up).normalized;
+            Vector3 dir = view switch
+            {
+                "side" => Vector3.Cross(Vector3.up, fwd),
+                "back" => -fwd,
+                "top" => (fwd + Vector3.up * 1.2f).normalized,
+                _ => fwd,
+            };
+            var go = new GameObject("vfh_portrait");
+            var rt = new RenderTexture(768, 768, 24);
+            try
+            {
+                Camera cam = go.AddComponent<Camera>();
+                cam.CopyFrom(GameCamera.instance.GetComponent<Camera>());
+                cam.enabled = false;
+                cam.fieldOfView = 30f;
+                cam.nearClipPlane = 0.05f;
+                cam.transform.position = target + dir * 1.4f + Vector3.up * 0.1f;
+                cam.transform.LookAt(target);
+                cam.targetTexture = rt;
+                cam.Render();
+                RenderTexture.active = rt;
+                var tex = new Texture2D(rt.width, rt.height, TextureFormat.RGB24, false);
+                tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+                tex.Apply();
+                string file = System.IO.Path.Combine(BepInEx.Paths.BepInExRootPath, $"HiredHands-{name}-{view}.png");
+                System.IO.File.WriteAllBytes(file, tex.EncodeToPNG());
+                UnityEngine.Object.Destroy(tex);
+                // What's on the head, relative to the head joint: where its drawn bounds sit and how big they are.
+                Renderer[] worn = h.Visuals.m_helmetItemInstance != null ? h.Visuals.m_helmetItemInstance.GetComponentsInChildren<Renderer>() : new Renderer[0];
+                Bounds b = worn.Length > 0 ? worn.Select(r => r.bounds).Aggregate((a, x) => { a.Encapsulate(x); return a; }) : new Bounds(head.position, Vector3.zero);
+                VfhLog.I(LogCat.Test, "fixture.portrait", ("hid", h.Hid), ("view", view), ("helmet", GearApplier.Name(h.GetComponent<Humanoid>().m_helmetItem)),
+                    ("hatSize", b.size), ("hatCentreAboveJoint", b.center - head.position), ("jointScale", head.lossyScale), ("upInJoint", head.InverseTransformDirection(Vector3.up)), ("fwdInJoint", head.InverseTransformDirection(h.transform.forward)), ("file", file));
+            }
+            finally
+            {
+                RenderTexture.active = null;
+                UnityEngine.Object.Destroy(go);
+                rt.Release();
+                UnityEngine.Object.Destroy(rt);
+            }
         }
 
         private static IEnumerator Delay(float seconds)

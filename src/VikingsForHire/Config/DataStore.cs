@@ -187,6 +187,7 @@ namespace VikingsForHire.Config
             || prefab == Hirelings.BroomItem.PrefabName
             || prefab == Hirelings.Gear.CultivatorItem.PrefabName
             || prefab == Hirelings.Gear.LadleItem.PrefabName
+            || prefab == Hirelings.Gear.ChefHatItem.PrefabName
             || prefab == Followers.CommandStoneItem.PrefabName
             || prefab == Board.HiringCharter.PrefabName
             || ItemManager.Instance.GetItem(prefab) != null;

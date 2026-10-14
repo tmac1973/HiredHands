@@ -33,9 +33,10 @@ namespace VikingsForHire.Core
 
         /// <summary>
         /// Helmet, chest, legs and cape for a level: the job's outfit piece where it's set and exists, else the shared
-        /// set's piece for that slot (the shared sets have no cape).
+        /// set's piece for that slot (the shared sets have no cape). A job's <paramref name="hat"/>, where it exists, takes
+        /// the helmet's place.
         /// </summary>
-        public static string[] Armor(int level, IList<ArmorSetData> outfit, IList<ArmorSetData> shared, Func<string, bool> exists)
+        public static string[] Armor(int level, IList<ArmorSetData> outfit, IList<ArmorSetData> shared, Func<string, bool> exists, string? hat = null)
         {
             ArmorSetData? own = outfit.FirstOrDefault(a => a.Level == level);
             ArmorSetData? common = shared.FirstOrDefault(a => a.Level == level);
@@ -43,7 +44,7 @@ namespace VikingsForHire.Core
                 !string.IsNullOrEmpty(mine) && exists(mine!) ? mine! : theirs ?? "";
             return new[]
             {
-                Pick(own?.Helmet, common?.Helmet),
+                Pick(hat, Pick(own?.Helmet, common?.Helmet)),
                 Pick(own?.Chest, common?.Chest),
                 Pick(own?.Legs, common?.Legs),
                 Pick(own?.Cape, ""),

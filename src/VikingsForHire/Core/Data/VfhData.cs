@@ -161,6 +161,9 @@ namespace VikingsForHire.Core.Data
         [YamlMember(Description = "What this job wears by level, instead of the shared armorSets (empty = the shared sets). Looks only: armor comes from the hireling level. An item that doesn't exist falls back to the shared set's for that slot.")]
         public List<ArmorSetData> Outfit { get; set; } = new();
 
+        [YamlMember(Description = "Workers only: a hat that shows the job (a straw hat for the farmer), worn at every level in place of the helmet. Looks only: armor still counts the level's helmet. Empty = the helmet; an item that doesn't exist is ignored. Fighting jobs never wear one.")]
+        public string Hat { get; set; } = "";
+
         [YamlMember(Description = "Changes while another mod is loaded, by its GUID; the first entry whose mod is loaded applies.")]
         public List<JobModOverride> WithMods { get; set; } = new();
 

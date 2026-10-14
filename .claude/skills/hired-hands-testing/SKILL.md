@@ -100,6 +100,10 @@ subsets.)
   `vfh_assert_eventually 40 hireling posted owner_dist < 6` before using them.
 - Something that needs a far place (the coast) uses a fixture that returns (`goto_coast` ... `goto_back`).
 - A new fixture or check goes in `src/VikingsForHire/Testing/Fixtures*.cs`.
+- Looks (hats, held models) can't be asserted: `vfh_fixture portrait last front` (also `side`, `back`, `top`) renders a
+  close-up of the hireling's head to `BepInEx/HiredHands-<job>-<view>.png` for reading with the Read tool, and logs the
+  worn helmet's size and offset from the head joint. Wait ~3 s after spawning first (`vfh_fixture wait 3`): a fresh
+  hireling is still crouched.
 
 ## Logging and releasing
 

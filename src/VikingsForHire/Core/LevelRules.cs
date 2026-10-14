@@ -52,6 +52,9 @@ namespace VikingsForHire.Core
         /// <summary>The job's outfit by level, as changed by a loaded mod (empty: the shared armour sets).</summary>
         public System.Collections.Generic.List<ArmorSetData> Outfit(JobType job) => Effective(job).Outfit;
 
+        /// <summary>The job's hat, worn instead of the helmet (null: none; fighting jobs never wear one).</summary>
+        public string? Hat(JobType job) => job.IsCombat() || string.IsNullOrEmpty(Job(job).Hat) ? null : Job(job).Hat;
+
         /// <summary>The job's data with the first loaded mod's overrides applied (withMods, in order).</summary>
         public JobData Effective(JobType job)
         {
@@ -64,7 +67,7 @@ namespace VikingsForHire.Core
                 CostMult = own.CostMult, WorkerCombatFactor = own.WorkerCombatFactor, MaxPerBoard = own.MaxPerBoard,
                 WorkRadiusMultiplier = own.WorkRadiusMultiplier, PickupItems = own.PickupItems, GatherToggles = own.GatherToggles,
                 Stations = own.Stations, ChoreLevels = own.ChoreLevels, CropLevels = own.CropLevels, StationLevels = own.StationLevels,
-                RecipeLevels = own.RecipeLevels, KeepInStorage = own.KeepInStorage, WithMods = own.WithMods,
+                RecipeLevels = own.RecipeLevels, KeepInStorage = own.KeepInStorage, Hat = own.Hat, WithMods = own.WithMods,
                 MinBoardLevel = mod.MinBoardLevel > 0 ? mod.MinBoardLevel : own.MinBoardLevel,
                 Gear = mod.Gear.Count > 0 ? mod.Gear : own.Gear,
                 Outfit = mod.Outfit.Count > 0 ? mod.Outfit : own.Outfit,

@@ -125,8 +125,9 @@ namespace VikingsForHire.Hirelings
         public bool FetchingSupplies { get; set; }
 
         /// <summary>
-        /// Armor applied to incoming hits: the real armor of the worn set (as a player in that gear would have) plus the
-        /// level's bonus. Vanilla only applies body armor to players, so DamagePatches applies this itself.
+        /// Armor applied to incoming hits: the real armor of the worn set (as a player in that gear would have; a job's
+        /// hat counts as the level's helmet) plus the level's bonus. Vanilla only applies body armor to players, so
+        /// DamagePatches applies this itself.
         /// </summary>
         public float Armor
         {
@@ -134,7 +135,7 @@ namespace VikingsForHire.Hirelings
             {
                 Humanoid h = _humanoid;
                 float gear = (h.m_chestItem?.GetArmor() ?? 0f) + (h.m_legItem?.GetArmor() ?? 0f) +
-                             (h.m_helmetItem?.GetArmor() ?? 0f) + (h.m_shoulderItem?.GetArmor() ?? 0f);
+                             GearApplier.HelmetArmor(h, Job, Level) + (h.m_shoulderItem?.GetArmor() ?? 0f);
                 return gear + LevelData.ArmorBonus + Enh.Effects.ArmorBonus;
             }
         }

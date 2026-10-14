@@ -12,6 +12,11 @@
 | Guard (ranged) | Same, with a bow | |
 | Wizard | Same, casting a staff's spell from range | Needs a level 6 board, or level 2 with Therzie's Wizardry. See [Wizards](combat.md#wizards) |
 
+**Workers wear a hat for their job**, so you can tell them apart at a glance: the woodcutter a red cap, the miner a
+dverger circlet (a lamp on the forehead), the Steward a yellow headscarf, the farmer a straw hat, the cook a chef's hat
+and the rancher a fur cap. Fighters keep their helmets. A hat is only looks: a worker is as well armoured as if it wore
+its level's helmet. Each job's `hat` is in the data file (empty for the helmet).
+
 From level 2 to 8 each hireling picks one of two [enhancements](enhancements.md) at every level.
 
 Woodcutters and miners work twice the board's radius. Everyone defends themselves; non-guards fight weakly and flee or

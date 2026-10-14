@@ -22,7 +22,7 @@ Rules and behaviour, in sections:
 
 The data tables: board levels and their upgrade costs, hireling levels (health, armour, cargo slots and weight, hire fee
 and upkeep in food and coins, combat chances and damage), per-job settings (cost multiplier, pickup list, what gatherers
-can be told to gather, gear by level, minimum board level, work-radius multiplier, steward stations and reserves), raw
+can be told to gather, gear by level, hat, minimum board level, work-radius multiplier, steward stations and reserves), raw
 foods, names. Edits are picked up live. An invalid file is rejected with a log message and the defaults are used.
 
 !!! warning "Updating doesn't change values already in this file"

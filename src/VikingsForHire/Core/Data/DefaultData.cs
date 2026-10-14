@@ -6,6 +6,9 @@ namespace VikingsForHire.Core.Data
     /// <summary>Default tables. Every item name was checked against the game's prefab list (Valheim l-1.0.16).</summary>
     public static class DefaultData
     {
+        /// <summary>The Cook's hat (Hirelings.Gear.ChefHatItem; Core can't see the game side).</summary>
+        public const string ChefHatItem = "VFH_ChefHat";
+
         public static VfhData Create() => new()
         {
             // One boss item per level, its trophy: nothing that only a boss drops beyond that (dragon tears took a second
@@ -54,6 +57,7 @@ namespace VikingsForHire.Core.Data
                 {
                     MaxPerBoard = 2,
                     CostMult = 1.0f,
+                    Hat = "HelmetHat5", // simple red cap
                     WorkRadiusMultiplier = 2f,
                     WorkerCombatFactor = 0.4f,
                     PickupItems = List("Wood", "FineWood", "RoundLog", "ElderBark", "YggdrasilWood", "Blackwood", "Resin",
@@ -65,6 +69,7 @@ namespace VikingsForHire.Core.Data
                 {
                     MaxPerBoard = 2,
                     CostMult = 1.1f,
+                    Hat = "HelmetDverger", // the dverger circlet: a lamp on the forehead
                     MinBoardLevel = 2,
                     WorkRadiusMultiplier = 2f,
                     WorkerCombatFactor = 0.4f,
@@ -79,6 +84,7 @@ namespace VikingsForHire.Core.Data
                 {
                     MaxPerBoard = 1,
                     CostMult = 0.9f,
+                    Hat = "HelmetHat6", // yellow tied headscarf, for the housework
                     WorkerCombatFactor = 0.3f,
                     Gear = Mains("VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom", "VFH_Broom"),
                     Stations = List("smelter", "blastfurnace", "charcoal_kiln", "eitrrefinery", "windmill", "piece_spinningwheel"),
@@ -99,6 +105,7 @@ namespace VikingsForHire.Core.Data
                 {
                     MaxPerBoard = 1,
                     CostMult = 0.9f,
+                    Hat = "HelmetStrawHat",
                     WorkerCombatFactor = 0.3f,
                     MinBoardLevel = 2,
                     Gear = Mains("VFH_Cultivator", "VFH_Cultivator", "VFH_Cultivator", "VFH_Cultivator", "VFH_Cultivator", "VFH_Cultivator", "VFH_Cultivator", "VFH_Cultivator"),
@@ -119,6 +126,7 @@ namespace VikingsForHire.Core.Data
                 {
                     MaxPerBoard = 1,
                     CostMult = 0.9f,
+                    Hat = ChefHatItem, // our own: there is no chef's hat in the game
                     WorkerCombatFactor = 0.3f,
                     MinBoardLevel = 2,
                     Gear = Mains("VFH_Ladle", "VFH_Ladle", "VFH_Ladle", "VFH_Ladle", "VFH_Ladle", "VFH_Ladle", "VFH_Ladle", "VFH_Ladle"),
@@ -132,6 +140,7 @@ namespace VikingsForHire.Core.Data
                 {
                     MaxPerBoard = 1,
                     CostMult = 0.9f,
+                    Hat = "HelmetHat3", // brown fur cap
                     WorkerCombatFactor = 0.3f,
                     MinBoardLevel = 2,
                     Gear = Mains("KnifeButcher", "KnifeButcher", "KnifeButcher", "KnifeButcher", "KnifeButcher", "KnifeButcher", "KnifeButcher", "KnifeButcher"),

@@ -24,8 +24,9 @@ namespace VikingsForHire.Hirelings
             VfhData data = DataStore.Current;
             var rules = new LevelRules(data);
             var names = new List<string>();
-            // The job's own outfit (a wizard's robes) where it has one for the level, piece by piece over the shared armour.
-            names.AddRange(GearRules.Armor(level, rules.Outfit(job), data.ArmorSets, Exists));
+            // The job's own outfit (a wizard's robes) where it has one for the level, piece by piece over the shared armour,
+            // and a worker's hat (the Cook's chef's hat) in place of the helmet.
+            names.AddRange(GearRules.Armor(level, rules.Outfit(job), data.ArmorSets, Exists, rules.Hat(job)));
             WeaponSetData? weapons = rules.Gear(job).FirstOrDefault(g => g.Level == level);
             if (job == JobType.Wizard)
             {
@@ -110,6 +111,21 @@ namespace VikingsForHire.Hirelings
                 return right;
             ItemDrop.ItemData? left = humanoid.GetLeftItem();
             return left != null && left.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Bow ? left : null;
+        }
+
+        /// <summary>
+        /// The armor a hireling's head counts: what it wears, except that a job's hat counts as the helmet it replaced
+        /// (the level's shared helmet), so a farmer in a straw hat is as tough as one in bronze.
+        /// </summary>
+        public static float HelmetArmor(Humanoid humanoid, JobType job, int level)
+        {
+            ItemDrop.ItemData? worn = humanoid.m_helmetItem;
+            string? hat = new LevelRules(DataStore.Current).Hat(job);
+            if (worn == null || hat == null || Name(worn) != hat)
+                return worn?.GetArmor() ?? 0f;
+            string helmet = DataStore.Current.ArmorSets.FirstOrDefault(a => a.Level == level)?.Helmet ?? "";
+            GameObject? prefab = helmet.Length > 0 && ObjectDB.instance != null ? ObjectDB.instance.GetItemPrefab(helmet) : null;
+            return prefab != null && prefab.GetComponent<ItemDrop>() is ItemDrop drop ? drop.m_itemData.GetArmor() : 0f;
         }
 
         /// <summary>Ranged guards never run out of arrows.</summary>
