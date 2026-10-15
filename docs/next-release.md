@@ -3,6 +3,20 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## Next (not packaged yet)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (guard-out-of-reach branch) | Una (melee guard) stood under a blob on a swamp ruin while mobs chased Tim. Three fixes: a melee guard that hasn't got any closer to its target for 5 s, and it's above or below its reach or there's no route, leaves it alone for 20 s ("out of reach"); a target given up on (blocked, quiet) is also left out of the threat scan, so the next nearest enemy is fought (before, it stayed "nearest", was refused, and the guard fought nothing); something it can't fight from where it is (out of reach, in the water, no effect, no shot) that hits it doesn't pull it back unless it comes right up | the game simulating the guard |
+| (same branch) | Una took ~20 s to fight a Fenring mage: it kept away for 10 s, she let it go ("quiet"), then it hit her four times in the 10 s she was ignoring it. Something she only lost interest in (quiet, blocked) is fought again as soon as it hits her | the game simulating the guard |
+
+### To test (batch)
+- [x] Row VFH-COMBAT-LEDGE (enemies fixture `ledge:H`, the floor set back so the blob is seen from below): an Aggressive guard engages a blob pinned 4 m up, drops it "out of reach" after ~6 s and kills a still greydwarf 10 m off (2026-10-14).
+- [x] Combat regression, every row that spawns enemies (75: stance, combat, read, block, proj, dodge, defm, tame, retreat, noise, post, repairs, noeffect, wizard 3-18, all ENH-G/A/W and the worker combat picks) pass (2026-10-14). VFH-WIZ-11 first failed: the out-of-reach "unless it comes right up" exception let a wizard take up a greydwarf it had dropped for no effect; now only for out of reach. BLOCK-1 and DODGE-3 (known flaky counts) and COMBAT-10 passed on rerun; VFH-WATER-1 failed twice on the harness's coast teleport (once stayed at the test spot; once a leftover hireling from the first try), not combat.
+- [ ] By hand in the swamp: a guard with a blob up on a ruin turns to the draugr instead.
+- [ ] By hand in the mountains: a guard answers a Fenring mage (or anything) that hits her straight away, even just after giving up chasing it.
+
 ## 0.11.0 (packaged 2026-10-14, branch `steward-orders`): the Steward works to orders, ∞ orders, miners stay shallow
 
 ### Fixed or added

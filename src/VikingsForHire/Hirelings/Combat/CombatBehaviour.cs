@@ -46,10 +46,19 @@ namespace VikingsForHire.Hirelings.Combat
         private Character? _ignored;
         private float _engagedAt = -1f;
         private float _ignoredUntil;
+        // Ignored because it can't be fought from here (out of reach, in the water, no effect, no shot), not just lost
+        // interest in (quiet, blocked): only the second kind is taken up again when it hits (and something out of reach
+        // that has come down to it).
+        private bool _ignoredHard;
+        private string _ignoredWhy = "";
         private float _blockedSince = -1f;
         private float _targetHealth;
         private float _hurtAt;
         private bool _attackedTarget;
+        // Closing in on a melee target: the nearest it has got, and when. Una stood under a blob on a ruin in the swamp
+        // (it out of her reach above her) until the quiet time ran out, and its farts kept resetting that.
+        private float _closest;
+        private float _closestAt;
 
         public string Name => "Combat";
         public int Priority => 900;
@@ -73,7 +82,7 @@ namespace VikingsForHire.Hirelings.Combat
                 Drop(ai, ThreatScanner.Alive(_target) ? "quiet or leashed" : "target down");
 
             Character? pick = Choose(ai);
-            if (pick == null || (pick == _ignored && Time.time < _ignoredUntil) || pick.GetHealth() <= 0f)
+            if (pick == null || IsIgnored(pick) || pick.GetHealth() <= 0f)
                 return false;
             // Under the water (a fish or a serpent below the surface by the shore): arrows stop at the surface and swords
             // don't reach, so a guard would shoot or swing at it forever.
@@ -89,6 +98,8 @@ namespace VikingsForHire.Hirelings.Combat
             _targetHealth = pick.GetHealth();
             _hurtAt = Time.time;
             _attackedTarget = false;
+            _closest = float.MaxValue;
+            _closestAt = Time.time;
             VfhLog.D(LogCat.Combat, "combat.engage", ("hid", ai.Hireling.Hid), ("target", pick.m_name), ("stance", ai.Stance),
                 ("dist", Vector3.Distance(pick.transform.position, ai.transform.position)), ("gear", GearApplier.Describe(ai.Hireling.Humanoid)));
             return true;
@@ -149,6 +160,8 @@ namespace VikingsForHire.Hirelings.Combat
                     ("why", why), ("pos", c.transform.position), ("inWater", c.InWater()), ("health", c.GetHealth()), ("seconds", seconds));
             _ignored = c;
             _ignoredUntil = Time.time + seconds;
+            _ignoredHard = true;
+            _ignoredWhy = why;
             ai.Threats.Ignore(c, seconds);
         }
 
@@ -179,6 +192,12 @@ namespace VikingsForHire.Hirelings.Combat
             }
             if (dist > MeleeReach)
             {
+                if (OutOfReach(ai, target, dist))
+                {
+                    Ignore(ai, target, "out of reach", BlockedIgnoreSeconds);
+                    Drop(ai, "out of reach");
+                    return;
+                }
                 // Stop at the target's edge, not its centre: walking to within reach of a troll's centre means walking
                 // into the troll, which never ends, so the hireling never got close enough to swing.
                 ai.WalkTo(dt, target.transform.position, target.GetRadius() + MeleeReach * 0.7f, run: true);
@@ -435,6 +454,44 @@ namespace VikingsForHire.Hirelings.Combat
             return true;
         }
 
+        // A melee target it hasn't got any closer to for a while and can't get to: above its reach (a blob on a ruin, a
+        // deathsquito hovering over a cliff) or with no route there. A target that's merely running off is still chased.
+        private bool OutOfReach(HirelingAI ai, Character target, float dist)
+        {
+            if (dist < _closest - 0.5f)
+            {
+                _closest = dist;
+                _closestAt = Time.time;
+                return false;
+            }
+            if (Time.time - _closestAt < BlockedGiveUpSeconds)
+                return false;
+            Vector3 at = target.transform.position;
+            // Height counts only when it's nearly overhead (or underfoot): further off, a slope makes up the difference.
+            bool under = Utils.DistanceXZ(at, ai.transform.position) <= target.GetRadius() + MeleeReach + 1f;
+            if ((under && Mathf.Abs(at.y - ai.transform.position.y) > MeleeReach + 0.5f) || !ai.CanReach(at))
+                return true;
+            // There is a way and it's within reach of the ground: give it another while (asking the pathfinder once).
+            _closestAt = Time.time;
+            return false;
+        }
+
+        private bool IsIgnored(Character c) => c == _ignored && Time.time < _ignoredUntil;
+
+        // Whether to turn on something that just hit it. One it lost interest in (it went quiet: Una left a Fenring mage
+        // that kept away, then took four of its hits without answering) is fought again; one it can't fight from here (a
+        // blob up on a ruin, farting down) isn't, unless it has come right up to it.
+        private bool FightsBack(HirelingAI ai, Character attacker)
+        {
+            if (!IsIgnored(attacker))
+                return true;
+            float dist = Vector3.Distance(attacker.transform.position, ai.transform.position) - attacker.GetRadius();
+            if (_ignoredHard && (_ignoredWhy != "out of reach" || dist > MeleeReach + 1f))
+                return false;
+            _ignoredUntil = 0f;
+            return true;
+        }
+
         private void BlockedShot(HirelingAI ai, Character target, string evt = "combat.shot_blocked")
         {
             if (_blockedSince >= 0f)
@@ -521,9 +578,9 @@ namespace VikingsForHire.Hirelings.Combat
                 scan.RecentlyAttacked, allyAttacker != null);
             if (action != CombatAction.Engage)
                 return null;
-            if (scan.RecentlyAttacked)
+            if (scan.RecentlyAttacked && FightsBack(ai, scan.LastAttacker!))
                 return scan.LastAttacker;
-            return threat ?? allyAttacker;
+            return threat ?? (allyAttacker != null && !IsIgnored(allyAttacker) ? allyAttacker : null);
         }
 
         private bool Leashed(HirelingAI ai, Character target)
@@ -538,10 +595,14 @@ namespace VikingsForHire.Hirelings.Combat
             {
                 VfhLog.D(LogCat.Combat, "combat.disengage", ("hid", ai.Hireling.Hid), ("target", _target.m_name), ("reason", reason));
                 Telemetry.BalanceFights.End(ai.Hireling, reason);
-                if ((reason == "quiet or leashed" || reason == "blocked") && ThreatScanner.Alive(_target) && !(_ignored == _target && Time.time < _ignoredUntil))
+                // Left alone for a while, and by the threat scan too, so the next nearest enemy is fought: only remembered
+                // here, it stayed the nearest, was refused, and the guard fought nothing while mobs chased its owner.
+                if ((reason == "quiet or leashed" || reason == "blocked") && ThreatScanner.Alive(_target) && !IsIgnored(_target))
                 {
                     _ignored = _target;
                     _ignoredUntil = Time.time + (reason == "blocked" ? BlockedIgnoreSeconds : 10f);
+                    _ignoredHard = false;
+                    ai.Threats.Ignore(_target, _ignoredUntil - Time.time);
                 }
             }
             _target = null;

@@ -20,7 +20,7 @@ namespace VikingsForHire.Testing
     {
         public static void Register()
         {
-            Fixtures.Add("enemies", "<prefab> <n> <distance> - spawn creatures that far from the last spawned hireling", Enemies);
+            Fixtures.Add("enemies", "<prefab> <n> <distance> [still] [ahead] [ledge:H] [tag] - spawn creatures that far from the last spawned hireling (ledge:H: pinned on a stone floor H m up)", Enemies);
             Fixtures.Add("tame_ally", "<prefab> <distance> - spawn a tamed creature (tagged tame) that far from the last spawned hireling", TameAlly);
             TestHarness.RegisterCheck("tame_alive", "- whether the tame from tame_ally is alive", _ =>
                 FixturesWork.FindTagged("tame") is GameObject t && t.GetComponent<Character>() is Character c && !c.IsDead() ? "true" : "false");
@@ -304,7 +304,10 @@ namespace VikingsForHire.Testing
             // ahead: in front of the hireling (in its view), not at a random angle round it.
             bool ahead = args.Contains("ahead");
             // An optional tag (after the distance) for every creature spawned, for checks that name one.
-            string tag = args.Skip(3).FirstOrDefault(a => a != "still" && a != "ahead") ?? "";
+            // ledge:H: up on a stone floor H m above the ground, kept there (it can't walk or jump, but still attacks), out of
+            // a sword's reach (Una under a blob on a swamp ruin).
+            float ledge = args.FirstOrDefault(a => a.StartsWith("ledge:")) is string l ? float.Parse(l.Substring(6), CultureInfo.InvariantCulture) : 0f;
+            string tag = args.Skip(3).FirstOrDefault(a => a != "still" && a != "ahead" && !a.StartsWith("ledge:")) ?? "";
             GameObject go = ZNetScene.instance.GetPrefab(prefab) ?? throw new ArgumentException($"no prefab {prefab}");
             Vector3 center = beside ?? Last().transform.position;
             float start = ahead ? Quaternion.LookRotation(Vector3.ProjectOnPlane(Last().transform.forward, Vector3.up)).eulerAngles.y
@@ -313,15 +316,44 @@ namespace VikingsForHire.Testing
             {
                 Vector3 p = center + Quaternion.Euler(0f, start + i * 25f, 0f) * Vector3.forward * dist;
                 p.y = ZoneSystem.instance.GetGroundHeight(p) + 0.5f;
+                if (ledge > 0f)
+                    p.y = Ledge(p, Vector3.ProjectOnPlane(p - center, Vector3.up).normalized, ledge) + 0.3f;
                 GameObject e = Object.Instantiate(go, p, (center - p).sqrMagnitude > 0.01f ? Quaternion.LookRotation(center - p) : Quaternion.identity);
                 e.GetComponent<ZNetView>()?.GetZDO()?.Set(BoardZdo.Fixture, true);
                 if (tag.Length > 0)
                     e.GetComponent<ZNetView>()?.GetZDO()?.Set(FixturesWork.TagKey, tag);
                 if (still && e.GetComponent<BaseAI>() is BaseAI brain)
                     brain.enabled = false;
+                if (ledge > 0f && e.GetComponent<Character>() is Character pinned)
+                {
+                    pinned.m_speed = pinned.m_walkSpeed = pinned.m_runSpeed = pinned.m_swimSpeed = 0f;
+                    pinned.m_jumpForce = pinned.m_jumpForceForward = 0f;
+                    if (e.GetComponent<BaseAI>() is BaseAI hopper)
+                        hopper.m_jumpInterval = 0f;
+                }
             }
             VfhLog.I(LogCat.Test, "fixture.enemies", ("prefab", prefab), ("n", n), ("dist", dist), ("at", beside?.ToString() ?? Last().Hid), ("still", still));
             yield return new WaitForSeconds(0.5f);
+        }
+
+        // A 4x4 m stone floor that far above the ground, holding up without support, with p near its edge facing back the
+        // way (so it can be seen from below, not hidden by the floor); returns its top.
+        private static float Ledge(Vector3 p, Vector3 away, float height)
+        {
+            p += away * 1.4f;
+            GameObject floor = ZNetScene.instance.GetPrefab("stone_floor_2x2") ?? throw new ArgumentException("no prefab stone_floor_2x2");
+            float y = ZoneSystem.instance.GetGroundHeight(p) + height;
+            float top = y;
+            foreach (Vector3 off in new[] { new Vector3(-1f, 0f, -1f), new Vector3(1f, 0f, -1f), new Vector3(-1f, 0f, 1f), new Vector3(1f, 0f, 1f) })
+            {
+                GameObject piece = Object.Instantiate(floor, new Vector3(p.x, y, p.z) + off, Quaternion.identity);
+                piece.GetComponent<ZNetView>()?.GetZDO()?.Set(BoardZdo.Fixture, true);
+                if (piece.GetComponent<WearNTear>() is WearNTear wear)
+                    wear.enabled = false;
+                if (piece.GetComponentInChildren<Collider>() is Collider c)
+                    top = Mathf.Max(top, c.bounds.max.y);
+            }
+            return top;
         }
 
         private static (float Secs, float Taken, bool Won) _lastDuel;
