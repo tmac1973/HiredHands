@@ -65,6 +65,14 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void AnInfinitePoolKeepsEveryAnimal()
+        {
+            var herd = new List<HerdAnimal> { A("Boar", 0), A("Boar", 1), A("Boar", 2) };
+            OrderList orders = Orders(("RawMeat", OrderKind.Meat, 40), ("Boar", OrderKind.Herd, ProductionOrder.Infinite));
+            Assert.Null(RanchPlanner.Plan(Kinds, herd, orders, D(), AllFed, extraPool: 2).Slaughter);
+        }
+
+        [Fact]
         public void NeverYoungNorNamedAndNamedDontCount()
         {
             HerdAnimal pet = A("Boar", 0, named: true), piglet = A("Boar", 0, adult: false), a = A("Boar", 1), b = A("Boar", 1);

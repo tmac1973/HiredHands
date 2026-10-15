@@ -82,8 +82,8 @@ namespace VikingsForHire.UI
                         PanelUi.Icon(root, icon, -360f, y, 22f);
                     PanelUi.Text(root, OrderPicks.Name(o.Item), -200f, y, 280f, 15, TextAnchor.MiddleLeft, o.Paused ? PanelUi.Dim : (Color?)null);
                     PanelUi.Text(root, OrderPicks.KindLabel(o.Kind), 100f, y, 300f, 13, TextAnchor.MiddleLeft, PanelUi.Dim);
-                    PanelUi.Text(root, o.Paused ? Localization.instance.Localize("$vfh_limits_paused") : $"{have} / {o.Target}", 320f, y, 120f, 15,
-                        color: o.Paused ? PanelUi.Dim : have >= o.Target ? PanelUi.Good : PanelUi.Bad);
+                    PanelUi.Text(root, o.Paused ? Localization.instance.Localize("$vfh_limits_paused") : OrderPicks.Progress(o, have), 320f, y, 120f, 15,
+                        color: o.Paused || o.IsInfinite ? PanelUi.Dim : OrderPicks.Met(o, have) ? PanelUi.Good : PanelUi.Bad);
                 }
                 y -= RowStep;
             }

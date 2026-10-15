@@ -16,9 +16,16 @@ namespace VikingsForHire.Core.Orders
         Herd,
     }
 
-    /// <summary>"Keep at least Target of Item in the chests" (a Station order: "make no more once there are Target").</summary>
+    /// <summary>"Keep at least Target of Item in the chests" (∞: never enough, keep going while there's input).</summary>
     public sealed class ProductionOrder
     {
+        /// <summary>The ∞ target. An older game reads it as 9999 (its cap), which works the same.</summary>
+        public const int Infinite = int.MaxValue;
+
+        /// <summary>The Steward's catch-all order: everything it makes that has no order of its own.</summary>
+        public const string Everything = "*";
+
+        public bool IsInfinite => Target == Infinite;
         public string Item { get; set; } = "";
         public int Target { get; set; }
         public bool Paused { get; set; }

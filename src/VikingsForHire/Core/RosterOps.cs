@@ -35,6 +35,8 @@ namespace VikingsForHire.Core
         Target = 4,
         Pause = 5,
         Clear = 6,
+        /// <summary>A board's Steward orders begin (0.11.0): "everything else: ∞" added once, so a Steward makes all it did before.</summary>
+        StewardStart = 7,
     }
 
     /// <summary>A change to a board's roster, as sent over the network to whoever owns the board.</summary>

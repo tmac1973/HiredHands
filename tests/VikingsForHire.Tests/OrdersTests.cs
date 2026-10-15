@@ -220,6 +220,35 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void InfiniteOrdersKeepTheirTargetAndNeverEnd()
+        {
+            OrderList l = Orders(("Carrot", OrderKind.Crop, ProductionOrder.Infinite), ("IronBar", OrderKind.Station, ProductionOrder.Infinite));
+            OrderList back = OrderList.Parse(l.Serialize());
+            Assert.True(back.Find("Carrot")!.IsInfinite);
+            Assert.Equal(ProductionOrder.Infinite, back.StationCap("IronBar"));
+            Assert.True(back.SetTarget("Carrot", 40));
+            Assert.Equal(40, back.Find("Carrot")!.Target);
+            Assert.True(back.SetTarget("Carrot", 123456));
+            Assert.Equal(OrderList.MaxTarget, back.Find("Carrot")!.Target); // a number is still capped; only ∞ isn't
+            // A Cook's ∞ order: as many batches as the ingredients allow.
+            KitchenResult r = KitchenPlanner.Next(Kitchen, Orders(("CookedMeat", OrderKind.Kitchen, ProductionOrder.Infinite)), D(("RawMeat", 10)), D(), 4, AllStations);
+            Assert.Equal("CookedMeat", r.Task!.Info.Output);
+        }
+
+        [Fact]
+        public void TheStewardsCatchAllCoversWhatHasNoOrderOfItsOwn()
+        {
+            OrderList none = new OrderList();
+            Assert.Null(none.StationCap("Coal")); // no order: not made (once the board's orders have begun)
+            OrderList l = Orders(("IronBar", OrderKind.Station, 100), (ProductionOrder.Everything, OrderKind.Station, ProductionOrder.Infinite));
+            Assert.Equal(100, l.StationCap("IronBar"));
+            Assert.Equal(ProductionOrder.Infinite, l.StationCap("Coal"));
+            l.SetPaused(ProductionOrder.Everything, true);
+            Assert.Equal(0, l.StationCap("Coal"));
+            Assert.Equal(100, l.StationCap("IronBar"));
+        }
+
+        [Fact]
         public void PrepChefMakesDoughBeforeThereIsAnOven()
         {
             OrderList l = Orders(("Bread", OrderKind.Kitchen, 4));

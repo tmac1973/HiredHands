@@ -83,7 +83,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 {
                     string product = ProductOf(s, enough[0]);
                     StewardLimits.Reached(ctx, product, out int cap);
-                    paused = ChoreNotes.First(paused, ActivityText.Make("$vfh_paused_order", s.m_name, WorkSteps.SharedName(product), cap.ToString()));
+                    paused = ChoreNotes.First(paused, StewardLimits.Paused(s.m_name, product, cap));
                 }
             }
             var wanted = new HashSet<string>(states.SelectMany(s => s.Inputs).Concat(states.Select(s => s.FuelItem)).Where(p => p.Length > 0));

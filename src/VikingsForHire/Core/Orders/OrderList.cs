@@ -11,7 +11,7 @@ namespace VikingsForHire.Core.Orders
     /// </summary>
     public sealed class OrderList
     {
-        public const int MaxOrders = 64;
+        public const int MaxOrders = 128;
         public const int MaxTarget = 9999;
         private const string Version = "v1";
 
@@ -54,11 +54,18 @@ namespace VikingsForHire.Core.Orders
         }
 
         /// <summary>
-        /// The most of a station product the Steward may have in the chests before it stops making it: null with no
-        /// Steward order for it (no limit), 0 while the order is paused (none made).
+        /// The most of a station product the Steward may have in the chests before it stops making it: its own order's
+        /// target (∞ = no end; 0 while paused), else the catch-all "everything else" order's (∞ while there's one), else
+        /// null (no order for it).
         /// </summary>
-        public int? StationCap(string item) =>
-            Find(item) is { Kind: OrderKind.Station } o ? (o.Paused ? 0 : o.Target) : null;
+        public int? StationCap(string item)
+        {
+            if (Find(item) is { Kind: OrderKind.Station } o)
+                return o.Paused ? 0 : o.Target;
+            if (Find(ProductionOrder.Everything) is { Kind: OrderKind.Station } all)
+                return all.Paused ? 0 : ProductionOrder.Infinite;
+            return null;
+        }
 
         /// <summary>Moves an order up (-1) or down (+1) past the next order of the same group (farm, kitchen, Steward).</summary>
         public bool Move(string item, int direction)
@@ -110,7 +117,8 @@ namespace VikingsForHire.Core.Orders
         /// <summary>Fewer than 2 can't breed: a breeding pool is never below it.</summary>
         public const int MinHerd = 2;
 
-        private static int Clamp(int target, OrderKind kind) => Math.Max(kind == OrderKind.Herd ? MinHerd : 0, Math.Min(MaxTarget, target));
+        private static int Clamp(int target, OrderKind kind) =>
+            target == ProductionOrder.Infinite ? target : Math.Max(kind == OrderKind.Herd ? MinHerd : 0, Math.Min(MaxTarget, target));
 
         private static string KindCode(OrderKind k) => k switch
         {

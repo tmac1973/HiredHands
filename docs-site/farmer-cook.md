@@ -2,7 +2,8 @@
 
 Each works to its own **orders**: Shift+E on the Farmer or the Cook, then **Orders**. It's a list of "keep at least X of
 this in the chests" orders. Add one with *Add an order* (the list shows what it can make at its level), set the target
-with - / + (Shift for steps of 1), move orders up or down, pause or remove them. Orders are worked top to bottom; **seed
+with - / + (Shift for steps of 1) or make it **∞** (never enough: the Farmer keeps the field full, the Cook cooks
+whatever the ingredients allow), move orders up or down, pause or remove them. Orders are worked top to bottom; **seed
 orders always come first**. The orders are kept on the board, so a new Farmer or Cook takes them over; the board's
 **Orders** tab shows every worker's orders at a glance.
 

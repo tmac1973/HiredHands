@@ -148,6 +148,7 @@ namespace VikingsForHire.Board
                         OrderEdit.Target => list.SetTarget(op.OrderItem, op.OrderTarget),
                         OrderEdit.Pause => list.SetPaused(op.OrderItem, op.OrderPaused),
                         OrderEdit.Clear => ClearOrders(list),
+                        OrderEdit.StewardStart => StewardStart(zdo, list),
                         _ => false,
                     };
                     if (!ok)
@@ -310,6 +311,17 @@ namespace VikingsForHire.Board
             {
                 Mode = HirelingMode.Leaving, LeavingSince = (long)ZNet.instance.GetTimeSeconds(), Status = status,
             });
+
+        // Once per board: "everything else: ∞" for its Steward, so it carries on making all it made before orders.
+        private static bool StewardStart(ZDO zdo, Core.Orders.OrderList list)
+        {
+            if (zdo.GetBool(BoardZdo.StewardOrders))
+                return true;
+            if (list.Find(Core.Orders.ProductionOrder.Everything) == null)
+                list.Add(Core.Orders.ProductionOrder.Everything, Core.Orders.OrderKind.Station, Core.Orders.ProductionOrder.Infinite);
+            zdo.Set(BoardZdo.StewardOrders, true);
+            return true;
+        }
 
         private static bool ClearOrders(Core.Orders.OrderList list)
         {

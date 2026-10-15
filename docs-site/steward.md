@@ -50,13 +50,21 @@ below half; a piece that keeps wearing soon after a repair with no enemy about (
 repairs from where a player could (5 m, in sight), and skips a piece it can't get to for 30 minutes ("Repairs: can't get
 to …").
 
-## Limits
+## Orders
 
-In a Steward's Shift+E panel, *Limits* caps what it makes: coal, bars, flour, linen, honey, sap, meads, and anything a
-modded station makes. With a limit of 200 Coal it stops loading the kilns once the chests in its area hold 200 coal (a
-beehive at its limit is left full; a fermenter isn't loaded with that mead's base); paused, it makes none. Anything
-without a limit is made as before. Limits are kept on the board, so a new Steward follows them. Each chore, kilns
-included (apart from smelters), can also be switched off per Steward.
+Like the Farmer, Cook and Rancher, the Steward works to **orders**: Shift+E on it, then **Orders**. It makes coal, bars,
+flour, linen, honey, sap, meads, and anything a modded station makes, but only what it has an order for:
+
+- **Everything else: ∞** is where it starts: it makes everything it can, as it always did. Remove it and it makes only
+  what you've ordered.
+- **An order with a number** ("keep 200 Coal") stops it once the chests in its area hold that many (a beehive at that
+  point is left full; a fermenter isn't loaded with that mead's base); below it, it makes more.
+- **∞** ("Iron bars: ∞") means never enough: it smelts all the ore it can find.
+- Paused, it makes none of it.
+
+Its Problems list says when it leaves a station because there's no order ("Smelter: no order for Iron") or the order is
+met. Orders are kept on the board, so a new Steward follows them. Each chore, kilns included (apart from smelters), can
+also be switched off per Steward.
 
 ## Other chores
 

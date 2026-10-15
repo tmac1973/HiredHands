@@ -37,7 +37,8 @@ namespace VikingsForHire.Core.Orders
             int Stock(string item) => stock.TryGetValue(item, out int n) ? n : 0;
             List<ProductionOrder> ranch = orders.Ranch();
             Dictionary<string, int> pools = ranch.Where(o => o.Kind == OrderKind.Herd)
-                .GroupBy(o => o.Item, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().Target + Math.Max(0, extraPool), StringComparer.OrdinalIgnoreCase);
+                .GroupBy(o => o.Item, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().Target >= ProductionOrder.Infinite - extraPool ? ProductionOrder.Infinite : g.First().Target + Math.Max(0, extraPool),
+                    StringComparer.OrdinalIgnoreCase);
             foreach (IGrouping<string, HerdAnimal> g in herd.Where(a => a.Adult && !a.Named).GroupBy(a => a.Kind))
                 plan.Adults[g.Key] = g.Count();
 

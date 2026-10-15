@@ -87,7 +87,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 // At its limit: left in the hive or collector (it stops filling when full, as for a player).
                 if (StewardLimits.Reached(ctx, x.Item, out int cap))
                 {
-                    Missing = ChoreNotes.First(Missing, ActivityText.Make("$vfh_paused_order", x.Name, WorkSteps.SharedName(x.Item), cap.ToString()));
+                    Missing = ChoreNotes.First(Missing, StewardLimits.Paused(x.Name, x.Item, cap));
                     continue;
                 }
                 if (StorageRoom.NoRoom(ctx.PutChests, x.Item))

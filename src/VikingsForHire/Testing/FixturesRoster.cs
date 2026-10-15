@@ -304,7 +304,8 @@ namespace VikingsForHire.Testing
             HiringBoard board = FixturesWork.Board();
             string what = args.ElementAtOrDefault(0) ?? "";
             string item = args.ElementAtOrDefault(1) ?? "";
-            int target = int.TryParse(args.ElementAtOrDefault(2), NumberStyles.Integer, CultureInfo.InvariantCulture, out int t) ? t : 20;
+            int target = args.ElementAtOrDefault(2) == "inf" ? Core.Orders.ProductionOrder.Infinite
+                : int.TryParse(args.ElementAtOrDefault(2), NumberStyles.Integer, CultureInfo.InvariantCulture, out int t) ? t : 20;
             Core.Orders.OrderKind kind = (args.ElementAtOrDefault(3) ?? "crop") switch
             {
                 "seed" => Core.Orders.OrderKind.Seed,

@@ -11,6 +11,9 @@ namespace VikingsForHire.Board
         public const string Roster = "vfh_roster";
         /// <summary>The board's production orders (Core.Orders.OrderList, serialized).</summary>
         public const string Orders = "vfh_orders";
+
+        /// <summary>Set once the board's Steward orders have begun (the catch-all order added): never added again after.</summary>
+        public const string StewardOrders = "vfh_steward_orders";
         public const string LastUpkeepDay = "vfh_last_upkeep_day";
 
         /// <summary>Set on objects spawned by test fixtures so clear_area can remove exactly those.</summary>

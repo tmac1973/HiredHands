@@ -27,7 +27,7 @@ namespace VikingsForHire.UI
         /// <summary>The jobs that take orders, in the order the overview shows them.</summary>
         public static readonly JobType[] Jobs = { JobType.Farmer, JobType.Cook, JobType.Rancher, JobType.Smelter };
 
-        public static bool TakesOrders(JobType job) => job is JobType.Farmer or JobType.Cook or JobType.Rancher;
+        public static bool TakesOrders(JobType job) => job is JobType.Farmer or JobType.Cook or JobType.Rancher or JobType.Smelter;
 
         /// <summary>This job's orders on the board, as it works them (a Farmer's seed orders first).</summary>
         public static List<ProductionOrder> For(OrderList list, JobType job) => job switch
@@ -35,7 +35,9 @@ namespace VikingsForHire.UI
             JobType.Farmer => list.Orders.Where(o => o.Kind == OrderKind.Seed).Concat(list.Orders.Where(o => o.Kind == OrderKind.Crop)).ToList(),
             JobType.Cook => list.Orders.Where(o => o.Kind == OrderKind.Kitchen).ToList(),
             JobType.Rancher => list.Orders.Where(o => o.IsRanch).ToList(),
-            JobType.Smelter => list.Orders.Where(o => o.Kind == OrderKind.Station).ToList(),
+            // The catch-all "everything else" last: the rest are what it overrides.
+            JobType.Smelter => list.Orders.Where(o => o.Kind == OrderKind.Station && o.Item != ProductionOrder.Everything)
+                .Concat(list.Orders.Where(o => o.Kind == OrderKind.Station && o.Item == ProductionOrder.Everything)).ToList(),
             _ => new List<ProductionOrder>(),
         };
 
@@ -52,16 +54,39 @@ namespace VikingsForHire.UI
             OrderKind.Meat => "$vfh_orders_kind_meat",
             OrderKind.Egg => "$vfh_orders_kind_egg",
             OrderKind.Herd => "$vfh_orders_kind_herd",
-            OrderKind.Station => "$vfh_orders_kind_limit",
+            OrderKind.Station => "$vfh_orders_kind_steward",
             _ => "$vfh_orders_kind_kitchen",
         };
 
-        /// <summary>The target a new order starts with.</summary>
-        public static int StartTarget(OrderKind kind) => kind switch { OrderKind.Seed => 10, OrderKind.Meat => 40, OrderKind.Herd => 4, _ => 20 };
+        /// <summary>The target a new order starts with (a Steward's: ∞, make all it can).</summary>
+        public static int StartTarget(OrderKind kind) => kind switch
+        {
+            OrderKind.Seed => 10, OrderKind.Meat => 40, OrderKind.Herd => 4, OrderKind.Station => ProductionOrder.Infinite, _ => 20,
+        };
+
+        /// <summary>A target as shown: a number, or ∞.</summary>
+        public static string TargetText(int target) => target == ProductionOrder.Infinite ? "∞" : target.ToString();
+
+        /// <summary>"have / target", or for the catch-all just ∞.</summary>
+        public static string Progress(ProductionOrder o, int have) =>
+            o.Item == ProductionOrder.Everything ? "∞" : $"{have} / {TargetText(o.Target)}";
+
+        /// <summary>Met: never for ∞.</summary>
+        public static bool Met(ProductionOrder o, int have) => !o.IsInfinite && have >= o.Target;
 
         /// <summary>Everything a job can be ordered to keep, easiest first.</summary>
         public static List<Pick> Picks(JobType job)
         {
+            if (job == JobType.Smelter)
+            {
+                Core.Data.JobData steward = Config.DataStore.Current.Jobs.TryGetValue(JobType.Smelter, out Core.Data.JobData? j) ? j : new Core.Data.JobData();
+                var products = new List<Pick> { new Pick { Item = ProductionOrder.Everything, Kind = OrderKind.Station, Level = 1 } };
+                products.AddRange(Hirelings.Work.Steward.StewardLimits.Products().Select(p => new Pick
+                {
+                    Item = p.Item, Kind = OrderKind.Station, Level = Core.Chores.ChoreRules.MinLevel(steward, p.Gate),
+                }));
+                return products;
+            }
             if (job == JobType.Rancher)
             {
                 var ranch = new List<Pick>();
@@ -108,7 +133,8 @@ namespace VikingsForHire.UI
 
         /// <summary>An item's name, or an animal kind's (a breeding pool order is for a creature).</summary>
         public static string Name(string item) =>
-            ObjectDB.instance.GetItemPrefab(item)?.GetComponent<ItemDrop>() is ItemDrop d ? Localization.instance.Localize(d.m_itemData.m_shared.m_name)
+            item == ProductionOrder.Everything ? Localization.instance.Localize("$vfh_orders_everything")
+            : ObjectDB.instance.GetItemPrefab(item)?.GetComponent<ItemDrop>() is ItemDrop d ? Localization.instance.Localize(d.m_itemData.m_shared.m_name)
             : ZNetScene.instance?.GetPrefab(item)?.GetComponent<Character>() is Character c ? Localization.instance.Localize(c.m_name) : item;
 
         public static Sprite? Icon(string item) =>
