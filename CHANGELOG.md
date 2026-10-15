@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.11.1
+
+Works alongside 0.11.0; update the server and players when it suits you.
+
+- **Guards give up on what they can't reach:** a guard with a sword under an enemy it can't get to (a blob up on a swamp
+  ruin) stood there until it went quiet, while other mobs chased you. Now it gives up after a few seconds and fights the
+  next enemy, and that enemy hitting it again doesn't pull it back.
+- **Guards fight back straight away:** a guard that let an enemy go for keeping away (a Fenring mage) took its hits for
+  ten seconds before answering. Now anything it only lost interest in is fought again as soon as it hits.
+
 ## 0.11.0
 
 **Everyone updates together:** a new board operation for the Steward's starting order; the server and every player need

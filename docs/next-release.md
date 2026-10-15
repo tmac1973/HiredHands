@@ -3,7 +3,7 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## Next (not packaged yet)
+## 0.11.1 (packaged 2026-10-15, branch `guard-out-of-reach`): guards give up on what they can't reach, fight back at once
 
 ### Fixed or added
 | Commit | What | Where it runs |
