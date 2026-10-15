@@ -34,6 +34,7 @@ namespace VikingsForHire.UI
         private Hireling? _hireling;
         private float _nextHold;
         private RectTransform _content = null!;
+        private RectTransform? _close;
         private bool _all;
         private bool _orders;
         private bool _ordersPicking;
@@ -118,7 +119,7 @@ namespace VikingsForHire.UI
             root.name = "VFH_HirelingPanel";
             HirelingPanel panel = root.AddComponent<HirelingPanel>();
             panel._content = PanelUi.Fill(root.transform, "content");
-            PanelUi.Button(root.transform, "$vfh_close", 200f, -30f, 80f, 34f, () => Close("button"));
+            panel._close = PanelUi.Button(root.transform, "$vfh_close", 200f, -30f, 80f, 34f, () => Close("button")).transform as RectTransform;
             root.SetActive(false);
             PanelUi.Clicked += () =>
             {
@@ -179,7 +180,12 @@ namespace VikingsForHire.UI
             PanelUi.Clear(_content);
             Transform t = _content;
             if (transform is RectTransform wide)
+            {
                 wide.sizeDelta = new Vector2(_enh || _orders ? EnhWidth : _why ? LimitsWidth : Width, wide.sizeDelta.y);
+                // Close keeps to the top right corner however wide the page is.
+                if (_close != null)
+                    _close.anchoredPosition = new Vector2(wide.sizeDelta.x / 2f - 60f, _close.anchoredPosition.y);
+            }
             if (_enh)
             {
                 BuildEnhancements(h);

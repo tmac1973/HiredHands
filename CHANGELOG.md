@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.11.0
+
+**Everyone updates together:** a new board operation for the Steward's starting order; the server and every player need
+0.11.0.
+
+- **The Steward works to orders**, like the Farmer, Cook and Rancher: Shift+E, then **Orders** (it replaces Limits; any
+  limits you set are kept as its orders). It makes only what it has an order for. A Steward's board starts with one
+  **Everything else: ∞** order, so it carries on smelting, baking and collecting everything as before; an order of its
+  own for an item (say Coal: 200) takes over for that item, and deleting Everything else means it makes only what's
+  ordered.
+- **∞ orders for every worker:** the **∞** button on an order means keep making it, however many there are (a Steward
+  smelting all the ore in its chests, a Rancher keeping every animal it breeds).
+- **Miners no longer dig deep holes:** a miner after a buried vein (silver, say) could dig on down well past the usual
+  depth, a little at a time. It now stops at most 1.5 m (2.5 m with Deep digger) below the ground as it was when miners
+  first came to that deposit.
+- The Shift+E panel's **Close** button stays in the top right corner on its wider pages (Orders, Enhancements,
+  Problems).
+
 ## 0.10.1
 
 Works alongside 0.10.0; update the server and players when it suits you.

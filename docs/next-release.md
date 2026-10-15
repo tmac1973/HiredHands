@@ -3,15 +3,20 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## Next (not packaged yet)
+## 0.11.0 (packaged 2026-10-14, branch `steward-orders`): the Steward works to orders, ∞ orders, miners stay shallow
 
 ### Fixed or added
 | Commit | What | Where it runs |
 |---|---|---|
 | (miner-dig-depth branch) | A miner dug down after a silver vein, 15 m deep (Sigrid; HearthBelow lets terrain go below vanilla's 8 m): it digs a buried chunk out when its top is within 1.5 m of the ground, and each dig lowered "the ground", bringing the next chunk within reach. Now also within 1.5 m (2.5 with Deep digger) of the ground as it was when miners first came to that deposit (kept on the deposit). Chunks already in the open (a vein you dug out) are mined as before | the game simulating the miner |
+| 5bf874c | The Steward works to orders like the other workers: Shift+E, **Orders** (the Limits page is gone). No order for a product: it doesn't make it. A new Steward's board gets one "Everything else: ∞" order (new board op `StewardStart`, once per board, flag `vfh_steward_orders`), so it carries on making everything; its own order for an item overrides it. Every order can be ∞ (the ∞ button; keeps making it, never "met"); a Steward's new order starts at ∞. Old Limits are kept: they were already Station orders on the board | the board owner (op), the game simulating the Steward |
+| (this commit) | The Shift+E panel's Close button stays in the top right corner on its wider pages (Orders, Enhancements, Problems): it sat inside the panel, where the narrow page's corner is | the player's game (UI) |
 
 ### To test (batch)
 - [x] Row VFH-MINE-DEEP (fixtures `crack`, check `dug_depth`): a buried copper deposit is dug out (copper in cargo) and the ground goes down at most ~1.8 m (2026-10-14). It and VFH-WORK-3 are sensitive to the test spot's terrain after many runs (failed once each on a worn-out patch).
+- [x] Rows VFH-SORD-1 (no order: the smelter isn't fed; ∞: it is) and VFH-SORD-2 (new Steward gets Everything else: ∞ and smelts; its own Coal order at 0 pauses kilns), plus limit1, limit2, kilns, mills, fermenter, beehive, sap, chore_urgency all pass (2026-10-14). 284 unit tests.
+- [ ] By hand: an existing world with Limits set: they show on the Steward's Orders page and it keeps to them; the board gets Everything else: ∞ (the Steward then makes the rest too: delete it to make only what's ordered).
+- [ ] By hand: the ∞ button on a Farmer, Cook and Rancher order; a Rancher's ∞ breeding pool keeps every animal.
 - [ ] By hand on the server: a miner at a silver vein that's been broken into digs a little and stops; nothing deeper than ~2 m.
 
 ## 0.10.1 (packaged 2026-10-14, branch `worker-orders`): orders on each worker, gatherers' Problems
