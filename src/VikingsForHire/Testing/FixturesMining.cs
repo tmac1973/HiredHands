@@ -14,10 +14,13 @@ namespace VikingsForHire.Testing
     {
         private const float TerrainRadius = 80f;
         private static int? _terrainBaseline;
+        // Where the last buried deposit went (dug_depth still reads there once it's mined away).
+        private static Vector3? _lastBuried;
 
         public static void Register()
         {
             Fixtures.Add("deposits", "<prefab> <n> <distance> [tag] - place rocks/deposits in a ring that far behind the nearest board", Deposits);
+            Fixtures.Add("crack", "<tag> - break a tagged deposit open and chip its highest chunk, so it counts as found (miners leave buried deposits nobody has broken into alone)", Crack);
             Fixtures.Add("bury", "<tag> <depth> - move a tagged rock/deposit down so its top is that many metres under the ground", Bury);
             Fixtures.Add("terrain_baseline", "- remember how many terrain edits there are around the nearest board", TerrainBaseline);
 
@@ -27,6 +30,17 @@ namespace VikingsForHire.Testing
                     return "error: run vfh_fixture terrain_baseline first";
                 int now = TerrainOps();
                 return now == before ? "true" : $"false ({now - before} new terrain edits)";
+            });
+            TestHarness.RegisterCheck("dug_depth", "<tag> [radius=4] - the deepest the ground has been dug below the world's own surface around a tagged deposit (metres)", args =>
+            {
+                GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "");
+                Vector3 c = go != null ? go.transform.position : (_lastBuried ?? throw new InvalidOperationException("no such tagged deposit"));
+                float r = args.Length > 1 ? float.Parse(args[1], CultureInfo.InvariantCulture) : 4f;
+                float deepest = 0f;
+                for (float x = -r; x <= r; x += 0.5f)
+                    for (float z = -r; z <= r; z += 0.5f)
+                        deepest = Mathf.Max(deepest, Hirelings.Work.MinerProfile.DugDepth(c + new Vector3(x, 0f, z)));
+                return deepest.ToString("0.00", CultureInfo.InvariantCulture);
             });
             TestHarness.RegisterCheck("deposit_intact", "<tag> - a tagged rock/deposit hasn't been damaged at all", args =>
             {
@@ -72,9 +86,42 @@ namespace VikingsForHire.Testing
             Vector3 p = go.transform.position + Vector3.down * (top - (ground - depth));
             go.transform.position = p;
             go.GetComponent<ZNetView>()?.GetZDO()?.SetPosition(p);
+            _lastBuried = p;
             Physics.SyncTransforms();
             VfhLog.I(LogCat.Test, "fixture.bury", ("tag", args[0]), ("depth", depth), ("top", top), ("ground", ground), ("pos", p));
             yield return new WaitForSeconds(0.5f);
+        }
+
+        private static IEnumerator Crack(string[] args)
+        {
+            GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged deposit");
+            Vector3 at = go.transform.position;
+            MineRock5? r5 = go.GetComponent<MineRock5>();
+            if (r5 == null && go.GetComponent<Destructible>() is Destructible whole)
+            {
+                // A whole deposit: break it, and it's replaced by its chunked version.
+                var smash = new HitData { m_toolTier = 100, m_point = whole.transform.position + Vector3.up, m_dir = Vector3.down };
+                smash.m_damage.m_pickaxe = 10000f;
+                smash.SetAttacker(Player.m_localPlayer);
+                whole.Damage(smash);
+                yield return new WaitForSeconds(1f);
+                r5 = UnityEngine.Object.FindObjectsByType<MineRock5>(FindObjectsSortMode.None)
+                    .OrderBy(r => Vector3.Distance(r.transform.position, at)).FirstOrDefault(r => Vector3.Distance(r.transform.position, at) < 4f);
+            }
+            if (r5 == null)
+                throw new InvalidOperationException("no chunked deposit there");
+            Collider top = r5.m_hitAreas.Where(a => a.m_collider != null).OrderByDescending(a => a.m_collider.bounds.max.y).First().m_collider;
+            var hit = new HitData { m_toolTier = 100, m_point = top.bounds.center, m_hitCollider = top, m_dir = Vector3.down };
+            hit.m_damage.m_pickaxe = 1f;
+            hit.SetAttacker(Player.m_localPlayer);
+            r5.Damage(hit);
+            VfhLog.I(LogCat.Test, "fixture.crack", ("tag", args[0]), ("part", top.name), ("rock", r5.name));
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        private static IEnumerator Wait(float seconds)
+        {
+            yield return new WaitForSeconds(seconds);
         }
 
         private static IEnumerator TerrainBaseline(string[] args)

@@ -3,6 +3,17 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## Next (not packaged yet)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (miner-dig-depth branch) | A miner dug down after a silver vein, 15 m deep (Sigrid; HearthBelow lets terrain go below vanilla's 8 m): it digs a buried chunk out when its top is within 1.5 m of the ground, and each dig lowered "the ground", bringing the next chunk within reach. Now also within 1.5 m (2.5 with Deep digger) of the ground as it was when miners first came to that deposit (kept on the deposit). Chunks already in the open (a vein you dug out) are mined as before | the game simulating the miner |
+
+### To test (batch)
+- [x] Row VFH-MINE-DEEP (fixtures `crack`, check `dug_depth`): a buried copper deposit is dug out (copper in cargo) and the ground goes down at most ~1.8 m (2026-10-14). It and VFH-WORK-3 are sensitive to the test spot's terrain after many runs (failed once each on a worn-out patch).
+- [ ] By hand on the server: a miner at a silver vein that's been broken into digs a little and stops; nothing deeper than ~2 m.
+
 ## 0.10.1 (packaged 2026-10-14, branch `worker-orders`): orders on each worker, gatherers' Problems
 
 ### Fixed or added

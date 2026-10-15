@@ -190,13 +190,46 @@ namespace VikingsForHire.Hirelings.Work
 
         public bool NeedsDigging(Collider part) => part != null && !Workable(part) && Diggable(part);
 
-        // Buried, but shallow enough to dig out, and where this miner may dig.
+        // Buried, but shallow enough to dig out, and where this miner may dig. Shallow from the ground as it is *and* as
+        // it was when miners first came to this deposit: measured only from the ground as it is, each dig brought the
+        // next chunk down within reach, and Sigrid followed a silver vein 15 m down (HearthBelow lets terrain go below
+        // vanilla's 8 m). Not from the world's own surface: a base dug lower than that would never be mined at all.
         private bool Diggable(Collider c)
         {
             Bounds b = c.bounds;
             float ground = ZoneSystem.instance.GetGroundHeight(b.center);
-            return b.max.y <= ground - BuriedBelow && b.max.y > ground - Depth && TerrainProtectionPatches.MayDig(_hireling, b.center);
+            return b.max.y <= ground - BuriedBelow && b.max.y > ground - Depth && b.max.y > StartGround(c, ground) - Depth &&
+                   TerrainProtectionPatches.MayDig(_hireling, b.center);
         }
+
+        public const string StartGroundKey = "vfh_dig_ground";
+
+        // The ground at a deposit when a miner first looked at digging into it, kept on the deposit (its owner writes it;
+        // until then, what this game saw first).
+        private static readonly Dictionary<ZDOID, float> SeenGround = new();
+
+        private static float StartGround(Collider c, float groundHere)
+        {
+            ZNetView? nv = c.GetComponentInParent<ZNetView>();
+            ZDO? z = nv != null && nv.IsValid() ? nv.GetZDO() : null;
+            if (z == null)
+                return groundHere;
+            float kept = z.GetFloat(StartGroundKey, float.NaN);
+            if (!float.IsNaN(kept))
+                return kept;
+            if (!SeenGround.TryGetValue(z.m_uid, out float seen))
+            {
+                seen = ZoneSystem.instance.GetGroundHeight(nv!.transform.position);
+                SeenGround[z.m_uid] = seen;
+            }
+            if (nv!.IsOwner())
+                z.Set(StartGroundKey, seen);
+            return seen;
+        }
+
+        /// <summary>How far below the world's own surface the ground is at a point (tests: how deep a miner dug).</summary>
+        public static float DugDepth(Vector3 at) =>
+            WorldGenerator.instance != null ? WorldGenerator.instance.GetHeight(at.x, at.z) - ZoneSystem.instance.GetGroundHeight(at) : 0f;
 
         /// <summary>
         /// The point on the chunk's actual surface facing <paramref name="from"/>: a ray from chest height towards the
