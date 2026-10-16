@@ -13,7 +13,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 
 ### To test (batch)
 - [x] Unit test `SeedsAtTheReserveGrowSparesForTheProduce` (286 pass).
-- [ ] Row VFH-FARM-SPARE; regression FARM-1..n, farm_seeds, COOK rows that use seeds.
+- [x] Rows VFH-FARM-SPARE and VFH-BOARD-RADIUS (40 m at level 5; with BoardRadiusMultiplier 1.5, 60 m and a woodcutter 120 m) pass, with every farm, cook, ENH-F/ENH-C, orders and WHY-1/2 row (2026-10-16; VFH-FARM-4 failed once in the chain on a carrot 0.7 m off the grid, passed alone).
 - [ ] Set `BoardRadiusMultiplier = 1.5` on the server: the board circle and hover show 60 m at level 5 (gatherers 120); Roster tab + raises Ingrid past 40 m; Contracts tab offers up to 60 m.
 - [ ] By hand on the server: Grima plants some onions for seeds, then onions; the onion seeds never drop below 150.
 
