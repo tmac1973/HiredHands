@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.12.0
+
+Works alongside 0.11.x, but a posted worker works round its post only on games with 0.12.0, so update the server and
+players together when you can.
+
+- **Post any worker at home:** with the Command Stone, recruit a worker and left click a spot in its area (or the worker
+  where it stands). It goes back to work with its area centred on the post (the same radius) and waits there between
+  jobs, instead of everyone bunching at the board: the Cook in the kitchen, the Rancher by the pen, the Farmer by the
+  fields. What it puts in the chests round its post counts toward the board's orders. Right click it (or *Clear post*
+  in its Shift+E panel) to have it work round the board again. Before, the stone just kept workers on hold as followers.
+- **Search the order list:** a search box at the top of every worker's *Add an order* list. Type part of a name
+  ("barley", "fire") to find it among the Cook's hundreds of recipes.
+- **Bigger pens:** an enclosure up to about 30 m across counts as a pen (it was 15 m from the animal to each wall), so a
+  boar near one wall of a big stone-walled yard isn't reported as out of its pen.
+- **Fleeing followers keep up:** a worker following you that runs from an enemy now catches up (and appears behind you
+  when far back), as it does when following; before, a miner fleeing a skeleton across the fields was left behind and
+  sent home.
+
 ## 0.11.1
 
 Works alongside 0.11.0; update the server and players when it suits you.
