@@ -2,11 +2,11 @@
 
 | Job | Does | Notes |
 |---|---|---|
-| Woodcutter | Fells trees in its radius, clears the fallen logs and stumps, picks up wood, resin and seeds | Fells trees away from your buildings and leaves trees right next to them alone. Axe tier rises with level (stone, flint, bronze…), which decides what it can cut |
-| Miner | Mines copper, tin, rocks and boulders, ore before stone | Needs a level 2 board. Leaves rocks touching your builds alone and never digs near your buildings; out in the field it digs down to ore buried up to 1.5 m deep (but never digs up a deposit nobody has found, like a hidden silver vein). Pickaxe tier rises with level |
+| Woodcutter | Fells trees in its radius, clears the fallen logs and stumps, picks up wood, resin and seeds | Fells trees away from your buildings and leaves trees right next to them alone. Axe tier rises with level (stone, flint, bronze…), which decides what it can cut. See [the Woodcutter and the Miner](woodcutter-miner.md) |
+| Miner | Mines copper, tin, rocks and boulders, ore before stone | Needs a level 2 board. Leaves rocks touching your builds alone and never digs near your buildings; out in the field it digs down to ore buried up to 1.5 m deep (but never digs up a deposit nobody has found, like a hidden silver vein). Pickaxe tier rises with level. See [the Woodcutter and the Miner](woodcutter-miner.md) |
 | Steward (was the Smelter) | Looks after the base: fires, beehives, smelting stations, mills, animals, repairs, the board's food and more | One per board. Armed with a broom. Still `Smelter` in the data file and commands. See [the Steward](steward.md) |
 | Farmer | Plants and harvests your cultivated field to the board's orders | Needs a level 2 board; one per board. Carries a cultivator. See [the Farmer and the Cook](farmer-cook.md) |
-| Cook | Cooks on your spits and in your oven, crafts at the cauldron, prep table and mead ketill, to the board's orders | Needs a level 2 board; one per board. Carries a ladle |
+| Cook | Cooks on your spits and in your oven, crafts at the cauldron, prep table and mead ketill, to the board's orders | Needs a level 2 board; one per board. Carries a ladle. See [the Farmer and the Cook](farmer-cook.md) |
 | Rancher | Feeds your tamed animals and slaughters for meat, keeping a breeding pool of the best of each kind | Needs a level 2 board; one per board. Carries a butcher knife. See [the Rancher](rancher.md) |
 | Guard (melee) | Patrols the radius and fights | Stances: Passive, Defensive, Aggressive. See [Fighting](combat.md) |
 | Guard (ranged) | Same, with a bow | |
@@ -23,30 +23,11 @@ Woodcutters and miners work twice the board's radius. Everyone defends themselve
 defend by stance. **Chopping and mining make noise**, as yours does, so nearby monsters come for a worker
 (`GatheringMakesNoise` turns it off).
 
-## Tree patches
+## Woodcutters and miners
 
-Build a **Tree patch** sign (hammer, Misc, 2 Wood) inside a hiring board's area to mark a woodlot. Shift+E on it sets
-its radius (3–20 m) and what to plant (any common tree that grows there, from beech seeds, birch seeds, acorns, fir or
-pine cones; or one kind, including PlantEverything's ancient or Ygga trees, which take Ancient seeds or Sap and are only
-planted when chosen); looking at it shows the patch's circle.
-
-Woodcutters whose work radius covers it plant free spots from the seeds in your chests (beech seeds, birch seeds, acorns,
-fir and pine cones, modded tree saplings), now and then between felling, only kinds their axe can fell and only where
-they'll grow and can be felled later (clear of buildings). Grown trees in a patch are felled like any other.
-`WoodcuttersPlantTrees` (Work) turns it off.
-
-## What to gather
-
-Shift+E on a woodcutter or miner switches items on and off (Wood, Fine wood, Core wood…; Stone, Copper, Tin…). Each tree
-or rock counts as its best drop, so with Wood off a woodcutter still fells birches for their fine wood, and with Stone
-off a miner takes only the copper from a deposit and leaves the stone on the ground.
-
-**Works at home: off** keeps a gatherer from touching anything inside its board's area (for bases with decorative trees
-and rocks); it still works in the field with you.
-
-Not chopping or mining? Its **Problems** button lists what it left alone and why: items you've switched off, chests
-with no room, trees too close to buildings, a tool too weak for the rock, another hireling already on it, or nothing in
-reach at all.
+What they gather, what they leave alone near your buildings, switching items on and off (Shift+E), their Problems
+list, tree patches (the Tree patch sign) and taking them out with you are on
+[the Woodcutter and the Miner](woodcutter-miner.md).
 
 ## Deliveries
 

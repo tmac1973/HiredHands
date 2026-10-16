@@ -36,7 +36,7 @@ Works in single-player and on dedicated servers. Every client and the server nee
 
 - New to the mod? [Getting started](getting-started.md) takes you from an empty base to your first hireling.
 - [Jobs and chests](jobs.md) lists who does what, and how they use your chests.
-- The workers with the most to them have their own pages: [the Steward](steward.md),
+- Every worker has its own page: [the Woodcutter and the Miner](woodcutter-miner.md), [the Steward](steward.md),
   [the Farmer and the Cook](farmer-cook.md) and [the Rancher](rancher.md).
 - [Fighting and wizards](combat.md) and [Followers and the Command Stone](followers.md) cover guards and taking
   hirelings out with you.
