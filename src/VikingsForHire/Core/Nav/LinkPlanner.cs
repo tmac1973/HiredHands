@@ -104,7 +104,9 @@ namespace VikingsForHire.Core.Nav
             }
         }
 
-        public static PlanResult Plan(NavGraph g, NavPoint start, NavPoint goal, Func<NavPoint, NavPoint, LegAnswer> oracle, double now)
+        /// <param name="mayUse">Which links this walker may take (a Rancher-only gate is no way through for the others); all when null.</param>
+        public static PlanResult Plan(NavGraph g, NavPoint start, NavPoint goal, Func<NavPoint, NavPoint, LegAnswer> oracle, double now,
+            Func<NavLink, bool>? mayUse = null)
         {
             int calls = 0;
             var unknown = new List<(NavPoint From, NavPoint To, float Guess)>();
@@ -158,7 +160,7 @@ namespace VikingsForHire.Core.Nav
                 {
                     foreach ((NavLink link, bool atA) in g.Endpoints[u].Links)
                     {
-                        if (link.Blocked(now))
+                        if (link.Blocked(now) || (mayUse != null && !mayUse(link)))
                             continue;
                         int to = g.NodeOf(link, !atA);
                         if (to >= 0 && to != u)

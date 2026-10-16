@@ -113,13 +113,13 @@ namespace VikingsForHire.Hirelings
             if (!VfhConfig.HirelingsOpenDoors.Value || _throughDoor != null)
                 return null;
             Vector3 me = _ai.transform.position;
-            if (_detour != null && (_detour.m_nview == null || !_detour.m_nview.IsValid() || Nav.DoorRules.Avoided(_detour)))
+            if (_detour != null && (_detour.m_nview == null || !_detour.m_nview.IsValid() || Nav.DoorRules.AvoidedBy(_detour, _ai.Hireling)))
                 _detour = null;
             if (_detour == null)
             {
                 float straight = Vector3.Distance(me, goal);
                 _detour = Doors(me, DetourRange)
-                    .Where(d => !Nav.DoorRules.Avoided(d) && (IsOpen(d) || Usable(d)) && Vector3.Distance(d.transform.position, goal) < straight)
+                    .Where(d => !Nav.DoorRules.AvoidedBy(d, _ai.Hireling) && (IsOpen(d) || Usable(d)) && Vector3.Distance(d.transform.position, goal) < straight)
                     .OrderBy(d => Vector3.Distance(me, d.transform.position) + Vector3.Distance(d.transform.position, goal))
                     .FirstOrDefault();
                 if (_detour == null)
@@ -177,9 +177,15 @@ namespace VikingsForHire.Hirelings
         /// <summary>Times hirelings opened each door, by its instance id (tests).</summary>
         public static readonly Dictionary<int, int> OpenedCount = new();
 
+        /// <summary>Times a hireling opened a door with the one beside it already open (tests: a pair of doors should be one way through).</summary>
+        public static int OpenedBesideOpen;
+        private const float BesideRange = 3f;
+
         private void Open(Door d, Vector3 me)
         {
             OpenedCount[d.GetInstanceID()] = (OpenedCount.TryGetValue(d.GetInstanceID(), out int n) ? n : 0) + 1;
+            if (Doors(d.transform.position, BesideRange).Any(o => o != d && IsOpen(o)))
+                OpenedBesideOpen++;
             _openedSide[d] = SideOf(d, me);
             // Same as a player using it from where we stand: it swings away from us.
             Nav.DoorRules.Open(d, me);
@@ -204,22 +210,40 @@ namespace VikingsForHire.Hirelings
             Vector3 heading = goal - me;
             heading.y = 0f;
 
+            // One door at a time, the one most in its way: two doors side by side (a pen's double doors) were both opened,
+            // and the second stayed open while the Rancher worked by the gate. An open door ahead is the way through.
+            Door? best = null;
+            float bestOff = float.MaxValue;
+            bool openAhead = false;
             foreach (Door d in Doors(me, AheadRange))
             {
-                if (IsOpen(d) || !Usable(d))
-                    continue;
                 Vector3 toDoor = d.transform.position - me;
                 toDoor.y = 0f;
                 bool ahead = heading.sqrMagnitude < 0.01f || Vector3.Dot(toDoor.normalized, heading.normalized) > 0.2f;
                 if (!ahead && d != _detour)
                     continue;
-                if (!MayOpen(d))
+                if (IsOpen(d))
+                {
+                    openAhead |= Usable(d) || d == _detour;
                     continue;
-                Open(d, me);
-                if (d == _detour)
+                }
+                if (!Usable(d))
+                    continue;
+                // How far the door is off its line of travel (the detour door always wins).
+                float off = d == _detour ? -1f : heading.sqrMagnitude < 0.01f ? toDoor.magnitude : Vector3.Cross(heading.normalized, toDoor).magnitude;
+                if (off < bestOff)
+                {
+                    best = d;
+                    bestOff = off;
+                }
+            }
+            if (best != null && (!openAhead || best == _detour) && MayOpen(best))
+            {
+                Open(best, me);
+                if (best == _detour)
                 {
                     _detour = null;
-                    StartThrough(d, me);
+                    StartThrough(best, me);
                 }
             }
             CloseBehind(false);
@@ -295,6 +319,6 @@ namespace VikingsForHire.Hirelings
 
         private static bool IsOpen(Door d) => Nav.DoorRules.IsOpen(d);
 
-        private bool Usable(Door d) => Nav.DoorRules.Usable(d, Nav.DoorRules.BoardOwner(_ai.Hireling.BoardId));
+        private bool Usable(Door d) => Nav.DoorRules.Usable(d, Nav.DoorRules.BoardOwner(_ai.Hireling.BoardId), _ai.Hireling);
     }
 }

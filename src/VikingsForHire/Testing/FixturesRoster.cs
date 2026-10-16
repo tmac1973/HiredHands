@@ -53,6 +53,8 @@ namespace VikingsForHire.Testing
                 return $"{r.KindCount(true)}/{r.KindCount(false)}";
             });
 
+            TestHarness.RegisterCheck("cant_pay_told", "- whether you've been told the nearest board can't pay tomorrow's wages", _ =>
+                VikingsForHire.Board.LowFunds.ToldAbout(Board().Id) ? "true" : "false");
             TestHarness.RegisterCheck("roster", "<Pending|Active|Leaving|all> - contracts on the nearest board", args =>
             {
                 Roster r = BoardRosterOps.Read(Board().Zdo!);

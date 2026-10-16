@@ -80,6 +80,7 @@ board's owner may use under wards, never locked doors, and don't wander through 
 turns this off. How they find their way through buildings is on
 [Doors, stairs and ladders](navigation.md).
 
-**Doors to leave shut:** Shift+E on a door near a hiring board marks it for hirelings to leave shut (a pen's gates, so
-they don't walk through the pen and let the animals out); again to clear it. Hirelings never open a marked door, never use
-it on their routes, and don't walk through it even when it's standing open.
+**Door marks:** Shift+E on a door near a hiring board goes round three marks: *hirelings may use it* (the default),
+*only the Rancher may use it* (a pen's gates: he goes in to feed and slaughter, nobody else walks through the pen and lets
+the animals out), and *leave it shut* (no hireling). A hireling a door is marked against never opens it, never routes
+through it, and doesn't walk through it even when it's standing open.

@@ -26,6 +26,8 @@ namespace VikingsForHire.Core.Nav
         /// <summary>The piece's ZDOID as text, for finding the door again, logs and the overlay.</summary>
         public string PieceId { get; }
         public string Prefab { get; }
+        /// <summary>A door marked for the Rancher only (a pen's gate): other hirelings' routes leave it out.</summary>
+        public bool RancherOnly { get; set; }
         /// <summary>Game time (s) until which routes don't use it (a locked door, a stair it couldn't walk).</summary>
         public double BlockedUntil { get; set; }
 

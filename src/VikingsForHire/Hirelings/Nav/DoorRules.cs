@@ -9,15 +9,37 @@ namespace VikingsForHire.Hirelings.Nav
     {
         public static bool IsOpen(Door d) => d.m_nview != null && d.m_nview.IsValid() && d.m_nview.GetZDO().GetInt(ZDOVars.s_state) != 0;
 
-        /// <summary>Marked by a player (Shift+E on it) for hirelings to leave alone: a pen's gate.</summary>
+        /// <summary>Marked by a player (Shift+E on it): every hireling may use it, none, or only the Rancher (a pen's gate).</summary>
         public const string AvoidKey = "vfh_door_avoid";
 
-        public static bool Avoided(Door? d) => d != null && d.m_nview != null && d.m_nview.IsValid() && d.m_nview.GetZDO().GetInt(AvoidKey) != 0;
-
-        // Not locked, can be closed again, not marked to leave alone, and the board's owner has access under any ward covering it.
-        public static bool Usable(Door? d, long boardOwner)
+        public enum Mark
         {
-            if (d == null || d.m_nview == null || !d.m_nview.IsValid() || d.m_keyItem != null || d.m_canNotBeClosed || Avoided(d))
+            Anyone = 0,
+            Nobody = 1,
+            Rancher = 2,
+        }
+
+        public static Mark MarkOf(Door? d) =>
+            d != null && d.m_nview != null && d.m_nview.IsValid() ? (Mark)Mathf.Clamp(d.m_nview.GetZDO().GetInt(AvoidKey), 0, 2) : Mark.Anyone;
+
+        /// <summary>Marked for every hireling to leave alone.</summary>
+        public static bool Avoided(Door? d) => MarkOf(d) == Mark.Nobody;
+
+        /// <summary>Not for this hireling: marked to leave alone, or for the Rancher only and it isn't one.</summary>
+        public static bool AvoidedBy(Door? d, Hireling h) => MarkOf(d) switch
+        {
+            Mark.Nobody => true,
+            Mark.Rancher => h.Job != Core.JobType.Rancher,
+            _ => false,
+        };
+
+        /// <summary>A route link this hireling may take (a Rancher-only gate only for the Rancher).</summary>
+        public static bool MayTake(Core.Nav.NavLink link, Hireling h) => !link.RancherOnly || h.Job == Core.JobType.Rancher;
+
+        // Not locked, can be closed again, not marked off for this hireling, and the board's owner has access under any ward covering it.
+        public static bool Usable(Door? d, long boardOwner, Hireling h)
+        {
+            if (d == null || d.m_nview == null || !d.m_nview.IsValid() || d.m_keyItem != null || d.m_canNotBeClosed || AvoidedBy(d, h))
                 return false;
             if (!d.m_checkGuardStone)
                 return true;

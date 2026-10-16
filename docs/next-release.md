@@ -3,6 +3,22 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## Next (not packaged yet)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (low-funds-settle branch) | Portalling into his base, Tim was told the board "can't pay tomorrow's wages" with 5 days of food in it: the arrival check read the board as soon as it loaded, before its items had arrived (funds 0). A board must now have been loaded 10 s, and be short on two checks in a row (5 s apart), before you're told. New check `cant_pay_told` | the player's game |
+| (same branch) | A third door mark, **Rancher only** (Shift+E on a door now goes round: hirelings may use it → only the Rancher → leave it shut): the Rancher goes through a pen's gate, nobody else does or routes through it (Tim: pens with double doors left open, animals getting out). Route links carry `RancherOnly`; `LinkPlanner.Plan` takes a per-hireling filter; old marks (1 = leave shut) keep their meaning. `litter ... at TAG`; `door_mark ... rancher` | the game simulating the hireling; the player marking |
+| (same branch) | Double doors (two doors side by side, Tim's pen): a hireling opened every closed door just ahead of it, so both, and the second stayed open while it worked within 3 m of the doorway. Now it opens only the one most in its line of travel, and none while a door ahead is already open. Pen fixture `G,H` (double gates); check `opened_beside_open`, fixture `door_stats_reset` | the game simulating the hireling |
+
+### To test (batch)
+- [x] Row VFH-FUNDS-2: a stocked board isn't reported; emptied, it's reported after the second check (2026-10-15).
+- [x] Rows VFH-DOOR-2 (a Rancher-only gate: the Rancher goes in to feed, shuts it, nothing gets out), VFH-DOOR-3 (a Steward tidying in the middle of a 16 m pen never opens it) and VFH-DOOR-3U (unmarked, she does; a boar got out on one run: she waits up to 20 s for animals by a gate, then opens it anyway) pass (2026-10-15). First version had the litter by the fence, picked up over it: moved to the middle.
+- [x] Row VFH-DOOR-4 (double gates: the Rancher goes in and out by one, never opens the second beside an open one, both end shut, nothing out) passes (2026-10-15).
+- [ ] By hand on the server: mark Tim's pen doors Rancher only; double doors stay shut.
+- [ ] By hand on the server: portal into the base a few times; no "can't pay" message while the board has food.
+
 ## 0.12.0 (packaged 2026-10-15, branch `rancher-big-pen`): post any worker, order search, bigger pens, fleeing followers keep up (new rows pass; regression not run)
 
 ### Fixed or added

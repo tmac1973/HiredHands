@@ -190,7 +190,8 @@ namespace VikingsForHire.Hirelings.Nav
             _lastPlan = Time.time;
             double now = ZNet.instance.GetTimeSeconds();
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            PlanResult r = LinkPlanner.Plan(nav.Graph, _ai.transform.position.ToNav(), goal.ToNav(), (a, b) => LegOracle.Answer(nav, a, b), now);
+            PlanResult r = LinkPlanner.Plan(nav.Graph, _ai.transform.position.ToNav(), goal.ToNav(), (a, b) => LegOracle.Answer(nav, a, b), now,
+                l => DoorRules.MayTake(l, _ai.Hireling));
             switch (r.Kind)
             {
                 case PlanKind.Route:
@@ -335,10 +336,12 @@ namespace VikingsForHire.Hirelings.Nav
                 Failed("door_gone");
                 return;
             }
-            // A door marked for hirelings to leave alone (a pen's gate) isn't a way through, even standing open.
-            if (DoorRules.Avoided(door))
+            // A door marked for hirelings to leave alone (a pen's gate), or for the Rancher only, isn't a way through, even
+            // standing open. Only "nobody" blocks it for everyone: a Rancher-only gate is still the Rancher's way.
+            if (DoorRules.AvoidedBy(door, _ai.Hireling))
             {
-                link.BlockedUntil = ZNet.instance.GetTimeSeconds() + 600.0;
+                if (DoorRules.Avoided(door))
+                    link.BlockedUntil = ZNet.instance.GetTimeSeconds() + 600.0;
                 VfhLog.I(LogCat.Nav, "navlinks.door_blocked", ("hid", _ai.Hireling.Hid), ("door", door.transform.position), ("why", "marked"));
                 Failed("door_blocked");
                 return;
@@ -355,7 +358,7 @@ namespace VikingsForHire.Hirelings.Nav
                 _stepStartedAt = Time.time;
                 if (!DoorRules.IsOpen(door))
                 {
-                    if (!VfhConfig.HirelingsOpenDoors.Value || !DoorRules.Usable(door, DoorRules.BoardOwner(_ai.Hireling.BoardId)))
+                    if (!VfhConfig.HirelingsOpenDoors.Value || !DoorRules.Usable(door, DoorRules.BoardOwner(_ai.Hireling.BoardId), _ai.Hireling))
                     {
                         link.BlockedUntil = ZNet.instance.GetTimeSeconds() + 120.0;
                         VfhLog.I(LogCat.Nav, "navlinks.door_blocked", ("hid", _ai.Hireling.Hid), ("door", door.transform.position),
@@ -371,7 +374,7 @@ namespace VikingsForHire.Hirelings.Nav
             }
             // Closed again in front of it (another hireling behind it, a player): open it again.
             else if (!DoorRules.IsOpen(door) && Time.time - _doorTouchedAt > DoorReopenSeconds && VfhConfig.HirelingsOpenDoors.Value &&
-                     DoorRules.Usable(door, DoorRules.BoardOwner(_ai.Hireling.BoardId)))
+                     DoorRules.Usable(door, DoorRules.BoardOwner(_ai.Hireling.BoardId), _ai.Hireling))
             {
                 DoorRules.Open(door, me);
                 _ai.MarkDoorOpened(door);
@@ -455,7 +458,7 @@ namespace VikingsForHire.Hirelings.Nav
             if (_reach.TryGetValue(key, out var known) && Time.time < known.Until)
                 return known.Ok;
             PlanResult r = LinkPlanner.Plan(nav.Graph, _ai.transform.position.ToNav(), point.ToNav(), (a, b) => LegOracle.Answer(nav, a, b),
-                ZNet.instance.GetTimeSeconds());
+                ZNet.instance.GetTimeSeconds(), l => DoorRules.MayTake(l, _ai.Hireling));
             if (r.Kind == PlanKind.NeedLegs)
             {
                 foreach ((NavPoint a, NavPoint b) in r.Unknown)

@@ -99,7 +99,7 @@ namespace VikingsForHire.Hirelings.Nav
             Door? door = piece.GetComponentInChildren<Door>();
             if (door != null)
             {
-                if (!DoorRules.Avoided(door)) // a door marked to leave alone is no way through
+                if (!DoorRules.Avoided(door)) // a door marked to leave alone is no way through (one for the Rancher only is, for it)
                     AddDoor(door, piece, prefab);
                 return;
             }
@@ -129,7 +129,8 @@ namespace VikingsForHire.Hirelings.Nav
             f.Normalize();
             Vector3 a = OnFloor(c + f * DoorDepth, c.y);
             Vector3 bSide = OnFloor(c - f * DoorDepth, c.y);
-            _links.Add(new NavLink(NavLinkKind.Door, a.ToNav(), bSide.ToNav(), null, piece.m_nview.GetZDO().m_uid.ToString(), prefab));
+            _links.Add(new NavLink(NavLinkKind.Door, a.ToNav(), bSide.ToNav(), null, piece.m_nview.GetZDO().m_uid.ToString(), prefab)
+                { RancherOnly = DoorRules.MarkOf(door) == DoorRules.Mark.Rancher });
             _doors++;
         }
 

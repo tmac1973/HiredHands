@@ -2,8 +2,7 @@
 
 ## 0.12.0
 
-Works alongside 0.11.x, but a posted worker works round its post only on games with 0.12.0, so update the server and
-players together when you can.
+**Everyone updates together:** the server and every player need 0.12.0 (a 0.11.x game can't join a 0.12 server).
 
 - **Post any worker at home:** with the Command Stone, recruit a worker and left click a spot in its area (or the worker
   where it stands). It goes back to work with its area centred on the post (the same radius) and waits there between

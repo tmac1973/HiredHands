@@ -190,6 +190,7 @@
   "vfh_chest_off": "leave alone",
   "vfh_door_use": "Hirelings: may use this door",
   "vfh_door_avoid": "Hirelings: leave this door shut",
+  "vfh_door_rancher": "Hirelings: only the Rancher may use this door",
   "vfh_fire_use": "Workers: keep this fuelled",
   "vfh_fire_avoid": "Workers: leave this one (you fuel it)",
   "vfh_fire_out_of_reach": "$1 out of reach: fuel it yourself, or Shift+E on it to have workers leave it",

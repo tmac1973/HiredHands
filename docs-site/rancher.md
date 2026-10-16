@@ -36,8 +36,8 @@ He works over the fence whenever he can reach (feeding and slaughtering across a
 go in, he waits until no animal stands by the gate and shuts it right behind him. Every hireling does the same at any
 door with tame animals near it. A pen is anything walled in all round with built pieces (fences, walls, a shut gate or door), up to about 30 m
 across. An animal of the herd that gets out of its pen shows in his Problems list (boars can't be
-led back, so you'll want to know). Mark a pen's gates for hirelings to leave shut (Shift+E on the gate) to keep everyone
-else from walking through the pen.
+led back, so you'll want to know). Mark a pen's gates **Rancher only** (Shift+E on the gate) so he can still
+go in and out while everyone else keeps away from the pen.
 
 ## Problems
 

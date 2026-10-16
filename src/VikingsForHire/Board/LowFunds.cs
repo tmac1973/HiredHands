@@ -36,6 +36,15 @@ namespace VikingsForHire.Board
         private const float ArrivalRepeatSeconds = 600f;
         private static float _nextArrivalCheck;
         private static readonly Dictionary<string, float> ToldCantPay = new();
+        // Just after it loads (Tim portalled into his base) a board is there before its items are: it read as 0 food
+        // and told him it couldn't pay with 5 days in it. So a board must have been loaded a while, and short on two
+        // checks in a row, before anyone's told.
+        private const float SettleSeconds = 10f;
+        private static readonly Dictionary<HiringBoard, float> FirstSeen = new();
+        private static readonly HashSet<string> ShortOnce = new();
+
+        /// <summary>Tests: whether this game's player has been told the board can't pay (in the last 10 minutes).</summary>
+        public static bool ToldAbout(string boardId) => ToldCantPay.ContainsKey(boardId);
 
         public static void Register() => _rpc = NetworkManager.Instance.AddRPC("VFH_LowFunds", OnServer, OnClient);
 
@@ -119,17 +128,26 @@ namespace VikingsForHire.Board
                 return;
             _nextArrivalCheck = Time.time + ArrivalCheckSeconds;
             Player me = Player.m_localPlayer;
+            foreach (HiringBoard gone in FirstSeen.Keys.Where(b => b == null).ToList())
+                FirstSeen.Remove(gone);
             foreach (HiringBoard board in HiringBoard.Loaded)
             {
                 if (board == null || board.Zdo == null || board.Inventory == null || Vector3.Distance(board.transform.position, me.transform.position) > TellRadius)
+                    continue;
+                if (!FirstSeen.TryGetValue(board, out float seen))
+                    FirstSeen[board] = seen = Time.time;
+                if (Time.time - seen < SettleSeconds)
                     continue;
                 Cost daily = DailyUpkeep(BoardRosterOps.Read(board.Zdo));
                 Cost funds = BoardStorage.Totals(board.Inventory);
                 if (FundsForecast.Days(funds, daily) >= 1)
                 {
                     ToldCantPay.Remove(board.Id);
+                    ShortOnce.Remove(board.Id);
                     continue;
                 }
+                if (ShortOnce.Add(board.Id))
+                    continue; // short once: check again before saying so
                 if (ToldCantPay.TryGetValue(board.Id, out float at) && Time.time - at < ArrivalRepeatSeconds)
                     continue;
                 ToldCantPay[board.Id] = Time.time;

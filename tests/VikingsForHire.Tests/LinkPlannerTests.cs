@@ -67,6 +67,18 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void ARancherOnlyGateIsOnlyTheRanchersWay()
+        {
+            NavLink gate = Door();
+            gate.RancherOnly = true;
+            NavGraph g = Graph(gate);
+            PlanResult rancher = LinkPlanner.Plan(g, new NavPoint(-5, 0, 0), new NavPoint(5, 0, 1), SameRoom, 0, l => true);
+            Assert.Equal("Walk,Door,Walk", Kinds(rancher));
+            PlanResult other = LinkPlanner.Plan(g, new NavPoint(-5, 0, 0), new NavPoint(5, 0, 1), SameRoom, 0, l => !l.RancherOnly);
+            Assert.Equal(PlanKind.NoRoute, other.Kind);
+        }
+
+        [Fact]
         public void NoWayThroughIsNoRoute() =>
             Assert.Equal(PlanKind.NoRoute, LinkPlanner.Plan(Graph(Door()), new NavPoint(-5, 0, 0), new NavPoint(5, 0, 0), (_, _) => LegAnswer.No, 0).Kind);
 

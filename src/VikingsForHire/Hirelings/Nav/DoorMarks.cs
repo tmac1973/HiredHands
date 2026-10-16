@@ -9,13 +9,20 @@ using VikingsForHire.Diagnostics;
 namespace VikingsForHire.Hirelings.Nav
 {
     /// <summary>
-    /// Shift+E on a door near a hiring board marks it for hirelings to leave alone (a pen's gate: they walked through the
-    /// pen and the animals got out), or clears the mark. Kept on the door, so everyone sees the same; under the ward
+    /// Shift+E on a door near a hiring board goes round its three marks: hirelings may use it; only the Rancher may (a
+    /// pen's gate: the others walked through the pen and the animals got out); none may. Kept on the door, so everyone sees the same; under the ward
     /// rules; shown in the door's hover text. DoorRules.Avoided is what the door helper and link routes check.
     /// </summary>
     internal static class DoorMarks
     {
         private const float BoardNear = 80f;
+
+        private static string Label(DoorRules.Mark m) => m switch
+        {
+            DoorRules.Mark.Nobody => "$vfh_door_avoid",
+            DoorRules.Mark.Rancher => "$vfh_door_rancher",
+            _ => "$vfh_door_use",
+        };
 
         private static bool NearABoard(Door d) =>
             HiringBoard.Loaded.Any(b => b != null && UnityEngine.Vector3.Distance(b.transform.position, d.transform.position) <= BoardNear);
@@ -35,12 +42,18 @@ namespace VikingsForHire.Hirelings.Nav
                         __result = false;
                         return false;
                     }
-                    bool avoid = !DoorRules.Avoided(__instance);
+                    // Round the three: anyone → the Rancher only → nobody → anyone.
+                    DoorRules.Mark next = DoorRules.MarkOf(__instance) switch
+                    {
+                        DoorRules.Mark.Anyone => DoorRules.Mark.Rancher,
+                        DoorRules.Mark.Rancher => DoorRules.Mark.Nobody,
+                        _ => DoorRules.Mark.Anyone,
+                    };
                     __instance.m_nview.ClaimOwnership();
-                    __instance.m_nview.GetZDO().Set(DoorRules.AvoidKey, avoid ? 1 : 0);
+                    __instance.m_nview.GetZDO().Set(DoorRules.AvoidKey, (int)next);
                     NavLinkRegistry.MarkDirty(__instance.transform.position); // routes through it are re-mapped
-                    character.Message(MessageHud.MessageType.Center, Localization.instance.Localize(avoid ? "$vfh_door_avoid" : "$vfh_door_use"));
-                    VfhLog.I(LogCat.Nav, "door.marked", ("door", __instance.transform.position), ("avoid", avoid));
+                    character.Message(MessageHud.MessageType.Center, Localization.instance.Localize(Label(next)));
+                    VfhLog.I(LogCat.Nav, "door.marked", ("door", __instance.transform.position), ("mark", next));
                     __result = true;
                     return false;
                 }
@@ -61,8 +74,7 @@ namespace VikingsForHire.Hirelings.Nav
                 {
                     if (!VfhConfig.ChestModeOnShiftUse.Value || __instance.m_nview == null || !__instance.m_nview.IsValid() || !NearABoard(__instance))
                         return;
-                    __result += Localization.instance.Localize("\n[<color=yellow><b>Shift + $KEY_Use</b></color>] " +
-                                                               (DoorRules.Avoided(__instance) ? "$vfh_door_avoid" : "$vfh_door_use"));
+                    __result += Localization.instance.Localize("\n[<color=yellow><b>Shift + $KEY_Use</b></color>] " + Label(DoorRules.MarkOf(__instance)));
                 }
                 catch (Exception e)
                 {

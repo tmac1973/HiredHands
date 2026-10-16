@@ -117,7 +117,7 @@ namespace VikingsForHire.Testing
                 Character c = go.GetComponent<Character>();
                 return (Hirelings.Work.Steward.AnimalsChore.Fed.TryGetValue(c.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
             });
-            Fixtures.Add("pen", "<gate tag> [size=6] [<prefab> <tag> <edge|mid|gate>]... - a square pen of half walls (below eye height) with a wood gate on the board's side, 14 m from the board, and tamed hungry animals in it: edge (by the far fence), mid, gate (just inside the gate)", Pen);
+            Fixtures.Add("pen", "<gate tag, or two as G,H for double gates> [size=6] [<prefab> <tag> <edge|mid|gate>]... - a square pen of half walls (below eye height) with a wood gate on the board's side, 14 m from the board, and tamed hungry animals in it: edge (by the far fence), mid, gate (just inside the gate)", Pen);
             Fixtures.Add("move_animal", "<tag> <dx> <dz> - move a tagged animal by that much (out of its pen)", args =>
             {
                 GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
@@ -126,6 +126,13 @@ namespace VikingsForHire.Testing
                 p.y = ZoneSystem.instance.GetSolidHeight(p);
                 go.GetComponent<ZNetView>().ClaimOwnership();
                 go.transform.position = p;
+                return Brief();
+            });
+            TestHarness.RegisterCheck("opened_beside_open", "- times a hireling opened a door with the one beside it already open, since door_stats_reset", _ =>
+                Hirelings.DoorHelper.OpenedBesideOpen.ToString(CultureInfo.InvariantCulture));
+            Fixtures.Add("door_stats_reset", "- start counting opened_beside_open from zero", _ =>
+            {
+                Hirelings.DoorHelper.OpenedBesideOpen = 0;
                 return Brief();
             });
             TestHarness.RegisterCheck("door_opened", "<tag> - times hirelings opened a tagged door or gate", args =>
@@ -151,12 +158,17 @@ namespace VikingsForHire.Testing
                 VfhLog.I(LogCat.Test, "fixture.chest_mode", ("tag", args.ElementAtOrDefault(0)), ("mode", mode));
                 return Brief();
             });
-            Fixtures.Add("door_mark", "<tag> <avoid|use> - mark a tagged door for hirelings to leave shut, or clear it (as Shift+E on it does)", args =>
+            Fixtures.Add("door_mark", "<tag> <avoid|rancher|use> - mark a tagged door for hirelings to leave shut, for the Rancher only, or clear it (as Shift+E on it does)", args =>
             {
                 GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
                 Door d = go.GetComponentInChildren<Door>() ?? throw new InvalidOperationException("not a door");
                 d.m_nview.ClaimOwnership();
-                d.m_nview.GetZDO().Set(Hirelings.Nav.DoorRules.AvoidKey, (args.ElementAtOrDefault(1) ?? "avoid") == "avoid" ? 1 : 0);
+                d.m_nview.GetZDO().Set(Hirelings.Nav.DoorRules.AvoidKey, (args.ElementAtOrDefault(1) ?? "avoid") switch
+                {
+                    "avoid" => (int)Hirelings.Nav.DoorRules.Mark.Nobody,
+                    "rancher" => (int)Hirelings.Nav.DoorRules.Mark.Rancher,
+                    _ => (int)Hirelings.Nav.DoorRules.Mark.Anyone,
+                });
                 Hirelings.Nav.NavLinkRegistry.MarkDirty(d.transform.position);
                 return Brief();
             });
@@ -203,7 +215,7 @@ namespace VikingsForHire.Testing
                     .GetHealthPercentage().ToString("0.00", CultureInfo.InvariantCulture));
             Fixtures.Add("fermenter", "<empty|ready> [tag] - a fermenter 7 m from the board (put a roof over it with roof_over fermenter); ready: holding a finished mead base", Fermenter);
             Fixtures.Add("shieldgen", "<fuel> [tag] - a shield generator 7 m from the board with that much fuel", ShieldGen);
-            Fixtures.Add("litter", "<item> <count> [tag] - drop items 10 m from the board, already on the ground long enough to be tidied", Litter);
+            Fixtures.Add("litter", "<item> <count> [at TAG] - drop items 10 m from the board (or beside a tagged object), already on the ground long enough to be tidied", Litter);
             TestHarness.RegisterCheck("fermenter_status", "<tag> - Empty, Fermenting, Exposed or Ready", args =>
                 (FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<global::Fermenter>() ?? throw new InvalidOperationException("no such tagged fermenter")).GetStatus().ToString());
             TestHarness.RegisterCheck("fermenter_cover", "<tag> - a tagged fermenter's cover (0..1, it needs 0.7) and whether it has a roof, as the game measures them", args =>
@@ -503,7 +515,9 @@ namespace VikingsForHire.Testing
 
         private static IEnumerator Pen(string[] args)
         {
-            string gateTag = args.ElementAtOrDefault(0) ?? "G";
+            // "G,H": a pair of gates side by side (double doors), tagged G and H.
+            string[] gateTags = (args.ElementAtOrDefault(0) ?? "G").Split(',');
+            string gateTag = gateTags[0];
             float size = args.Length > 1 && float.TryParse(args[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float sz) ? sz : 6f;
             HiringBoard board = Board();
             Vector3 fwd = -board.transform.forward;
@@ -520,10 +534,10 @@ namespace VikingsForHire.Testing
                 for (int i = 0; i < per; i++)
                 {
                     Vector3 at = Ground(centre + n * half + along * (-half + 1f + i * 2f));
-                    bool gate = side == 0 && i == per / 2;
-                    GameObject piece = FixturesBoard.Spawn(gate ? "wood_gate" : "wood_wall_half", at, Quaternion.LookRotation(n));
-                    if (gate)
-                        piece.GetComponent<ZNetView>().GetZDO().Set(TagKey, gateTag);
+                    int gateIndex = side != 0 ? -1 : i == per / 2 ? 0 : gateTags.Length > 1 && i == per / 2 - 1 ? 1 : -1;
+                    GameObject piece = FixturesBoard.Spawn(gateIndex >= 0 ? "wood_gate" : "wood_wall_half", at, Quaternion.LookRotation(n));
+                    if (gateIndex >= 0)
+                        piece.GetComponent<ZNetView>().GetZDO().Set(TagKey, gateTags[gateIndex]);
                 }
             }
             yield return null;
@@ -690,14 +704,16 @@ namespace VikingsForHire.Testing
 
         private static IEnumerator Litter(string[] args)
         {
+            Vector3? beside = AtTag(ref args, 1f);
             string item = args.ElementAtOrDefault(0) ?? "Wood";
             int count = int.Parse(args.ElementAtOrDefault(1) ?? "10", CultureInfo.InvariantCulture);
             HiringBoard board = Board();
             GameObject prefab = ObjectDB.instance.GetItemPrefab(item) ?? throw new InvalidOperationException($"no item {item}");
-            Vector3 at = board.transform.position - board.transform.right * 10f;
+            Vector3 at = beside ?? board.transform.position - board.transform.right * 10f;
             for (int i = 0; i < count; i++)
             {
-                Vector3 p = at + new Vector3(UnityEngine.Random.Range(-2f, 2f), 0f, UnityEngine.Random.Range(-2f, 2f));
+                float spread = beside != null ? 0.8f : 2f;
+                Vector3 p = at + new Vector3(UnityEngine.Random.Range(-spread, spread), 0f, UnityEngine.Random.Range(-spread, spread));
                 p.y = ZoneSystem.instance.GetGroundHeight(p) + 0.3f;
                 GameObject go = Object.Instantiate(prefab, p, Quaternion.identity);
                 ZDO z = go.GetComponent<ZNetView>().GetZDO();
