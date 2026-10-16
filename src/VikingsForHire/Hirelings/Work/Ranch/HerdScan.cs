@@ -9,12 +9,14 @@ namespace VikingsForHire.Hirelings.Work.Ranch
     /// <summary>The herd in an area: every tame of a catalog kind (or its young), as the Rancher's rules see them.</summary>
     internal static class HerdScan
     {
-        private const float PenReach = 15f;
+        // Far enough to find the far walls and corners of a big pen from a boar standing by one wall (a 20 m stone-walled
+        // yard: at 15 m a boar near one side was "out of its pen").
+        private const float PenReach = 32f;
         private static readonly int PenMask = LayerMask.GetMask("piece", "piece_nonsolid");
         // Each animal's pen state as last seen (by ZDO id): true once it's been seen walled in.
         private static readonly Dictionary<ZDOID, bool> WasPenned = new();
 
-        /// <summary>Walled in on every side: building pieces within 15 m in all 8 directions, at about knee height.</summary>
+        /// <summary>Walled in on every side: building pieces within 32 m in all 8 directions, at about knee height.</summary>
         public static bool Enclosed(Vector3 at)
         {
             Vector3 from = at + Vector3.up * 0.5f;

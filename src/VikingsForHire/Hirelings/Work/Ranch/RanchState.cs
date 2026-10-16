@@ -40,7 +40,7 @@ namespace VikingsForHire.Hirelings.Work.Ranch
         public static (Vector3 Centre, float Radius) Area(HiringBoard board, out Hireling? rancher)
         {
             rancher = Rancher(board);
-            return rancher != null ? (rancher.Home, rancher.Radius) : (board.transform.position, NoRancherRadius);
+            return rancher != null ? (rancher.WorkCentre, rancher.Radius) : (board.transform.position, NoRancherRadius);
         }
 
         private static (float At, RanchPlan Plan, List<HerdScan.Found> Herd) Get(HiringBoard board)

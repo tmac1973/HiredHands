@@ -99,7 +99,7 @@ namespace VikingsForHire.Hirelings
 
         /// <summary>How far from LeashCenter a fight may go: the work radius at home, 30 m around the owner.</summary>
         public float LeashRadius => Hireling.Mode == HirelingMode.Following ? FollowerLeash
-            : Hireling.HasPost ? VfhConfig.PostLeashRadius.Value : Hireling.Radius;
+            : Hireling.HasPost && Hireling.Job.IsGuard() ? VfhConfig.PostLeashRadius.Value : Hireling.Radius;
 
         public const float FollowerLeash = 30f;
 
@@ -125,7 +125,7 @@ namespace VikingsForHire.Hirelings
             {
                 Hireling h = Hireling;
                 if (h.Mode == HirelingMode.Working)
-                    return h.WorksAtHome ? (h.Home, h.Radius) : null; // "work at home" off: idle at base
+                    return h.WorksAtHome ? (h.WorkCentre, h.Radius) : null; // "work at home" off: idle at base
                 if (h.Mode != HirelingMode.Following)
                     return null;
                 if (Order is { Kind: Followers.FieldOrder.OrderKind.Harvest } o && !o.Expired)

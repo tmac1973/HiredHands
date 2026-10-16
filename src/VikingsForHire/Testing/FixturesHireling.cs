@@ -18,7 +18,7 @@ namespace VikingsForHire.Testing
         {
             Fixtures.Add("hirelings", "<job> <level> <n=1> - spawn hirelings 4m ahead, linked to the nearest board", Hirelings);
             Fixtures.Add("snapshot_test", "- run vfh_snapshot_test on the nearest hireling and wait for it", _ => SnapshotTest.Run(HirelingCommands.NearestOrThrow()));
-            Fixtures.Add("panel", "<last|posted|nearest> [enh|orders|why|close] - open that hireling's Shift+E panel (it's brought beside you), on its Enhancements, Orders or Problems page", args =>
+            Fixtures.Add("panel", "<last|posted|nearest> [enh|orders|orders_add|why|close|search <text>] - open that hireling's Shift+E panel (it's brought beside you), on its Enhancements, Orders or Problems page, or its order picker with that typed in the search box", args =>
             {
                 string what = args.ElementAtOrDefault(1) ?? "";
                 if (what == "close")
@@ -34,6 +34,11 @@ namespace VikingsForHire.Testing
                     UI.HirelingPanel.ShowEnhancements();
                 else if (what is "orders" or "orders_add" or "why")
                     UI.HirelingPanel.ShowPage(what);
+                else if (what == "search")
+                {
+                    UI.HirelingPanel.ShowPage("orders_add");
+                    UI.HirelingPanel.Search(string.Join(" ", args.Skip(2)));
+                }
                 return Delay(0.5f);
             });
             Fixtures.Add("portrait", "<last|posted|nearest> <front|side|back|top> [name] - render a close-up of that hireling's head to BepInEx/HiredHands-<name>-<view>.png (checking hats and gear by eye)", Portrait);

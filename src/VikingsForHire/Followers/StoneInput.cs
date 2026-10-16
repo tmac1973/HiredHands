@@ -105,13 +105,9 @@ namespace VikingsForHire.Followers
                     return;
                 if (h.Mode == HirelingMode.Following && h.OwnerId == me.GetPlayerID())
                 {
+                    // At home: posted where it stands (a guard guards there; a worker works its area round it).
                     if (AtHome(h))
-                    {
-                        if (Postable(h))
-                            FollowerServer.Send(FollowerServer.Kind.Post, h.Hid, Quality, h.transform.position, me.transform.eulerAngles.y);
-                        else
-                            FollowerServer.Send(FollowerServer.Kind.Release, h.Hid, Quality);
-                    }
+                        FollowerServer.Send(FollowerServer.Kind.Post, h.Hid, Quality, h.transform.position, me.transform.eulerAngles.y);
                     else
                     {
                         ToggleStay(h);
@@ -283,9 +279,9 @@ namespace VikingsForHire.Followers
             Say(n == 0 ? "$vfh_order_no_guard" : Localization.instance.Localize("$vfh_order_attack", n.ToString()));
         }
 
-        // Move there and hold: each follower gets its own slot on a 2 m ring round the point, then stays. At home a
-        // guard is posted at its slot instead (facing the way you face): pointing a guard at a spot in your base means
-        // "guard this", and a plain hold there kept it on the stone as a follower.
+        // Move there and hold: each follower gets its own slot on a 2 m ring round the point, then stays. At home it's
+        // posted at its slot instead (facing the way you face): pointing a guard at a spot in your base means "guard
+        // this", a worker "work round here" (Ingrid by the pen); a plain hold there kept it on the stone as a follower.
         private static void MoveHold(Player me, List<Hireling> near, Vector3 point)
         {
             int posted = 0;
@@ -294,7 +290,7 @@ namespace VikingsForHire.Followers
                 Hireling f = near[i];
                 Vector3 slot = near.Count == 1 ? point : point + Quaternion.Euler(0f, 360f * i / near.Count, 0f) * Vector3.forward * 2f;
                 f.Ai.Order = null;
-                if (Postable(f) && Utils.DistanceXZ(slot, f.Home) <= f.Radius)
+                if (Utils.DistanceXZ(slot, f.Home) <= f.Radius)
                 {
                     FollowerServer.Send(FollowerServer.Kind.Post, f.Hid, Quality, slot, me.transform.eulerAngles.y);
                     posted++;
@@ -324,10 +320,6 @@ namespace VikingsForHire.Followers
         public static IEnumerable<Hireling> MyFollowers(Player me, float range) =>
             Hireling.Loaded.Where(f => f != null && f.Mode == HirelingMode.Following && f.OwnerId == me.GetPlayerID() && !f.IsStowed &&
                                        Vector3.Distance(f.transform.position, me.transform.position) <= range);
-
-        // Clicked into place at home: guards are posted; so are gatherers with "Works at home" off, which would otherwise
-        // wander about the base with nothing to do. Other workers go back to work.
-        private static bool Postable(Hireling h) => h.Job.IsGuard() || !h.WorksAtHome;
 
         // The nearest board other than its own whose area (the board level's largest work radius) the hireling is in.
         private static HiringBoard? OtherBoard(Hireling h)

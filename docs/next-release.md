@@ -3,6 +3,28 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## Next (not packaged yet)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (rancher-big-pen branch) | A boar by the wall of Tim's 20 m stone-walled yard showed as "out of its pen": a pen was found by building pieces within 15 m in all 8 directions, and the far wall and corners were further than that. Now 32 m | the game simulating the Rancher |
+| (same branch) | A search box at the top of every worker's order picker (Tim couldn't find "Barley wine base: Fire resistance" among the Cook's ~230 recipes, paged by level): matches any part of the name as shown, or the prefab, any case; cleared when the picker opens or an order is added. Panel fixture `search <text>` | the player's game (UI) |
+| (same branch) | Every worker can be posted at home (Tim: the Rancher by the pen, the Cook in the kitchen, instead of all bunching at the board): the stone posts any follower at home (it put workers other than guards on hold as followers: Ingrid stayed on the stone). A posted worker still works, its area centred on the post (same radius; `Hireling.WorkCentre`), and waits there between jobs ("Waiting at their post"); the board's order stock also counts chests round posted workers' posts; the Steward counts the board's pile from the board; posted workers' combat leash is their work radius (guards keep PostLeashRadius). New check `herd_adults` | the game simulating the worker; the board owner (stock) |
+| (same branch) | Sigrid (miner follower, Flee stance) fled a skeleton across the fields while Tim ran on and was lost: the catch-up (sprint boost, unstick, teleport behind the owner out of sight) ran only while following, and fleeing outranks following, so she ran out of his loaded area. A fleeing follower now gets the same catch-up | the owner's game |
+
+### To test (batch)
+- [x] Row VFH-RANCH-15: a boar moved 8 m from the middle of a 20 m pen isn't reported out (2026-10-15).
+- [ ] Regression: VFH-RANCH-14 (a boar 9 m outside a 6 m pen still is), RANCH-11, 12, 13, DOOR-1.
+- [x] Screenshot: the Cook's picker with `vfh_fixture panel last search barley` (and `fire`) lists only Barley Wine Base: Fire Resistance (2026-10-15).
+- [ ] By hand: typing in the box doesn't move the player or close the panel.
+- [x] Rows VFH-POST-W1 (a 12 m Rancher counts a pen's boars only once posted towards it) and VFH-POST-W2 (a posted Cook cooks) pass (2026-10-15).
+- [ ] Regression: POST-1 and the other post rows, gatherers (WORK), Steward chores, farm, kitchen, ranch rows.
+- [ ] By hand on the server: post Ingrid by the pen and Inga in the kitchen; both work and wait at their posts.
+- [x] Row VFH-CATCHUP-2 (a Flee-stance miner follower 50 m behind, fleeing greydwarfs, is teleported to you) passes (2026-10-15).
+- [ ] Regression: CATCHUP-1, RETREAT-1, LAG-1.
+- [ ] By hand on the server: Ingrid's Problems list no longer says a boar is out of the stone-walled yard.
+
 ## 0.11.1 (packaged 2026-10-15, branch `guard-out-of-reach`): guards give up on what they can't reach, fight back at once
 
 ### Fixed or added

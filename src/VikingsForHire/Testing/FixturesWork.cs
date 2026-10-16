@@ -183,6 +183,12 @@ namespace VikingsForHire.Testing
                 Hirelings.Work.Ranch.SlaughterChore.Slaughtered = 0;
                 return Brief();
             });
+            TestHarness.RegisterCheck("herd_adults", "<kind> - adults of that kind the nearest board's Rancher counts in its herd (its area, or round its post)", args =>
+            {
+                Hirelings.Work.Ranch.RanchState.Invalidate(Board());
+                return Hirelings.Work.Ranch.RanchState.For(Board()).Adults.TryGetValue(args.ElementAtOrDefault(0) ?? "", out int n)
+                    ? n.ToString(CultureInfo.InvariantCulture) : "0";
+            });
             TestHarness.RegisterCheck("slaughtered_by_rancher", "- animals Ranchers have slaughtered since ranch_stats_reset", _ =>
                 Hirelings.Work.Ranch.SlaughterChore.Slaughtered.ToString(CultureInfo.InvariantCulture));
             TestHarness.RegisterCheck("fed_by_rancher", "<tag> - food items Ranchers have dropped for a tagged animal", args =>

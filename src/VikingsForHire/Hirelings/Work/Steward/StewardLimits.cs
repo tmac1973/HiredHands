@@ -57,8 +57,9 @@ namespace VikingsForHire.Hirelings.Work.Steward
             cap = limit;
             if (limit == ProductionOrder.Infinite)
                 return false;
-            // The board's pile counts too: a product no chest takes yet waits there, and is still made.
-            int piled = StockCounter.Count(ctx.Home, ctx.Radius).Piled.TryGetValue(item, out int p) ? p : 0;
+            // The board's pile counts too: a product no chest takes yet waits there, and is still made (counted from the
+            // board, which a posted Steward's area may not reach).
+            int piled = board != null && BoardOrders.Stock(board).Piled.TryGetValue(item, out int p) ? p : 0;
             return Held(ctx.StockChests, item) + piled >= limit;
         }
 

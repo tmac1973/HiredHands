@@ -325,6 +325,12 @@ namespace VikingsForHire.Hirelings
         public float Radius => ContractRadius * Enh.Effects.RadiusMult;
         public Vector3 Home => Zdo?.GetVec3(HirelingZdo.Home, transform.position) ?? transform.position;
 
+        /// <summary>
+        /// The middle of the area it works in at home: its post when it has one (a Rancher posted by its pen, a Cook in the
+        /// kitchen), else the board. Its radius is the same either way.
+        /// </summary>
+        public Vector3 WorkCentre => Mode == HirelingMode.Working && HasPost ? PostPos : Home;
+
         public HirelingLevelData LevelData =>
             DataStore.Current.HirelingLevels.FirstOrDefault(l => l.Level == Level) ?? DataStore.Current.HirelingLevels[0];
 

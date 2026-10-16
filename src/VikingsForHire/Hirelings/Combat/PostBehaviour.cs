@@ -88,7 +88,7 @@ namespace VikingsForHire.Hirelings.Combat
 
         private static void Hold(HirelingAI ai, Hireling h)
         {
-            h.SetActivity("$vfh_status_on_post");
+            h.SetActivity(h.Job.IsGuard() ? "$vfh_status_on_post" : "$vfh_status_at_post");
             ai.Halt();
             ai.Face(ai.transform.position + Quaternion.Euler(0f, h.PostYaw, 0f) * Vector3.forward * 5f + Vector3.up * 1.5f);
         }

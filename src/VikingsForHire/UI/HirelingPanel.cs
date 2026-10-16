@@ -39,6 +39,9 @@ namespace VikingsForHire.UI
         private bool _orders;
         private bool _ordersPicking;
         private int _ordersPage;
+        // The picker's search box (on the panel itself, so rebuilding the page keeps it and its focus) and what's in it.
+        private InputField? _search;
+        private string _ordersSearch = "";
         private bool _why;
         private int _whyPage;
         private bool _enh;
@@ -69,6 +72,7 @@ namespace VikingsForHire.UI
             _instance._orders = false;
             _instance._ordersPicking = false;
             _instance._ordersPage = 0;
+            _instance.ClearSearch();
             _instance._why = false;
             _instance._whyPage = 0;
             _instance._enh = false;
@@ -90,6 +94,28 @@ namespace VikingsForHire.UI
             _instance._ordersPicking = page == "orders_add";
             _instance._why = page == "why";
             _instance._shown = "";
+        }
+
+        /// <summary>Tests: type into the open picker's search box.</summary>
+        public static void Search(string text)
+        {
+            if (_instance?._search != null)
+                _instance._search.text = text;
+        }
+
+        private void ClearSearch()
+        {
+            _ordersSearch = "";
+            if (_search != null && _search.text.Length > 0)
+                _search.text = "";
+        }
+
+        // A pick the search finds: its name as shown (or its prefab), any part of it, any case.
+        private bool Matches(OrderPicks.Pick p)
+        {
+            string q = _ordersSearch.Trim();
+            return q.Length == 0 || OrderPicks.PickLabel(p).IndexOf(q, System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   p.Item.IndexOf(q, System.StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         public static void ShowEnhancements()
@@ -120,6 +146,16 @@ namespace VikingsForHire.UI
             HirelingPanel panel = root.AddComponent<HirelingPanel>();
             panel._content = PanelUi.Fill(root.transform, "content");
             panel._close = PanelUi.Button(root.transform, "$vfh_close", 200f, -30f, 80f, 34f, () => Close("button")).transform as RectTransform;
+            GameObject search = GUIManager.Instance.CreateInputField(root.transform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -92f),
+                InputField.ContentType.Standard, Localization.instance.Localize("$vfh_orders_search"), 16, 360f, 32f);
+            panel._search = search.GetComponent<InputField>();
+            panel._search.onValueChanged.AddListener(v =>
+            {
+                panel._ordersSearch = v;
+                panel._ordersPage = 0;
+                panel._nextRefresh = 0f;
+            });
+            search.SetActive(false);
             root.SetActive(false);
             PanelUi.Clicked += () =>
             {
@@ -153,7 +189,7 @@ namespace VikingsForHire.UI
             {
                 Core.Orders.OrderList ol = BoardOrders.For(ob);
                 Stock os = BoardOrders.Stock(ob);
-                signature += $"|orders|{_ordersPicking}|{_ordersPage}|{ol.Serialize()}|" +
+                signature += $"|orders|{_ordersPicking}|{_ordersPage}|{_ordersSearch}|{ol.Serialize()}|" +
                              string.Join(",", OrderPicks.For(ol, h.Job).Select(o => OrderPicks.Have(ob, os, o)));
             }
             if (_why)
@@ -179,6 +215,7 @@ namespace VikingsForHire.UI
         {
             PanelUi.Clear(_content);
             Transform t = _content;
+            _search?.gameObject.SetActive(_orders && _ordersPicking);
             if (transform is RectTransform wide)
             {
                 wide.sizeDelta = new Vector2(_enh || _orders ? EnhWidth : _why ? LimitsWidth : Width, wide.sizeDelta.y);
@@ -450,8 +487,8 @@ namespace VikingsForHire.UI
             Core.Orders.OrderList list = BoardOrders.For(board);
             if (_ordersPicking)
             {
-                y -= 12f; // clear of the title
-                List<OrderPicks.Pick> picks = OrderPicks.Picks(h.Job).Where(p => list.Find(p.Item) == null).ToList();
+                y -= 12f + 40f; // clear of the title and the search box
+                List<OrderPicks.Pick> picks = OrderPicks.Picks(h.Job).Where(p => list.Find(p.Item) == null && Matches(p)).ToList();
                 int pages = Mathf.Max(1, (picks.Count + OrderPicksPerPage - 1) / OrderPicksPerPage);
                 _ordersPage = Mathf.Clamp(_ordersPage, 0, pages - 1);
                 int i = 0;
@@ -466,6 +503,7 @@ namespace VikingsForHire.UI
                         BoardOrders.Submit(board, Core.OrderEdit.Add, chosen.Item, chosen.Kind, OrderPicks.StartTarget(chosen.Kind));
                         _ordersPicking = false;
                         _ordersPage = 0;
+                        ClearSearch();
                         _shown = "";
                     });
                     b.interactable = edit;
@@ -474,7 +512,8 @@ namespace VikingsForHire.UI
                     i++;
                 }
                 if (picks.Count == 0)
-                    PanelUi.Text(t, "$vfh_orders_pick_none", 0f, y, 600f, 16, color: PanelUi.Dim);
+                    PanelUi.Text(t, _ordersSearch.Trim().Length > 0 ? Localization.instance.Localize("$vfh_orders_search_none", _ordersSearch.Trim()) : "$vfh_orders_pick_none",
+                        0f, y, 600f, 16, color: PanelUi.Dim);
                 y -= Mathf.Max(1, (i + 1) / 2) * 48f + 6f;
                 y = OrdersPager(t, y, pages);
                 Fit(-y + 50f);
@@ -493,7 +532,7 @@ namespace VikingsForHire.UI
                 y -= 36f;
             }
             // A Steward's counted as it counts them: every chest in its area, reserves included, and the board's pile.
-            List<Container> stewardChests = h.Job == JobType.Smelter ? Hirelings.Work.ChestModes.Stock(ChestFinder.Find(h.Home, h.Radius)).ToList() : new List<Container>();
+            List<Container> stewardChests = h.Job == JobType.Smelter ? Hirelings.Work.ChestModes.Stock(ChestFinder.Find(h.WorkCentre, h.Radius)).ToList() : new List<Container>();
             foreach (Core.Orders.ProductionOrder o in orders.Skip(_ordersPage * rows).Take(rows))
             {
                 int have = o.Kind == Core.Orders.OrderKind.Station
@@ -531,7 +570,7 @@ namespace VikingsForHire.UI
             }
             y = OrdersPager(t, y, listPages);
             y -= 6f;
-            Button add = PanelUi.Button(t, "$vfh_orders_add", 0f, y, 260f, 34f, () => { _ordersPicking = true; _ordersPage = 0; _shown = ""; });
+            Button add = PanelUi.Button(t, "$vfh_orders_add", 0f, y, 260f, 34f, () => { _ordersPicking = true; _ordersPage = 0; ClearSearch(); _shown = ""; });
             add.interactable = edit;
             y -= 40f;
             Fit(-y + 50f);

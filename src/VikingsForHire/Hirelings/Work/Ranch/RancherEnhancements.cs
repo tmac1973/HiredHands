@@ -173,7 +173,7 @@ namespace VikingsForHire.Hirelings.Work.Ranch
             foreach (Character c in Character.GetAllCharacters())
             {
                 if (c == null || c.IsDead() || c.IsTamed() || c.IsBoss() || c.GetComponent<Tameable>() is not Tameable t ||
-                    !kept.Contains(Utils.GetPrefabName(c.gameObject)) || Utils.DistanceXZ(c.transform.position, h.Home) > h.Radius ||
+                    !kept.Contains(Utils.GetPrefabName(c.gameObject)) || Utils.DistanceXZ(c.transform.position, h.WorkCentre) > h.Radius ||
                     c.m_nview == null || !c.m_nview.IsValid())
                     continue;
                 if (!c.m_nview.IsOwner())
@@ -228,7 +228,7 @@ namespace VikingsForHire.Hirelings.Work.Ranch
             foreach (Character c in Character.GetAllCharacters())
             {
                 if (c == null || c.IsDead() || !c.IsTamed() || c.m_nview == null || !c.m_nview.IsValid() || Hireling.Of(c) != null ||
-                    Utils.DistanceXZ(c.transform.position, h.Home) > h.Radius + 20f)
+                    Utils.DistanceXZ(c.transform.position, h.WorkCentre) > h.Radius + 20f)
                     continue;
                 ZDOID id = c.m_nview.GetZDO().m_uid;
                 if (Led.ContainsKey(id) || !HerdScan.Escaped(id, c.transform.position) || c.GetBaseAI() is not MonsterAI ai)

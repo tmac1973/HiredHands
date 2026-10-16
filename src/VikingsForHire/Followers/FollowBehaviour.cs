@@ -151,7 +151,7 @@ namespace VikingsForHire.Followers
         // left in there measured along the ground thought it was right next to its owner outside.
         // At home, on another floor counts as far too (upstairs right above it isn't "with" its owner).
         // Only while there's a way up through the links: otherwise it would grind underneath its owner forever.
-        private static float OwnerDistance(HirelingAI ai, Vector3 owner)
+        internal static float OwnerDistance(HirelingAI ai, Vector3 owner)
         {
             Vector3 me = ai.transform.position;
             if (Mathf.Abs(me.y - owner.y) > 10f)

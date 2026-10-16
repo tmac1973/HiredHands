@@ -16,6 +16,9 @@ namespace VikingsForHire.Hirelings.Combat
 
         private bool _fleeing;
         private float _lastThreat;
+        // A follower fleeing still keeps up: Sigrid ran from a skeleton across the fields while Tim ran on, and with no
+        // catch-up while fleeing she fell out of his loaded area and was lost.
+        private readonly Followers.FollowCatchUp _catchUp = new();
 
         public string Name => "Flee";
         public int Priority => 950;
@@ -51,6 +54,12 @@ namespace VikingsForHire.Hirelings.Combat
 
         public void Tick(HirelingAI ai, float dt)
         {
+            Hireling h = ai.Hireling;
+            // Far behind (or stuck) and out of its owner's sight: the follower's teleport to just behind the owner, which
+            // is the safest place anyway.
+            if (h.Mode == HirelingMode.Following && h.FollowMode == FollowMode.Follow && Player.GetPlayer(h.OwnerId) is Player owner && !owner.IsDead() &&
+                _catchUp.Tick(ai, owner, Followers.FollowBehaviour.OwnerDistance(ai, owner.transform.position), dt))
+                return;
             Vector3 me = ai.transform.position;
             Vector3 home = Safe(ai);
             Character? threat = ai.Threats.RecentlyAttacked ? ai.Threats.LastAttacker : ai.Threats.Nearest;

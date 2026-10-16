@@ -343,7 +343,8 @@ namespace VikingsForHire.Net
             MutationService.SubmitBoard(board, new RosterOp { Type = RosterOpType.SetPost, Hid = hid, Post = new GuardPost { X = pos.x, Y = pos.y, Z = pos.z, Yaw = yaw } });
             MutationService.SubmitHireling(hid, new HirelingOp { Mode = HirelingMode.Working, Owner = 0L, OwnerName = "", FollowMode = FollowMode.Follow });
             VfhLog.I(LogCat.Follow, "follow.posted", ("player", pid), ("hid", hid), ("pos", pos), ("yaw", yaw));
-            return Localization.instance.Localize("$vfh_post_here", zdo.GetString(HirelingZdo.Name));
+            bool guard = ((JobType)zdo.GetInt(HirelingZdo.Job)).IsGuard();
+            return Localization.instance.Localize(guard ? "$vfh_post_here" : "$vfh_post_here_work", zdo.GetString(HirelingZdo.Name));
         }
 
         // Right click on your follower in the field: it heads home (phase 15), as a lost follower does.
@@ -390,7 +391,8 @@ namespace VikingsForHire.Net
                 return "$vfh_follow_not_found";
             MutationService.SubmitBoard(zdo.GetString(HirelingZdo.BoardId), new RosterOp { Type = RosterOpType.SetPost, Hid = hid, Post = null });
             VfhLog.I(LogCat.Follow, "follow.post_cleared", ("hid", hid));
-            return Localization.instance.Localize("$vfh_post_cleared_name", zdo.GetString(HirelingZdo.Name));
+            bool guard = ((JobType)zdo.GetInt(HirelingZdo.Job)).IsGuard();
+            return Localization.instance.Localize(guard ? "$vfh_post_cleared_name" : "$vfh_post_cleared_work", zdo.GetString(HirelingZdo.Name));
         }
 
         private static string ReleaseAll(long pid)

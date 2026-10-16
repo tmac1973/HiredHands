@@ -5,6 +5,7 @@ using VikingsForHire.Core;
 using VikingsForHire.Core.Orders;
 using VikingsForHire.Hirelings.Work;
 using VikingsForHire.Net;
+using UnityEngine;
 
 namespace VikingsForHire.Board
 {
@@ -32,8 +33,19 @@ namespace VikingsForHire.Board
         public static HiringBoard? BoardOf(string boardId) => HiringBoard.Loaded.FirstOrDefault(b => b != null && b.Id == boardId);
 
         /// <summary>Stock as orders count it, over the board's largest work radius.</summary>
-        public static Stock Stock(HiringBoard board) =>
-            StockCounter.Count(board.transform.position, new LevelRules(DataStore.Current).MaxWorkRadius(board.Level));
+        /// <summary>
+        /// What the base has toward its orders: chests, piles and crops in the board's area, and in each posted worker's
+        /// area round its post (a Cook posted in a kitchen at the edge of the base puts its dishes in the chests there).
+        /// </summary>
+        public static Stock Stock(HiringBoard board)
+        {
+            var areas = new List<(Vector3, float)> { (board.transform.position, new LevelRules(DataStore.Current).MaxWorkRadius(board.Level)) };
+            if (board.Zdo != null)
+                foreach (ContractEntry e in BoardRosterOps.Read(board.Zdo).Entries)
+                    if (e.Post != null && !e.Job.IsCombat() && e.State != ContractState.Leaving)
+                        areas.Add((new Vector3(e.Post.X, e.Post.Y, e.Post.Z), e.Radius));
+            return StockCounter.Count(areas);
+        }
 
         /// <summary>The level of the board's Farmer or Cook (0 when it has none).</summary>
         public static int WorkerLevel(HiringBoard board, JobType job) =>

@@ -454,13 +454,13 @@ namespace VikingsForHire.Hirelings.Work
         private const float HomeChestsSeconds = 10f;
 
         // Only at home, on its own account: an order, or work out in the field with its owner, isn't paused.
-        private bool AtHome(Hireling h) => h.Ai.Order == null && Utils.DistanceXZ(_area.Center, h.Home) < 1f;
+        private bool AtHome(Hireling h) => h.Ai.Order == null && Utils.DistanceXZ(_area.Center, h.WorkCentre) < 1f;
 
         private List<Container> HomeChests(Hireling h)
         {
             if (_homeChests == null || Time.time - _homeChestsAt > HomeChestsSeconds)
             {
-                _homeChests = ChestModes.Put(ChestFinder.Find(h.Home, h.Radius)).ToList();
+                _homeChests = ChestModes.Put(ChestFinder.Find(h.WorkCentre, h.Radius)).ToList();
                 _homeChestsAt = Time.time;
             }
             return _homeChests;

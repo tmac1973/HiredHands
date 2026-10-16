@@ -36,7 +36,7 @@ namespace VikingsForHire.Hirelings.Work.Chores
         public WorkContext(Hireling h)
         {
             Hireling = h;
-            Home = h.Home;
+            Home = h.WorkCentre; // its post, when posted
             Radius = h.Radius;
             Level = h.Level;
             Job = DataStore.Current.Jobs.TryGetValue(h.Job, out JobData? j) ? j : new JobData();

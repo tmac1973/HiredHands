@@ -17,12 +17,12 @@ With the stone in hand (the list of your followers shows on the left of the scre
 | Input | On | Does |
 |---|---|---|
 | Left click | A board's hireling | Recruit it (needs the ward, if any) |
-| Left click | Your follower at home | A guard (or a gatherer with "Works at home" off) is posted on that spot; any other worker goes back to work |
+| Left click | Your follower at home | It's posted on that spot and goes back to its contract (see [Posts](#posts)) |
 | Left click | Your follower in the field | Follow ↔ Stay |
 | Left click | A tree or log / a rock | Your woodcutters / miners harvest it (and what it leaves behind), staying there (Stay) until you call them |
 | Left click | An enemy | Your guards attack it |
-| Left click | The ground | Your followers go there and hold; at home, guards (and gatherers with "Works at home" off) are posted there |
-| Right click | Your follower at home / a posted guard | Back to work / clear the post |
+| Left click | The ground | Your followers go there and hold; at home (within each one's area round the board) they're posted there |
+| Right click | Your follower at home / a posted hireling | Back to work / clear the post |
 | Right click | Your follower in another board's area | It **joins that board** and works there, if the board has room for it (its level, job and caps are checked as for a new contract; no fee). You need access to that board's area |
 | Right click | Anything else | Recall: everyone within 50 m follows you |
 | Middle click | Anywhere | **Retreat**: everyone drops the fight and runs with you, ignoring enemies, until 20 s pass without a hit |
@@ -60,6 +60,15 @@ A follower of yours left inside its own board's area goes back to work there ins
 
 ## Posts
 
-A guard can stand watch on a spot at home (a tower, a gate). It watches all round, fights by its stance and walks back
-to its post. Archers hold fire when the shot is blocked. A gatherer with "Works at home" off can be posted the same way,
-so it waits on that spot instead of wandering about the base.
+Any hireling can be posted on a spot at home: recruit it with the stone, then left click the spot (or the hireling
+standing on it). The post has to be inside its area round the board.
+
+- **Guards** stand watch there (a tower, a gate). They watch all round, fight by their stance and walk back to the post.
+  Archers hold fire when the shot is blocked.
+- **Workers** keep doing their jobs, but their area moves to the post (the same radius, centred there), and they wait at
+  the post between jobs instead of at the board. Post the Cook in the kitchen, the Rancher by the pen, the Farmer by
+  the fields. What they put in the chests round their post counts toward the board's orders.
+- A gatherer with "Works at home" off waits at its post instead of wandering about the base.
+
+Clear a post with a right click on the hireling (stone in hand) or *Clear post* in its Shift+E panel; it works round
+the board again.

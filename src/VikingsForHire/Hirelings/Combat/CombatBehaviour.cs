@@ -572,7 +572,7 @@ namespace VikingsForHire.Hirelings.Combat
                 ?? (ai.Hireling.Job.IsGuard() ? AllyHits.RecentPlayerTargetNear(ai.transform.position, PlayerAssistRange) : null);
             // Herd guard (an enhancement): a Rancher goes for whatever just hurt something of its own in its area.
             if (ai.Hireling.Job == JobType.Rancher && ai.Hireling.Enh.Has(Core.Enhancements.EnhancementId.HerdGuard) &&
-                AllyHits.RecentAttackerNear(ai.Hireling.Home, ai.Hireling.Radius) is Character herdFoe && !herdFoe.IsDead())
+                AllyHits.RecentAttackerNear(ai.Hireling.WorkCentre, ai.Hireling.Radius) is Character herdFoe && !herdFoe.IsDead())
                 return herdFoe;
             CombatAction action = StanceRules.Decide(ai.Stance, threat != null ? scan.NearestDistance : null, inRadius, inExtended,
                 scan.RecentlyAttacked, allyAttacker != null);
