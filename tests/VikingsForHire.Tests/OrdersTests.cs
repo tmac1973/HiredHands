@@ -97,6 +97,25 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void SeedsAtTheReserveGrowSparesForTheProduce()
+        {
+            // Seeds exactly at their reserve and carrots short: plant carrots for seeds (spares above the reserve),
+            // never the reserve itself.
+            OrderList l = Orders(("CarrotSeeds", OrderKind.Seed, 6), ("Carrot", OrderKind.Crop, 9));
+            FarmPlan p = FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 6), ("Carrot", 5)), D(), 2, Spots(20));
+            Assert.Equal(("sapling_seedcarrot", 2), (p.Plant.Single().Crop.Plant, p.Plant.Single().Count)); // 4 carrots short: 2 seed carrots, 6 seeds
+            Assert.Equal(6, p.Protected()["CarrotSeeds"]);
+            // Once the spares are growing nothing more is planted for seeds; once harvested, carrots are planted from them.
+            Assert.Empty(FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 6), ("Carrot", 3)), D(("CarrotSeeds", 6)), 2, Spots(20)).Plant);
+            FarmPlan later = FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 12), ("Carrot", 3)), D(), 2, Spots(20));
+            Assert.Equal(("sapling_carrot", 6), (later.Plant.Single().Crop.Plant, later.Plant.Single().Count));
+            // A big order asks for no more spares than the free field can take.
+            OrderList big = Orders(("CarrotSeeds", OrderKind.Seed, 6), ("Carrot", OrderKind.Crop, 500));
+            FarmPlan capped = FarmPlanner.Plan(Crops, big, D(("CarrotSeeds", 6), ("Carrot", 50)), D(), 2, Spots(4));
+            Assert.Equal(("sapling_seedcarrot", 2), (capped.Plant.Single().Crop.Plant, capped.Plant.Single().Count)); // 4 spots: 4 seeds wanted, 2 seed carrots
+        }
+
+        [Fact]
         public void GrowingCountsSpotsCapAndLevelsGate()
         {
             OrderList l = Orders(("Carrot", OrderKind.Crop, 10));

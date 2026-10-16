@@ -59,10 +59,33 @@ namespace VikingsForHire.Core.Orders
             // the way out: onions grow, and the seed order plants those for seeds.
             var bootstrap = new HashSet<string>();
 
+            // Seeds a produce order is waiting for, held back by the seed reserve: the seed order grows that many more, so
+            // there are spares above the reserve to plant. Grima's onion seeds sat exactly at their reserve: the seed order
+            // was met (no seed onions planted), the onion order could only use seeds above it, and neither moved. At most
+            // what the free field takes for that produce, so a big order doesn't fill the field with seed plants.
+            var spares = new Dictionary<string, int>();
+            foreach (ProductionOrder order in active.Where(o => o.Kind != OrderKind.Seed))
+            {
+                double shortBy = order.Target - Get(stock, order.Item) - Get(growing, order.Item);
+                if (shortBy <= 0)
+                    continue;
+                CropInfo? crop = crops.Where(c => !c.Regrowing && c.Level <= level && c.Consumes.Length > 0 && c.YieldOf(order.Item) > 0 &&
+                                                  plan.SeedReserve.ContainsKey(c.Consumes))
+                    .OrderByDescending(c => c.Yields == order.Item).ThenByDescending(c => c.YieldOf(order.Item)).FirstOrDefault();
+                if (crop == null)
+                    continue;
+                int each = Math.Max(1, crop.ConsumesAmount);
+                int plants = Math.Min((int)Math.Ceiling(shortBy / crop.YieldOf(order.Item)), spots.TryGetValue(crop.Plant, out int fs) ? fs : 0);
+                int above = Math.Max(0, Get(stock, crop.Consumes) - plan.SeedReserve[crop.Consumes]);
+                int want = plants * each - above;
+                if (want > 0)
+                    spares[crop.Consumes] = (spares.TryGetValue(crop.Consumes, out int sp) ? sp : 0) + want;
+            }
+
             foreach (ProductionOrder order in active)
             {
                 double have = Get(stock, order.Item) + Get(growing, order.Item) + (planned.TryGetValue(order.Item, out double p) ? p : 0d);
-                double shortBy = order.Target - have;
+                double shortBy = order.Target + (order.Kind == OrderKind.Seed && spares.TryGetValue(order.Item, out int spare) ? spare : 0) - have;
                 if (shortBy <= 0)
                     continue;
                 bool regrows = crops.Any(c => c.Regrowing && c.Level <= level && c.YieldOf(order.Item) > 0);
@@ -105,7 +128,8 @@ namespace VikingsForHire.Core.Orders
                     if (shortBy <= 0)
                         break;
                 }
-                if (order.Kind == OrderKind.Seed && plantedHere == 0 && Get(growing, order.Item) == 0 &&
+                // Only when the reserve itself is short: spares for a produce order never let it spend the reserve.
+                if (order.Kind == OrderKind.Seed && plantedHere == 0 && Get(growing, order.Item) == 0 && have < order.Target &&
                     candidates.All(c => Get(work, c.Consumes) <= 0))
                     bootstrap.Add(order.Item);
                 if (plantedHere > 0 || regrows)
