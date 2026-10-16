@@ -237,6 +237,18 @@ namespace VikingsForHire.Hirelings
                     bestOff = off;
                 }
             }
+            // Nor beside one that's open, ahead or not: having walked up to an open door, a step later it's no longer ahead and
+            // the closed one beside it was (VFH-DOOR-4: both gates of a pair open together, a boar out).
+            if (best != null && Doors(best.transform.position, BesideRange).FirstOrDefault(o => o != best && IsOpen(o)) is Door openBeside)
+            {
+                // The door it meant to go through has an open one beside it: through that one instead.
+                if (best == _detour)
+                {
+                    _detour = null;
+                    StartThrough(openBeside, me);
+                }
+                best = null;
+            }
             if (best != null && (!openAhead || best == _detour) && MayOpen(best))
             {
                 Open(best, me);
