@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.12.1
+
+Works alongside 0.12.0; update the server and players when it suits you (until then, a game on 0.12.0 treats a
+"Rancher only" door as "leave shut", for the Rancher too).
+
+- **Rancher-only doors:** Shift+E on a door near a board now goes round three marks: hirelings may use it, **only the
+  Rancher may use it**, or leave it shut. Mark a pen's gates Rancher only: he goes in to feed and slaughter, and nobody
+  else walks through the pen and lets the animals out.
+- **Double doors:** at two doors side by side, a hireling opened both, and the second could stay open while it worked
+  by the doorway. Now it opens only the one in its way, and never one beside a door that's already open.
+- **No false "can't pay tomorrow's wages":** arriving at your base (through a portal, say), you could be told the board
+  couldn't pay with days of food in it, because the board was checked before its contents had loaded. Now it waits
+  for the board to settle and checks twice before saying so.
+- 0.12.0's notes said it worked alongside 0.11.x: it doesn't, everyone needed 0.12.0.
+
 ## 0.12.0
 
 **Everyone updates together:** the server and every player need 0.12.0 (a 0.11.x game can't join a 0.12 server).
