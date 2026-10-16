@@ -30,6 +30,7 @@ namespace VikingsForHire.Config
         public static ConfigEntry<int> RequiredBeds = null!;
         public static ConfigEntry<int> RequiredPieces = null!;
         public static ConfigEntry<float> MinDistanceBetweenBoards = null!;
+        public static ConfigEntry<float> BoardRadiusMultiplier = null!;
         public static ConfigEntry<int> MaxBoardsPerWorld = null!;
 
         // 3 - Hiring
@@ -182,6 +183,9 @@ namespace VikingsForHire.Config
             RequiredPieces = Synced(b, "RequiredPieces", 40, "Player-built pieces needed within the radius.");
             MinDistanceBetweenBoards = Synced(b, "MinDistanceBetweenBoards", 100f, "Minimum distance (m) between hiring boards.");
             MaxBoardsPerWorld = Synced(b, "MaxBoardsPerWorld", 0, "Hiring boards allowed per world (0 = unlimited).");
+            BoardRadiusMultiplier = Synced(b, "BoardRadiusMultiplier", 1f, "Multiplies every board level's area (maxWorkRadius in the data file: 20 m at level 1 up to 60 m at level 8), for big bases: 1.5 makes a level 5 board's 40 m into 60 m (gatherers twice that). Workers' contracts keep the radius they were hired with: raise each one in the Roster tab. 0.5 to 3. Ground much more than 100-120 m from the nearest player isn't loaded, so areas past that have no effect there.");
+            ApplyBoardRadius();
+            BoardRadiusMultiplier.SettingChanged += (_, _) => ApplyBoardRadius();
 
             CombatHirelings = Synced(h, "CombatHirelings", true, "Guards and archers (and later other fighting jobs) can be hired. Off: workers only; the Contracts tab doesn't offer combat jobs. Combat hirelings already hired stay.");
             Enhancements = Synced(h, "Enhancements", true, "Hirelings pick one of two enhancements at each level from 2 to 8 (Shift+E panel). Off: no choices and no effects; picks already made are kept for when it's back on.");
@@ -296,6 +300,8 @@ namespace VikingsForHire.Config
             LogToFile.SettingChanged += (_, _) => ApplyLogSettings();
             LogFileMaxMB.SettingChanged += (_, _) => ApplyLogSettings();
         }
+
+        private static void ApplyBoardRadius() => Core.LevelRules.RadiusMultiplier = UnityEngine.Mathf.Clamp(BoardRadiusMultiplier.Value, 0.5f, 3f);
 
         public static void ApplyLogSettings()
         {

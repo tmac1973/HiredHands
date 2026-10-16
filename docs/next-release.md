@@ -9,10 +9,12 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | Commit | What | Where it runs |
 |---|---|---|
 | (farm-seed-spares branch) | Grima stood idle: onion seeds exactly at their seed order (150, the reserve), so the seed order was met and planted no seed onions, while the onion order may only plant seeds above the reserve ("waiting for onion seeds above the reserve"). Now a produce order waiting on reserved seeds raises its seed order by the seeds it needs (at most what the free field takes for it): the Farmer grows spares above the reserve, then plants from them. The reserve itself is never spent (the "nothing to plant for seeds" bootstrap now applies only when the reserve itself is short) | the game simulating the Farmer |
+| (same branch) | `BoardRadiusMultiplier` (*Base*, server-synced, 0.5–3, default 1): every board level's area times this (`LevelRules.MaxWorkRadius`), so contracts' max radius, the board circle, the base check, order stock and tree patches all scale. Tim's big base: Ingrid's 40 m cap (board level 5) left the meat chest out of reach. Contracts keep their hired radius: raise them in the Roster tab | everywhere (synced setting) |
 
 ### To test (batch)
 - [x] Unit test `SeedsAtTheReserveGrowSparesForTheProduce` (286 pass).
 - [ ] Row VFH-FARM-SPARE; regression FARM-1..n, farm_seeds, COOK rows that use seeds.
+- [ ] Set `BoardRadiusMultiplier = 1.5` on the server: the board circle and hover show 60 m at level 5 (gatherers 120); Roster tab + raises Ingrid past 40 m; Contracts tab offers up to 60 m.
 - [ ] By hand on the server: Grima plants some onions for seeds, then onions; the onion seeds never drop below 150.
 
 ## 0.12.1 (packaged 2026-10-16, branch `low-funds-settle`): Rancher-only doors, double doors, no false wage warning (full regression passes, see below)

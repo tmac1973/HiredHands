@@ -15,7 +15,10 @@ A board hires up to its own level. Higher-level hirelings have more health and a
 more, and cost more (see [what it costs](getting-started.md#what-it-costs)).
 
 **The board's area** is its max radius: look at the board (or open its panel), or place one with the hammer, and it's
-drawn on the ground as a gold circle. Woodcutters and miners work twice that.
+drawn on the ground as a gold circle. Woodcutters and miners work twice that. For a big base, the server's
+`BoardRadiusMultiplier` (*Base*) scales every level's area (1.5: a level 5 board's 40 m becomes 60 m). Workers keep the
+radius they were hired with: raise each one with + in the Roster tab. A worker [posted](followers.md#posts) somewhere
+works its radius round its post instead.
 
 **The board's storage** holds 24 slots of food and coins, like an iron chest.
 

@@ -29,8 +29,13 @@ namespace VikingsForHire.Core
         /// <summary>Most of this job per board; 0 = no limit beyond the cap.</summary>
         public int MaxPerBoard(JobType job) => Job(job).MaxPerBoard;
 
+        /// <summary>
+        /// The server's BoardRadiusMultiplier on every board level's area (1 = the data file's numbers): for big bases.
+        /// </summary>
+        public static float RadiusMultiplier { get; set; } = 1f;
+
         /// <summary>Largest contract work radius, which is also how far the board's hirelings roam.</summary>
-        public float MaxWorkRadius(int boardLevel) => Board(boardLevel).MaxWorkRadius;
+        public float MaxWorkRadius(int boardLevel) => Board(boardLevel).MaxWorkRadius * RadiusMultiplier;
 
         public float ClampRadius(int boardLevel, float radius) =>
             Math.Max(MinWorkRadius, Math.Min(radius, MaxWorkRadius(boardLevel)));

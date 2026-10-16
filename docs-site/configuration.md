@@ -8,7 +8,8 @@ own setting" stay on each player's game).
 Rules and behaviour, in sections:
 
 - *General*: raw food, death mode, respawn, graves.
-- *Base*: what counts as a base, board spacing.
+- *Base*: what counts as a base, board spacing, and `BoardRadiusMultiplier` (every board level's area times this: 1.5
+  for a big base).
 - *Hiring*: arrival delay, unpaid days, low funds warnings and map pins, combat hirelings on or off.
 - *Work*: tree and rock safety distances, terrain protection and field digging, gathering noise, chest minimums, doors,
   chest modes.
