@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.12.2
+
+Works alongside 0.12.x; update the server and players when it suits you (the new setting takes effect on the games
+running 0.12.2).
+
+- **Farmers don't get stuck at the seed reserve:** with seeds exactly at their seed order (the reserve) and a produce
+  order short, the Farmer stood idle: the seed order was met, and produce may only be planted from seeds above the
+  reserve. Now he plants a few for spare seeds above the reserve (no more than the free field can use), then plants the
+  produce from those. The reserve itself is never spent.
+- **Bigger boards for big bases:** `BoardRadiusMultiplier` (*Base*, server setting, 0.5 to 3, default 1) scales every
+  board level's area: 1.5 makes a level 5 board's 40 m into 60 m (woodcutters and miners twice that). Workers keep the
+  radius they were hired with: raise each one with + in the Roster tab.
+
 ## 0.12.1
 
 Works alongside 0.12.0; update the server and players when it suits you (until then, a game on 0.12.0 treats a
