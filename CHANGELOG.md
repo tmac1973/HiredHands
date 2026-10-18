@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.12.3
+
+Works alongside 0.12.x; update the server and players when it suits you (until then, a game on an older version sees a
+"Rancher only" chest as a normal one).
+
+- **Pens stay shut to everyone but the Rancher:** stairs right behind a door marked Rancher only (or leave shut) take
+  its mark, and a hireling that can't reach a flight of stairs no longer hops to the far end anyway. A Farmer went down
+  the stairs into a pen behind Rancher-only doors, then couldn't get out.
+- **A "Rancher only" chest mode:** only the Rancher puts in and takes out; everyone else leaves it alone, and it doesn't
+  count toward orders. For a pen's feed chest (PetPantry's, say), so nobody else goes into the pen for what's in it.
+- **Farmers get going with no crop left to grow seeds from:** with the seeds at their reserve and none of the crop
+  anywhere (the Cook used it), the Farmer now plants half the seeds on hand; the harvest is then planted for seeds and
+  fills the reserve again.
+- **Your own marking keys:** `ChestMarkKey`, `DoorMarkKey` and `FireMarkKey` (*4 - Work*, your own settings, Shift by
+  default; `None` turns one off) set the key held with E to mark chests, doors and fires, for mods that also use Shift+E
+  (MissingPieces' drawers, for one).
+
 ## 0.12.2
 
 Works alongside 0.12.x; update the server and players when it suits you (the new setting takes effect on the games
