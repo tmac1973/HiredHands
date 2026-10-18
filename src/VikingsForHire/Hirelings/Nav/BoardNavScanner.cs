@@ -103,6 +103,7 @@ namespace VikingsForHire.Hirelings.Nav
                     stair.RancherOnly = true;
             }
             _nav.Graph.Rebuild(_links);
+            _nav.MarkedDoors = new List<(Vector3, DoorRules.Mark)>(_markedDoors);
             _nav.Rejected = _rejected;
             Done = true;
             VfhLog.I(LogCat.Nav, "navlinks.scan", ("board", _nav.BoardId), ("pieces", _pieces.Count), ("doors", _doors), ("stairs", _stairs),

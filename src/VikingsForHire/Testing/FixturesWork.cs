@@ -28,6 +28,13 @@ namespace VikingsForHire.Testing
                 Hirelings.Work.Reservations.Skip(target, args.Length > 1 ? float.Parse(args[1], CultureInfo.InvariantCulture) : 600f);
                 return Wait(0.2f);
             });
+            TestHarness.RegisterCheck("skipped", "<tag> - whether workers are leaving a tagged pickable, tree, rock or chest alone for now", args =>
+            {
+                GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Component target = go.GetComponent<Pickable>() as Component ?? go.GetComponent<Container>() as Component ??
+                                   go.GetComponent<IDestructible>() as Component ?? go.transform;
+                return Hirelings.Work.Reservations.IsSkipped(target) ? "true" : "false";
+            });
             Fixtures.Add("tree_at", "<prefab> <tag> <of tag> <metres> - a tree that far from a tagged tree, on its side away from the board (where it falls)", args =>
             {
                 GameObject of = FindTagged(args.ElementAtOrDefault(2) ?? "") ?? throw new InvalidOperationException("no such tagged tree");

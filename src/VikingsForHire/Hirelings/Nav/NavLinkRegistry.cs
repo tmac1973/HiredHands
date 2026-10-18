@@ -17,6 +17,8 @@ namespace VikingsForHire.Hirelings.Nav
         public Vector3 Center;
         public float Radius;
         public bool Dirty = true;
+        /// <summary>Doors marked for the Rancher only or to leave shut, from the last scan.</summary>
+        public List<(Vector3 At, DoorRules.Mark Mark)> MarkedDoors = new();
         public float DirtySince;
         public float LastMark;
         public BoardNavScanner? Job;

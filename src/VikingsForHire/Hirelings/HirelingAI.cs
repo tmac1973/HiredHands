@@ -405,6 +405,13 @@ namespace VikingsForHire.Hirelings
         /// <summary>Whether the pathfinder has a full route from here to the point.</summary>
         public bool CanReach(Vector3 point) => HavePath(point) || (Nav.NavLinkRegistry.Enabled && Links.Reachable(point));
 
+        /// <summary>
+        /// Shut away from it by a door marked against it (a Rancher-only pen, for anyone else): no walking path, and no route
+        /// through the base's doors and stairs it may use. False when there's no such door, or the map doesn't know yet.
+        /// </summary>
+        public bool BarredByMarkedDoor(Vector3 point) =>
+            Nav.NavLinkRegistry.Enabled && Links.MarkedDoorAgainst(point) && !HavePath(point) && Links.ReachKnown(point) == false;
+
         private Nav.LinkNavigator? _links;
 
         /// <summary>This hireling's routes through its board's doors and stairs.</summary>

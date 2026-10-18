@@ -458,11 +458,21 @@ namespace VikingsForHire.Hirelings.Nav
         }
 
         /// <summary>Whether a route through the links reaches the point (using what the map has already said; asks for the rest).</summary>
-        public bool Reachable(Vector3 point)
+        public bool Reachable(Vector3 point) => ReachKnown(point) == true;
+
+        /// <summary>A door in this board's area is marked against this hireling (Rancher only, or leave shut).</summary>
+        public bool MarkedDoorAgainst(Vector3 point)
+        {
+            BoardNav? nav = NavLinkRegistry.Enabled ? NavLinkRegistry.AreaAt(point) : null;
+            return nav != null && nav.MarkedDoors.Any(d => d.Mark == DoorRules.Mark.Nobody || d.Mark == DoorRules.Mark.Rancher && _ai.Hireling.Job != Core.JobType.Rancher);
+        }
+
+        /// <summary>As Reachable, but null while the map hasn't said yet (it's been asked).</summary>
+        public bool? ReachKnown(Vector3 point)
         {
             BoardNav? nav = Area(point);
             if (nav == null)
-                return false;
+                return null; // not both in one board's mapped area: the links can't say
             var key = new Vector3Int(Mathf.RoundToInt(point.x * 2f), Mathf.RoundToInt(point.y * 2f), Mathf.RoundToInt(point.z * 2f));
             if (_reach.TryGetValue(key, out var known) && Time.time < known.Until)
                 return known.Ok;
@@ -472,7 +482,7 @@ namespace VikingsForHire.Hirelings.Nav
             {
                 foreach ((NavPoint a, NavPoint b) in r.Unknown)
                     LegOracle.Queue(nav, a, b);
-                return false;
+                return null;
             }
             bool ok = r.Kind == PlanKind.Route;
             if (_reach.Count > 64)

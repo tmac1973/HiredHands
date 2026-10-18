@@ -22,6 +22,7 @@ namespace VikingsForHire.Hirelings.Work.Chores
         private const float SurveySeconds = 3f;
         private const int FailuresBeforeSkip = 3;
         private const float SkipSeconds = 300f;
+        private const float BarredSkipSeconds = 600f;
 
         private readonly List<IChore> _chores = new();
         private readonly Dictionary<int, int> _failures = new();
@@ -184,6 +185,15 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 else if (!carrying)
                     h.LeftoverSince = 0f;
                 h.SetActivity(missing ?? (_jobType == JobType.Smelter ? "$vfh_steward_idle" : $"$vfh_{_log}_idle"));
+                return;
+            }
+            // Behind a door marked against it (mushrooms in the Rancher's pen, for the Farmer): leave it for a while and look
+            // again at once, rather than walking up to the shut door and failing three times over.
+            if (best.Job.Target != null && h.Ai.BarredByMarkedDoor(best.Job.Target.transform.position))
+            {
+                Reservations.Skip(best.Job.Target, BarredSkipSeconds);
+                VfhLog.I(_cat, $"{_log}.barred", ("hid", h.Hid), ("kind", best.Job.Kind), ("target", TargetName(best.Job)), ("at", best.Job.Target.transform.position));
+                _nextSurvey = Time.time;
                 return;
             }
             if (_errandRange > 0f && Near(best.Job))
