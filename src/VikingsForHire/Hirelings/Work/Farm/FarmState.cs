@@ -33,8 +33,10 @@ namespace VikingsForHire.Hirelings.Work.Farm
             foreach (Hireling h in Hireling.Loaded.Where(h => h != null && h.Job == JobType.Farmer && h.BoardId == board.Id && h.CargoInventory != null))
                 foreach (ItemDrop.ItemData i in h.CargoInventory!.GetAllItems().Where(i => i.m_dropPrefab != null))
                     have[i.m_dropPrefab.name] = (have.TryGetValue(i.m_dropPrefab.name, out int n) ? n : 0) + i.m_stack;
+            // What's growing counts only where the Farmer works (round its post when posted): Grima, posted by his new field,
+            // had seed onions counted from round the board that he'd never pick, so his seed order sat "on its way" for good.
+            var coming = new Dictionary<string, int>(GrowingWhereItWorks(board) ?? stock.Growing);
             // What's in the board's pile counts like what's growing: toward the target, never as seed to plant.
-            var coming = new Dictionary<string, int>(stock.Growing);
             foreach (KeyValuePair<string, int> kv in stock.Piled)
                 coming[kv.Key] = (coming.TryGetValue(kv.Key, out int g) ? g : 0) + kv.Value;
             OrderList orders = BoardOrders.For(board);
@@ -42,6 +44,17 @@ namespace VikingsForHire.Hirelings.Work.Farm
             Plans[board.Id] = (Time.time, plan);
             Log(board, orders, have, coming, spots, plan);
             return plan;
+        }
+
+        private static Dictionary<string, int>? GrowingWhereItWorks(HiringBoard board)
+        {
+            if (board.Zdo == null)
+                return null;
+            ContractEntry? farmer = BoardRosterOps.Read(board.Zdo).Entries.FirstOrDefault(e => e.Job == JobType.Farmer && e.State != ContractState.Leaving);
+            if (farmer == null)
+                return null;
+            Vector3 centre = farmer.Post != null ? new Vector3(farmer.Post.X, farmer.Post.Y, farmer.Post.Z) : board.transform.position;
+            return StockCounter.Count(centre, farmer.Radius).Growing;
         }
 
         // The plan and what it was made from, when it changes (Debug, Work): why a farm stands idle can't be read otherwise.
