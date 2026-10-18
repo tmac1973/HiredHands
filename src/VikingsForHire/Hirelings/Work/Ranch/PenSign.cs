@@ -43,7 +43,18 @@ namespace VikingsForHire.Hirelings.Work.Ranch
 
         private void OnDestroy() => Loaded.Remove(this);
 
-        public bool Contains(Vector3 p) => Utils.DistanceXZ(p, transform.position) <= Radius && Mathf.Abs(p.y - transform.position.y) <= Level;
+        // A square pen's corners are √2 times its half-width out: past the circle, an animal walled in all round still counts,
+        // up to this much of the radius (so the circle can be set to reach the walls' middles).
+        private const float CornerReach = 1.5f;
+
+        /// <summary>In this pen: inside the circle on the sign's level, or a little past it and walled in (the corners).</summary>
+        public bool Contains(Vector3 p)
+        {
+            if (Mathf.Abs(p.y - transform.position.y) > Level)
+                return false;
+            float d = Utils.DistanceXZ(p, transform.position);
+            return d <= Radius || d <= Radius * CornerReach && HerdScan.Enclosed(p);
+        }
 
         /// <summary>The pen signs near a spot (within 80 m: a board's area and a little more).</summary>
         public static IEnumerable<PenSign> Near(Vector3 p) => Loaded.Where(s => s != null && s.Zdo != null && Utils.DistanceXZ(s.transform.position, p) <= 80f);

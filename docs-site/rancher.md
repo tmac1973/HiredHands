@@ -41,7 +41,9 @@ from the pen.
 ## Pens
 
 **The Pen sign** (hammer, Misc, 2 Wood, inside a hiring board's area) marks a pen: the animals inside its circle, on
-its level (within 3 m up or down), are in the pen; anywhere else they're out. E on the sign widens the circle, Shift+E
+its level (within 3 m up or down), are in the pen; anywhere else they're out. Set the circle to reach the middle of the
+pen's walls: an animal a little past it (up to half the radius again) that's walled in all round counts too, so a square
+pen's corners are covered. E on the sign widens the circle, Shift+E
 narrows it (3–25 m); looking at it shows the circle and how many animals are in it. Place one in every pen: it's the
 only sure way, for a pen on a terrace, a pen of odd shape, or a base with other walled rooms (a basement).
 
