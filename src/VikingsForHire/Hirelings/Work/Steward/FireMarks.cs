@@ -20,7 +20,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             HiringBoard.Loaded.Any(b => b != null && UnityEngine.Vector3.Distance(b.transform.position, f.transform.position) <= BoardNear);
 
         private static bool Applies(Fireplace f) =>
-            VfhConfig.ChestModeOnShiftUse.Value && f.m_nview != null && f.m_nview.IsValid() && f.m_fuelItem != null && !f.m_infiniteFuel &&
+            MarkKeys.On(VfhConfig.FireMarkKey) && f.m_nview != null && f.m_nview.IsValid() && f.m_fuelItem != null && !f.m_infiniteFuel &&
             f.m_canRefill && NearABoard(f);
 
         [HarmonyPatch(typeof(Fireplace), nameof(Fireplace.Interact))]
@@ -30,7 +30,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
             {
                 try
                 {
-                    if (!alt || hold || user != Player.m_localPlayer || !Applies(__instance))
+                    if (hold || !MarkKeys.Held(VfhConfig.FireMarkKey, alt) || user != Player.m_localPlayer || !Applies(__instance))
                         return true;
                     if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, flash: true))
                     {
@@ -62,7 +62,7 @@ namespace VikingsForHire.Hirelings.Work.Steward
                 {
                     if (!Applies(__instance))
                         return;
-                    __result += Localization.instance.Localize("\n[<color=yellow><b>Shift + $KEY_Use</b></color>] " +
+                    __result += Localization.instance.Localize(MarkKeys.Hint(VfhConfig.FireMarkKey) +
                                                                (FiresChore.Avoided(__instance) ? "$vfh_fire_avoid" : "$vfh_fire_use"));
                 }
                 catch (Exception e)

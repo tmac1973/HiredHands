@@ -148,7 +148,7 @@ namespace VikingsForHire.Testing
                     .Count(f => f.Model.Kind == (args.ElementAtOrDefault(0) ?? "") && !Hirelings.Work.Ranch.HerdScan.Enclosed(f.Animal.transform.position))
                     .ToString(CultureInfo.InvariantCulture);
             });
-            Fixtures.Add("chest_mode", "<tag> <normal|putonly|takeonly|off> - set a tagged chest's worker mode (as Shift+E on it does)", args =>
+            Fixtures.Add("chest_mode", "<tag> <normal|putonly|takeonly|rancheronly|off> - set a tagged chest's worker mode (as Shift+E on it does)", args =>
             {
                 Container c = Tagged(args.ElementAtOrDefault(0) ?? "");
                 if (!Enum.TryParse(args.ElementAtOrDefault(1) ?? "normal", true, out ChestMode mode))

@@ -75,6 +75,10 @@ namespace VikingsForHire.Hirelings.Nav
                 Finish();
         }
 
+        // Doors marked for the Rancher only or to leave shut, and where they are.
+        private readonly List<(Vector3 At, DoorRules.Mark Mark)> _markedDoors = new();
+        private const float StairBehindDoor = 2.5f;
+
         private void Finish()
         {
             JoinFlights();
@@ -83,6 +87,20 @@ namespace VikingsForHire.Hirelings.Nav
                 s.Way[0] = s.Bottom;
                 s.Way[s.Way.Count - 1] = s.Top;
                 _links.Add(new NavLink(NavLinkKind.Stair, s.Bottom.ToNav(), s.Top.ToNav(), s.Way.Select(p => p.ToNav()).ToList(), s.PieceId, s.Prefab, s.Ladder));
+            }
+            // Stairs that start right behind a marked door take its mark: Tim's pen is a terrace down a flight of stairs
+            // behind Rancher-only double doors, and the stairs were still a way in for the Farmer (walked up to the shut
+            // doors, then hopped the flight into the pen).
+            foreach (NavLink stair in _links.Where(l => l.Kind == NavLinkKind.Stair).ToList())
+            {
+                DoorRules.Mark mark = DoorRules.Mark.Anyone;
+                foreach ((Vector3 at, DoorRules.Mark m) in _markedDoors)
+                    if (Vector3.Distance(stair.A.ToUnity(), at) <= StairBehindDoor || Vector3.Distance(stair.B.ToUnity(), at) <= StairBehindDoor)
+                        mark = m == DoorRules.Mark.Nobody || mark == DoorRules.Mark.Nobody ? DoorRules.Mark.Nobody : DoorRules.Mark.Rancher;
+                if (mark == DoorRules.Mark.Nobody)
+                    _links.Remove(stair);
+                else if (mark == DoorRules.Mark.Rancher)
+                    stair.RancherOnly = true;
             }
             _nav.Graph.Rebuild(_links);
             _nav.Rejected = _rejected;
@@ -99,6 +117,8 @@ namespace VikingsForHire.Hirelings.Nav
             Door? door = piece.GetComponentInChildren<Door>();
             if (door != null)
             {
+                if (DoorRules.MarkOf(door) != DoorRules.Mark.Anyone)
+                    _markedDoors.Add((door.transform.position, DoorRules.MarkOf(door)));
                 if (!DoorRules.Avoided(door)) // a door marked to leave alone is no way through (one for the Rancher only is, for it)
                     AddDoor(door, piece, prefab);
                 return;

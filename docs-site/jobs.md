@@ -49,10 +49,16 @@ text says which):
 - **Put in only:** workers store into it but never take from it, and what's in it doesn't count as the base's stock for
   orders and limits. For a feed chest in an animal pen: the Farmer stores carrots there, the Cook never takes them.
 - **Take out only:** workers take from it but never store into it (a supply chest you fill yourself).
+- **The Rancher only:** the Rancher puts in and takes out; everyone else leaves it alone, and it isn't stock. For a feed
+  chest in a pen whose gate is marked Rancher only: nobody else goes into the pen for what's in it.
 - **Leave alone:** workers ignore it.
 
-Changing it follows the wards, like the board. If another mod already uses Shift+E on chests, turn `ChestModeOnShiftUse`
-off in *4 - Work* (your own setting).
+Changing it follows the wards, like the board.
+
+**The marking key:** Shift is the default for chests, doors and fires, each with its own setting in *4 - Work* (your own
+settings): `ChestMarkKey`, `DoorMarkKey`, `FireMarkKey`. If another mod already uses Shift+E on chests (MissingPieces'
+drawers do), set `ChestMarkKey` to another key, e.g. `LeftControl`; `None` turns that kind of mark off.
+`ChestModeOnShiftUse` off turns all three off. The hover text shows the key.
 
 ## Doors
 
@@ -61,7 +67,7 @@ board's owner may use under wards, never locked doors, and don't wander through 
 turns this off. How they find their way through buildings is on
 [Doors, stairs and ladders](navigation.md).
 
-**Door marks:** Shift+E on a door near a hiring board goes round three marks: *hirelings may use it* (the default),
+**Door marks:** Shift+E (or your `DoorMarkKey`) on a door near a hiring board goes round three marks: *hirelings may use it* (the default),
 *only the Rancher may use it* (a pen's gates: he goes in to feed and slaughter, nobody else walks through the pen and lets
 the animals out), and *leave it shut* (no hireling). A hireling a door is marked against never opens it, never routes
 through it, and doesn't walk through it even when it's standing open.

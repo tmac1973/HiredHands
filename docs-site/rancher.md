@@ -28,7 +28,8 @@ drops (meat, leather, pelts, trophies) and puts it in the chests.
 
 He feeds the herd from the chests, dropping the feed beside each hungry animal on a side with no wall between. A Steward
 on the same board leaves feeding to him; with PetPantry both leave it to PetPantry. A **Put in only** chest (see
-[chest modes](jobs.md#chests-what-workers-may-do-with-each)) makes a good feed chest in a pen.
+[chest modes](jobs.md#chests-what-workers-may-do-with-each)) makes a good feed chest in a pen, or **the Rancher only**
+when the pen's gate is Rancher only too, so no one else goes in for what's in it.
 
 ## Pens
 

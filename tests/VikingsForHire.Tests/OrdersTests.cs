@@ -90,10 +90,14 @@ namespace VikingsForHire.Tests
             OrderList l = Orders(("CarrotSeeds", OrderKind.Seed, 6), ("Carrot", OrderKind.Crop, 20));
             FarmPlan p = FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 10)), D(), 2, Spots(20));
             Assert.Equal(("sapling_carrot", 4), (p.Plant.Single().Crop.Plant, p.Plant.Single().Count));
-            FarmPlan atReserve = FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 6)), D(), 2, Spots(20));
-            Assert.Empty(atReserve.Plant);
+            // At the reserve with carrots to plant for seeds, the reserve holds (spares are grown instead; see below).
+            FarmPlan atReserve = FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 6), ("Carrot", 2)), D(), 2, Spots(20));
+            Assert.DoesNotContain(atReserve.Plant, x => x.Crop.Plant == "sapling_carrot");
             Assert.Contains("$vfh_need_seed_reserve|Carrot|CarrotSeeds", atReserve.Missing);
             Assert.Equal(6, atReserve.Protected()["CarrotSeeds"]);
+            // At the reserve with no carrots anywhere (the Cook used them): half the seeds go into carrots (Grima's onions).
+            FarmPlan stuck = FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 6)), D(), 2, Spots(20));
+            Assert.Equal(("sapling_carrot", 3), (stuck.Plant.Single().Crop.Plant, stuck.Plant.Single().Count));
         }
 
         [Fact]
@@ -161,10 +165,10 @@ namespace VikingsForHire.Tests
         public void AStuckSeedOrderDoesntHoldItsCropBack()
         {
             // 7 seeds under a 100-seed order, no carrots: the seed order can't plant (no carrots), so the carrot order may
-            // plant the seeds; the carrots then feed the seed order.
+            // plant half the seeds (4, keeping 3); the carrots then feed the seed order.
             OrderList l = Orders(("CarrotSeeds", OrderKind.Seed, 100), ("Carrot", OrderKind.Crop, 20));
             FarmPlan p = FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 7)), D(), 2, Spots(20));
-            Assert.Contains(p.Plant, x => x.Crop.Plant == "sapling_carrot" && x.Count == 7);
+            Assert.Contains(p.Plant, x => x.Crop.Plant == "sapling_carrot" && x.Count == 3);
             // With carrots to plant for seeds the reserve holds as before.
             FarmPlan q = FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 7), ("Carrot", 2)), D(), 2, Spots(20));
             Assert.DoesNotContain(q.Plant, x => x.Crop.Plant == "sapling_carrot");

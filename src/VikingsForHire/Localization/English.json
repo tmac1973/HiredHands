@@ -188,6 +188,7 @@
   "vfh_chest_put_only": "put in only (not counted as stock)",
   "vfh_chest_take_only": "take out only",
   "vfh_chest_off": "leave alone",
+  "vfh_chest_rancher": "the Rancher only",
   "vfh_door_use": "Hirelings: may use this door",
   "vfh_door_avoid": "Hirelings: leave this door shut",
   "vfh_door_rancher": "Hirelings: only the Rancher may use this door",

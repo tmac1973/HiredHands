@@ -39,7 +39,7 @@ board holds.
 
 Fuelled when below half (`StewardFireRefillFraction`). A torch it can't reach (placed high, for looks) is remembered after
 two tries and left alone for the session, and its Problems list names it so you fuel it yourself. **Shift+E on a fire or
-torch** near a board marks it for workers to leave alone altogether.
+torch** (or your `FireMarkKey`) near a board marks it for workers to leave alone altogether.
 
 ## Repairs
 

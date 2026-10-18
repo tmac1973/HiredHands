@@ -416,6 +416,15 @@ namespace VikingsForHire.Hirelings.Nav
             }
             if (Time.time - _stepStartedAt > 4f + link.Length)
             {
+                // Never got to the stair at all (held back by a shut door short of it, say): no hop past what stopped it,
+                // the stairs are no way for this trip. Grima hopped down into a pen behind its Rancher-only doors.
+                Vector3 near = s.FromA ? link.A.ToUnity() : link.B.ToUnity();
+                if (Utils.DistanceXZ(me, near) > 2.5f && Utils.DistanceXZ(me, far) > 2.5f)
+                {
+                    VfhLog.I(LogCat.Nav, "navlinks.stair_unreached", ("hid", _ai.Hireling.Hid), ("link", link.Id), ("from", me), ("start", near));
+                    Failed("stair_unreached");
+                    return;
+                }
                 // Couldn't climb it (too steep, a ladder): move to the far end.
                 Vector3 ahead = _i + 1 < _steps!.Count ? _steps[_i + 1].To.ToUnity() : far + (far - me);
                 Followers.FollowCatchUp.Place(_ai, far, ahead);

@@ -46,8 +46,8 @@ namespace VikingsForHire.Hirelings.Work.Chores
             // takes from chests further out.
             float pantry = Kitchen.CookEnhancements.PantryMult(h);
             List<Container> takeFrom = pantry > 1f ? ChestFinder.Find(Home, Radius * pantry) : AllChests;
-            Chests = takeFrom.Where(c => !Reservations.IsSkipped(c) && ChestModes.CanTake(c)).ToList();
-            PutChests = ChestModes.Put(AllChests).ToList();
+            Chests = takeFrom.Where(c => !Reservations.IsSkipped(c) && ChestModes.CanTake(c, h)).ToList();
+            PutChests = ChestModes.Put(AllChests, h).ToList();
             StockChests = ChestModes.Stock(AllChests).ToList();
             KeepMin = VfhConfig.ChestReserve;
         }

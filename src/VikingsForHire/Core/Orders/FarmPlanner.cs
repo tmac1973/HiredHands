@@ -102,9 +102,11 @@ namespace VikingsForHire.Core.Orders
                     double each = crop.YieldOf(order.Item);
                     int needed = (int)Math.Ceiling(shortBy / each);
                     // Raising seeds may spend produce down to the usual reserves; produce orders only spend seeds above the seed reserve.
-                    int reserve = order.Kind == OrderKind.Seed || bootstrap.Contains(crop.Consumes) ? 0
-                        : (plan.SeedReserve.TryGetValue(crop.Consumes, out int r) ? r : 0);
+                    // With no way to grow more seeds (bootstrap) and none above the reserve, half the seeds on hand may go: the crop they grow is then
+                    // planted for seeds, which fills the reserve again; the other half stays put in case a harvest fails.
                     int have0 = Get(work, crop.Consumes);
+                    int full = plan.SeedReserve.TryGetValue(crop.Consumes, out int r) ? r : 0;
+                    int reserve = order.Kind == OrderKind.Seed ? 0 : bootstrap.Contains(crop.Consumes) && have0 <= full ? Math.Min(full, (have0 + 1) / 2) : full;
                     int possible = Math.Max(0, have0 - reserve) / Math.Max(1, crop.ConsumesAmount);
                     int free = spots.TryGetValue(crop.Plant, out int f) ? f : 0;
                     int count = Math.Min(needed, Math.Min(possible, free));
@@ -128,8 +130,9 @@ namespace VikingsForHire.Core.Orders
                     if (shortBy <= 0)
                         break;
                 }
-                // Only when the reserve itself is short: spares for a produce order never let it spend the reserve.
-                if (order.Kind == OrderKind.Seed && plantedHere == 0 && Get(growing, order.Item) == 0 && have < order.Target &&
+                // Short (of the reserve, or of spares for a produce order) with nothing to plant for seeds and nothing
+                // growing them: Grima's onion seeds sat at their reserve with no onions left (the Cook's soup took them).
+                if (order.Kind == OrderKind.Seed && plantedHere == 0 && Get(growing, order.Item) == 0 &&
                     candidates.All(c => Get(work, c.Consumes) <= 0))
                     bootstrap.Add(order.Item);
                 if (plantedHere > 0 || regrows)

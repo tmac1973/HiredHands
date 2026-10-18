@@ -34,7 +34,7 @@ namespace VikingsForHire.Hirelings.Nav
             {
                 try
                 {
-                    if (!alt || hold || !VfhConfig.ChestModeOnShiftUse.Value || character != Player.m_localPlayer ||
+                    if (hold || !Work.MarkKeys.Held(VfhConfig.DoorMarkKey, alt) || character != Player.m_localPlayer ||
                         __instance.m_nview == null || !__instance.m_nview.IsValid() || !NearABoard(__instance))
                         return true;
                     if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, flash: true))
@@ -72,9 +72,9 @@ namespace VikingsForHire.Hirelings.Nav
             {
                 try
                 {
-                    if (!VfhConfig.ChestModeOnShiftUse.Value || __instance.m_nview == null || !__instance.m_nview.IsValid() || !NearABoard(__instance))
+                    if (!Work.MarkKeys.On(VfhConfig.DoorMarkKey) || __instance.m_nview == null || !__instance.m_nview.IsValid() || !NearABoard(__instance))
                         return;
-                    __result += Localization.instance.Localize("\n[<color=yellow><b>Shift + $KEY_Use</b></color>] " + Label(DoorRules.MarkOf(__instance)));
+                    __result += Localization.instance.Localize(Work.MarkKeys.Hint(VfhConfig.DoorMarkKey) + Label(DoorRules.MarkOf(__instance)));
                 }
                 catch (Exception e)
                 {

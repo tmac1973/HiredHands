@@ -109,6 +109,9 @@ namespace VikingsForHire.Config
         public static ConfigEntry<float> ChatterMinutes = null!;
         public static ConfigEntry<KeyboardShortcut> RetreatKey = null!;
         public static ConfigEntry<bool> ChestModeOnShiftUse = null!;
+        public static ConfigEntry<UnityEngine.KeyCode> ChestMarkKey = null!;
+        public static ConfigEntry<UnityEngine.KeyCode> DoorMarkKey = null!;
+        public static ConfigEntry<UnityEngine.KeyCode> FireMarkKey = null!;
         public static ConfigEntry<bool> UpgradeFromNearbyChests = null!;
         public static ConfigEntry<int> BalanceLogMaxMB = null!;
         public static ConfigEntry<bool> ClientLogsToServer = null!;
@@ -271,7 +274,10 @@ namespace VikingsForHire.Config
             ReturnMinSeconds = Synced(f, "ReturnMinSeconds", 60f, "Shortest return-home trip.");
             ReturnMaxSeconds = Synced(f, "ReturnMaxSeconds", 1200f, "Longest return-home trip.");
             StoneBoardSearchRadius = Synced(f, "StoneBoardSearchRadius", 30f, "Radius (m) around the workbench searched for a hiring board when crafting a Command Stone.");
-            ChestModeOnShiftUse = _file.Bind("4 - Work", "ChestModeOnShiftUse", true, "Your own setting: Shift+E near a hiring board sets what workers may do with a chest (normal, put only, take only, off) or whether hirelings may use a door, instead of opening it. Turn off if another mod uses Shift+E on chests or doors.");
+            ChestModeOnShiftUse = _file.Bind("4 - Work", "ChestModeOnShiftUse", true, "Your own setting: holding a key with Use (E) near a hiring board marks a chest (what workers may do with it), a door (which hirelings may use it) or a fire (whether the Steward tends it) instead of using it. Off: none of these marks. The key for each is ChestMarkKey, DoorMarkKey and FireMarkKey.");
+            ChestMarkKey = _file.Bind("4 - Work", "ChestMarkKey", UnityEngine.KeyCode.LeftShift, "Your own setting: the key held with Use (E) on a chest to set what workers may do with it (Shift by default). Move it if another mod uses Shift+E on chests (MissingPieces' drawers do), e.g. LeftControl; None turns chest marks off.");
+            DoorMarkKey = _file.Bind("4 - Work", "DoorMarkKey", UnityEngine.KeyCode.LeftShift, "Your own setting: the key held with Use (E) on a door to set which hirelings may use it (Shift by default); None turns door marks off.");
+            FireMarkKey = _file.Bind("4 - Work", "FireMarkKey", UnityEngine.KeyCode.LeftShift, "Your own setting: the key held with Use (E) on a fire or torch to set whether the Steward tends it (Shift by default); None turns fire marks off.");
             RetreatKey = _file.Bind(f, "RetreatKey", KeyboardShortcut.Empty, "Your own setting: a key or mouse button that orders your followers within 50 m to retreat with you (as the Command Stone's middle click), stone in hand or not. Unset by default.");
 
             BalanceLog = Synced("9 - Balance log", "BalanceLog", false, "Record how hirelings fight and work (each fight, death, delivery and upkeep day) to BepInEx/HiredHands/balance/*.jsonl on the server, for tuning the mod. Off by default. Set it on the server: every player's game then sends its summaries there once a minute.");

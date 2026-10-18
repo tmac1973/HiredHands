@@ -3,6 +3,22 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## Next (not packaged yet)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (pen-stairs branch) | Grima (Farmer) went into Tim's pen for turnips: its only way in is Rancher-only double doors with a flight of stairs straight behind; the doors were off his routes but the stairs weren't, and when he couldn't reach them (doors shut) the stair "hop" moved him to the bottom anyway; inside, the only way out was the marked doors, so he stood stuck until his post's fallback moved him. Now: stairs with an end within 2.5 m of a marked door take its mark (Rancher only, or no stairs at all behind a leave-shut door); a stair hop needs the hireling at the stairs (`navlinks.stair_unreached` otherwise, and it replans) | the game simulating the hireling (route map: whoever scans the board) |
+| (same branch) | A **Rancher only** chest mode (Shift+E round: put and take → put only → take only → Rancher only → leave alone): the Rancher uses it as normal, the rest leave it alone, not stock (the pen's PetPantry feed chest) | the game simulating the worker |
+| (same branch) | Grima still idle on 0.12.2: no onions anywhere (the Cook's soup took them), so no seed onions to plant, and the seeds sat at the reserve. When a seed order can't grow seeds (nothing to plant for them, nothing growing) and there are none above the reserve, the produce order may plant half the seeds on hand; the crop then feeds the seed order. The old bootstrap (a short seed order) also keeps half now | the game simulating the Farmer |
+| (same branch) | The marking key is a setting per kind (your own settings, *4 - Work*): `ChestMarkKey`, `DoorMarkKey`, `FireMarkKey` (LeftShift default; any key; None = off), for mods that also use Shift+E (MissingPieces' drawers; AzuCraftyBoxes on Alt+E for Tim). Shift reads the game's alt-use as before; other keys are read directly; the hover shows the key. `ChestModeOnShiftUse` off still turns all three off | the player's game |
+
+### To test (batch)
+- [x] Unit tests (286): spares and the half-the-seeds dip.
+- [ ] Rows VFH-CHEST-R1 (the Rancher feeds from a Rancher-only chest), VFH-CHEST-R2 (the Farmer leaves a Rancher-only chest's carrots); regression: NAVLINK rows, DOOR-1..4, RANCH rows, farm rows.
+- [ ] By hand: set `ChestMarkKey = LeftControl`: Ctrl+E on a chest cycles its mode, Shift+E opens it (or the drawer's own menu); hover shows "Ctrl + E".
+- [ ] By hand on the server: Grima no longer enters the pen (stairs behind the Rancher-only doors); mark the PetPantry chest Rancher only; Grima plants onions from half his seeds, then seed onions.
+
 ## 0.12.2 (packaged 2026-10-17, branch `farm-seed-spares`): spare seeds above the reserve, BoardRadiusMultiplier
 
 ### Fixed or added
