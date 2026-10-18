@@ -48,6 +48,26 @@ namespace VikingsForHire.Testing
                     Hirelings.Hireling.Loaded.Find(h => h != null && h.Hid == kv.Key) is Hirelings.Hireling h && Utils.DistanceXZ(h.transform.position, kv.Value) <= 1.2f))
                 .ToString().ToLowerInvariant());
             Fixtures.Add("nav_stats_reset", "- start counting stair hops from zero", _ => ResetStats());
+            Fixtures.Add("walk_posted", "<tag> - the hireling from your last contract walks to a tagged object (until pass_clear)", args =>
+            {
+                GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Hirelings.TestWalkBehaviour.Targets[BoardContracts.LastPostedHid] = go.transform.position;
+                return Done();
+            });
+            TestHarness.RegisterCheck("posted_below", "<tag> - metres the hireling of your last contract is below a tagged object (on another floor when large)", args =>
+            {
+                GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Hirelings.Hireling h = Hirelings.Hireling.Loaded.Find(x => x != null && x.Hid == BoardContracts.LastPostedHid)
+                                       ?? throw new InvalidOperationException("posted hireling not loaded");
+                return (go.transform.position.y - h.transform.position.y).ToString("0.0", CultureInfo.InvariantCulture);
+            });
+            TestHarness.RegisterCheck("posted_dist_to", "<tag> - metres from the hireling of your last contract to a tagged object", args =>
+            {
+                GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
+                Hirelings.Hireling h = Hirelings.Hireling.Loaded.Find(x => x != null && x.Hid == BoardContracts.LastPostedHid)
+                                       ?? throw new InvalidOperationException("posted hireling not loaded");
+                return Vector3.Distance(h.transform.position, go.transform.position).ToString("0.0", CultureInfo.InvariantCulture);
+            });
 
             TestHarness.RegisterCheck("navlinks_hops", "- hops to a stair's far end since nav_stats_reset", _ => (LinkNavigator.Hops - _hopsAtReset).ToString(CultureInfo.InvariantCulture));
 

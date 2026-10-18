@@ -15,7 +15,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 
 ### To test (batch)
 - [x] Unit tests (286): spares and the half-the-seeds dip.
-- [ ] Rows VFH-CHEST-R1 (the Rancher feeds from a Rancher-only chest), VFH-CHEST-R2 (the Farmer leaves a Rancher-only chest's carrots); regression: NAVLINK rows, DOOR-1..4, RANCH rows, farm rows.
+- [x] Rows VFH-CHEST-R1 (the Rancher feeds from a Rancher-only chest), VFH-CHEST-R2 (the Farmer leaves a Rancher-only chest's carrots), and new VFH-DOOR-5 (a Rancher sent upstairs in a house goes in through its Rancher-only door) and VFH-DOOR-6 (a Woodcutter sent there never opens it, never hops the stairs, stays on the ground; fixture `walk_posted`, checks `posted_dist_to`, `posted_below`) pass, with the NAVLINK rows, DOOR-1..4, RANCH-3, 12, 14, 15 and the farm rows (2026-10-17). VFH-RANCH-13 let a boar out once at the gate (its old flakiness); VFH-DOOR-2 fed over the fence (its door_opened check is dropped: VFH-DOOR-5 shows the Rancher through a Rancher-only door). Not covered by a row: stairs right behind a marked door (Tim's pen): by hand.
 - [ ] By hand: set `ChestMarkKey = LeftControl`: Ctrl+E on a chest cycles its mode, Shift+E opens it (or the drawer's own menu); hover shows "Ctrl + E".
 - [ ] By hand on the server: Grima no longer enters the pen (stairs behind the Rancher-only doors); mark the PetPantry chest Rancher only; Grima plants onions from half his seeds, then seed onions.
 
