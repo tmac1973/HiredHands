@@ -216,32 +216,32 @@ namespace VikingsForHire.Hirelings.Work.Ranch
                     RancherEnhancements.Wrangle(h, kept, ref at);
                     NextWrangle[h.Hid] = at;
                 }
-                if (h.Enh.Has(Herder))
-                    Herd(h);
             }
             Release();
         }
 
-        private static void Herd(Hireling h)
+        /// <summary>Herder's lead: the animal follows its Rancher (until let go, the Rancher's gone, or 5 minutes pass).</summary>
+        public static void Lead(Character c, Hireling h)
         {
-            float seconds = h.Enh.Value(Herder, "seconds");
-            foreach (Character c in Character.GetAllCharacters())
-            {
-                if (c == null || c.IsDead() || !c.IsTamed() || c.m_nview == null || !c.m_nview.IsValid() || Hireling.Of(c) != null ||
-                    Utils.DistanceXZ(c.transform.position, h.WorkCentre) > h.Radius + 20f)
-                    continue;
-                ZDOID id = c.m_nview.GetZDO().m_uid;
-                if (Led.ContainsKey(id) || !HerdScan.Escaped(id, c.transform.position) || c.GetBaseAI() is not MonsterAI ai)
-                    continue;
-                if (!c.m_nview.IsOwner())
-                    c.m_nview.ClaimOwnership();
-                ai.SetFollowTarget(h.gameObject);
-                Led[id] = (h, Time.time + seconds);
-                EnhancementEvents.Fire(h, "Herder", LogCat.Work, ("animal", c.m_name));
-            }
+            if (c.GetBaseAI() is not MonsterAI ai || c.m_nview == null || !c.m_nview.IsValid())
+                return;
+            if (!c.m_nview.IsOwner())
+                c.m_nview.ClaimOwnership();
+            ai.SetFollowTarget(h.gameObject);
+            Led[c.m_nview.GetZDO().m_uid] = (h, Time.time + 300f);
         }
 
-        // Back in a pen, out of time, or the Rancher gone: stop following.
+        /// <summary>Stop following its Rancher.</summary>
+        public static void Let(Character c)
+        {
+            if (c.m_nview == null || !c.m_nview.IsValid())
+                return;
+            if (c.GetBaseAI() is MonsterAI ai && c.m_nview.IsOwner())
+                ai.SetFollowTarget(null);
+            Led.Remove(c.m_nview.GetZDO().m_uid);
+        }
+
+        // Out of time, or the Rancher gone: stop following (the lead-back chore lets it go once it's home).
         private static void Release()
         {
             List<ZDOID>? done = null;
@@ -249,13 +249,10 @@ namespace VikingsForHire.Hirelings.Work.Ranch
             {
                 GameObject? go = ZNetScene.instance?.FindInstance(kv.Key);
                 Character? c = go != null ? go.GetComponent<Character>() : null;
-                bool penned = c != null && HerdScan.Enclosed(c.transform.position);
-                if (c == null || penned || Time.time >= kv.Value.Until || kv.Value.By == null)
+                if (c == null || Time.time >= kv.Value.Until || kv.Value.By == null)
                 {
                     if (c != null && c.GetBaseAI() is MonsterAI ai && c.m_nview != null && c.m_nview.IsOwner())
                         ai.SetFollowTarget(null);
-                    if (penned && kv.Value.By != null)
-                        EnhancementEvents.Fire(kv.Value.By, "HerderHome", LogCat.Work, ("animal", c!.m_name));
                     (done ??= new List<ZDOID>()).Add(kv.Key);
                 }
             }

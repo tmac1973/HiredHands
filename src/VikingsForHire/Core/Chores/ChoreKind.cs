@@ -26,6 +26,7 @@ namespace VikingsForHire.Core.Chores
         RanchFeed,
         Slaughter,
         Eggs,
+        LeadBack,
     }
 
     /// <summary>The stable keys chores go by in data files (choreLevels) and in a contract's skip list ("chore:fires").</summary>
@@ -54,6 +55,7 @@ namespace VikingsForHire.Core.Chores
             [ChoreKind.RanchFeed] = "ranch_feed",
             [ChoreKind.Slaughter] = "slaughter",
             [ChoreKind.Eggs] = "eggs",
+            [ChoreKind.LeadBack] = "lead_back",
         };
 
         public static IReadOnlyList<ChoreKind> All { get; } = Enum.GetValues(typeof(ChoreKind)).Cast<ChoreKind>().ToList();

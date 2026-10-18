@@ -54,6 +54,7 @@ namespace VikingsForHire
             Hirelings.Gear.LadleItem.Register();
             Hirelings.Gear.ChefHatItem.Register();
             Hirelings.Work.Trees.TreePatchPiece.Register();
+            Hirelings.Work.Ranch.PenSignPiece.Register();
             Hirelings.Work.Farm.CropCatalog.Register();
             Hirelings.Work.Farm.FarmState.FreeSpots = Hirelings.Work.Farm.PlantChore.FreeSpots;
             Hirelings.Work.Kitchen.KitchenCatalog.Register();

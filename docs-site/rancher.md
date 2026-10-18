@@ -35,10 +35,22 @@ when the pen's gate is Rancher only too, so no one else goes in for what's in it
 
 He works over the fence whenever he can reach (feeding and slaughtering across a low fence or half wall). When he has to
 go in, he waits until no animal stands by the gate and shuts it right behind him. Every hireling does the same at any
-door with tame animals near it. A pen is anything walled in all round, up to about 30 m across: built pieces (fences, walls, a shut gate or
-door) or a steep bank of earth (a terrace dug below the base). An animal of the herd that gets out of its pen shows in his Problems list (boars can't be
-led back, so you'll want to know). Mark a pen's gates **Rancher only** (Shift+E on the gate) so he can still
-go in and out while everyone else keeps away from the pen.
+door with tame animals near it. Mark a pen's gates **Rancher only** (Shift+E on the gate) so he can still go in and out while everyone else keeps away
+from the pen.
+
+## Pens
+
+**The Pen sign** (hammer, Misc, 2 Wood, inside a hiring board's area) marks a pen: the animals inside its circle, on
+its level (within 3 m up or down), are in the pen; anywhere else they're out. E on the sign widens the circle, Shift+E
+narrows it (3–25 m); looking at it shows the circle and how many animals are in it. Place one in every pen: it's the
+only sure way, for a pen on a terrace, a pen of odd shape, or a base with other walled rooms (a basement).
+
+Without a sign, a pen is anything walled in all round, up to about 30 m across: built pieces (fences, walls, a shut gate
+or door) or a steep bank of earth.
+
+An animal of the herd that gets out of its pen shows in his Problems list. A Rancher with **Herder** (a level 4
+enhancement) goes and fetches it: he walks up to it, it follows him, and he leads it back into its pen, waiting when it
+lags and going back for it if it wanders off. Without Herder, fence it in where it is or bring it back yourself.
 
 ## Problems
 

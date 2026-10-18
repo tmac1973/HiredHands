@@ -83,7 +83,10 @@ namespace VikingsForHire.Core.Orders
                 int each = Math.Max(1, crop.ConsumesAmount);
                 int plants = Math.Min((int)Math.Ceiling(shortBy / crop.YieldOf(order.Item)), spots.TryGetValue(crop.Plant, out int fs) ? fs : 0);
                 int above = Math.Max(0, Get(stock, crop.Consumes) - plan.SeedReserve[crop.Consumes]);
-                int want = plants * each - above;
+                // At least half the reserve's worth of spares (as far as the field allows): planting is mostly walking, so
+                // one big batch beats a few seeds, a few plants, and round again (Tim, for Grima's onions).
+                int batch = Math.Min(plan.SeedReserve[crop.Consumes] / 2, (spots.TryGetValue(crop.Plant, out int room) ? room : 0) * each);
+                int want = Math.Max(plants * each, batch) - above;
                 if (want > 0)
                     spares[crop.Consumes] = (spares.TryGetValue(crop.Consumes, out int sp) ? sp : 0) + want;
             }

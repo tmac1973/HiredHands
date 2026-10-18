@@ -63,7 +63,7 @@ namespace VikingsForHire.Hirelings.Work.Trees
         }
 
         // The sign's board raised to waist height on one stick (the 2 m pole's mesh, stretched to reach it).
-        private static void BuildModel(GameObject prefab)
+        internal static void BuildModel(GameObject prefab)
         {
             var wrapper = new GameObject("VFH_PatchSign");
             wrapper.transform.SetParent(prefab.transform, false);

@@ -14,7 +14,8 @@ namespace VikingsForHire.Hirelings.Work.Ranch
         private const float PenReach = 32f;
         private static readonly int PenMask = LayerMask.GetMask("piece", "piece_nonsolid");
         // Each animal's pen state as last seen (by ZDO id): true once it's been seen walled in.
-        private static readonly Dictionary<ZDOID, bool> WasPenned = new();
+        // Each animal's pen, once it's been seen in one: the Pen sign's spot, or where it stood walled in (no sign about).
+        private static readonly Dictionary<ZDOID, Vector3> Home = new();
 
         // A bank of earth counts as a wall too (Tim's pen is a terrace cut below the base: its boars inside read as out, as
         // the lines to the bank met no building): ground rising this much above the animal within TerrainReach.
@@ -42,17 +43,35 @@ namespace VikingsForHire.Hirelings.Work.Ranch
             return true;
         }
 
+        /// <summary>
+        /// In a pen: inside a Pen sign's circle where there are signs near (a terrace dug below the base, a walled basement:
+        /// the signs say which is the pen), else walled in all round.
+        /// </summary>
+        public static bool Penned(Vector3 at)
+        {
+            bool signs = false;
+            foreach (PenSign s in PenSign.Near(at))
+            {
+                signs = true;
+                if (s.Contains(at))
+                    return true;
+            }
+            return !signs && Enclosed(at);
+        }
+
         // Out of the pen it was in: seen penned before and not now. One never seen penned (free range) never counts.
         internal static bool Escaped(ZDOID id, Vector3 at)
         {
-            bool penned = Enclosed(at);
-            if (penned)
+            if (Penned(at))
             {
-                WasPenned[id] = true;
+                Home[id] = PenSign.At(at) is PenSign sign ? sign.transform.position : at;
                 return false;
             }
-            return WasPenned.TryGetValue(id, out bool was) && was;
+            return Home.ContainsKey(id);
         }
+
+        /// <summary>Where an animal's pen is (its sign, or where it was last walled in), if it's been seen in one.</summary>
+        public static Vector3? HomeOf(ZDOID id) => Home.TryGetValue(id, out Vector3 p) ? p : null;
         public sealed class Found
         {
             public HerdAnimal Model = new();

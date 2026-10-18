@@ -120,6 +120,18 @@ namespace VikingsForHire.Tests
         }
 
         [Fact]
+        public void SparesComeInABatchOfHalfTheReserve()
+        {
+            // 150 reserved, carrots 4 short: not 4 spare seeds but 75 (half the reserve), in one planting of seed carrots.
+            OrderList l = Orders(("CarrotSeeds", OrderKind.Seed, 150), ("Carrot", OrderKind.Crop, 110));
+            FarmPlan p = FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 150), ("Carrot", 100)), D(("Carrot", 6)), 2, Spots(100));
+            Assert.Equal(75, p.Spares["CarrotSeeds"]);
+            Assert.Equal(("sapling_seedcarrot", 25), (p.Plant.Single().Crop.Plant, p.Plant.Single().Count)); // 25 x 3 seeds
+            // No more than the field takes: 10 free spots, 10 seeds.
+            Assert.Equal(10, FarmPlanner.Plan(Crops, l, D(("CarrotSeeds", 150), ("Carrot", 100)), D(("Carrot", 6)), 2, Spots(10)).Spares["CarrotSeeds"]);
+        }
+
+        [Fact]
         public void GrowingCountsSpotsCapAndLevelsGate()
         {
             OrderList l = Orders(("Carrot", OrderKind.Crop, 10));

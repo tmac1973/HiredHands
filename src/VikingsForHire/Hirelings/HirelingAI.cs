@@ -201,7 +201,7 @@ namespace VikingsForHire.Hirelings
                     Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));
                     break;
                 case JobType.Rancher:
-                    Add(Chores = new Work.Chores.ChoreLoop(JobType.Rancher, new Work.Chores.IChore[] { new Work.Steward.AnimalsChore(Core.Chores.ChoreKind.RanchFeed), new Work.Ranch.SlaughterChore(), new Work.Ranch.EggsChore() }));
+                    Add(Chores = new Work.Chores.ChoreLoop(JobType.Rancher, new Work.Chores.IChore[] { new Work.Steward.AnimalsChore(Core.Chores.ChoreKind.RanchFeed), new Work.Ranch.SlaughterChore(), new Work.Ranch.EggsChore(), new Work.Ranch.LeadBackChore() }));
                     Add(new Work.DeliverBehaviour(new Work.ChoreDeliveryPolicy()));
                     break;
                 default:
@@ -403,6 +403,9 @@ namespace VikingsForHire.Hirelings
         }
 
         /// <summary>Whether the pathfinder has a full route from here to the point.</summary>
+        /// <summary>The animal it's leading home (Herder): doors wait for it, and don't shut in its face.</summary>
+        public Character? Leading { get; set; }
+
         public bool CanReach(Vector3 point) => HavePath(point) || (Nav.NavLinkRegistry.Enabled && Links.Reachable(point));
 
         /// <summary>

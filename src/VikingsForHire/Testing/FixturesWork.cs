@@ -125,6 +125,7 @@ namespace VikingsForHire.Testing
                 return (Hirelings.Work.Steward.AnimalsChore.Fed.TryGetValue(c.GetInstanceID(), out int n) ? n : 0).ToString(CultureInfo.InvariantCulture);
             });
             Fixtures.Add("pen", "<gate tag, or two as G,H for double gates> [size=6] [<prefab> <tag> <edge|mid|gate>]... - a square pen of half walls (below eye height) with a wood gate on the board's side, 14 m from the board, and tamed hungry animals in it: edge (by the far fence), mid, gate (just inside the gate)", Pen);
+            Fixtures.Add("pen_sign", "<radius=6> - a Pen sign in the middle of the last pen built (tagged pensign)", PenSignAtPen);
             Fixtures.Add("move_animal", "<tag> <dx> <dz> - move a tagged animal by that much (out of its pen)", args =>
             {
                 GameObject go = FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tag");
@@ -152,7 +153,7 @@ namespace VikingsForHire.Testing
             {
                 HiringBoard b = Board();
                 return Hirelings.Work.Ranch.HerdScan.Scan(b.transform.position, 40f, _ => true)
-                    .Count(f => f.Model.Kind == (args.ElementAtOrDefault(0) ?? "") && !Hirelings.Work.Ranch.HerdScan.Enclosed(f.Animal.transform.position))
+                    .Count(f => f.Model.Kind == (args.ElementAtOrDefault(0) ?? "") && !Hirelings.Work.Ranch.HerdScan.Penned(f.Animal.transform.position))
                     .ToString(CultureInfo.InvariantCulture);
             });
             Fixtures.Add("chest_mode", "<tag> <normal|putonly|takeonly|rancheronly|off> - set a tagged chest's worker mode (as Shift+E on it does)", args =>
@@ -520,6 +521,19 @@ namespace VikingsForHire.Testing
             yield return null;
         }
 
+        private static Vector3? _penCentre;
+
+        private static IEnumerator PenSignAtPen(string[] args)
+        {
+            Vector3 at = _penCentre ?? throw new InvalidOperationException("no pen built yet");
+            float radius = float.Parse(args.ElementAtOrDefault(0) ?? "6", CultureInfo.InvariantCulture);
+            GameObject go = FixturesBoard.Spawn(Hirelings.Work.Ranch.PenSignPiece.PrefabName, at, Quaternion.identity);
+            go.GetComponent<ZNetView>().GetZDO().Set(Hirelings.Work.Ranch.PenSign.RadiusKey, radius);
+            go.GetComponent<ZNetView>().GetZDO().Set(TagKey, "pensign");
+            VfhLog.I(LogCat.Test, "fixture.pen_sign", ("at", at), ("radius", radius));
+            yield return null;
+        }
+
         private static IEnumerator Pen(string[] args)
         {
             // "G,H": a pair of gates side by side (double doors), tagged G and H.
@@ -573,6 +587,7 @@ namespace VikingsForHire.Testing
                 c.SetTamed(true);
                 go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_tameLastFeeding, 0L);
             }
+            _penCentre = Ground(centre);
             VfhLog.I(LogCat.Test, "fixture.pen", ("centre", centre), ("size", per * 2), ("gate", gateTag));
             yield return new WaitForSeconds(0.5f);
         }

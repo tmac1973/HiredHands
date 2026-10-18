@@ -148,14 +148,14 @@ namespace VikingsForHire.Hirelings
         }
 
         /// <summary>A tamed animal (not a hireling or a player) within this distance of a door.</summary>
-        public static bool AnimalsNear(Door d, float distance) =>
-            Character.GetAllCharacters().Any(c => c != null && !c.IsPlayer() && c.IsTamed() && !c.IsDead() && c.GetComponent<Hireling>() == null &&
+        public static bool AnimalsNear(Door d, float distance, Character? except = null) =>
+            Character.GetAllCharacters().Any(c => c != null && c != except && !c.IsPlayer() && c.IsTamed() && !c.IsDead() && c.GetComponent<Hireling>() == null &&
                                                   Vector3.Distance(c.transform.position, d.transform.position) <= distance);
 
         // Not while an animal stands by the door (a pen's gate: it would walk out), unless it's been waiting too long.
         internal bool MayOpen(Door d)
         {
-            if (!AnimalsNear(d, AnimalNearDoor))
+            if (!AnimalsNear(d, AnimalNearDoor, _ai.Leading))
             {
                 if (_waitingAt == d)
                     _waitingAt = null;
@@ -300,7 +300,10 @@ namespace VikingsForHire.Hirelings
                 // With animals about (a pen), shut it as soon as we're through, before one wanders out.
                 // With animals about: shut as soon as it's through to the other side and clear of the doorway.
                 bool through = _openedSide.TryGetValue(d, out float from) && SideOf(d, me) != from;
-                bool quick = !now && AnimalsNear(d, AnimalsAbout) && through && Utils.DistanceXZ(me, d.transform.position) > QuickCloseDistance;
+                // Leading an animal home (Herder): not until it's through and clear of the doorway too.
+                if (!now && _ai?.Leading is Character led && led != null && Vector3.Distance(led.transform.position, d.transform.position) < CloseDistance)
+                    continue;
+                bool quick = !now && AnimalsNear(d, AnimalsAbout, _ai?.Leading) && through && Utils.DistanceXZ(me, d.transform.position) > QuickCloseDistance;
                 bool clear = now || quick || (Vector3.Distance(me, d.transform.position) > CloseDistance && Time.time - kv.Value > CloseAfterSeconds);
                 if (!clear || Player.GetClosestPlayer(d.transform.position, PlayerClearance) != null ||
                     (quick ? OtherHirelingInDoorway(d, _ai?.Hireling) : HirelingInDoorway(d)))
