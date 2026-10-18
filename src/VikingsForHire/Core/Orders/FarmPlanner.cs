@@ -21,6 +21,12 @@ namespace VikingsForHire.Core.Orders
         /// <summary>Why an order can't be worked, as activity text ("token|arg|arg"), first order first.</summary>
         public List<string> Missing { get; } = new();
 
+        /// <summary>Seed item -> extra seeds its seed order grows for produce orders held back by the reserve (for the log).</summary>
+        public Dictionary<string, int> Spares { get; } = new();
+
+        /// <summary>Seed items whose produce may plant half the seeds on hand: nothing can grow more seeds (for the log).</summary>
+        public HashSet<string> Bootstrap { get; } = new();
+
         /// <summary>Order item -> why that order can't be worked (activity text); short orders being worked aren't here.</summary>
         public Dictionary<string, string> Why { get; } = new();
 
@@ -57,13 +63,13 @@ namespace VikingsForHire.Core.Orders
             // doesn't hold crop orders back. 7 onion seeds under a 100-seed order and no onions: the seed order needs
             // onions, the onion order may only use seeds above the reserve, and neither ever moved. Planting the seeds is
             // the way out: onions grow, and the seed order plants those for seeds.
-            var bootstrap = new HashSet<string>();
+            HashSet<string> bootstrap = plan.Bootstrap;
 
             // Seeds a produce order is waiting for, held back by the seed reserve: the seed order grows that many more, so
             // there are spares above the reserve to plant. Grima's onion seeds sat exactly at their reserve: the seed order
             // was met (no seed onions planted), the onion order could only use seeds above it, and neither moved. At most
             // what the free field takes for that produce, so a big order doesn't fill the field with seed plants.
-            var spares = new Dictionary<string, int>();
+            Dictionary<string, int> spares = plan.Spares;
             foreach (ProductionOrder order in active.Where(o => o.Kind != OrderKind.Seed))
             {
                 double shortBy = order.Target - Get(stock, order.Item) - Get(growing, order.Item);

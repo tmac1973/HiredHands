@@ -3,6 +3,18 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## Next (not packaged yet)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (farm-post branch) | A posted Farmer (Grima, posted by his field) was planned free spots round the board but plants round its post, so planting jobs failed at once over and over (`farmer.job ... Failed secs=0`). The plan's free spots are now counted round the Farmer's post when it has one. Row VFH-POST-W3 | the game simulating the Farmer |
+| (same branch) | A `farm.plan` debug line (Work) whenever the farm plan changes: farm orders, the stock and what's coming of each item they use, free spots, what's planned, spare seeds wanted, which seeds may be dipped into, and why each order waits. Grima still wasn't growing onions on 0.12.3 and the log couldn't say why | the game simulating the Farmer |
+
+### To test (batch)
+- [ ] Row VFH-POST-W3; farm rows; POST-W1/W2.
+- [ ] By hand on the server: Grima plants again; if onions still don't move, read `farm.plan` in HiredHands.log (DebugCategories Work).
+
 ## 0.12.3 (packaged 2026-10-17, branch `pen-stairs`): pens, Rancher-only chests, seeds from half the reserve, marking keys
 
 ### Fixed or added

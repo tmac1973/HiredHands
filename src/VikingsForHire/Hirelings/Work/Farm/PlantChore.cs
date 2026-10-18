@@ -51,8 +51,11 @@ namespace VikingsForHire.Hirelings.Work.Farm
             if (farmer == null)
                 return result;
             long owner = DoorRules.BoardOwner(board.Id);
+            // Round its post when it has one, as it plants: counted round the board, a posted Farmer was planned spots it
+            // couldn't reach, and every planting job failed at once (Grima, posted by his field).
+            Vector3 centre = farmer.Post != null ? new Vector3(farmer.Post.X, farmer.Post.Y, farmer.Post.Z) : board.transform.position;
             foreach (Crop c in CropCatalog.All.Where(c => !c.Info.Regrowing && c.Info.Level <= farmer.Level))
-                result[c.Info.Plant] = FieldGrid.Spots(c, board.transform.position, farmer.Radius, board.transform.right, owner, FarmerEnhancements.SpaceMult(farmer)).Count;
+                result[c.Info.Plant] = FieldGrid.Spots(c, centre, farmer.Radius, board.transform.right, owner, FarmerEnhancements.SpaceMult(farmer)).Count;
             return result;
         }
 
