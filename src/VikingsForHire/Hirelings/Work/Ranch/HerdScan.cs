@@ -16,13 +16,29 @@ namespace VikingsForHire.Hirelings.Work.Ranch
         // Each animal's pen state as last seen (by ZDO id): true once it's been seen walled in.
         private static readonly Dictionary<ZDOID, bool> WasPenned = new();
 
-        /// <summary>Walled in on every side: building pieces within 32 m in all 8 directions, at about knee height.</summary>
+        // A bank of earth counts as a wall too (Tim's pen is a terrace cut below the base: its boars inside read as out, as
+        // the lines to the bank met no building): ground rising this much above the animal within TerrainReach.
+        private const float TerrainReach = 12f;
+        private const float TerrainWall = 1.2f;
+        private static readonly int TerrainMask = LayerMask.GetMask("terrain");
+
+        /// <summary>
+        /// Walled in on every side: in all 8 directions, at about knee height, a building piece within 32 m or a steep bank
+        /// of ground (1.2 m up) within 12 m.
+        /// </summary>
         public static bool Enclosed(Vector3 at)
         {
             Vector3 from = at + Vector3.up * 0.5f;
             for (int i = 0; i < 8; i++)
-                if (!Physics.Raycast(from, Quaternion.Euler(0f, i * 45f, 0f) * Vector3.forward, PenReach, PenMask, QueryTriggerInteraction.Ignore))
-                    return false;
+            {
+                Vector3 dir = Quaternion.Euler(0f, i * 45f, 0f) * Vector3.forward;
+                if (Physics.Raycast(from, dir, PenReach, PenMask, QueryTriggerInteraction.Ignore))
+                    continue;
+                if (Physics.Raycast(from, dir, out RaycastHit bank, TerrainReach, TerrainMask, QueryTriggerInteraction.Ignore) &&
+                    ZoneSystem.instance != null && ZoneSystem.instance.GetGroundHeight(bank.point + dir * 0.6f) >= at.y + TerrainWall)
+                    continue;
+                return false;
+            }
             return true;
         }
 
