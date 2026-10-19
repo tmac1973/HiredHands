@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.12.4
+
+Works alongside 0.12.x, but update the server and players together before building Pen signs: a game without 0.12.4
+doesn't know the sign.
+
+- **The Pen sign:** build one in each animal pen (hammer, Misc, 2 Wood; E wider, Shift+E narrower). The Rancher's animals
+  inside its circle are in the pen, anywhere else they're out, so a pen on a terrace dug below the base, an odd-shaped
+  pen, or a walled basement nearby is no longer guessed wrong. Set the circle to reach the middle of the walls: an animal
+  a little past it that's walled in all round counts too (a square pen's corners). Without a sign, a steep bank of earth
+  now counts as a pen wall.
+- **Herder fetches escaped animals:** a Rancher with Herder walks to an animal that's out of its pen and leads it back
+  in, waiting when it lags and going back for it if it wanders off; doors wait for it.
+- **Farmers:** a posted Farmer plans its planting round its post (its planting jobs kept failing); crops growing outside
+  its area no longer count as on their way; spare seeds come in one batch of at least half the reserve; and a worker
+  leaves a target behind a door marked against it at once (mushrooms in a Rancher-only pen) instead of trying again and
+  again.
+
 ## 0.12.3
 
 Works alongside 0.12.x; update the server and players when it suits you (until then, a game on an older version sees a
