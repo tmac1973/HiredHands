@@ -19,7 +19,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 
 ### To test (batch)
 - [x] Unit test `SparesComeInABatchOfHalfTheReserve` (287 pass).
-- [ ] Rows VFH-PEN-1 (fixture `pen_sign`), VFH-HERD-1, VFH-POST-W3, VFH-BARRED-1; farm rows; POST-W1/W2; DOOR-5/6, NAVLINK rows; Steward chore rows (the barred check runs for every chore loop).
+- [x] Rows VFH-PEN-1 (fixture `pen_sign`; a boar past a 4 m circle but walled in counts as in), VFH-HERD-1 (a level 4 Herder Rancher fetches a boar moved out of its signed pen and leads it back), VFH-POST-W3 (a posted Farmer plants round its post), VFH-BARRED-1 (a bush inside a Rancher-only house is left alone at once) pass, with the farm, Rancher-only chest, posted worker, door, pen, NAVLINK and every Steward chore row (2026-10-18). Fixes along the way: an unknown reach (the map still asking) now leaves the target 5 s instead of taking the job; rows had wrong picks string, a crop order met by 3x yields, a bush within reach through the wall, a scan race, and a Problems check before the Rancher's next survey. Note: a worker picks within 3 m, through a wall.
 - [ ] By hand on the server: build a Pen sign in the terrace pen (circle over the pen); Ingrid (Herder) fetches the boar from the basement and leads it back.
 - [ ] By hand on the server: Ingrid's Problems list no longer counts the boars in the terrace pen as out (12 boars: 5 adults, 7 piglets on 2026-10-17; one adult was at about 615, -7).
 - [ ] By hand on the server: Grima plants again; if onions still don't move, read `farm.plan` in HiredHands.log (DebugCategories Work).

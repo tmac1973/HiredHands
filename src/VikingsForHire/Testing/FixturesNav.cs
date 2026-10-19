@@ -95,6 +95,9 @@ namespace VikingsForHire.Testing
         // step is 1.05 m up (two flights make a 2 m storey, as in the game), the stepladder's top plank 2.05 m.
         private const float StoreyRise = 1.8f;
 
+        /// <summary>A spot in the middle of the last house's ground floor.</summary>
+        internal static Vector3? LastHouseInside;
+
         private static IEnumerator House(string[] args, string stairPrefab)
         {
             string tag = args.ElementAtOrDefault(0) ?? "H";
@@ -107,6 +110,7 @@ namespace VikingsForHire.Testing
             // at their foot inside the door.
             Vector3 c = board.transform.position - board.transform.right * 13f;
             float ground = ZoneSystem.instance.GetGroundHeight(c);
+            LastHouseInside = new Vector3(c.x, ground, c.z); // the middle: out of reach through any wall
 
             // Walls like the room fixture's; the middle of the side facing the board is the door.
             for (int i = -1; i <= 1; i++)

@@ -412,8 +412,13 @@ namespace VikingsForHire.Hirelings
         /// Shut away from it by a door marked against it (a Rancher-only pen, for anyone else): no walking path, and no route
         /// through the base's doors and stairs it may use. False when there's no such door, or the map doesn't know yet.
         /// </summary>
-        public bool BarredByMarkedDoor(Vector3 point) =>
-            Nav.NavLinkRegistry.Enabled && Links.MarkedDoorAgainst(point) && !HavePath(point) && Links.ReachKnown(point) == false;
+        public bool? BarredByMarkedDoor(Vector3 point)
+        {
+            if (!Nav.NavLinkRegistry.Enabled || !Links.MarkedDoorAgainst(point) || HavePath(point))
+                return false;
+            bool? reach = Links.ReachKnown(point);
+            return reach == null ? null : !reach.Value; // null: the map is still working it out
+        }
 
         private Nav.LinkNavigator? _links;
 

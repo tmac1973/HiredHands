@@ -189,10 +189,13 @@ namespace VikingsForHire.Hirelings.Work.Chores
             }
             // Behind a door marked against it (mushrooms in the Rancher's pen, for the Farmer): leave it for a while and look
             // again at once, rather than walking up to the shut door and failing three times over.
-            if (best.Job.Target != null && h.Ai.BarredByMarkedDoor(best.Job.Target.transform.position))
+            // Not known yet (the map is asking): leave it a few seconds and do something else meanwhile.
+            if (best.Job.Target != null && h.Ai.BarredByMarkedDoor(best.Job.Target.transform.position) is not false)
             {
-                Reservations.Skip(best.Job.Target, BarredSkipSeconds);
-                VfhLog.I(_cat, $"{_log}.barred", ("hid", h.Hid), ("kind", best.Job.Kind), ("target", TargetName(best.Job)), ("at", best.Job.Target.transform.position));
+                bool barred = h.Ai.BarredByMarkedDoor(best.Job.Target.transform.position) == true;
+                Reservations.Skip(best.Job.Target, barred ? BarredSkipSeconds : 5f);
+                if (barred)
+                    VfhLog.I(_cat, $"{_log}.barred", ("hid", h.Hid), ("kind", best.Job.Kind), ("target", TargetName(best.Job)), ("at", best.Job.Target.transform.position));
                 _nextSurvey = Time.time;
                 return;
             }

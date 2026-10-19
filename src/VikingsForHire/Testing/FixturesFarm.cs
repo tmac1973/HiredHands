@@ -26,7 +26,7 @@ namespace VikingsForHire.Testing
         {
             Fixtures.Add("field", "<w> <h> [tag] - cultivate a w x h m patch 8 m in front of the nearest board (the cultivator's paint)", Field);
             Fixtures.Add("crop", "<sapling> <n> [ripe] [tag] - plant n of a crop in a row on the field (ripe: the grown crop instead); the first gets the tag", Crop);
-            Fixtures.Add("bush", "<pickable> [tag] [at TAG] - a ripe regrowing plant (RaspberryBush…) at the field's edge, or beside a tagged object", Bush);
+            Fixtures.Add("bush", "<pickable> [tag] [at TAG|in_house] - a ripe regrowing plant (RaspberryBush…) at the field's edge, beside a tagged object, or inside the last house fixture", Bush);
             Fixtures.Add("piece", "<prefab> <x> <z> <height> - a piece at an offset (m, along the rows / across) from the field's centre, that high off the ground", PlacePiece);
             Fixtures.Add("tree_patch", "<radius> [kind|any] [tag] [distance=20] - a tree patch sign that far in front of the nearest board (kind: a sapling prefab, e.g. Beech_Sapling)", TreePatchFixture);
             TestHarness.RegisterCheck("patch_saplings", "<tag> - saplings inside a tagged tree patch", args => Patch(args).Count().Saplings.ToString(CultureInfo.InvariantCulture));
@@ -232,6 +232,11 @@ namespace VikingsForHire.Testing
         private static IEnumerator Bush(string[] args)
         {
             Vector3? at = FixturesWork.AtTag(ref args, 0.5f);
+            if (args.Contains("in_house"))
+            {
+                at = FixturesNav.LastHouseInside ?? throw new InvalidOperationException("no house built yet");
+                args = args.Where(a => a != "in_house").ToArray();
+            }
             string prefab = args.ElementAtOrDefault(0) ?? "RaspberryBush";
             string tag = args.ElementAtOrDefault(1) ?? "";
             Vector3 p = at ?? _fieldCenter + _fieldRow * (_fieldW / 2f + 2f);
