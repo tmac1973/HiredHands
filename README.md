@@ -40,8 +40,8 @@ More in [Getting started](https://tmac1973.github.io/HiredHands/getting-started/
 
 | Job | Does | Board level |
 |---|---|---|
-| Woodcutter | Fells trees and clears logs; plants tree patches | 1 |
-| Miner | Mines ore, rocks and boulders, never near your buildings | 2 |
+| [Woodcutter](https://tmac1973.github.io/HiredHands/woodcutter-miner/) | Fells trees and clears logs; plants tree patches | 1 |
+| [Miner](https://tmac1973.github.io/HiredHands/woodcutter-miner/) | Mines ore, rocks and boulders, never near your buildings | 2 |
 | [Steward](https://tmac1973.github.io/HiredHands/steward/) | Fires, beehives, smelters, mills, repairs, fermenters, the board's food | 1 |
 | [Farmer](https://tmac1973.github.io/HiredHands/farmer-cook/) | Plants and harvests your field to the board's orders | 2 |
 | [Cook](https://tmac1973.github.io/HiredHands/farmer-cook/) | Spits, oven, cauldron, prep table, mead ketill, to the board's orders | 2 |
@@ -54,8 +54,10 @@ Each hireling picks one of two [enhancements](https://tmac1973.github.io/HiredHa
 ## Documentation
 
 - [Getting started](https://tmac1973.github.io/HiredHands/getting-started/)
-- [Jobs and chests](https://tmac1973.github.io/HiredHands/jobs/)
-- [The Steward](https://tmac1973.github.io/HiredHands/steward/) ·
+- [Jobs and chests](https://tmac1973.github.io/HiredHands/jobs/) ·
+  [Enhancements](https://tmac1973.github.io/HiredHands/enhancements/)
+- [The Woodcutter and the Miner](https://tmac1973.github.io/HiredHands/woodcutter-miner/) ·
+  [The Steward](https://tmac1973.github.io/HiredHands/steward/) ·
   [The Farmer and the Cook](https://tmac1973.github.io/HiredHands/farmer-cook/) ·
   [The Rancher](https://tmac1973.github.io/HiredHands/rancher/)
 - [Fighting and wizards](https://tmac1973.github.io/HiredHands/combat/)
