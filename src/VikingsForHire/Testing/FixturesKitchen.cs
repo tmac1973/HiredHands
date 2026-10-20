@@ -49,7 +49,7 @@ namespace VikingsForHire.Testing
 
         public static void Register()
         {
-            Fixtures.Add("stove", "<prefab> [lit] [hearth] [fuel <n>] [tag] - a cooking station over a campfire, or up on a hearth (lit: fuelled), or an oven with n wood (default 5), beside the nearest board", Stove);
+            Fixtures.Add("stove", "<prefab> [lit] [hearth|on_stone] [fuel <n>] [tag] - a cooking station over a campfire, or up on a hearth (lit: fuelled), or an oven with n wood (default 5), beside the nearest board", Stove);
             Fixtures.Add("craftstation", "<prefab> [level] [tag] - a cauldron or mead ketill over a lit campfire, or a prep table, beside the nearest board; level adds that many of its extensions", CraftStation);
             Fixtures.Add("chest_stack", "<tag> [count=3] - wooden chests stacked in a column 6 m from the board, the top one tagged (drawers stacked on drawers)", ChestStack);
             Fixtures.Add("floor_over", "<tag> [height=2] [newtag=F] - a wood floor piece over a tagged object, that high above its base (an upper storey)", FloorOver);
@@ -123,6 +123,7 @@ namespace VikingsForHire.Testing
             var rest = args.Skip(1).ToList();
             bool lit = rest.Remove("lit");
             bool hearth = rest.Remove("hearth");
+            bool onStone = rest.Remove("on_stone");
             float fuel = 5f;
             int fi = rest.IndexOf("fuel");
             if (fi >= 0 && fi + 1 < rest.Count)
@@ -133,6 +134,21 @@ namespace VikingsForHire.Testing
             string tag = rest.LastOrDefault() ?? "";
             Vector3 p = NextSpot();
             GameObject? hearthGo = null;
+            if (onStone)
+            {
+                // A campfire on a waist-high block of stone with the spit over it (Tim's second server's kitchen).
+                GameObject stone = FixturesWork.Spawn("stone_wall_1x1", p, "");
+                FixturesWork.OwnBuilt(stone);
+                yield return null;
+                float stoneTop = stone.GetComponentsInChildren<Collider>().Where(c => !c.isTrigger).Select(c => c.bounds.max.y).DefaultIfEmpty(p.y).Max();
+                p = new Vector3(p.x, stoneTop, p.z);
+                GameObject campfire = FixturesWork.Spawn("fire_pit", p, "");
+                campfire.transform.position = p;
+                campfire.GetComponent<ZNetView>().GetZDO().SetPosition(p);
+                FixturesWork.OwnBuilt(campfire);
+                if (lit && campfire.GetComponent<Fireplace>() is Fireplace cf)
+                    cf.m_nview.GetZDO().Set(ZDOVars.s_fuel, cf.m_maxFuel);
+            }
             if (hearth)
             {
                 // Up on a hearth, as people build kitchens (Svanhild's spits were 2.2 m above her floor).
@@ -145,7 +161,7 @@ namespace VikingsForHire.Testing
                 p = new Vector3(p.x, top, p.z);
             }
             GameObject go = FixturesWork.Spawn(prefab, p, tag);
-            if (hearth)
+            if (hearth || onStone)
             {
                 go.transform.position = p;
                 go.GetComponent<ZNetView>().GetZDO().SetPosition(p);
@@ -154,14 +170,14 @@ namespace VikingsForHire.Testing
             CookingStation s = go.GetComponentInChildren<CookingStation>();
             if (s != null && s.m_useFuel)
                 s.m_nview.GetZDO().Set(ZDOVars.s_fuel, fuel);
-            if (s != null && s.m_requireFire && !hearth)
+            if (s != null && s.m_requireFire && !hearth && !onStone)
             {
                 GameObject fire = FixturesWork.Spawn("fire_pit", p, "");
                 FixturesWork.OwnBuilt(fire);
                 if (lit && fire.GetComponent<Fireplace>() is Fireplace f)
                     f.m_nview.GetZDO().Set(ZDOVars.s_fuel, f.m_maxFuel);
             }
-            VfhLog.I(LogCat.Test, "fixture.stove", ("prefab", prefab), ("lit", lit), ("fuel", fuel), ("tag", tag), ("hearth", hearth), ("at", p));
+            VfhLog.I(LogCat.Test, "fixture.stove", ("prefab", prefab), ("lit", lit), ("fuel", fuel), ("tag", tag), ("hearth", hearth), ("onStone", onStone), ("at", p));
             yield return new WaitForSeconds(1f);
         }
 

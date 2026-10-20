@@ -227,9 +227,9 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 Piece? piece = hit.collider.GetComponentInParent<Piece>();
                 if (piece == null || piece == own)
                     continue;
-                // The fire under a spit or cauldron isn't in the way: a player reaches a spit up on a hearth from the floor
-                // (Svanhild couldn't, and the meat burned).
-                if (overFire && piece.GetComponent<Fireplace>() != null)
+                // What a spit or cauldron stands on isn't in the way (its fire, the stone that fire sits on): a player reaches
+                // a spit over a campfire on a waist-high stone from the floor; Svanhild couldn't, and the meat burned.
+                if (overFire && (piece.GetComponent<Fireplace>() != null || hit.collider.bounds.max.y <= obj.transform.position.y + 0.3f))
                     continue;
                 if (overLow && hit.collider.bounds.max.y < eye.y - 0.2f)
                     continue;
