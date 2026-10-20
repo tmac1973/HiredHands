@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.12.6
+
+Works alongside 0.12.x; update the server and players when it suits you.
+
+- **Cooks clear every spit before putting food away:** with several spits over one fire, the Cook took the meat off the
+  first and went to store it while the rest burned. Now it keeps taking food off while any stove has some cooked (or
+  nearly), then carries it all away together.
+- **The board's drop pile isn't behind a wall:** the pile for what no chest takes was always just in front of the
+  board, which for a board set facing a wall meant the other side of it; workers stood stuck trying to get there. It now
+  goes on a side of the board with nothing built in between, and a worker drops it there from a few metres off rather
+  than shuffling about for a minute.
+
 ## 0.12.5
 
 Works alongside 0.12.x; update the server and players when it suits you.
