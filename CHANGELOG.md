@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.12.7
+
+Works alongside 0.12.x; update the server and players when it suits you (the fixes run on whoever has the base loaded).
+
+- **Food doesn't burn while you're away:** spits and ovens catch up on missed time when their area loads again, so a
+  kitchen left while nobody was about came back as coal. In a Cook's area the catch-up now stops each item at done; the
+  Cook takes it off when it's back.
+- **Miners take ore showing in the wall of a hole:** dig down beside a vein and a miner standing by the exposed ore mines
+  it, however deep. A miner's own swings only dig the ground when it's digging down to buried ore, so it no longer digs
+  deeper than it should.
+- **Idle hirelings stay on the board's side of a wall:** with a board set by a wall, hirelings with nothing to do stood
+  about on the far side of it. Spots with nothing built between them and the board come first now.
+- **Penned animals don't read as escaped:** an animal pressed against its pen's wall (low walls especially) could be taken
+  for out of the pen, so the Rancher's Problems list said "escaped" instead of what was really wrong. And a Pen sign's
+  pen now takes in animals walled in up to twice its circle, so the corners count even with the circle set a little
+  short of the walls.
+
 ## 0.12.6
 
 Works alongside 0.12.x; update the server and players when it suits you.

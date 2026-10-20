@@ -3,7 +3,7 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## Next (not packaged yet)
+## 0.12.7 (packaged 2026-10-20, branch `cook-away`): food doesn't burn while you're away, miners take ore in a hole's wall, idle spots by a wall, penned animals don't read as escaped
 
 ### Fixed or added
 | Commit | What | Where it runs |
