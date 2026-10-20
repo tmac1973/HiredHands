@@ -46,6 +46,10 @@ namespace VikingsForHire.Hirelings.Work
         private const float Reach = 2.5f;
         private const float GiveUpSeconds = 25f;
         private const float UnreachableSeconds = 300f;
+        // The board's pile: close enough on the flat (it's half a metre up, in front of the board, maybe behind a wall), and
+        // not long stuck short of it. Svanhild stood 3 m from it for over a minute while her other spits burned.
+        private const float PileReach = 4f;
+        private const float PileGiveUpSeconds = 10f;
         private readonly Dictionary<string, float> _unreachable = new();
         private const float ReplanSeconds = 3f;
 
@@ -125,7 +129,7 @@ namespace VikingsForHire.Hirelings.Work
             // Nothing fits in any chest: leave it in front of the board (or here if the board isn't loaded).
             HiringBoard? board = HiringBoard.Loaded.Find(b => b != null && b.Id == h.BoardId);
             Vector3 pile = board != null ? DropPile.Position(board) : ai.transform.position;
-            if (board != null && Vector3.Distance(ai.transform.position, pile) > Reach && ai.StuckSeconds(pile) < GiveUpSeconds)
+            if (board != null && Utils.DistanceXZ(ai.transform.position, pile) > PileReach && ai.StuckSeconds(pile) < PileGiveUpSeconds)
             {
                 h.SetActivity("$vfh_status_dropping_at_board");
                 ai.WalkTo(dt, pile, Reach * 0.8f, run: false);
