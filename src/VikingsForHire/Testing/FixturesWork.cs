@@ -276,6 +276,18 @@ namespace VikingsForHire.Testing
                     ? (inv.GetWidth() * inv.GetHeight() - inv.NrOfItems()).ToString()
                     : inv.GetAllItems().Where(i => i.m_dropPrefab != null && i.m_dropPrefab.name == what).Sum(i => i.m_stack).ToString();
             });
+            Fixtures.Add("wall_front", "<dist=1.5> - a wood wall across the front of the nearest board, that far from it (as a board put up against a wall)", args =>
+            {
+                HiringBoard board = Board();
+                float dist = float.Parse(args.ElementAtOrDefault(0) ?? "1.5", CultureInfo.InvariantCulture);
+                Vector3 pos = board.transform.position + board.transform.forward * dist;
+                pos.y = ZoneSystem.instance.GetGroundHeight(pos);
+                GameObject wall = FixturesBoard.Spawn("woodwall", pos, Quaternion.LookRotation(board.transform.forward));
+                wall.GetComponent<ZNetView>().GetZDO().Set(TagKey, "pilewall");
+                return Wait(0.3f);
+            });
+            TestHarness.RegisterCheck("pile_clear", "- nothing built between the nearest board and its drop pile spot", _ =>
+                DropPile.Clear(Board()) ? "true" : "false");
             TestHarness.RegisterCheck("drop_pile", "<item> - how many of an item lie in the drop pile in front of the nearest board", args =>
             {
                 HiringBoard board = Board();

@@ -10,9 +10,10 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 |---|---|---|
 | (cook-triple branch) | Svanhild still burned food on 0.12.5: with three spits over one campfire she took the meat off the first, went to put it away (75 s: no chest had room for cooked deer meat, so it went to the board's pile) and the other two burned. A Cook now holds its deliveries while a stove in its area has food cooked or due within 90 s, so it clears the spits first and carries it all away together (a full cargo still goes) | the game simulating the Cook |
 | (same branch) | Her 75 s was spent stuck short of the board's pile (half a metre up, in front of the board, 3 m away behind something): a worker with nothing a chest takes now drops at the pile from within 4 m on the flat, or after 10 s without getting closer (it was 2.5 m, straight-line, and 25 s since the last bit of progress) | the game simulating the worker |
+| (same branch) | Why she couldn't reach it: her board stands by a wall, front towards it, and the pile spot (2.5 m in front) was on the far side of the wall. The pile now goes on a side with nothing built between it and the board: in front, else behind, else either side. Row VFH-PILE-1 (`wall_front`, check `pile_clear`) | everyone delivering to the pile |
 
 ### To test (batch)
-- [ ] Row VFH-COOK-TRIPLE (`stove ... triple`); cook rows.
+- [ ] Rows VFH-COOK-TRIPLE (`stove ... triple`), VFH-PILE-1; cook rows; delivery rows (DELIVER-*, overflow to the pile).
 - [ ] By hand on the second server: Svanhild takes the meat off all three spits before walking off; give cooked deer meat a chest (none had room).
 
 ## 0.12.5 (packaged 2026-10-19, branch `cook-hearth`): Cooks work raised spits from the floor (new cook rows pass; other rows not run)
