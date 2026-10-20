@@ -13,7 +13,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | (same branch) | Why she couldn't reach it: her board stands by a wall, front towards it, and the pile spot (2.5 m in front) was on the far side of the wall. The pile now goes on a side with nothing built between it and the board: in front, else behind, else either side. Row VFH-PILE-1 (`wall_front`, check `pile_clear`) | everyone delivering to the pile |
 
 ### To test (batch)
-- [ ] Rows VFH-COOK-TRIPLE (`stove ... triple`), VFH-PILE-1; cook rows; delivery rows (DELIVER-*, overflow to the pile).
+- [x] Rows VFH-COOK-TRIPLE (`stove ... triple`), VFH-PILE-1, every cook row (COOK-1..9, HEARTH, STONE), STORE-1/2, DLV-1/2, CARGO-W, WORK-1 pass (2026-10-19; the dev game crashed once in Unity's native code mid-run, restarted).
 - [ ] By hand on the second server: Svanhild takes the meat off all three spits before walking off; give cooked deer meat a chest (none had room).
 
 ## 0.12.5 (packaged 2026-10-19, branch `cook-hearth`): Cooks work raised spits from the floor (new cook rows pass; other rows not run)
