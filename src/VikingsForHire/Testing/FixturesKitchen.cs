@@ -49,6 +49,8 @@ namespace VikingsForHire.Testing
 
         public static void Register()
         {
+            TestHarness.RegisterCheck("no_spot", "<prefab> - times workers found no usable spot to work a prefab from, since login", args =>
+                (Hirelings.Work.Chores.WorkSteps.NoSpot.TryGetValue(args.ElementAtOrDefault(0) ?? "", out int n) ? n : 0).ToString(CultureInfo.InvariantCulture));
             Fixtures.Add("stove", "<prefab> [lit] [hearth|on_stone] [fuel <n>] [tag] - a cooking station over a campfire, or up on a hearth (lit: fuelled), or an oven with n wood (default 5), beside the nearest board", Stove);
             Fixtures.Add("craftstation", "<prefab> [level] [tag] - a cauldron or mead ketill over a lit campfire, or a prep table, beside the nearest board; level adds that many of its extensions", CraftStation);
             Fixtures.Add("chest_stack", "<tag> [count=3] - wooden chests stacked in a column 6 m from the board, the top one tagged (drawers stacked on drawers)", ChestStack);
@@ -137,10 +139,28 @@ namespace VikingsForHire.Testing
             if (onStone)
             {
                 // A campfire on a waist-high block of stone with the spit over it (Tim's second server's kitchen).
-                GameObject stone = FixturesWork.Spawn("stone_wall_1x1", p, "");
-                FixturesWork.OwnBuilt(stone);
-                yield return null;
-                float stoneTop = stone.GetComponentsInChildren<Collider>().Where(c => !c.isTrigger).Select(c => c.bounds.max.y).DefaultIfEmpty(p.y).Max();
+                // A 4 x 4 m platform of 2 x 2 m stone floors, stacked until it's about 2 m high: wider than the ring of spots
+                // round the spit, so the old pick sent the Cook up onto it (Svanhild, 2.2 m below her spot).
+                float stoneTop = p.y;
+                for (int layer = 0; layer < 4 && stoneTop - p.y < 1.8f; layer++)
+                {
+                    float layerTop = stoneTop;
+                    foreach (Vector3 off in new[] { new Vector3(-1f, 0f, -1f), new Vector3(1f, 0f, -1f), new Vector3(-1f, 0f, 1f), new Vector3(1f, 0f, 1f) })
+                    {
+                        GameObject stone = FixturesWork.Spawn("stone_floor_2x2", new Vector3(p.x, stoneTop, p.z) + off, "");
+                        FixturesWork.OwnBuilt(stone);
+                        if (stone.GetComponent<WearNTear>() is WearNTear wear)
+                            wear.enabled = false;
+                        yield return null;
+                        Bounds b = stone.GetComponentsInChildren<Collider>().Where(c => !c.isTrigger).Select(c => c.bounds)
+                            .Aggregate((x, y) => { x.Encapsulate(y); return x; });
+                        Vector3 lifted = stone.transform.position + Vector3.up * (stoneTop - b.min.y);
+                        stone.transform.position = lifted;
+                        stone.GetComponent<ZNetView>().GetZDO().SetPosition(lifted);
+                        layerTop = Mathf.Max(layerTop, stoneTop + b.size.y);
+                    }
+                    stoneTop = layerTop;
+                }
                 p = new Vector3(p.x, stoneTop, p.z);
                 GameObject campfire = FixturesWork.Spawn("fire_pit", p, "");
                 campfire.transform.position = p;

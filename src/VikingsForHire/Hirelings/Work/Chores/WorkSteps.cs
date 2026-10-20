@@ -40,6 +40,9 @@ namespace VikingsForHire.Hirelings.Work.Chores
         /// (a switch or a chest): the target itself is inside the object, where the pathfinder can't go. True when close
         /// enough to use it.
         /// </summary>
+        /// <summary>Times no usable spot to work from was found, by prefab (tests).</summary>
+        public static readonly Dictionary<string, int> NoSpot = new();
+
         public bool Approach(HirelingAI ai, float dt, Component obj, Vector3 target, float reach = PlayerReach)
         {
             float half = Footprint(obj);
@@ -70,6 +73,8 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 _spotTarget = target;
                 _spotAt = Time.time;
                 _spot = PickSpot(ai, obj, target, half, reach, out _spotReachable);
+                if (!_spotReachable)
+                    NoSpot[Utils.GetPrefabName(obj.gameObject)] = (NoSpot.TryGetValue(Utils.GetPrefabName(obj.gameObject), out int ns) ? ns : 0) + 1;
                 if (!_spotReachable && Time.time - _noSpotLoggedAt > 10f)
                 {
                     _noSpotLoggedAt = Time.time;
@@ -117,7 +122,10 @@ namespace VikingsForHire.Hirelings.Work.Chores
             away.y = 0f;
             Vector3 facing = away.sqrMagnitude > 0.01f ? away.normalized : obj.transform.forward;
             // Around a creature, further rings too: standing outside its pen's fence, reaching over it.
-            float[] rings = IsCreature(obj) ? new[] { half + 1f, half + 1.8f, half + 2.5f } : new[] { half + 1f };
+            // A spit or cauldron, further out too: up on a wide stone or hearth, the near ring is all on top of it (Svanhild).
+            bool station = obj.GetComponentInParent<CookingStation>() != null || obj.GetComponentInParent<CraftingStation>() != null;
+            float[] rings = IsCreature(obj) ? new[] { half + 1f, half + 1.8f, half + 2.5f }
+                : station ? new[] { half + 1f, half + 1.8f, half + 2.6f } : new[] { half + 1f };
             var spots = rings.SelectMany(r => Enumerable.Range(0, 8).Select(i => target + Quaternion.Euler(0f, i * 45f, 0f) * facing * r)).ToList();
             Vector3? closer = null;
             // Around a creature: first a spot it can walk to without a door (outside its pen, reaching over the fence);
