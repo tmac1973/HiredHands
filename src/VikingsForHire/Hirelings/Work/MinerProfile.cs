@@ -280,7 +280,23 @@ namespace VikingsForHire.Hirelings.Work
             float ground = ZoneSystem.instance.GetGroundHeight(b.center);
             // Open to the sky lifts only "buried", never "too high to reach" (the top of a tall copper rock is open to the
             // sky too, and a miner swung at it from below for minutes).
-            return (b.max.y > ground - BuriedBelow || OpenToTheSky(c)) && b.min.y < ground + ReachAbove;
+            return (b.max.y > ground - BuriedBelow || OpenToTheSky(c) || OpenToTheSide(c)) && b.min.y < ground + ReachAbove;
+        }
+
+        // A chunk showing in the wall of a hole dug beside it: just past one of its sides the ground is below its middle and
+        // nothing solid is there (not earth, not another chunk). Tim dug down beside a copper vein and stood by the ore with
+        // his miner, who still took it for buried: there's earth straight above it, and the ground height above it is the
+        // hole's rim.
+        private static bool OpenToTheSide(Collider c)
+        {
+            Bounds b = c.bounds;
+            foreach (Vector3 dir in new[] { Vector3.right, Vector3.left, Vector3.forward, Vector3.back })
+            {
+                Vector3 p = b.center + dir * ((dir.x != 0f ? b.extents.x : b.extents.z) + 0.4f);
+                if (ZoneSystem.instance.GetGroundHeight(p) < b.center.y - 0.1f && !Physics.CheckSphere(p, 0.2f, SkyMask, QueryTriggerInteraction.Ignore))
+                    return true;
+            }
+            return false;
         }
 
         private static readonly int SkyMask = LayerMask.GetMask("terrain", "static_solid", "Default", "Default_small", "piece");
