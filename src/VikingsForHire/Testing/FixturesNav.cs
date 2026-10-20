@@ -34,7 +34,7 @@ namespace VikingsForHire.Testing
             });
             Fixtures.Add("stair_probe", "<prefab> - place a piece 5 m ahead at turns of 0-165 degrees and log what the stair scan's sampler reads at each (then remove it)", StairProbe);
             Fixtures.Add("remove_piece", "<tag> - deconstruct a tagged piece (as a player with the hammer)", RemovePiece);
-            Fixtures.Add("flatten", "<radius=22> - level the ground around you to the height under your feet and remove rocks, trees, bushes and stumps there (test worlds only)", Flatten);
+            Fixtures.Add("flatten", "<radius=22> [height] - level the ground (to that height, else around you to the height under your feet and remove rocks, trees, bushes and stumps there (test worlds only)", Flatten);
             Fixtures.Add("roof_over", "<prefab> [walls] - a thatch roof (3x3 wood_roof pieces), and with walls three sides of walls stacked up to the roof (the east open), over the nearest such station, e.g. a spinning wheel, which only works under a roof", RoofOver);
             Fixtures.Add("nav_links", "<on|off> - turn BaseNavLinks on or off here (single player only; end the macro with nav_links on)", NavLinks);
             Fixtures.Add("pass_test", "<length=12> <width=1.4> - a walled corridor beside the nearest board with a woodcutter at each end, each sent to the other end", PassTest);
@@ -350,7 +350,8 @@ namespace VikingsForHire.Testing
         {
             float radius = args.Length > 0 ? float.Parse(args[0], CultureInfo.InvariantCulture) : 22f;
             Vector3 c = Player.m_localPlayer.transform.position;
-            c.y = ZoneSystem.instance.GetGroundHeight(c);
+            // An optional height to level to (to put the ground back after a test dug it down); else the ground underfoot.
+            c.y = args.Length > 1 ? float.Parse(args[1], CultureInfo.InvariantCulture) : ZoneSystem.instance.GetGroundHeight(c);
             // Clutter first, so nothing ends up buried or floating.
             int removed = 0;
             foreach (ZNetView v in ZNetScene.instance.m_instances.Values.ToList())

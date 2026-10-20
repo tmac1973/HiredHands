@@ -21,7 +21,6 @@ namespace VikingsForHire.Testing
         {
             Fixtures.Add("deposits", "<prefab> <n> <distance> [tag] - place rocks/deposits in a ring that far behind the nearest board", Deposits);
             Fixtures.Add("crack", "<tag> - break a tagged deposit open and chip its highest chunk, so it counts as found (miners leave buried deposits nobody has broken into alone)", Crack);
-            Fixtures.Add("dig_pit", "<depth> [radius=2.5] - dig the ground where you stand down that many metres, with the pickaxe's own dig (you end up in the hole)", DigPit);
             Fixtures.Add("bury", "<tag> <depth> - move a tagged rock/deposit down so its top is that many metres under the ground", Bury);
             Fixtures.Add("terrain_baseline", "- remember how many terrain edits there are around the nearest board", TerrainBaseline);
 
@@ -73,34 +72,6 @@ namespace VikingsForHire.Testing
                 VfhLog.I(LogCat.Test, "fixture.deposit", ("i", i), ("prefab", prefab), ("pos", go.transform.position), ("tag", tag));
             }
             yield return new WaitForSeconds(0.5f);
-        }
-
-        private static IEnumerator DigPit(string[] args)
-        {
-            float depth = float.Parse(args.ElementAtOrDefault(0) ?? "3", CultureInfo.InvariantCulture);
-            float radius = float.Parse(args.ElementAtOrDefault(1) ?? "2.5", CultureInfo.InvariantCulture);
-            GameObject op = new[] { "digg_v3", "digg_v2", "digg" }.Select(n => ZNetScene.instance.GetPrefab(n)).FirstOrDefault(g => g != null)
-                            ?? throw new InvalidOperationException("no dig terrain op prefab");
-            Vector3 c = Player.m_localPlayer.transform.position;
-            float target = ZoneSystem.instance.GetGroundHeight(c) - depth;
-            for (int pass = 0; pass < 40; pass++)
-            {
-                bool deeper = false;
-                for (float x = -radius; x <= radius; x += 1f)
-                    for (float z = -radius; z <= radius; z += 1f)
-                    {
-                        Vector3 p = c + new Vector3(x, 0f, z);
-                        float g = ZoneSystem.instance.GetGroundHeight(p);
-                        if (g <= target + 0.1f)
-                            continue;
-                        UnityEngine.Object.Instantiate(op, new Vector3(p.x, g, p.z), Quaternion.identity);
-                        deeper = true;
-                    }
-                yield return new WaitForSeconds(0.1f);
-                if (!deeper)
-                    break;
-            }
-            VfhLog.I(LogCat.Test, "fixture.dig_pit", ("at", c), ("depth", depth), ("floor", ZoneSystem.instance.GetGroundHeight(c)));
         }
 
         private static IEnumerator Bury(string[] args)
