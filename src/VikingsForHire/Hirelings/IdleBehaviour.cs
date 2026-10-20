@@ -65,8 +65,9 @@ namespace VikingsForHire.Hirelings
             Vector3 me = ai.transform.position;
             Vector3? best = null;
             float bestScore = float.MaxValue;
-            // Open-air ground first; for a board indoors (a hall), the board's own floor.
-            for (int pass = 0; pass < 2 && best == null; pass++)
+            // Open-air ground on the board's side of any wall first (a board by a wall had its people standing about on the
+            // far side of it); then any open-air ground; for a board indoors (a hall), the board's own floor.
+            for (int pass = 0; pass < 3 && best == null; pass++)
             {
                 float start = Random.Range(0f, 360f);
                 for (int i = 0; i < 10; i++)
@@ -74,9 +75,10 @@ namespace VikingsForHire.Hirelings
                     float angle = start + i * 36f;
                     float ring = Random.Range(MinRing, MaxRing);
                     Vector3 p = home + Quaternion.Euler(0f, angle, 0f) * Vector3.forward * ring;
-                    p.y = pass == 0 ? ZoneSystem.instance.GetGroundHeight(p) : home.y;
+                    p.y = pass < 2 ? ZoneSystem.instance.GetGroundHeight(p) : home.y;
                     // Not in the water either: a board on a cliff over the sea had its people standing about in it.
-                    if ((pass == 0 && (Covered(p) || WaterRules.Under(p, 0f))) || _failed.Exists(f => Vector3.Distance(f, p) < 1.5f) || !ai.CanReach(p))
+                    if ((pass < 2 && (Covered(p) || WaterRules.Under(p, 0f))) || (pass == 0 && WallBetween(home, p)) ||
+                        _failed.Exists(f => Vector3.Distance(f, p) < 1.5f) || !ai.CanReach(p))
                         continue;
                     // Prefer somewhere new but not far from where we stand.
                     float score = Vector3.Distance(me, p) + (_spot is Vector3 old && Vector3.Distance(old, p) < 1.5f ? 5f : 0f);
@@ -90,6 +92,19 @@ namespace VikingsForHire.Hirelings
             _spot = best;
             if (_failed.Count > 20)
                 _failed.RemoveRange(0, 10);
+        }
+
+        private static readonly int WallMask = LayerMask.GetMask("piece", "Default", "static_solid");
+
+        // Something built between the board and the spot, at chest height (from just clear of the board itself).
+        private static bool WallBetween(Vector3 home, Vector3 p)
+        {
+            Vector3 to = new(p.x, home.y + 1.2f, p.z);
+            Vector3 flat = to - new Vector3(home.x, home.y + 1.2f, home.z);
+            if (flat.sqrMagnitude < 1f)
+                return false;
+            Vector3 from = new Vector3(home.x, home.y + 1.2f, home.z) + flat.normalized * 0.8f;
+            return Physics.Linecast(from, to, WallMask, QueryTriggerInteraction.Ignore);
         }
 
         // Under a roof or floor (inside a building, under a deck): not a place to loiter.

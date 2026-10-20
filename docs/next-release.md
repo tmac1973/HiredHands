@@ -9,10 +9,11 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | Commit | What | Where it runs |
 |---|---|---|
 | (same branch) | Tim's miner, down in a hole Tim had dug beside a copper vein and standing by the ore, took it for buried ("only buried or out-of-reach chunks left"): a chunk counted as exposed only if the ground straight above it was below its top or a line from the sky reached it, and in a hole's wall there's earth above it. A chunk with open air just past one of its sides (ground there below its middle, nothing solid) now counts as exposed too. Fixture `dig_pit`; row VFH-MINE-SIDE | the game simulating the miner |
+| (same branch) | A board by a wall: idle hirelings stood about on its far side (any reachable spot 3–7 m round the board, walked round to). Idle spots with nothing built between them and the board come first now (any reachable open-air spot if there are none; the board's floor indoors as before). The drop pile already does the same since 0.12.6. Fixture `wall_front <dist> <segments>`, check `posted_behind_wall`; row VFH-IDLE-WALL | the game simulating the hireling |
 | (cook-away branch) | Svanhild's spits still came back as coal: Tim was away for a few minutes, nothing ran her (no game had the base loaded), and a spit catches up on the missed time when its area loads again (vanilla: past twice the cook time, coal). In an active Cook's area (round its post when posted), a catch-up of over 10 s now stops each item at done instead (an oven still burns the fuel for the time); the Cook takes it off when it's back. Boards found in the world data, so a spit built before its board on loading still counts. Ordinary updates are untouched: with someone about, the Cook has to be on time. Fixtures `stove_fill`, `stove_rewind`; rows VFH-COOK-AWAY, VFH-COOK-AWAY0 | whoever owns the stove when its area loads |
 
 ### To test (batch)
-- [ ] Rows VFH-COOK-AWAY (Cook hired: done, not burnt), VFH-COOK-AWAY0 (no Cook: burnt, as vanilla), VFH-MINE-SIDE; cook rows; miner rows (WORK-3, MINE-DEEP, OPEN-SKY…).
+- [ ] Rows VFH-COOK-AWAY (Cook hired: done, not burnt), VFH-COOK-AWAY0 (no Cook: burnt, as vanilla), VFH-MINE-SIDE, VFH-IDLE-WALL, VFH-PILE-1; cook rows; miner rows (WORK-3, MINE-DEEP, OPEN-SKY…).
 - [ ] By hand on the second server: load the spits, walk out of range for a few minutes, come back: cooked, not coal.
 
 ## 0.12.6 (packaged 2026-10-19, branch `cook-triple`): Cooks clear every spit first, the drop pile on the open side of the board

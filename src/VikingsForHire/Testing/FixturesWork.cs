@@ -276,15 +276,27 @@ namespace VikingsForHire.Testing
                     ? (inv.GetWidth() * inv.GetHeight() - inv.NrOfItems()).ToString()
                     : inv.GetAllItems().Where(i => i.m_dropPrefab != null && i.m_dropPrefab.name == what).Sum(i => i.m_stack).ToString();
             });
-            Fixtures.Add("wall_front", "<dist=1.5> - a wood wall across the front of the nearest board, that far from it (as a board put up against a wall)", args =>
+            Fixtures.Add("wall_front", "<dist=1.5> [segments=1] - a wood wall across the front of the nearest board, that far from it (as a board put up against a wall), 2 m per segment", args =>
             {
                 HiringBoard board = Board();
                 float dist = float.Parse(args.ElementAtOrDefault(0) ?? "1.5", CultureInfo.InvariantCulture);
-                Vector3 pos = board.transform.position + board.transform.forward * dist;
-                pos.y = ZoneSystem.instance.GetGroundHeight(pos);
-                GameObject wall = FixturesBoard.Spawn("woodwall", pos, Quaternion.LookRotation(board.transform.forward));
-                wall.GetComponent<ZNetView>().GetZDO().Set(TagKey, "pilewall");
+                int segments = int.Parse(args.ElementAtOrDefault(1) ?? "1", CultureInfo.InvariantCulture);
+                for (int i = 0; i < segments; i++)
+                {
+                    Vector3 pos = board.transform.position + board.transform.forward * dist + board.transform.right * ((i - (segments - 1) / 2f) * 2f);
+                    pos.y = ZoneSystem.instance.GetGroundHeight(pos);
+                    GameObject wall = FixturesBoard.Spawn("woodwall", pos, Quaternion.LookRotation(board.transform.forward));
+                    wall.GetComponent<ZNetView>().GetZDO().Set(TagKey, i == 0 ? "pilewall" : "");
+                }
                 return Wait(0.3f);
+            });
+            TestHarness.RegisterCheck("posted_behind_wall", "- whether something built stands between the nearest board and the hireling from your last contract", _ =>
+            {
+                HiringBoard board = Board();
+                Hirelings.Hireling h = Hirelings.Hireling.Loaded.Find(x => x != null && x.Hid == BoardContracts.LastPostedHid) ?? throw new InvalidOperationException("posted hireling not loaded");
+                Vector3 b = board.transform.position + Vector3.up * 1.2f, p = new(h.transform.position.x, b.y, h.transform.position.z);
+                Vector3 d = p - b;
+                return (d.sqrMagnitude > 1f && Physics.Linecast(b + d.normalized * 0.8f, p, LayerMask.GetMask("piece", "Default", "static_solid"))) ? "true" : "false";
             });
             TestHarness.RegisterCheck("pile_clear", "- nothing built between the nearest board and its drop pile spot", _ =>
                 DropPile.Clear(Board()) ? "true" : "false");
