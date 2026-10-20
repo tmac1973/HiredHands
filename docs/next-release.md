@@ -3,6 +3,17 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## Next (not packaged yet)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (cook-triple branch) | Svanhild still burned food on 0.12.5: with three spits over one campfire she took the meat off the first, went to put it away (75 s: no chest had room for cooked deer meat, so it went to the board's pile) and the other two burned. A Cook now holds its deliveries while a stove in its area has food cooked or due within 90 s, so it clears the spits first and carries it all away together (a full cargo still goes) | the game simulating the Cook |
+
+### To test (batch)
+- [ ] Row VFH-COOK-TRIPLE (`stove ... triple`); cook rows.
+- [ ] By hand on the second server: Svanhild takes the meat off all three spits before walking off; give cooked deer meat a chest (none had room).
+
 ## 0.12.5 (packaged 2026-10-19, branch `cook-hearth`): Cooks work raised spits from the floor (new cook rows pass; other rows not run)
 
 ### Fixed or added

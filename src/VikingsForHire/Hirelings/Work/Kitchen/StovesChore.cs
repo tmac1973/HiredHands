@@ -289,9 +289,36 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             }
         }
 
+        // Food on a stove in its area that's cooked, or will be within this long: what it carries waits.
+        private const float DueSoonSeconds = 90f;
+
+        /// <summary>
+        /// A stove in its area has food cooked or nearly so. Svanhild took the meat off one of three spits over a campfire,
+        /// went to put it away (75 s: no chest had room) and the other two spits burned.
+        /// </summary>
+        private static bool FoodDueSoon(Hireling h)
+        {
+            var pieces = new List<Piece>();
+            Piece.GetAllPiecesInRadius(h.WorkCentre, h.Radius, pieces);
+            foreach (CookingStation s in pieces.Where(p => p != null).Select(p => p.GetComponentInChildren<CookingStation>())
+                         .Where(s => s != null && s.m_nview != null && s.m_nview.IsValid() && KitchenState.Heated(s)))
+                for (int i = 0; i < s.m_slots.Length; i++)
+                {
+                    s.GetSlot(i, out string item, out float cooked, out CookingStation.Status st, out _);
+                    if (item.Length == 0 || st == CookingStation.Status.Burnt)
+                        continue;
+                    if (st == CookingStation.Status.Done)
+                        return true;
+                    CookingStation.ItemConversion? c = s.m_conversion.FirstOrDefault(x => x?.m_from != null && x.m_from.name == item);
+                    if (c != null && c.m_cookTime - cooked <= DueSoonSeconds)
+                        return true;
+                }
+            return false;
+        }
+
         private ChoreProgress End(Hireling h, float rest, ChoreProgress result = ChoreProgress.Done)
         {
-            h.HoldDeliveries = false;
+            h.HoldDeliveries = FoodDueSoon(h);
             h.FetchingSupplies = false;
             if (BoardOrders.BoardOf(h.BoardId) is HiringBoard board)
                 KitchenState.Forget(board, h.Hid);

@@ -51,7 +51,7 @@ namespace VikingsForHire.Testing
         {
             TestHarness.RegisterCheck("no_spot", "<prefab> - times workers found no usable spot to work a prefab from, since login", args =>
                 (Hirelings.Work.Chores.WorkSteps.NoSpot.TryGetValue(args.ElementAtOrDefault(0) ?? "", out int n) ? n : 0).ToString(CultureInfo.InvariantCulture));
-            Fixtures.Add("stove", "<prefab> [lit] [hearth|on_stone] [fuel <n>] [tag] - a cooking station over a campfire, or up on a hearth (lit: fuelled), or an oven with n wood (default 5), beside the nearest board", Stove);
+            Fixtures.Add("stove", "<prefab> [lit] [hearth|on_stone] [triple] [fuel <n>] [tag] - a cooking station over a campfire, or up on a hearth (lit: fuelled), or an oven with n wood (default 5), beside the nearest board", Stove);
             Fixtures.Add("craftstation", "<prefab> [level] [tag] - a cauldron or mead ketill over a lit campfire, or a prep table, beside the nearest board; level adds that many of its extensions", CraftStation);
             Fixtures.Add("chest_stack", "<tag> [count=3] - wooden chests stacked in a column 6 m from the board, the top one tagged (drawers stacked on drawers)", ChestStack);
             Fixtures.Add("floor_over", "<tag> [height=2] [newtag=F] - a wood floor piece over a tagged object, that high above its base (an upper storey)", FloorOver);
@@ -126,6 +126,7 @@ namespace VikingsForHire.Testing
             bool lit = rest.Remove("lit");
             bool hearth = rest.Remove("hearth");
             bool onStone = rest.Remove("on_stone");
+            bool triple = rest.Remove("triple");
             float fuel = 5f;
             int fi = rest.IndexOf("fuel");
             if (fi >= 0 && fi + 1 < rest.Count)
@@ -197,7 +198,18 @@ namespace VikingsForHire.Testing
                 if (lit && fire.GetComponent<Fireplace>() is Fireplace f)
                     f.m_nview.GetZDO().Set(ZDOVars.s_fuel, f.m_maxFuel);
             }
-            VfhLog.I(LogCat.Test, "fixture.stove", ("prefab", prefab), ("lit", lit), ("fuel", fuel), ("tag", tag), ("hearth", hearth), ("onStone", onStone), ("at", p));
+            // Three spits over the one fire (a common Valheim kitchen: Svanhild's): two more, turned, tagged <tag>2 and <tag>3.
+            if (triple)
+                for (int k = 2; k <= 3; k++)
+                {
+                    GameObject extra = FixturesWork.Spawn(prefab, p, tag.Length > 0 ? tag + k : "");
+                    extra.transform.position = p;
+                    extra.transform.rotation = Quaternion.Euler(0f, 60f * (k - 1), 0f);
+                    extra.GetComponent<ZNetView>().GetZDO().SetPosition(p);
+                    extra.GetComponent<ZNetView>().GetZDO().SetRotation(extra.transform.rotation);
+                    FixturesWork.OwnBuilt(extra);
+                }
+            VfhLog.I(LogCat.Test, "fixture.stove", ("prefab", prefab), ("lit", lit), ("fuel", fuel), ("tag", tag), ("hearth", hearth), ("onStone", onStone), ("triple", triple), ("at", p));
             yield return new WaitForSeconds(1f);
         }
 
