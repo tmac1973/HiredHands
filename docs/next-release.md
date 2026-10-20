@@ -3,7 +3,7 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
-## Next (not packaged yet)
+## 0.12.5 (packaged 2026-10-19, branch `cook-hearth`): Cooks work raised spits from the floor (new cook rows pass; other rows not run)
 
 ### Fixed or added
 | Commit | What | Where it runs |

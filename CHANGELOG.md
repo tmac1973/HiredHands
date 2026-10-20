@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.5
+
+Works alongside 0.12.x; update the server and players when it suits you.
+
+- **Cooks don't burn food on raised spits:** with spits over a campfire on a waist-high stone (or up on a hearth), the Cook
+  was sent to stand on top of the stone, got stuck below it and left the meat to burn. Workers now use a thing from their
+  own floor first, look for a place to stand further out round a spit or cauldron, and don't count the fire or the stone
+  it sits on as being in the way, so the Cook works the spits from the floor beside them, as you would.
+
 ## 0.12.4
 
 Works alongside 0.12.x, but update the server and players together before building Pen signs: a game without 0.12.4
