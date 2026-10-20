@@ -32,6 +32,17 @@ namespace VikingsForHire.Testing
             Fixtures.Add("base", "<radius=12> <pieces=40> - workbench and bed 6m ahead, plus a block of short posts off to the left, built by you", args => Base(args, null));
             Fixtures.Add("base_partial", "<workbench|bed|pieces> - like base but missing one requirement (pieces = only 10 posts)",
                 args => Base(new[] { "12", args.FirstOrDefault() == "pieces" ? "10" : "40" }, args.FirstOrDefault()));
+            Fixtures.Add("face", "<degrees=0> - turn to face that way (0 = north, 90 = east): fixtures build ahead of you, so a run laid out the same way each time", args =>
+            {
+                Player player = RequirePlayer();
+                float yaw = args.Length > 0 && float.TryParse(args[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float d) ? d : 0f;
+                Quaternion rot = Quaternion.Euler(0f, yaw, 0f);
+                player.m_lookYaw = rot;
+                player.transform.rotation = rot;
+                player.m_body.rotation = rot;
+                VfhLog.I(LogCat.Test, "fixture.face", ("yaw", yaw));
+                return WaitSeconds(0.5f);
+            });
             Fixtures.Add("board_here", "- place a hiring board 5m ahead through the real base check", _ => BoardHere());
             Fixtures.Add("charter_pack", "- deconstruct the nearest board as the hammer does after confirming: its hirelings are packed into a Hiring Charter you get", CharterPack);
             Fixtures.Add("charter_apply", "- the nearest board takes your best Hiring Charter, as when building a board while carrying it", CharterApply);
