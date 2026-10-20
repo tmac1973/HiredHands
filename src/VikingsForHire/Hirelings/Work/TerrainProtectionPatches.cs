@@ -11,7 +11,8 @@ namespace VikingsForHire.Hirelings.Work
     /// A pickaxe swing that hits the ground digs it through Attack.SpawnOnHitTerrain. With MinerProtectsTerrain on
     /// (the default), a hireling's swing never digs near your buildings (any player-built piece within
     /// MinerFieldDigClearance) or inside its board's work area, so miners can't leave holes in a base. Out in the field
-    /// it digs like a player's, which is how the last low chunks of a copper deposit are reached.
+    /// it digs like a player's, but only while digging down to a buried chunk: that's how the last low chunks of a copper
+    /// deposit are reached.
     /// </summary>
     internal static class TerrainProtectionPatches
     {
@@ -48,6 +49,13 @@ namespace VikingsForHire.Hirelings.Work
                     Hireling? h = Hireling.Of(character);
                     if (h == null)
                         return true;
+                    // A swing at a chunk that's already showing doesn't dig: one in the wall of a pit, below how deep
+                    // a miner may dig, had each swing at it dig the pit deeper (3.3 m against 2.5).
+                    if (!h.DiggingDown)
+                    {
+                        __result = null;
+                        return false;
+                    }
                     if (MayDig(h, hitPoint))
                     {
                         if (Time.time - _lastDugLog > 10f)

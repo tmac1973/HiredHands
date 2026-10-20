@@ -283,7 +283,8 @@ namespace VikingsForHire.Hirelings.Work
 
             ai.Halt();
             // Digging: face the dirt itself so the swing comes down into it; otherwise chest height on the target.
-            ai.Face(_aimPart != null && _profile.NeedsDigging(_aimPart) ? at : at + Vector3.up);
+            bool digging = _aimPart != null && _profile.NeedsDigging(_aimPart);
+            ai.Face(digging ? at : at + Vector3.up);
             if (_impactAt > 0f && Time.time >= _impactAt)
             {
                 _impactAt = -1f;
@@ -293,6 +294,7 @@ namespace VikingsForHire.Hirelings.Work
             {
                 _nextSwing = Time.time + SwingSeconds;
                 _impactAt = Time.time + ImpactDelay;
+                h.DiggingDown = digging;
                 h.Humanoid.StartAttack(null, false);
             }
         }
