@@ -3,6 +3,17 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## Next (not packaged yet)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (cook-away branch) | Svanhild's spits still came back as coal: Tim was away for a few minutes, nothing ran her (no game had the base loaded), and a spit catches up on the missed time when its area loads again (vanilla: past twice the cook time, coal). In an active Cook's area (round its post when posted), a catch-up of over 10 s now stops each item at done instead (an oven still burns the fuel for the time); the Cook takes it off when it's back. Boards found in the world data, so a spit built before its board on loading still counts. Ordinary updates are untouched: with someone about, the Cook has to be on time. Fixtures `stove_fill`, `stove_rewind`; rows VFH-COOK-AWAY, VFH-COOK-AWAY0 | whoever owns the stove when its area loads |
+
+### To test (batch)
+- [ ] Rows VFH-COOK-AWAY (Cook hired: done, not burnt), VFH-COOK-AWAY0 (no Cook: burnt, as vanilla); cook rows.
+- [ ] By hand on the second server: load the spits, walk out of range for a few minutes, come back: cooked, not coal.
+
 ## 0.12.6 (packaged 2026-10-19, branch `cook-triple`): Cooks clear every spit first, the drop pile on the open side of the board
 
 ### Fixed or added

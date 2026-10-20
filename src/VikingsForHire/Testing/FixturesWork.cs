@@ -604,7 +604,7 @@ namespace VikingsForHire.Testing
             yield return new WaitForSeconds(0.5f);
         }
 
-        private static IEnumerator Brief()
+        internal static IEnumerator Brief()
         {
             yield return null;
         }

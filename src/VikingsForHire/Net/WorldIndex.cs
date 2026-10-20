@@ -50,10 +50,10 @@ namespace VikingsForHire.Net
             }
         }
 
-        /// <summary>Every board ZDO the server knows of.</summary>
-        public static IEnumerable<ZDO> AllBoards()
+        /// <summary>Every board ZDO the server knows of (a client: those near it). Fresh: rebuilt now, not up to 2 s old.</summary>
+        public static IEnumerable<ZDO> AllBoards(bool fresh = false)
         {
-            Refresh(false);
+            Refresh(fresh);
             foreach (ZDOID id in Boards.Values)
             {
                 ZDO? zdo = ZDOMan.instance.GetZDO(id);

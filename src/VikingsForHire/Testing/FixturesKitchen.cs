@@ -51,6 +51,22 @@ namespace VikingsForHire.Testing
         {
             TestHarness.RegisterCheck("no_spot", "<prefab> - times workers found no usable spot to work a prefab from, since login", args =>
                 (Hirelings.Work.Chores.WorkSteps.NoSpot.TryGetValue(args.ElementAtOrDefault(0) ?? "", out int n) ? n : 0).ToString(CultureInfo.InvariantCulture));
+            Fixtures.Add("stove_fill", "<tag> <item> - put raw food in every slot of a tagged stove, just started", args =>
+            {
+                CookingStation st = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<CookingStation>() ?? throw new InvalidOperationException("no tagged stove");
+                st.m_nview.ClaimOwnership();
+                for (int i = 0; i < st.m_slots.Length; i++)
+                    st.SetSlot(i, args.ElementAtOrDefault(1) ?? "RawMeat", 0f, CookingStation.Status.NotDone, false);
+                return FixturesWork.Brief();
+            });
+            Fixtures.Add("stove_rewind", "<tag> <seconds> - a tagged stove last updated that long ago (as when its area was unloaded while you were away)", args =>
+            {
+                CookingStation st = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<CookingStation>() ?? throw new InvalidOperationException("no tagged stove");
+                double secs = double.Parse(args.ElementAtOrDefault(1) ?? "300", CultureInfo.InvariantCulture);
+                st.m_nview.ClaimOwnership();
+                st.m_nview.GetZDO().Set(ZDOVars.s_startTime, ZNet.instance.GetTime().AddSeconds(-secs).Ticks);
+                return FixturesWork.Brief();
+            });
             Fixtures.Add("stove", "<prefab> [lit] [hearth|on_stone] [triple] [fuel <n>] [tag] - a cooking station over a campfire, or up on a hearth (lit: fuelled), or an oven with n wood (default 5), beside the nearest board", Stove);
             Fixtures.Add("craftstation", "<prefab> [level] [tag] - a cauldron or mead ketill over a lit campfire, or a prep table, beside the nearest board; level adds that many of its extensions", CraftStation);
             Fixtures.Add("chest_stack", "<tag> [count=3] - wooden chests stacked in a column 6 m from the board, the top one tagged (drawers stacked on drawers)", ChestStack);
