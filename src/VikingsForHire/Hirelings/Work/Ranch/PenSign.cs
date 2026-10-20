@@ -44,8 +44,9 @@ namespace VikingsForHire.Hirelings.Work.Ranch
         private void OnDestroy() => Loaded.Remove(this);
 
         // A square pen's corners are √2 times its half-width out: past the circle, an animal walled in all round still counts,
-        // up to this much of the radius (so the circle can be set to reach the walls' middles).
-        private const float CornerReach = 1.5f;
+        // up to this much of the radius. 1.5 was for a circle reaching the walls' middles; one set a little short of them (4 m
+        // in a 10 m pen, VFH-PEN-1) had a boar in a corner, 6.2 m out, read as escaped.
+        private const float CornerReach = 2f;
 
         /// <summary>In this pen: inside the circle on the sign's level, or a little past it and walled in (the corners).</summary>
         public bool Contains(Vector3 p)

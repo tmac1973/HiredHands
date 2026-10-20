@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VikingsForHire.Core.Diagnostics;
 using VikingsForHire.Core.Orders;
+using VikingsForHire.Diagnostics;
 
 namespace VikingsForHire.Hirelings.Work.Ranch
 {
@@ -24,23 +26,40 @@ namespace VikingsForHire.Hirelings.Work.Ranch
         private static readonly int TerrainMask = LayerMask.GetMask("terrain");
 
         /// <summary>
-        /// Walled in on every side: in all 8 directions, at about knee height, a building piece within 32 m or a steep bank
-        /// of ground (1.2 m up) within 12 m.
+        /// Walled in on every side: in all 8 directions, low down (at a quarter, half or nearly a metre up), a building piece
+        /// within 32 m or a steep bank of ground (1.2 m up) within 12 m.
         /// </summary>
-        public static bool Enclosed(Vector3 at)
+        public static bool Enclosed(Vector3 at) => OpenSides(at).Count == 0;
+
+        /// <summary>The directions (degrees from north) in which nothing walls an animal in: empty when it's enclosed.</summary>
+        public static List<int> OpenSides(Vector3 at)
         {
+            var open = new List<int>();
             Vector3 from = at + Vector3.up * 0.5f;
             for (int i = 0; i < 8; i++)
             {
                 Vector3 dir = Quaternion.Euler(0f, i * 45f, 0f) * Vector3.forward;
-                if (Physics.Raycast(from, dir, PenReach, PenMask, QueryTriggerInteraction.Ignore))
+                if (WallAt(at, dir))
                     continue;
                 if (Physics.Raycast(from, dir, out RaycastHit bank, TerrainReach, TerrainMask, QueryTriggerInteraction.Ignore) &&
                     ZoneSystem.instance != null && ZoneSystem.instance.GetGroundHeight(bank.point + dir * 0.6f) >= at.y + TerrainWall)
                     continue;
-                return false;
+                open.Add(i * 45);
             }
-            return true;
+            return open;
+        }
+
+        // Each way is looked along at a few heights: one line at knee height grazed the top of half walls sunk half into the
+        // ground (0.5 m showing), and a boar standing a hair higher read as out of the pen it was pressed against
+        // (VFH-RANCH-11: "escaped", not "crowded").
+        private static readonly float[] WallHeights = { 0.25f, 0.5f, 0.9f };
+
+        private static bool WallAt(Vector3 at, Vector3 dir)
+        {
+            foreach (float h in WallHeights)
+                if (Physics.Raycast(at + Vector3.up * h, dir, PenReach, PenMask, QueryTriggerInteraction.Ignore))
+                    return true;
+            return false;
         }
 
         /// <summary>
@@ -67,7 +86,11 @@ namespace VikingsForHire.Hirelings.Work.Ranch
                 Home[id] = PenSign.At(at) is PenSign sign ? sign.transform.position : at;
                 return false;
             }
-            return Home.ContainsKey(id);
+            if (!Home.TryGetValue(id, out Vector3 home))
+                return false;
+            VfhLog.D(LogCat.Work, "ranch.out_of_pen", ("at", at), ("ground", ZoneSystem.instance != null ? ZoneSystem.instance.GetGroundHeight(at) : 0f),
+                ("home", home), ("open", string.Join(",", OpenSides(at))));
+            return true;
         }
 
         /// <summary>Where an animal's pen is (its sign, or where it was last walled in), if it's been seen in one.</summary>

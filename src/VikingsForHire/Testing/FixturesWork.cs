@@ -156,6 +156,35 @@ namespace VikingsForHire.Testing
                     .Count(f => f.Model.Kind == (args.ElementAtOrDefault(0) ?? "") && !Hirelings.Work.Ranch.HerdScan.Penned(f.Animal.transform.position))
                     .ToString(CultureInfo.InvariantCulture);
             });
+            Fixtures.Add("pen_watch", "<seconds=60> - every 0.25 s, each tamed animal standing inside the last pen that the pen check reads as out of it is logged (check pen_watch_leaks)", PenWatch);
+            TestHarness.RegisterCheck("pen_pieces", "- the pieces of the last pen (each logged with its colliders' bounds)", _ =>
+            {
+                Vector3 c = _penCentre ?? throw new InvalidOperationException("no pen built yet");
+                var pieces = new List<Piece>();
+                Piece.GetAllPiecesInRadius(c, _penHalf * 1.6f, pieces);
+                foreach (Piece pc in pieces)
+                    VfhLog.I(LogCat.Test, "check.pen_piece", ("name", pc.name), ("pos", pc.transform.position), ("rot", pc.transform.eulerAngles.y),
+                        ("colliders", string.Join(";", pc.GetComponentsInChildren<Collider>().Select(k => $"{LayerMask.LayerToName(k.gameObject.layer)}{(k.enabled ? "" : "(off)")} {k.bounds.min:F2}..{k.bounds.max:F2}"))));
+                return pieces.Count.ToString(CultureInfo.InvariantCulture);
+            });
+            TestHarness.RegisterCheck("pen_watch_leaks", "- readings pen_watch logged", _ => _penWatchLeaks.ToString(CultureInfo.InvariantCulture));
+            TestHarness.RegisterCheck("pen_leaks", "- spots inside the last pen (a 0.3 m grid, 0.4 m in from its walls) the pen check reads as out of it; each is logged with its open directions", _ =>
+            {
+                Vector3 c = _penCentre ?? throw new InvalidOperationException("no pen built yet");
+                int leaks = 0;
+                for (float x = -_penHalf + 0.4f; x <= _penHalf - 0.4f + 0.01f; x += 0.3f)
+                    for (float z = -_penHalf + 0.4f; z <= _penHalf - 0.4f + 0.01f; z += 0.3f)
+                    {
+                        Vector3 p = c + _penRight * x + _penFwd * z;
+                        p.y = ZoneSystem.instance.GetGroundHeight(p);
+                        List<int> open = Hirelings.Work.Ranch.HerdScan.OpenSides(p);
+                        if (open.Count == 0)
+                            continue;
+                        leaks++;
+                        VfhLog.I(LogCat.Test, "check.pen_leak", ("x", x), ("z", z), ("at", p), ("open", string.Join(",", open)));
+                    }
+                return leaks.ToString(CultureInfo.InvariantCulture);
+            });
             Fixtures.Add("chest_mode", "<tag> <normal|putonly|takeonly|rancheronly|off> - set a tagged chest's worker mode (as Shift+E on it does)", args =>
             {
                 Container c = Tagged(args.ElementAtOrDefault(0) ?? "");
@@ -546,6 +575,8 @@ namespace VikingsForHire.Testing
         }
 
         private static Vector3? _penCentre;
+        private static float _penHalf;
+        private static Vector3 _penRight, _penFwd;
 
         private static IEnumerator PenSignAtPen(string[] args)
         {
@@ -612,8 +643,43 @@ namespace VikingsForHire.Testing
                 go.GetComponent<ZNetView>().GetZDO().Set(ZDOVars.s_tameLastFeeding, 0L);
             }
             _penCentre = Ground(centre);
+            _penHalf = half;
+            _penRight = right;
+            _penFwd = fwd;
             VfhLog.I(LogCat.Test, "fixture.pen", ("centre", centre), ("size", per * 2), ("gate", gateTag));
             yield return new WaitForSeconds(0.5f);
+        }
+
+        private static int _penWatchLeaks;
+
+        private static IEnumerator PenWatch(string[] args)
+        {
+            Vector3 c = _penCentre ?? throw new InvalidOperationException("no pen built yet");
+            float secs = args.Length > 0 ? float.Parse(args[0], CultureInfo.InvariantCulture) : 60f;
+            _penWatchLeaks = 0;
+            float end = Time.time + secs;
+            while (Time.time < end)
+            {
+                foreach (Character ch in Character.GetAllCharacters())
+                {
+                    if (ch == null || !ch.IsTamed() || ch.IsDead())
+                        continue;
+                    Vector3 p = ch.transform.position, d = p - c;
+                    if (Mathf.Abs(Vector3.Dot(d, _penRight)) > _penHalf || Mathf.Abs(Vector3.Dot(d, _penFwd)) > _penHalf)
+                        continue;
+                    List<int> open = Hirelings.Work.Ranch.HerdScan.OpenSides(p);
+                    if (open.Count == 0)
+                        continue;
+                    _penWatchLeaks++;
+                    VfhLog.I(LogCat.Test, "check.pen_watch_leak", ("animal", ch.m_name), ("at", p), ("ground", ZoneSystem.instance.GetGroundHeight(p)),
+                        ("open", string.Join(",", open)), ("onGround", ch.IsOnGround()), ("vel", ch.GetVelocity()),
+                        ("inside", string.Join(",", Physics.OverlapSphere(p + Vector3.up * 0.5f, 0.02f, ~0, QueryTriggerInteraction.Collide)
+                            .Select(o => $"{o.name}/{LayerMask.LayerToName(o.gameObject.layer)}/{(o.isTrigger ? "trig" : "solid")}"))),
+                        ("allHits90", string.Join(",", Physics.RaycastAll(p + Vector3.up * 0.5f, Quaternion.Euler(0f, 90f, 0f) * Vector3.forward, 32f, ~0, QueryTriggerInteraction.Collide)
+                            .OrderBy(h => h.distance).Take(4).Select(h => $"{h.collider.name}/{LayerMask.LayerToName(h.collider.gameObject.layer)}@{h.distance:0.00}"))));
+                }
+                yield return new WaitForSeconds(0.25f);
+            }
         }
 
         internal static IEnumerator Brief()
