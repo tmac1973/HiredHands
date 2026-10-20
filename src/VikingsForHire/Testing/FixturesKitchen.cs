@@ -49,7 +49,7 @@ namespace VikingsForHire.Testing
 
         public static void Register()
         {
-            Fixtures.Add("stove", "<prefab> [lit] [fuel <n>] [tag] - a cooking station over a campfire (lit: fuelled) or an oven with n wood (default 5), beside the nearest board", Stove);
+            Fixtures.Add("stove", "<prefab> [lit] [hearth] [fuel <n>] [tag] - a cooking station over a campfire, or up on a hearth (lit: fuelled), or an oven with n wood (default 5), beside the nearest board", Stove);
             Fixtures.Add("craftstation", "<prefab> [level] [tag] - a cauldron or mead ketill over a lit campfire, or a prep table, beside the nearest board; level adds that many of its extensions", CraftStation);
             Fixtures.Add("chest_stack", "<tag> [count=3] - wooden chests stacked in a column 6 m from the board, the top one tagged (drawers stacked on drawers)", ChestStack);
             Fixtures.Add("floor_over", "<tag> [height=2] [newtag=F] - a wood floor piece over a tagged object, that high above its base (an upper storey)", FloorOver);
@@ -122,6 +122,7 @@ namespace VikingsForHire.Testing
             string prefab = args.ElementAtOrDefault(0) ?? "piece_cookingstation";
             var rest = args.Skip(1).ToList();
             bool lit = rest.Remove("lit");
+            bool hearth = rest.Remove("hearth");
             float fuel = 5f;
             int fi = rest.IndexOf("fuel");
             if (fi >= 0 && fi + 1 < rest.Count)
@@ -131,19 +132,36 @@ namespace VikingsForHire.Testing
             }
             string tag = rest.LastOrDefault() ?? "";
             Vector3 p = NextSpot();
+            GameObject? hearthGo = null;
+            if (hearth)
+            {
+                // Up on a hearth, as people build kitchens (Svanhild's spits were 2.2 m above her floor).
+                hearthGo = FixturesWork.Spawn("hearth", p, "");
+                FixturesWork.OwnBuilt(hearthGo);
+                if (lit && hearthGo.GetComponent<Fireplace>() is Fireplace hf)
+                    hf.m_nview.GetZDO().Set(ZDOVars.s_fuel, hf.m_maxFuel);
+                yield return null;
+                float top = hearthGo.GetComponentsInChildren<Collider>().Where(c => !c.isTrigger).Select(c => c.bounds.max.y).DefaultIfEmpty(p.y).Max();
+                p = new Vector3(p.x, top, p.z);
+            }
             GameObject go = FixturesWork.Spawn(prefab, p, tag);
+            if (hearth)
+            {
+                go.transform.position = p;
+                go.GetComponent<ZNetView>().GetZDO().SetPosition(p);
+            }
             FixturesWork.OwnBuilt(go);
             CookingStation s = go.GetComponentInChildren<CookingStation>();
             if (s != null && s.m_useFuel)
                 s.m_nview.GetZDO().Set(ZDOVars.s_fuel, fuel);
-            if (s != null && s.m_requireFire)
+            if (s != null && s.m_requireFire && !hearth)
             {
                 GameObject fire = FixturesWork.Spawn("fire_pit", p, "");
                 FixturesWork.OwnBuilt(fire);
                 if (lit && fire.GetComponent<Fireplace>() is Fireplace f)
                     f.m_nview.GetZDO().Set(ZDOVars.s_fuel, f.m_maxFuel);
             }
-            VfhLog.I(LogCat.Test, "fixture.stove", ("prefab", prefab), ("lit", lit), ("fuel", fuel), ("tag", tag));
+            VfhLog.I(LogCat.Test, "fixture.stove", ("prefab", prefab), ("lit", lit), ("fuel", fuel), ("tag", tag), ("hearth", hearth), ("at", p));
             yield return new WaitForSeconds(1f);
         }
 

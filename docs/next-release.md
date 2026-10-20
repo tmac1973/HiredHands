@@ -3,6 +3,17 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## Next (not packaged yet)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (cook-hearth branch) | Svanhild (Cook, Tim's second server) burned the food: her spits stand 2.2 m above her floor (up on a hearth, it seems); the spot to use them from was picked on top of the hearth (the floor at the spit's height first), which she can't climb, so she stuck below it, failed three times and left the spits for 5 minutes while the meat burned. Now the spot on her own floor comes first when the thing can be used from there, and the fire a spit or cauldron sits on doesn't block the reach from the floor (as a player reaches it). Row VFH-COOK-HEARTH (`stove ... hearth`) | the game simulating the worker (every worker's "go and use it") |
+
+### To test (batch)
+- [ ] Row VFH-COOK-HEARTH; cook rows, Steward station rows, chest-reach rows (VFH-REACH-*), farm rows, NAVLINK rows (every worker picks its spot this way).
+- [ ] By hand on the second server: Svanhild takes the meat off in time.
+
 ## 0.12.4 (packaged 2026-10-19, branch `farm-post`): Pen sign, Herder leads home, posted Farmer, seed batches, barred targets
 
 ### Fixed or added

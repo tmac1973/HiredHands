@@ -132,9 +132,10 @@ namespace VikingsForHire.Hirelings.Work.Chores
                 }
             foreach (Vector3 spot in spots.OrderBy(p => Vector3.Distance(p, ai.transform.position)))
             {
-                // The floor at about its height, else the floor at the hireling's own (a drawer high on a stack is reached
-                // from the floor below it, pointing up).
-                foreach (float y in new[] { Floor(spot, target.y), Floor(spot, ai.transform.position.y) }.Distinct())
+                // The floor at the hireling's own height first when it can use it from there (a drawer high on a stack, a
+                // spit up on a hearth: Svanhild was sent to stand on the hearth and stuck below it while the meat burned),
+                // else the floor at about its height (a chest upstairs isn't used from the floor below).
+                foreach (float y in new[] { Floor(spot, ai.transform.position.y), Floor(spot, target.y) }.Distinct())
                 {
                     Vector3 grounded = spot;
                     grounded.y = y;
@@ -213,6 +214,7 @@ namespace VikingsForHire.Hirelings.Work.Chores
         // overLow: reaching a creature, a piece lower than the eye (a pen's fence) doesn't count, as a player reaches over it.
         private static bool PieceBetween(Vector3 eye, Vector3 point, Component obj, bool overLow = false)
         {
+            bool overFire = obj.GetComponentInParent<CookingStation>() != null || obj.GetComponentInParent<CraftingStation>() != null;
             Vector3 to = point - eye;
             float length = to.magnitude;
             if (length < 0.05f)
@@ -224,6 +226,10 @@ namespace VikingsForHire.Hirelings.Work.Chores
                     continue;
                 Piece? piece = hit.collider.GetComponentInParent<Piece>();
                 if (piece == null || piece == own)
+                    continue;
+                // The fire under a spit or cauldron isn't in the way: a player reaches a spit up on a hearth from the floor
+                // (Svanhild couldn't, and the meat burned).
+                if (overFire && piece.GetComponent<Fireplace>() != null)
                     continue;
                 if (overLow && hit.collider.bounds.max.y < eye.y - 0.2f)
                     continue;
