@@ -121,6 +121,9 @@ namespace VikingsForHire.Hirelings
         /// <summary>Set while a Steward collects from several producers in one trip: deliver once at the end, not after each.</summary>
         public bool HoldDeliveries { get; set; }
 
+        /// <summary>A woodcutter's reasons for planting nothing in its tree patches (Problems list lines; empty when it plants).</summary>
+        public string PlantWhy { get; set; } = "";
+
         /// <summary>A miner's swing is digging down to a buried chunk: only then may its pickaxe dig the ground.</summary>
         public bool DiggingDown { get; set; }
 

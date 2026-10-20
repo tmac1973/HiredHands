@@ -21,6 +21,17 @@ namespace VikingsForHire.Testing
                 args => House(args, "wood_stair"));
             Fixtures.Add("stepladder", "<tag> [item count]… - the same house with one stepladder (<tag>_stair) instead of the stairs",
                 args => House(args, "wood_stepladder"));
+            Fixtures.Add("coast_log", "<depth> [tag] - a beech log lying from the shore out into the water, its middle where the water is that deep (after goto_coast)", CoastLog);
+            TestHarness.RegisterCheck("water_depth", "<tag> - how deep the water is over the ground under a tagged object (0 on dry land)", args =>
+            {
+                GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged object");
+                return Mathf.Max(0f, ZoneSystem.instance.m_waterLevel - ZoneSystem.instance.GetGroundHeight(go.transform.position)).ToString("0.00", CultureInfo.InvariantCulture);
+            });
+            TestHarness.RegisterCheck("too_deep", "<tag> - whether gatherers take a tagged tree or log for out in water too deep to wade to", args =>
+            {
+                GameObject go = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "") ?? throw new InvalidOperationException("no such tagged object");
+                return Hirelings.WaterRules.TooDeep(go.transform) ? "true" : "false";
+            });
             Fixtures.Add("goto_coast", "<max=3000> - teleport to the nearest shore (land beside water at least 3 m deep) and remember the water spot", GotoCoast);
             Fixtures.Add("goto_back", "- teleport back to where goto_coast started", GotoBack);
             Fixtures.Add("hireling_into_water", "<job> - put the nearest hireling of that job in the water spot goto_coast found", HirelingIntoWater);
@@ -292,6 +303,29 @@ namespace VikingsForHire.Testing
             // Stand on the real ground there.
             if (ZoneSystem.instance.GetSolidHeight(at, out float g))
                 me.transform.position = at.With(y: g + 0.2f);
+        }
+
+        private static IEnumerator CoastLog(string[] args)
+        {
+            float depth = float.Parse(args.ElementAtOrDefault(0) ?? "1.4", CultureInfo.InvariantCulture);
+            string tag = args.ElementAtOrDefault(1) ?? "";
+            float water = ZoneSystem.instance.m_waterLevel;
+            Vector3 from = Player.m_localPlayer.transform.position, dir = (_waterSpot - from).With(y: 0f).normalized;
+            float len = Utils.DistanceXZ(from, _waterSpot);
+            Vector3? at = null;
+            for (float d = 0f; d <= len && at == null; d += 0.2f)
+            {
+                Vector3 p = from + dir * d;
+                if (ZoneSystem.instance.GetGroundHeight(p) <= water - depth)
+                    at = p;
+            }
+            if (at is not Vector3 spot)
+                throw new InvalidOperationException($"no water {depth} m deep between here and the water spot");
+            GameObject log = FixturesWork.Spawn("beech_log_half", spot, tag);
+            // Lying along the line to the shore, floating at the surface as a felled log does.
+            log.transform.SetPositionAndRotation(spot.With(y: water), Quaternion.LookRotation(dir) * Quaternion.Euler(0f, 90f, 0f));
+            VfhLog.I(LogCat.Test, "fixture.coast_log", ("at", spot), ("depth", water - ZoneSystem.instance.GetGroundHeight(spot)), ("tag", tag));
+            yield return new WaitForSeconds(1f);
         }
 
         private static IEnumerator GotoBack(string[] args)

@@ -3,6 +3,18 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## Next (not packaged yet)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (thorvald branch) | Tim's Thorvald (woodcutter, second server) planted no birch from his sign and seeds, and nothing said why: birch needs a bronze axe (tier 2, level 3) and he was level 1-2, so planting silently found nothing to do. After his promotion to 3 there was still no plan for 28 minutes, reason unknown (no debug for it). Planting now says why it plants nothing in the Problems list (shown while working too): axe can't fell those trees yet, no seeds in a chest it may take from, or no free spot in the circle; debug `woodcutter.plant_none`. Rows VFH-TREE-WHY, VFH-TREE-WHY2 | the game simulating the woodcutter |
+| (same branch) | Thorvald left three beech logs alone "in the water" in an ankle-deep stream: a gather target counted as in the water when the ground under its middle was over 1 m below sea level (streams are at sea level, and the middle of the bed is often deeper than its edges). Now only when nothing within reach of any part of it is shallower than 1.2 m (wading; a character swims from 1.6 m). Fixture `coast_log`, checks `water_depth`, `too_deep`; row VFH-WATER-2 | the game simulating the gatherer |
+
+### To test (batch)
+- [ ] Rows VFH-TREE-WHY, VFH-TREE-WHY2, VFH-WATER-2, VFH-WATER-1, VFH-TREE-1 and the other tree/woodcutter rows (not run: Tim was playing).
+- [ ] By hand on the second server: Thorvald's Problems list says why no birch (or he plants it); he clears the logs in the stream.
+
 ## 0.12.7 (packaged 2026-10-20, branch `cook-away`): food doesn't burn while you're away, miners take ore in a hole's wall, idle spots by a wall, penned animals don't read as escaped
 
 ### Fixed or added

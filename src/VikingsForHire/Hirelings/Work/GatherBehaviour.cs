@@ -163,10 +163,10 @@ namespace VikingsForHire.Hirelings.Work
             if (FindPickup(h) || FindTarget(h, _anchor, out string why))
             {
                 h.NoTargets = false;
-                h.SetWhy("");
+                h.SetWhy(h.PlantWhy);
                 return true;
             }
-            h.SetWhy(_problems);
+            h.SetWhy(h.PlantWhy.Length == 0 ? _problems : _problems.Length == 0 ? h.PlantWhy : _problems + "\n" + h.PlantWhy);
             if (!h.NoTargets)
             {
                 h.NoTargets = true;
@@ -400,7 +400,7 @@ namespace VikingsForHire.Hirelings.Work
                 (string? skip, string token, string arg) = h.Ai.Order is { } order && !order.Allows(c) ? ("not part of the order", "$vfh_gwhy_order", "")
                     : h.Ai.Order == null && (off = SwitchedOff(h, c)) != null ? ($"{off} switched off", "$vfh_gwhy_off", off)
                     : (full = NoRoomFor(h, c)) != null ? ($"no room for {full}", "$vfh_gwhy_full", full)
-                    : WaterRules.Under(c.transform.position, 1f) ? ("in the water", "$vfh_gwhy_water", "")
+                    : WaterRules.TooDeep(c) ? ("in the water", "$vfh_gwhy_water", "")
                     : Reservations.IsSkipped(c) ? ("skipped after a failed approach", "$vfh_gwhy_unreachable", "")
                     : Reservations.IsReservedByOther(c, h.Hid) ? ("claimed by another hireling", "$vfh_gwhy_claimed", "")
                     : !_profile.IsValid(c, h, out reason) ? (reason, ReasonToken(reason), reason)

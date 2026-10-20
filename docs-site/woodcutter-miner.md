@@ -37,7 +37,8 @@ and rocks); it still works in the field with you.
 
 **Not chopping or mining?** Its **Problems** button (Shift+E) lists what it left alone and why: items you've switched
 off, chests with no room, trees too close to buildings, a tool too weak for the rock, another hireling already on it, or
-nothing in reach at all.
+nothing in reach at all. Something lying in water counts as "in the water" only when it's too deep to wade to (over about
+1.2 m all round it): logs in a shallow stream get cleared.
 
 ## Bringing it home
 
@@ -58,8 +59,10 @@ pine cones; or one kind, including PlantEverything's ancient or Ygga trees, whic
 planted when chosen); looking at it shows the patch's circle.
 
 Woodcutters whose work radius covers it plant free spots from the seeds in your chests (beech seeds, birch seeds, acorns,
-fir and pine cones, modded tree saplings), now and then between felling, only kinds their axe can fell and only where
-they'll grow and can be felled later (clear of buildings). Grown trees in a patch are felled like any other.
+fir and pine cones, modded tree saplings), now and then between felling, only kinds their axe can fell (birch and oak
+need the bronze axe, level 3) and only where they'll grow and can be felled later (clear of buildings). When it plants
+nothing, its **Problems** list says why: its axe can't fell those trees yet, no seeds in a chest it may take from, or no
+free spot in the circle. Grown trees in a patch are felled like any other.
 `WoodcuttersPlantTrees` (Work) turns it off.
 
 ## In the field

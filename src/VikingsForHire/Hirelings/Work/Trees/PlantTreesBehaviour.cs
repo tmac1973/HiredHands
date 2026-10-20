@@ -61,18 +61,33 @@ namespace VikingsForHire.Hirelings.Work.Trees
         {
             var ctx = new WorkContext(h);
             _owner = DoorRules.BoardOwner(h.BoardId);
+            // Why nothing gets planted, for its Problems list: Tim's Thorvald planted no birch from his sign and seeds,
+            // and nothing said why (his axe couldn't fell birch yet; no free spot; no seeds he may take...).
+            var why = new List<string>();
             foreach (TreePatch patch in TreePatch.Within(h.WorkCentre, h.Radius))
             {
-                IEnumerable<TreeKind> kinds = TreeCatalog.All.Where(k => k.ToolTier <= h.ToolTier && (patch.Kind.Length == 0 ? k.CommonSeed : patch.Kind == k.SaplingName));
+                List<TreeKind> wanted = TreeCatalog.All.Where(k => patch.Kind.Length == 0 ? k.CommonSeed : patch.Kind == k.SaplingName).ToList();
+                List<TreeKind> kinds = wanted.Where(k => k.ToolTier <= h.ToolTier).ToList();
+                if (kinds.Count == 0)
+                {
+                    if (wanted.Count > 0)
+                        why.Add(ActivityText.Make("$vfh_plant_tier", wanted[0].Seed));
+                    continue;
+                }
+                bool anySeeds = false;
                 foreach (TreeKind kind in kinds.OrderByDescending(k => ctx.Available(k.Seed)))
                 {
                     int carried = ctx.Carried.TryGetValue(kind.Seed, out int c) ? c : 0;
                     int seeds = ctx.Available(kind.Seed) + carried;
                     if (seeds < kind.SeedAmount)
                         continue;
+                    anySeeds = true;
                     List<Vector3> spots = TreeGrid.Spots(patch, kind, _owner, Mathf.Min(MaxPerTrip, seeds / kind.SeedAmount));
                     if (spots.Count == 0)
+                    {
+                        why.Add(ActivityText.Make("$vfh_plant_no_spot", kind.Seed));
                         continue;
+                    }
                     _kind = kind;
                     _spots.Clear();
                     _spots.AddRange(spots);
@@ -83,10 +98,16 @@ namespace VikingsForHire.Hirelings.Work.Trees
                     _walk.Reset();
                     _progressAt = Time.time;
                     h.FetchingSupplies = true;
+                    h.PlantWhy = "";
                     VfhLog.D(LogCat.Work, "woodcutter.plant_plan", ("hid", h.Hid), ("kind", kind.SaplingName), ("spots", spots.Count), ("fetch", _fetch));
                     return true;
                 }
+                if (!anySeeds)
+                    why.Add(ActivityText.Make("$vfh_plant_no_seeds", kinds.Count == 1 ? kinds[0].Seed : "$vfh_plant_any_seeds"));
             }
+            h.PlantWhy = string.Join("\n", why.Distinct());
+            if (why.Count > 0)
+                VfhLog.D(LogCat.Work, "woodcutter.plant_none", ("hid", h.Hid), ("why", string.Join("; ", why.Distinct())));
             return false;
         }
 
