@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Collections;
 using System.Globalization;
@@ -21,6 +22,8 @@ namespace VikingsForHire.Testing
                 args => House(args, "wood_stair"));
             Fixtures.Add("stepladder", "<tag> [item count]… - the same house with one stepladder (<tag>_stair) instead of the stairs",
                 args => House(args, "wood_stepladder"));
+            TestHarness.RegisterCheck("area_blockers", "- objects saved in the zone round you that the game hasn't created (a teleport there waits for every one; each is logged)", _ =>
+                LogAreaBlockers(Player.m_localPlayer.transform.position).ToString(CultureInfo.InvariantCulture));
             Fixtures.Add("coast_log", "<depth> [tag] - a beech log lying from the shore out into the water, its middle where the water is that deep (after goto_coast)", CoastLog);
             TestHarness.RegisterCheck("water_depth", "<tag> - how deep the water is over the ground under a tagged object (0 on dry land)", args =>
             {
@@ -303,6 +306,28 @@ namespace VikingsForHire.Testing
             // Stand on the real ground there.
             if (ZoneSystem.instance.GetSolidHeight(at, out float g))
                 me.transform.position = at.With(y: g + 0.2f);
+        }
+
+        /// <summary>Logs the objects saved in the zone round a spot that the game hasn't created (a distant teleport there waits for all of them).</summary>
+        internal static int LogAreaBlockers(Vector3 p)
+        {
+            var zdos = new List<ZDO>();
+            ZDOMan.instance.FindSectorObjects(ZoneSystem.GetZone(p), new SimulationDistance(1, 0), zdos);
+            int n = 0;
+            foreach (ZDO z in zdos)
+            {
+                if (!ZNetScene.instance.IsPrefabZDOValid(z) || ZNetScene.instance.FindInstance(z))
+                    continue;
+                n++;
+                if (n > 20)
+                    continue;
+                GameObject? prefab = ZNetScene.instance.GetPrefab(z.GetPrefab());
+                VfhLog.I(LogCat.Test, "check.area_blocker", ("prefab", prefab != null ? prefab.name : z.GetPrefab().ToString()), ("at", z.GetPosition()),
+                    ("tag", z.GetString(FixturesWork.TagKey)), ("owner", z.GetOwner()), ("persistent", z.Persistent));
+            }
+            VfhLog.I(LogCat.Test, "check.area_blockers", ("n", n), ("zdos", zdos.Count), ("teleporting", Player.m_localPlayer != null && Player.m_localPlayer.IsTeleporting()),
+                ("ready", ZNetScene.instance.IsAreaReady(p)));
+            return n;
         }
 
         private static IEnumerator CoastLog(string[] args)

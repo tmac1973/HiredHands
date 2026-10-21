@@ -12,7 +12,8 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | (same branch) | Thorvald left three beech logs alone "in the water" in an ankle-deep stream: a gather target counted as in the water when the ground under its middle was over 1 m below sea level (streams are at sea level, and the middle of the bed is often deeper than its edges). Now only when nothing within reach of any part of it is shallower than 1.2 m (wading; a character swims from 1.6 m). Fixture `coast_log`, checks `water_depth`, `too_deep`; row VFH-WATER-2 | the game simulating the gatherer |
 
 ### To test (batch)
-- [ ] Rows VFH-TREE-WHY, VFH-TREE-WHY2, VFH-WATER-2, VFH-WATER-1, VFH-TREE-1 and the other tree/woodcutter rows (not run: Tim was playing).
+- [x] Rows VFH-TREE-WHY, VFH-TREE-WHY2, VFH-WATER-2 (log's middle 1.72 m deep: chopped) pass; WORK-1, LOGS-1, GATHER-1, ORDER-1/2, TREE-1, WATER-1, PAUSE-1, DLV-1, NOISE-1, WHY-3/4, ENH-L1..L3 pass (2026-10-20, `face 180`). VFH-WORK-3 fails on 0.12.7 too (south layout; passes north on 0.12.7, failed north once on this branch): the miner marks a dozen parts of the tall copper rock unreachable (4.5-7.5 m off) and gets too little in 400 s; flaky, not this branch. VFH-MINE-DEEP depends on the layout (passes north; south the miner got ore without digging).
+- [x] Test harness: the dev game got stuck on the teleport screen late in a run (as in the full regression's PORTAL-1). Not reproduced in 4 coast trips (`area_blockers` found nothing missing). Each row's start now ends a teleport stuck over 30 s and logs what the zone was waiting for (`test.teleport_stuck`, `check.area_blocker`).
 - [ ] By hand on the second server: Thorvald's Problems list says why no birch (or he plants it); he clears the logs in the stream.
 
 ## 0.12.7 (packaged 2026-10-20, branch `cook-away`): food doesn't burn while you're away, miners take ore in a hole's wall, idle spots by a wall, penned animals don't read as escaped

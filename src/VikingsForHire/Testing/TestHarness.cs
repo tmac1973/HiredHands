@@ -271,6 +271,8 @@ namespace VikingsForHire.Testing
             _run = new Run { Row = row };
             TestProtection.Set(true); // enemies ignore you and nothing hurts you while it runs
             Player? me = Player.m_localPlayer;
+            if (me != null)
+                yield return Unstick(me, row);
             if (_home is Vector3 home && me != null && Vector3.Distance(me.transform.position, home) > HomeSlack)
             {
                 VfhLog.W(LogCat.Test, "test.back_home", ("row", row), ("from", me.transform.position), ("to", home));
@@ -279,12 +281,30 @@ namespace VikingsForHire.Testing
                 while ((me.IsTeleporting() || !ZoneSystem.instance.IsZoneLoaded(home)) && Time.time < until)
                     yield return new WaitForSeconds(0.5f);
                 yield return new WaitForSeconds(2f);
+                yield return Unstick(me, row);
             }
             VfhLog.ResetErrorCount();
             VfhLog.I(LogCat.Core, "mark", ("text", "test " + row));
             VfhLog.I(LogCat.Test, "test.begin", ("row", row), ("fastTimers", VfhConfig.FastTimers), ("role", VfhLog.Role()));
             Message($"Test {row} started");
             yield break;
+        }
+
+        // A teleport finishes only when every object saved round where it lands has been created. Late in long runs one
+        // never finished (the teleport screen stayed up, a portal "didn't take you anywhere", and later rows ran with the
+        // tester stuck): give it 30 s, then log what the zone is waiting for and end the teleport where it stands.
+        private static IEnumerator Unstick(Player me, string row)
+        {
+            float until = Time.time + 30f;
+            while (me.IsTeleporting() && Time.time < until)
+                yield return new WaitForSeconds(0.5f);
+            if (!me.IsTeleporting())
+                yield break;
+            int blockers = FixturesNav.LogAreaBlockers(me.m_teleportTargetPos);
+            VfhLog.E(LogCat.Test, "test.teleport_stuck", ("row", row), ("at", me.transform.position), ("target", me.m_teleportTargetPos), ("blockers", blockers));
+            me.m_teleporting = false;
+            me.m_teleportTimer = 0f;
+            yield return new WaitForSeconds(1f);
         }
 
         private static IEnumerator EndNumbered(int n) => End();
