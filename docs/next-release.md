@@ -11,7 +11,7 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | (patch-walls branch) | Thorvald wouldn't fell the trees in Tim's tree patch: "near buildings" (the stone wall Tim puts round a patch so monsters leave its sign alone). Inside a tree patch's circle the buildings rule no longer applies: woodcutters fell trees (the clearest way they can, into the wall if they must: the Steward mends it) and logs and stumps beside walls, and plant right up to them. Outside patches the rule is unchanged (VFH-WORK-1). Row VFH-TREE-WALL | the game simulating the woodcutter |
 
 ### To test (batch)
-- [ ] Rows VFH-TREE-WALL, VFH-WORK-1 (the rule still holds outside a patch), VFH-TREE-1, VFH-TREE-WHY, VFH-TREE-WHY2.
+- [x] Rows VFH-TREE-WALL, VFH-WORK-1 (the rule still holds outside a patch), VFH-TREE-1, VFH-TREE-WHY, VFH-TREE-WHY2, VFH-LOGS-1 pass (2026-10-20). `clear_area` now also removes saplings woodcutters planted (TREE-WHY after TREE-1 found two of them).
 - [ ] By hand on the second server: Thorvald fells the trees in the walled patch.
 
 ## 0.12.8 (packaged 2026-10-20, branch `thorvald`): logs in shallow water get cleared, the woodcutter says why it isn't planting

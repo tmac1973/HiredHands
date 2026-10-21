@@ -305,6 +305,8 @@ namespace VikingsForHire.Testing
                             (v.GetComponent<TreeLog>() != null || v.GetComponent<MineRock5>() != null ||
                              // Crops a Farmer planted (saplings, and grown ones that don't regrow), or they count toward later tests' orders.
                              (v.GetComponent<Plant>() != null && Hirelings.Work.Farm.CropCatalog.BySapling(Utils.GetPrefabName(v.gameObject)) != null) ||
+                             // Saplings woodcutters planted in a tree patch (VFH-TREE-WHY found TREE-1's still there).
+                             (v.GetComponent<Plant>() != null && Hirelings.Work.Trees.TreeCatalog.BySapling(Utils.GetPrefabName(v.gameObject)) != null) ||
                              (v.GetComponent<Pickable>() != null && Hirelings.Work.Farm.CropCatalog.ByGrown(Utils.GetPrefabName(v.gameObject)) is Hirelings.Work.Farm.Crop grown && !grown.Info.Regrowing) ||
                              (v.GetComponent<Destructible>() is Destructible d && d.m_destructibleType == DestructibleType.Tree && v.name.Contains("_Stub"))))
                 .ToList();
