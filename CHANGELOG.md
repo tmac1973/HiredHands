@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.9
+
+Works alongside 0.12.x; update the server and players when it suits you.
+
+- **Woodcutters work walled tree patches:** inside a tree patch's circle, woodcutters fell and plant even right beside
+  your buildings, so you can wall a patch in to keep monsters off its sign. A tree there falls the clearest way it can,
+  into the wall only if it must (the Steward repairs it). Outside patches they still leave trees near buildings alone.
+
 ## 0.12.8
 
 Works alongside 0.12.x; update the server and players when it suits you (the fixes run on whoever has the base loaded).
