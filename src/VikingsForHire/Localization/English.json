@@ -163,7 +163,7 @@
   "vfh_plant_tier": "Tree patch: not planting from $1: its axe couldn't fell those trees yet (a higher level brings a better one)",
   "vfh_plant_no_seeds": "Tree patch: no $1 in a chest it may take from",
   "vfh_plant_any_seeds": "tree seeds",
-  "vfh_plant_no_spot": "Tree patch: no free spot for $1 (room to grow, the right biome, open sky, clear of buildings, a ward that lets it in)",
+  "vfh_plant_no_spot": "Tree patch: no free spot for $1 (room to grow, the right biome, open sky, a ward that lets it in)",
   "vfh_orders_open": "Orders ($1)",
   "vfh_orders_kind_steward": "made by the Steward",
   "vfh_orders_everything": "Everything else",

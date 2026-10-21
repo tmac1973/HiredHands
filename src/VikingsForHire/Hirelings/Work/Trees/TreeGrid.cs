@@ -15,7 +15,6 @@ namespace VikingsForHire.Hirelings.Work.Trees
         private static readonly int SpaceMask = LayerMask.GetMask("Default", "static_solid", "Default_small", "piece", "piece_nonsolid");
         private static readonly int RoofMask = LayerMask.GetMask("Default", "static_solid", "piece");
         private static readonly Collider[] Hits = new Collider[16];
-        private static readonly List<Piece> Pieces = new();
         private static readonly Dictionary<Vector3Int, float> Avoided = new();
 
         private static Vector3Int Cell(Vector3 p) => new(Mathf.RoundToInt(p.x * 2f), 0, Mathf.RoundToInt(p.z * 2f));
@@ -61,11 +60,7 @@ namespace VikingsForHire.Hirelings.Work.Trees
                 return false;
             if (Physics.Raycast(p + Vector3.up * 0.5f, Vector3.up, 100f, RoofMask))
                 return false;
-            // Far enough from buildings (the sign aside) that the woodcutter will fell it when it's grown.
-            Pieces.Clear();
-            Piece.GetAllPiecesInRadius(p, VfhConfig.TreeSafetyDistanceFromPieces.Value, Pieces);
-            if (Pieces.Any(x => x != null && x.GetCreator() != 0L && x.GetComponent<TreePatch>() == null && x.GetComponent<Hireling>() == null && x.GetComponent<Plant>() == null))
-                return false;
+            // Not kept off buildings: woodcutters fell anything in a patch, walls round it or not.
             foreach (PrivateArea area in PrivateArea.m_allAreas)
             {
                 if (area == null || !area.IsEnabled() || !area.IsInside(p, 0f))

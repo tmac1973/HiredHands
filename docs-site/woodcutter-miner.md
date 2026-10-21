@@ -17,7 +17,7 @@ The tool decides what it can work: a tree or rock its axe or pickaxe is too weak
 
 - **Trees:** a woodcutter leaves trees with a building within 6 m of the trunk (`TreeSafetyDistanceFromPieces`), and
   fells a tree only in a direction where it won't land on anything you built (`TreeFallCorridorHalfWidth`). If no
-  direction is clear, the tree stays standing.
+  direction is clear, the tree stays standing. Inside a [tree patch](#tree-patches) this doesn't apply.
 - **Rocks:** a miner leaves rocks that touch your builds or have a piece within 3 m of them
   (`MinerSafetyDistanceFromPieces`): the rock may be holding the build up.
 - **Digging:** at home a miner never digs the ground (`MinerProtectsTerrain`). Out in the field, with no building within
@@ -60,9 +60,12 @@ planted when chosen); looking at it shows the patch's circle.
 
 Woodcutters whose work radius covers it plant free spots from the seeds in your chests (beech seeds, birch seeds, acorns,
 fir and pine cones, modded tree saplings), now and then between felling, only kinds their axe can fell (birch and oak
-need the bronze axe, level 3) and only where they'll grow and can be felled later (clear of buildings). When it plants
-nothing, its **Problems** list says why: its axe can't fell those trees yet, no seeds in a chest it may take from, or no
-free spot in the circle. Grown trees in a patch are felled like any other.
+need the bronze axe, level 3) and only where they'll grow. When it plants nothing, its **Problems** list says why: its
+axe can't fell those trees yet, no seeds in a chest it may take from, or no free spot in the circle.
+
+The rule about buildings doesn't apply inside a patch: woodcutters plant and fell there even right beside a wall, so you
+can wall a patch in to keep monsters off its sign. A tree there falls the clearest way it has, and into the wall if it
+must (the Steward repairs it). Grown trees in a patch are felled like any other.
 `WoodcuttersPlantTrees` (Work) turns it off.
 
 ## In the field

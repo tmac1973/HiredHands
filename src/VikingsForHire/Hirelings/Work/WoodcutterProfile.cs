@@ -8,7 +8,8 @@ namespace VikingsForHire.Hirelings.Work
 {
     /// <summary>
     /// Standing trees, then the logs and stumps they leave. Trees near player buildings are left alone (within
-    /// TreeSafetyDistanceFromPieces, or within the tree's own height), so a falling trunk never lands on the base.
+    /// TreeSafetyDistanceFromPieces, or within the tree's own height), so a falling trunk never lands on the base;
+    /// except in a tree patch, which is for felling.
     /// </summary>
     internal sealed class WoodcutterProfile : IGatherProfile
     {
@@ -83,9 +84,13 @@ namespace VikingsForHire.Hirelings.Work
             fellDir = null;
             reason = "";
             Vector3 at = target.transform.position;
+            // A tree patch is for felling: walls round it (Tim walls his patches so monsters leave the sign alone) don't
+            // stop it. A tree there falls the clearest way it has, and into a wall if it must (stone takes it, the
+            // Steward mends it).
+            bool patch = Trees.TreePatch.InAny(at);
             if (target is not TreeBase)
             {
-                Piece? close = ClosestPiece(at, 2f);
+                Piece? close = patch ? null : ClosestPiece(at, 2f);
                 if (close != null)
                 {
                     reason = $"near buildings ({Describe(close, at)} < 2m)";
@@ -96,7 +101,7 @@ namespace VikingsForHire.Hirelings.Work
 
             float height = Height(target);
             float clear = VfhConfig.TreeSafetyDistanceFromPieces.Value;
-            Piece? closest = ClosestPiece(at, clear);
+            Piece? closest = patch ? null : ClosestPiece(at, clear);
             if (closest != null)
             {
                 reason = $"near buildings ({Describe(closest, at)}, needs {clear:0.#}m clear around the trunk)";
@@ -127,6 +132,11 @@ namespace VikingsForHire.Hirelings.Work
             }
             if (best == null)
             {
+                if (patch)
+                {
+                    fellDir = away;
+                    return true;
+                }
                 reason = $"near buildings (no clear direction to fell a {height:0}m tree)";
                 return false;
             }

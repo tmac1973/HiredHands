@@ -115,6 +115,10 @@ namespace VikingsForHire.Hirelings.Work.Trees
         /// <summary>Keep the circle shown (while the settings panel is open).</summary>
         public void ShowRing() => UI.AreaRing.On(this, new Color(0.4f, 1f, 0.4f, 0.8f)).Show(Radius);
 
+        /// <summary>Whether a spot is inside some tree patch's circle.</summary>
+        public static bool InAny(Vector3 p) =>
+            Loaded.Any(t => t != null && t.Zdo != null && Utils.DistanceXZ(t.transform.position, p) <= t.Radius);
+
         /// <summary>The patches whose sign is within a worker's area.</summary>
         public static IEnumerable<TreePatch> Within(Vector3 center, float radius) =>
             Loaded.Where(p => p != null && p.Zdo != null && Utils.DistanceXZ(p.transform.position, center) <= radius);
