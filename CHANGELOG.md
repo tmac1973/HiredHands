@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.12.8
+
+Works alongside 0.12.x; update the server and players when it suits you (the fixes run on whoever has the base loaded).
+
+- **Logs in shallow water get cleared:** a woodcutter left logs lying in an ankle-deep stream "in the water". Now only
+  something too deep to wade to (over about 1.2 m all round it) is left alone.
+- **The woodcutter says why it isn't planting:** when a tree patch gets nothing planted, its Problems list (Shift+E)
+  says why: its axe can't fell those trees yet (birch and oak need the bronze axe, level 3), no seeds in a chest it may
+  take from, or no free spot in the circle.
+
 ## 0.12.7
 
 Works alongside 0.12.x; update the server and players when it suits you (the fixes run on whoever has the base loaded).
