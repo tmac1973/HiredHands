@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.10
+
+For Valheim 1.0.21. Works alongside 0.12.x, but update soon if you've updated the game: on 1.0.21, 0.12.7 to 0.12.9
+can stop spits and ovens cooking.
+
+- **Spits and ovens cook again on Valheim 1.0.21:** the game update changed a cooking-station method that Hired Hands
+  uses to keep food from burning while you're away. With the older versions, a spit or oven owned by a player on the
+  new game version stopped cooking altogether. Food left in a Cook's kitchen still won't burn while you're gone.
+
 ## 0.12.9
 
 Works alongside 0.12.x; update the server and players when it suits you.
