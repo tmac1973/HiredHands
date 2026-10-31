@@ -3,6 +3,17 @@
 A running tab between releases. Each fix lands here as it's made; the batch test after a play session works through
 the "To test" list, then the results go into `docs/test-checklist.md` and this file starts over for the next version.
 
+## Next (not packaged yet)
+
+### Fixed or added
+| Commit | What | Where it runs |
+|---|---|---|
+| (game-1021 branch) | Valheim 1.0.21 (2026-10-28): every game member 0.12.9 uses was resolved against the new assemblies (991 of them, with Mono.Cecil): one is gone, `CookingStation.SetSlot`, which gained a sixth parameter (who put the food on). KitchenWatch (0.12.7, food doesn't burn while you're away) called it, so on 1.0.21 that patch can't run at all: the missing method fails the whole prefix before its try, and with it the spit's or oven's own update, so stations owned by someone on 0.12.9 may not cook. KitchenWatch and the `stove_fill` fixture now write the slot's saved values the way SetSlot does, so they work on 1.0.20 and 1.0.21. The new build resolves all 991 against 1.0.21. Both servers already run 1.0.21 with 0.12.7/0.12.9: no patch failed to apply (the one Harmony warning there, `Ship.UpdateSail`, is Atlas Pirate Ships) | whoever owns the cooking station |
+
+### To test (batch)
+- [ ] Cook rows: VFH-COOK-AWAY, VFH-COOK-AWAY0, COOK-1..9, COOK-TRIPLE, COOK-HEARTH, COOK-STONE on 1.0.21.
+- [ ] By hand: a spit or oven with a Cook near it cooks on 1.0.21.
+
 ## 0.12.9 (packaged 2026-10-21, branch `patch-walls`): woodcutters work walled tree patches
 
 ### Fixed or added

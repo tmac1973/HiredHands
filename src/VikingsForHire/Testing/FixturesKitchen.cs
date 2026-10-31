@@ -56,7 +56,7 @@ namespace VikingsForHire.Testing
                 CookingStation st = FixturesWork.FindTagged(args.ElementAtOrDefault(0) ?? "")?.GetComponentInChildren<CookingStation>() ?? throw new InvalidOperationException("no tagged stove");
                 st.m_nview.ClaimOwnership();
                 for (int i = 0; i < st.m_slots.Length; i++)
-                    st.SetSlot(i, args.ElementAtOrDefault(1) ?? "RawMeat", 0f, CookingStation.Status.NotDone, false);
+                    Hirelings.Work.Kitchen.KitchenWatch.SetSlot(st, i, args.ElementAtOrDefault(1) ?? "RawMeat", 0f, CookingStation.Status.NotDone, false);
                 return FixturesWork.Brief();
             });
             Fixtures.Add("stove_rewind", "<tag> <seconds> - a tagged stove last updated that long ago (as when its area was unloaded while you were away)", args =>

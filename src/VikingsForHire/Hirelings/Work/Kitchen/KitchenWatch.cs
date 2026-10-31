@@ -47,16 +47,16 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
                     if (st == CookingStation.Status.Done)
                     {
                         // Done already: it waits there done (a full cook time before it could burn once someone's back).
-                        __instance.SetSlot(i, item, Mathf.Min(cooked, cookTime), st, cheated);
+                        SetSlot(__instance, i, item, Mathf.Min(cooked, cookTime), st, cheated);
                         saved++;
                     }
                     else if (cooked + away >= cookTime)
                     {
-                        __instance.SetSlot(i, c.m_to.name, cookTime, CookingStation.Status.Done, cheated);
+                        SetSlot(__instance, i, c.m_to.name, cookTime, CookingStation.Status.Done, cheated);
                         saved++;
                     }
                     else
-                        __instance.SetSlot(i, item, cooked + (float)away, st, cheated);
+                        SetSlot(__instance, i, item, cooked + (float)away, st, cheated);
                 }
                 if (saved > 0)
                     VfhLog.I(LogCat.Work, "cook.watched", ("station", __instance.transform.position), ("away", Math.Round(away)), ("kept", saved));
@@ -65,6 +65,20 @@ namespace VikingsForHire.Hirelings.Work.Kitchen
             {
                 VfhLog.PatchFailed("KitchenWatch.UpdateCooking", e);
             }
+        }
+
+        /// <summary>
+        /// A slot's saved state, written as the game's own SetSlot writes it. Not a call to SetSlot: Valheim 1.0.21 added a
+        /// parameter to it, and a build calling the old one couldn't even run this patch (the missing method fails the
+        /// whole prefix before its try, and the spit's update with it).
+        /// </summary>
+        internal static void SetSlot(CookingStation st, int slot, string item, float cooked, CookingStation.Status status, bool cheated)
+        {
+            ZDO zdo = st.m_nview.GetZDO();
+            zdo.Set("slot" + slot, item);
+            zdo.Set("slot" + slot, cooked);
+            zdo.Set("slotstatus" + slot, (int)status);
+            zdo.Set(ZDOVars.s_cheatedQueued + slot, cheated);
         }
 
         // In the area of an active Cook (round its post when posted). Boards from the world data, not the loaded objects:
