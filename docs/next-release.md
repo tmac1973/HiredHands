@@ -11,7 +11,8 @@ the "To test" list, then the results go into `docs/test-checklist.md` and this f
 | (game-1021 branch) | Valheim 1.0.21 (2026-10-28): every game member 0.12.9 uses was resolved against the new assemblies (991 of them, with Mono.Cecil): one is gone, `CookingStation.SetSlot`, which gained a sixth parameter (who put the food on). KitchenWatch (0.12.7, food doesn't burn while you're away) called it, so on 1.0.21 that patch can't run at all: the missing method fails the whole prefix before its try, and with it the spit's or oven's own update, so stations owned by someone on 0.12.9 may not cook. KitchenWatch and the `stove_fill` fixture now write the slot's saved values the way SetSlot does, so they work on 1.0.20 and 1.0.21. The new build resolves all 991 against 1.0.21. Both servers already run 1.0.21 with 0.12.7/0.12.9: no patch failed to apply (the one Harmony warning there, `Ship.UpdateSail`, is Atlas Pirate Ships) | whoever owns the cooking station |
 
 ### To test (batch)
-- [ ] Cook rows: VFH-COOK-AWAY, VFH-COOK-AWAY0, COOK-1..9, COOK-TRIPLE, COOK-HEARTH, COOK-STONE on 1.0.21.
+- [x] Confirmed the break: the released 0.12.9 on 1.0.21 threw `MissingMethodException: CookingStation.SetSlot` on every spit update (306 in one row) and VFH-COOK-1 failed (the spit never cooked).
+- [x] With the fix on 1.0.21 (2026-10-31): all 11 cook rows (COOK-1, HEARTH, STONE, TRIPLE, AWAY, AWAY0, oven, cauldron, chain, protect, floor) and smoke rows WORK-1, DLV-1, COMBAT-1, NAV-1, WIZ-1, RANCH-2 pass; no MissingMethodException. Full regression not run.
 - [ ] By hand: a spit or oven with a Cook near it cooks on 1.0.21.
 
 ## 0.12.9 (packaged 2026-10-21, branch `patch-walls`): woodcutters work walled tree patches
